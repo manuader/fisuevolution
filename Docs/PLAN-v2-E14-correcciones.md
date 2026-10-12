@@ -18,6 +18,7 @@
 | C7 | Viaje en ascensor: por las ventanas se ve la torre pasando, piso por piso | `ElevatorRideView`, `ElevatorCabin`, `BoardScene` (cámara) | quizás (ventanas de la cabina en video) | anotada |
 | C8 | La moneda premium deja de llamarse ORO: ahora es el **dólar blue**, con su ícono | `Localizable.xcstrings`, `GameArt` (`ui_oro`), App Store Connect | **sí: `ui_dolar_blue`** | prompt listo |
 | C9 | Las dos esquinas de arriba, como Cow Evolution: premios a la izquierda; especial + boosts + relojes a la derecha | `SideRailView`, `ActiveBonusBar`, `StageChips`, `PlayColumn`/`HUDView` | **sí: 4 botones** | prompts listos |
+| C10 | La caja y el colchón del tablero: ~90 % más grandes y más arriba, a la vista | `PickupLayout`, `PickupController`, `PickupNode`, `PackageOpeningPlayer` | no | anotada |
 
 ---
 
@@ -398,3 +399,44 @@ visitante (`StageChips`) está centrado bajo el HUD.
 **Listo cuando:** en la pantalla principal, arriba a la izquierda están los sellos de premios con su
 cinta de estado, y arriba a la derecha la tarjeta del especial y, debajo, los relojes y los boosts.
 Abajo no queda nada flotando sobre el tablero, salvo la ficha del Fisura.
+
+## C10 — La caja y el colchón: más grandes y más arriba
+
+Referencia: `Docs/correcciones-v2/C10-caja-chica-tapada.webp` (la caja de la Aduana, diminuta, entre
+el regalo flotante y la ficha del Fisura, medio tapada).
+
+**Lo que dijo el dueño:** las cajas aparecen muy chiquitas y en la parte de abajo, justo arriba del
+menú, donde las tapa el botón de comprar (la ficha del Fisura) y el de reencarnar. No se ve la
+animación de la caja al abrirse y no se entiende qué pasa. Lo mismo con el colchón: chico y abajo,
+y el jugador no ve dónde aparece ni lo puede tocar. Tienen que ser **entre 80 % y 100 % más
+grandes** y aparecer **más arriba**, visibles.
+
+**Hoy (verificado en `Scenes/Prizes/PickupLayout.swift`):**
+
+- `sideRatio = 0.62`: la caja mide 0,62 celdas (unos 45 pt en un teléfono de 393 pt).
+- `baselineY = bottomInset + cellSize * 0.25`: la misma línea baja del visitante, pegada a la barra
+  inferior. Paquete en x = 31 % (justo donde está la ficha del Fisura), colchón en x = 69 % (donde
+  está el botón de reencarnar).
+
+**Qué hacer:**
+
+1. **Tamaño:** `sideRatio` de 0,62 a **~1,15** (+85 %, dentro del 80–100 % pedido). Se ajusta mirando
+   el SE para que tres cajas apiladas (`maxVisibleBoxes`) no tapen media pantalla. Si no entran,
+   `stackStep` se achica o el tope baja a 2 visibles con un «×N».
+2. **Altura:** la línea de las cajas deja de ser la del borde inferior. Pasa a la línea del horizonte
+   de C2 (la misma donde se para el visitante), o, si en algún fondo queda muy arriba, a una franja
+   fija por encima de la ficha del Fisura y del botón de reencarnar, con un margen medido contra sus
+   marcos reales y no contra un número. Ninguna parte de la caja ni del colchón puede quedar debajo
+   de un control.
+3. **Horizontal:** paquete y colchón a los lados del centro, de modo que no choquen con el visitante
+   parado en el medio (C2) ni con las columnas de las esquinas (C9). Se respeta `edgeClearance`.
+4. **La apertura se ve entera:** `PackageOpeningPlayer` y el clip `paquete_abre`/`colchon_abre` se
+   reproducen en el lugar nuevo y a la escala nueva, sin recortarse contra el HUD. Al abrirse sigue la
+   pantalla de premio de C4.
+5. **El toque:** el área de toque crece con la caja (hoy `insetBy(-8)`); objetivo ≥ 60 pt.
+6. Se actualizan los tests de `PickupLayout` y los UI tests que tocan la caja o el colchón por
+   coordenadas.
+
+**Listo cuando:** en el SE y en el Pro Max, con la ficha del Fisura y el botón de reencarnar a la
+vista, la caja y el colchón se ven enteros y se tocan sin tocar otra cosa, y la animación de apertura
+se ve completa.

@@ -10,6 +10,9 @@
 | # | Corrección | Toca | Arte nuevo | Estado |
 |---|---|---|---|---|
 | C1 | Fondos de piso: fuera los videos, sólo la foto | `FloorNode`, `BoardScene`, `loops_manifest.json` | no | anotada |
+| C2 | El visitante camina al medio y abre un popup; fuera el globo de abajo | `StageLayout`, `StageController`, `SpeechBubbleNode`, `VisitorPopupView` | no (usa los clips) | anotada |
+| C3 | La tarjeta del personaje especial, más chica y siempre arriba a la derecha | `StageChips` (`VisitorChip`, `ChallengeChip`), columna de juego | no | anotada |
+| C4 | Toda recompensa se ilustra: visitantes, eventos, Ruleta, Colchón, Paquete | popups de premio, `WheelView`, `MattressPopupView`, `EventPopupView` | **sí: 13 ilustraciones** | prompts listos |
 
 ---
 
@@ -49,3 +52,113 @@ usar solamente la foto, que está en mejor calidad.
 **Abierto:** el dueño habló de fondos «en 4K». Hoy no hay fuente 4K: las fotos del juego son
 2048 (las de `fisu-evolution-v2/output`, reescaladas desde originales de 1254). Default: quedan
 en 2048. Si se quieren en 4K, es un reescalado aparte (más peso en el bundle).
+
+---
+
+## C2 — El visitante camina al medio y abre un popup
+
+Referencia: `Docs/correcciones-v2/C2-visitante-tapa-botones.jpg`.
+
+**Lo que dijo el dueño:** el personaje especial que viene a decir algo hoy se para abajo de la
+pantalla. Él y su globo tapan los botones (Regalos, la ficha del Fisura) y la zona de juego, y
+estorba mucho. Tiene que venir caminando hasta el medio de la pantalla, **justo donde el fondo
+corta con el piso** (el horizonte), y al llegar, en vez del cuadro de texto, abrir un popup con su
+animación hablando, la frase y los bonus que ofrece. El popup se puede rechazar: el visitante se va
+y no estorba el juego.
+
+**Hoy (verificado):** `StageLayout.baselineY = bottomInset + cellSize * 0.25`, o sea que se para
+pegado a la barra de abajo. `StageController.wait` dibuja el `SpeechBubbleNode` sobre su cabeza.
+El popup (`VisitorPopupView`) existe, pero sólo se abre si tocás al visitante o el chip.
+
+**Qué hacer:**
+
+1. El punto de parada pasa a la línea del horizonte del fondo del piso: el borde fondo/piso de la
+   foto. Se mide por escenario: se suma un `horizon` (fracción de la altura) por fondo en
+   `floors` o en `assets_manifest › backgrounds` y se calibra mirando las 10 fotos. El visitante
+   queda centrado en x.
+2. Entra caminando con su clip de caminar (o el de `characters` o `talking`, con su
+   póster) hasta ese punto. Con Reduce Motion aparece sin caminar.
+3. Al llegar **no hay globo**: se abre solo el popup del visitante (el `SpeechBubbleNode` del
+   escenario se retira). El popup lleva:
+   - su animación hablando (`talking`, y si no hay, `portrait`), grande;
+   - la frase en el globo del popup, como hoy;
+   - la **ilustración de lo que ofrece** (C4) y los botones de opción;
+   - un botón de **«No, gracias»** explícito, además de la cruz. Rechazar = se va caminando y
+     termina la visita (sin penalidad, salvo que la mecánica ya la tenga, como el comisario).
+4. Si el jugador cierra el popup sin elegir, el visitante queda esperando en el horizonte y su
+   tarjeta (C3) lo reabre. No vuelve a abrir el popup solo.
+5. Cuidado con las colas: el popup no se abre encima de una celebración, un ascenso, el tutorial
+   o el viaje en ascensor. Espera su turno en la cola de popups que ya existe.
+
+**Listo cuando:** en un SE y en un 17 Pro Max, ningún visitante ni su texto tapan la barra de
+abajo, la ficha del Fisura ni Regalos. El popup sale solo al llegar, se puede rechazar, y los UI
+tests de visitantes están actualizados (hoy tocan al actor o al chip).
+
+## C3 — La tarjeta del personaje especial, más chica y arriba a la derecha
+
+**Lo que dijo el dueño:** la tarjeta del Vendedor Ambulante, el Puntero, el Turista Yanqui o
+cualquier especial que aparezca tiene que estar **siempre en la esquina superior derecha, por
+encima de todo**, y **más chica** (en la captura, la flecha «SMALLER» va del chip del camión al de
+la tarjeta: hoy ocupa todo el ancho). Ese es el lugar fijo del personaje especial. Al tocarla, abre
+su popup con animación y mensaje (C2).
+
+**Qué hacer:**
+
+1. `VisitorChip` y `ChallengeChip` pasan de la fila centrada bajo el HUD a la esquina superior
+   derecha, debajo del HUD y al costado del botón de herramientas (o en su lugar, si el dueño lo
+   decide al verlo). Tamaño compacto, del alto del chip del camión: la cara animada o el retrato,
+   el «!» que late y, como mucho, el nombre corto (o sólo la cara).
+2. Va por encima de cualquier otra capa del tablero (z / overlay), pero debajo de los popups.
+3. Mantiene la accesibilidad de hoy: es el objetivo de toque de VoiceOver.
+
+**Abierto:** si convive con el botón de herramientas en esa esquina o si lo desplaza. Default: va
+debajo de las herramientas, alineada a la derecha.
+
+## C4 — Toda recompensa se ilustra
+
+Referencia: `Docs/correcciones-v2/C4-referencia-cow-evolution-premio.webp` (el popup «Hidden
+Treasures» de Cow Evolution: el premio grande en el centro con rayos detrás, la pregunta y un
+botón de video).
+
+**Lo que dijo el dueño:** una recompensa nunca se describe sólo con texto: siempre hay una imagen
+que la ilustra. Vale para los popups de visitantes y especiales (el asset del personaje **y** el
+de la recompensa), los eventos, la Ruleta y el Colchón. Donde el premio es al azar, una imagen
+que muestre todas las posibilidades. Es prioridad en todo el juego.
+
+**Qué hacer:**
+
+1. Un componente único `RewardIllustration(kind:)`, que mapea cada tipo de efecto a su imagen
+   y lleva los rayos dibujados en código detrás (estilo Cow Evolution, en la paleta de la casa).
+   Va en `VisitorPopupView`, `EventPopupView`, `MattressPopupView`, la hoja del Paquete,
+   `WheelView` (antes de girar: `rw_mystery_all`; al caer: la del premio) y las ofertas.
+2. El mapa (de `visitors.json`, `events.json` y `wheel.json`):
+
+| Efecto | Imagen |
+|---|---|
+| `coinsSeconds` | `rw_coins` (nueva) |
+| `incomeMultiplier`, `passiveMultiplier` | `rw_income_mult` (nueva) |
+| `tapMultiplier` | `rw_tap_mult` (nueva) |
+| `spawnCostMultiplier` | `rw_hire_discount` (nueva) |
+| `clearBoostCooldowns` | `rw_boost_refresh` (nueva) |
+| `evolveBestUnit` | `rw_evolve` (nueva) |
+| `grantUnit` | `rw_free_unit` (nueva) |
+| `exchange` | `rw_exchange` (nueva) |
+| `fine`, `fee`, `take` | `rw_fine` (nueva) |
+| `arrest` | `rw_arrest` (nueva) |
+| `spendingFrozen` | `rw_frozen` (nueva) |
+| `oro` | `ui_oro` (existe) |
+| `package`, `packageRateMultiplier` | `pickup_package_full` / `ui_oro_package_rain` (existen) |
+| `skinChest` | `ui_chest_closed` (existe) |
+| `wheelSpin` | `wheel_icon` (existe) |
+| `gift` | `ui_gift_bow` (existe) |
+| Ruleta o Colchón antes de abrir (premio al azar) | `rw_mystery_all` (nueva) |
+| El Colchón abierto | `rw_mattress_treasure` (nueva) o el clip `colchon_abre` |
+| `modifier`, `gossip`, `callVisitor`, `video` | según lo que termine dando; si no da nada, sin imagen |
+
+3. Arte: proyecto `fisu-v2-premios` en `automatic-image-generation` (13 prompts escritos, con
+   el estilo de `references/style/icon.png`, la familia de los `ui_oro_*`). Motor Gemini con el
+   modelo **Flash**, modo `game-asset` (384 y 512). Entra por el `dropbox/` del pipeline como
+   siempre y pasa por la revisión del dueño.
+
+**Listo cuando:** ningún popup que ofrece o entrega algo muestra el premio sólo como texto, y la
+Ruleta y el Colchón muestran sus posibilidades con imagen antes de jugar.

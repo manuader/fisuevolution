@@ -24,6 +24,7 @@
 | C13 | El menú deslizable es UNA sola card fija; desliza el contenido de adentro; afuera, transparente | `MenuPagerView`, `panelSheet` (`PanelFrames.swift`), las hojas de cada pestaña | no | anotada |
 | C14 | El atajo de contratar suma la opción «El primero del piso» | `QuickHirePicker`, `QuickHireButton`, `GameState+Hiring`, `meta` del save | no | anotada |
 | C15 | El vendedor se va ofendido si no le comprás; TODOS los popups, centrados, contenidos y con una sola estética | las 10 vistas con `presentationDetents`, `PanelFrames.swift`, `VendorCardsView` | **sí: vendedor enojado** | prompt listo |
+| C16 | Los que se llevan un empleado lo piden como el alien de Cow Evolution: globo con la cara del empleado | `StageController`, `SpeechBubbleNode` (→ globo de pedido), mecánicas `take`/`arrest`/`sale` | no (usa las caras) | anotada |
 
 ---
 
@@ -645,3 +646,47 @@ hoja desde abajo: la card se sale por el borde inferior y debajo se ve un fondo 
 
 **Listo cuando:** ningún popup del juego se sale de la pantalla ni muestra fondo blanco afuera del
 marco, todos se ven con la misma estructura, y decirle que no al vendedor lo hace irse ofendido.
+
+## C16 — Pedir un empleado como el alien de Cow Evolution
+
+Referencia: `Docs/correcciones-v2/C16-cow-alien-pide-vaca.jpg` (el círculo rojo: el alien en su
+platillo, con un globo de pensamiento rosa que muestra la cara de la vaca que quiere llevarse).
+
+**Lo que dijo el dueño:** cuando la influencer, el comisario o cualquier especial quiere llevarse a uno
+de tus empleados, aparece el popup que explica el pedido, pero **en la pantalla** el personaje se ve
+como el alien de Cow Evolution: con una burbuja que pide al empleado **mostrando su cara**. Tiene que
+verse igual, adaptado al Fisu y con su identidad visual.
+
+**Qué mecánicas son (de `visitors.json`):** `take` (influencer_novio: 1 empleado; puntero_acto: 3),
+`arrest` (comisario_arresto, arca_paraiso) y `sale` (turista_compra: te compra uno por ×4). Las
+tres eligen el empleado con `pick` (`lowestDuplicate` / `highestDuplicate`).
+
+**Qué hacer:**
+
+1. **El globo de pedido:** sobre la cabeza del visitante, parado en su lugar del horizonte (C2), un
+   globo de pensamiento (las burbujitas que bajan hasta la cabeza, como en la referencia) en la
+   paleta de la casa (crema con borde tono-sobre-tono, o un color de acento por mecánica: rojo para
+   arresto, rosa para la influencer, verde para la venta), con **la cara del empleado elegido**
+   (`VisitorFace`/la cara del tier, con su skin puesta). Si pide 3, las tres caras chiquitas o la
+   cara con un «×3». El globo late suave para llamar la atención (con Reduce Motion, quieto).
+2. **El flujo:** al llegar, primero sale el popup (C2/C15) con la frase, la cara del empleado y la
+   recompensa ilustrada (C4): «Dárselo» / «No». Si se cierra sin elegir, el visitante queda esperando
+   con el globo. Tocar el globo o al visitante reabre el popup. **Además, como en Cow Evolution:
+   arrastrar al empleado pedido hasta el visitante** lo entrega (con feedback de «ése sí» al soltar
+   sobre él y de rebote si no es el pedido). Las dos vías llaman a la misma acción del juego.
+3. El empleado pedido se marca en el tablero mientras dure el pedido (un contorno o un «!» chico
+   del color del globo) para que se encuentre.
+4. Al entregarlo, el empleado camina hasta el visitante y se van juntos, o el comisario se lo lleva
+   esposado (`visitorActions` del comisario, que ya existe). Al decir que no, la reacción de cada
+   uno (C15).
+5. Reemplaza al `SpeechBubbleNode` de texto en estos pedidos: la frase vive en el popup y en la
+   escena sólo queda la cara.
+6. Tests: el globo muestra al tier que eligió el `pick`; arrastrar el correcto entrega y uno
+   incorrecto no; tocar el globo abre el popup.
+
+**Abierto:** Cow Evolution pone al alien abajo a la izquierda, sobre el tablero. Acá el dueño ya pidió
+que abajo no quede nada (C2, C10), así que el default es el horizonte, en el medio. Si lo quiere en
+una esquina como en la referencia, se cambia.
+
+**Listo cuando:** la influencer, el comisario, el puntero y el turista muestran en el escenario un
+globo con la cara del empleado que piden, y se puede entregar por el popup o arrastrándolo.

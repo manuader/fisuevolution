@@ -32,6 +32,7 @@
 | C21 | El desbloqueo de un piso nuevo no se puede saltear | `BoardScene.tapDuringCelebration`, `CelebrationQueue.skip`, `CinematicOverlay` | no | anotada |
 | C22 | Los 43 personajes base, sólo estáticos: fuera sus videos (los especiales y lo demás siguen animados) | `loops_manifest.json › characters`, `ArtClips`, `BoardScene`, `CharacterSheetView`, `AnimPacks/anim-piso-*` | no | anotada |
 | C23 | Compartir: la oferta y la imagen compartida muestran al personaje con su skin, no un ícono | `ShareMomentChip`, `ShareCardView` (`ShareCardContent`) | no (usa el arte existente) | anotada |
+| C24 | Compartir es parte de la celebración del personaje nuevo: grande, con su foto, y el juego sigue recién al elegir | celebración de personaje nuevo (`boardCelebration`), `ShareMomentChip` (se retira para este caso) | no | anotada |
 
 ---
 
@@ -938,3 +939,38 @@ jugador tiene más ganas de compartir el logro.
 
 **Listo cuando:** al desbloquear un personaje, la oferta de compartir muestra su cara con la skin, y la
 imagen que llega a WhatsApp/Instagram es el personaje real sobre su piso, con el logo del juego.
+
+## C24 — Compartir, dentro de la celebración del personaje nuevo
+
+**Lo que dijo el dueño:** el botón de compartir tiene que ser más vistoso y aparecer **en el mismo
+momento en que aparece el personaje nuevo**, junto con su foto. Si el jugador decide no compartir,
+**recién ahí** sigue el juego.
+
+**Hoy:** el personaje nuevo dispara la celebración del tablero (apaga la UI, «algo nuevo»,
+SESION-2026-08-17); al terminar aparece, aparte y abajo, el chip de compartir (`ShareMomentChip`,
+10 s, «nunca es un popup»). Esta corrección **revoca esa regla para el personaje nuevo**.
+
+**Qué hacer:**
+
+1. Cierre de la celebración de **personaje nunca visto** = una card de revelación en el contenedor
+   único de C15: el personaje **grande con su skin** (y su animación de entrada; estático por C22),
+   rayos detrás (C4), su nombre en la cinta de título y una frase corta de presentación.
+2. Debajo, dos botones de la gramática de C19, lado a lado:
+   - **«¡Compartir!»** (el principal, grande y vistoso, con el bonus «+N min» bien visible): abre la
+     hoja de compartir con la imagen de C23. Al volver del share sheet se cobra el bonus como hoy
+     (sólo si se completó) y sigue el juego.
+   - **«Seguir»** (secundario): cierra y sigue el juego, sin bonus.
+3. Mientras la card está abierta el juego queda en pausa visual (el tablero detrás atenuado, sin
+   toques). Es lo único que bloquea; nada más se suma a la cola encima.
+4. **Cuándo:** cada personaje nunca visto y Dios. Piso nuevo y reencarnación siguen con la oferta
+   chica de C23 (arriba, no bloqueante). **Default del agente:** los primeros personajes del
+   tutorial (Fisura → Trapito → Limpiavidrios), que salen en minutos, muestran la card **sin** el
+   botón de compartir (sólo «¡Genial!»), para no cortar el arranque cada 30 s; a partir del cuarto,
+   con compartir. Si el dueño lo quiere en todos, se saca la excepción.
+5. Encaja con C21: si un personaje nuevo coincide con un piso nuevo, primero la celebración del piso
+   (insalteable) y después la card del personaje.
+6. Tests: un personaje nuevo abre la card con `share.offer`; «Seguir» la cierra sin bonus; compartir
+   completado da el bonus una vez; el juego no recibe toques mientras está abierta.
+
+**Listo cuando:** al fusionar y descubrir un personaje, aparece su card con su foto y el botón grande
+de compartir, y el tablero sigue recién después de elegir compartir o seguir.

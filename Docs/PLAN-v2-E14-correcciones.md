@@ -13,6 +13,8 @@
 | C2 | El visitante camina al medio y abre un popup; fuera el globo de abajo | `StageLayout`, `StageController`, `SpeechBubbleNode`, `VisitorPopupView` | no (usa los clips) | anotada |
 | C3 | La tarjeta del personaje especial, más chica y siempre arriba a la derecha | `StageChips` (`VisitorChip`, `ChallengeChip`), columna de juego | no | anotada |
 | C4 | Toda recompensa se ilustra: visitantes, eventos, Ruleta, Colchón, Paquete | popups de premio, `WheelView`, `MattressPopupView`, `EventPopupView` | **sí: 13 ilustraciones** | prompts listos |
+| C5 | Rotación pareja de visitantes; el vendedor deja de tener carril propio; decirle que no a cualquiera | `VisitorScheduler`, `visitors.json`, `VisitorPopupView` | no | anotada |
+| C6 | El visitante se queda en el piso donde apareció | `StageController`, `BoardScene` (capa del piso) | no | anotada |
 
 ---
 
@@ -162,3 +164,74 @@ que muestre todas las posibilidades. Es prioridad en todo el juego.
 
 **Listo cuando:** ningún popup que ofrece o entrega algo muestra el premio sólo como texto, y la
 Ruleta y el Colchón muestran sus posibilidades con imagen antes de jugar.
+
+## C5 — Rotación pareja de visitantes; fuera el carril del vendedor
+
+**Lo que dijo el dueño:** «Me pasé el juego y me apareció muchísimas veces más el vendedor
+ambulante que la vieja chusma, el ministro de Economía, el turista yanqui… creo que apareció más de
+10 veces el vendedor y ni una sola vez el turista ni la vecina.» El vendedor aparece muy seguido y
+estorba. Tiene que pasar más lento, los personajes se intercalan, ninguno es más probable que
+otro, en general te toca uno distinto cada vez y aparecen **todos** con su chiste y su ventaja.
+Al tocar a cualquiera (en especial al vendedor) se le puede decir que no y se va.
+
+**Por qué pasa (verificado en `VisitorScheduler.swift` y `visitors.json`):**
+
+- El vendedor tiene **carril propio** (`lane: vendor`): un reloj aparte cada
+  `vendorIntervalSeconds` = 180 s ± 30, con `dailyCap` = **20**. El resto comparte el carril
+  principal, cada 240–360 s. El vendedor sale más seguido que **todos los demás juntos**.
+- El carril principal sortea **guiones por peso**, no visitantes. Un visitante con dos guiones
+  (comisario, sindicalista, puntero, vecina…) pesa el doble. El `antiRepeat` = 3 mira guiones,
+  así que el mismo personaje puede volver con su otro guion.
+- Muchos guiones se filtran por `isOfferable` (`take` o `sale` necesitan duplicados) y por
+  `minTier`, y con un solo lugar en escena el carril del vendedor, más corto, gana la carrera.
+  **Hipótesis a confirmar con el simulador:** con un visitante por vez, el principal choca con el
+  vendedor ya en escena, cae en `retrySoon` y queda muerto de hambre. Eso explicaría «ni una sola
+  vez el turista».
+
+**Qué hacer:**
+
+1. **Un solo carril.** El vendedor entra a la rotación como uno más: se retiran `lane`,
+   `vendorIntervalSeconds` y `vendorJitterSeconds` (la validación «el vendedor, y sólo él, va por su
+   carril» se va con ellos), y su `dailyCap` baja a lo de los demás (2).
+2. **Bolsa barajada por visitante, no sorteo por peso.** Entre los visitantes elegibles
+   (desbloqueados por `minTier` y con algún guion ofrecible), cada uno sale **una vez** antes de
+   que alguno repita. Al vaciarse se rebaraja, sin repetir el último en el borde de la bolsa. Dentro
+   de un visitante, sus guiones se alternan. El `weight` deja de decidir quién viene (queda, como
+   mucho, para elegir entre los guiones de un mismo visitante).
+3. Si el elegido no tiene guion ofrecible ahora, se pasa al siguiente de la bolsa y él queda
+   primero para la próxima. No se pierde el turno ni se reintenta a los 30 s con el mismo.
+4. La bolsa y el último visitante se guardan en el save (los campos nuevos opcionales, con
+   migración sin pérdida).
+5. **Decir que no** (de C2): en el popup de cualquier visitante, incluido el vendedor, un «No,
+   gracias». Se va caminando y la visita cuenta como hecha, así la bolsa avanza.
+6. Test de EK: en una simulación de N visitas con todos desbloqueados, ningún visitante sale más
+   de una vez por vuelta de bolsa, y en 2 vueltas salen todos los elegibles. Test de regresión:
+   el vendedor no puede salir dos veces seguidas.
+7. Correr el simulador de pacing (`Tools/v2`) para medir cuánto cambia el ingreso por visitantes
+   al bajar el vendedor de ~20 a ~2 por día. Si el pacing se mueve, se ajusta y se avisa (Dios a
+   ~45 h es decisión cerrada).
+
+**Listo cuando:** una partida simulada hasta Dios muestra a los 18 visitantes, con conteos
+parejos entre los desbloqueados al mismo tiempo, y el vendedor en la misma proporción que el resto.
+
+## C6 — El visitante se queda en el piso donde apareció
+
+**Lo que dijo el dueño:** si cambiás de piso, el personaje tiene que quedarse en el piso en el que
+apareció. Hoy se mueve con vos, y se ve raro.
+
+**Hoy:** el `StageController` cuelga al actor de la capa de la cámara, no de la del piso.
+
+**Qué hacer:**
+
+1. La visita guarda el `ordinal` del piso donde apareció, y el actor se cuelga del `FloorNode` de
+   ese piso (o de una capa con su mismo desplazamiento). Al scrollear o usar el ascensor, se va con
+   su piso.
+2. El popup automático (C2) sólo sale si estás mirando ese piso. Si no, queda la tarjeta de la
+   esquina (C3), que al tocarla abre el popup directo, sin viajar. Default: la tarjeta lleva el
+   número de piso chiquito.
+3. La paciencia del visitante corre igual, estés o no en su piso.
+4. Si el piso se recicla (sale del rango vivo de `floorNodes`), el actor se vuelve a montar al
+   volver, con el mismo estado.
+
+**Listo cuando:** con un visitante esperando en el piso 3, viajar al 7 y volver lo muestra en el 3,
+nunca en el 7. Test de UI o de escena que lo cubra.

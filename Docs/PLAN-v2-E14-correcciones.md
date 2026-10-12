@@ -26,6 +26,7 @@
 | C15 | El vendedor se va ofendido si no le comprás; TODOS los popups, centrados, contenidos y con una sola estética | las 10 vistas con `presentationDetents`, `PanelFrames.swift`, `VendorCardsView` | **sí: vendedor enojado** | prompt listo |
 | C16 | Los que se llevan un empleado lo piden como el alien de Cow Evolution: globo con la cara del empleado | `StageController`, `SpeechBubbleNode` (→ globo de pedido), mecánicas `take`/`arrest`/`sale` | no (usa las caras) | anotada |
 | C17 | Intercambiar el orden: Empleado de Fast Food pasa a tier 7 y Chofer de App a tier 8 | `tiers.json`, migración del save | no | anotada |
+| C18 | Contratar y Reencarnar, pegados a la barra de abajo e integrados a ella | `RootView.bottomBar`, `QuickHireButton`, `PrestigeButton`, `BottomMenuBar` | no | anotada |
 
 ---
 
@@ -721,3 +722,38 @@ Oficinista (9).
 
 **Listo cuando:** en partida nueva, fusionar dos Repartidores da un Empleado de Fast Food y dos Fast
 Food dan un Chofer de App; un save de la v1 abre con la misma producción por segundo que tenía.
+
+## C18 — Contratar y Reencarnar, integrados a la barra de abajo
+
+**Lo que dijo el dueño:** los botones de contratar (la ficha del Fisura) y de reencarnar tienen que
+estar más abajo, pegados a la barra inferior o incluidos en ella, integrados visualmente, para que
+ocupen lo menos posible del área de juego y no estorben.
+
+**Hoy (verificado en `RootView.bottomBar`, ~l. 630):** un `VStack(spacing: 8)` con una fila aparte,
+`HStack { QuickHireButton; PrestigeButton }`, flotando **encima** de `BottomMenuBar`, con su propio
+alto (la ficha verde grande de la captura de C10) y 8 pt de aire. Es una franja entera robada al
+tablero.
+
+**Qué hacer:**
+
+1. **Una sola pieza:** los dos botones pasan a ser **solapas de la propia barra**, montadas sobre su
+   borde superior, del mismo material y con el mismo borde (crema con el contorno de la barra), como
+   la solapa amarilla de Contratar del centro de C12 que ya sobresale. Sin hueco entre ellas y la
+   barra: visualmente es la barra la que crece en esos dos lugares.
+2. **Más bajas:** la ficha de contratar se compacta a una fila: cara del personaje, precio con su
+   moneda y el chevron del picker (C14), sin el nombre en dos líneas; la altura que sobresale de la
+   barra es ≤ ~44 pt (objetivo de toque igual ≥ 44, por la solapa entera). Reencarnar, igual: su
+   ícono y su estado.
+3. **Ubicación:** contratar a la izquierda de la solapa central y reencarnar a la derecha, sin tapar
+   los íconos de la barra (que siguen repartidos a todo el ancho, C12) — o, si en el SE no entra,
+   las dos solapas sobre las pestañas de los extremos, que quedan debajo intactas. Se elige midiendo
+   las dos variantes en el SE y en el Pro Max.
+4. **Lo que gana el tablero:** el `bottomInset` del tablero, del escenario (C2) y de las cajas (C10)
+   se recalcula contra la barra nueva; todo lo que se apoyaba en la franja vieja baja.
+5. Los anclajes del tutorial (`.quickHire`, `.prestige`, `.bottomBar`), el picker de C14, los estados
+   (piso lleno, no alcanza, reencarnar bloqueado) y la accesibilidad siguen funcionando; se
+   actualizan los UI tests que tocan estos botones por posición.
+
+**Listo cuando:** entre el tablero y la barra no hay una franja aparte: contratar y reencarnar se
+leen como parte de la barra, y el tablero gana la altura que ocupaba la fila vieja (medido en pt en el
+SE y en el Pro Max).

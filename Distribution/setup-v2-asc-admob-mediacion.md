@@ -309,20 +309,41 @@ Propósitos que declara Google: publicidad de terceros, analytics y
 desarrollo del producto. La misma página pide que, **con mediación**, cada
 adaptador y SDK traiga su propio manifiesto de privacidad.
 
+**Lo que declaran los SDK de la mediación** (leído de los `PrivacyInfo.xcprivacy`
+de los binarios resueltos, 2026-10-12; mediación sólo con Unity Ads 4.21.0 y
+Meta Audience Network 6.22.0; AppLovin y Mintegral quedaron afuera):
+
+| SDK | `NSPrivacyTracking` | `NSPrivacyTrackingDomains` | `NSPrivacyCollectedDataTypes` |
+|---|---|---|---|
+| Unity Ads 4.21.0 | no lo declara (ausente) | ninguno | vacío. APIs de razón requerida: UserDefaults (CA92.1), FileTimestamp (C617.1), DiskSpace (E174.1) |
+| Meta Audience Network 6.22.0 | `true` | `ep1.facebook.com`, `ep6.facebook.com` | Crash Data y Other Diagnostic Data (analytics, sin vincular, sin tracking); Advertising Data (publicidad de terceros y analytics, vinculado, con tracking); Device ID (publicidad de terceros, vinculado, con tracking). APIs: UserDefaults (CA92.1), SystemBootTime (35F9.1), FileTimestamp (C617.1) |
+
+Consecuencias:
+
+- Meta declara **tracking** y vincula Device ID y Advertising Data: App Privacy
+  tiene que declarar "Data Used to Track You" (identificador de publicidad y
+  datos de publicidad), como la v1.
+- El `PrivacyInfo.xcprivacy` de la app describe el código de la app (que no
+  rastrea) y no cambia; App Privacy en App Store Connect declara la unión de
+  esta tabla y de la de Google (E10).
+- Los dominios de tracking de Meta (`ep1.facebook.com`, `ep6.facebook.com`) son
+  los que el dueño pasa cuando se decide `NSPrivacyTracking = true` en la app
+  (test `trackingNeedsDomains`); hasta entonces sigue `false`.
+
 Cómo armar la declaración de la 2.0:
 
 1. 🔒 Archive del build 2.0 → **Organizer → clic derecho en el archive →
    Generate Privacy Report**. Xcode junta los `PrivacyInfo.xcprivacy` de
    todos los SDK en un PDF con el formato de las etiquetas
    ([WWDC23, Get started with privacy manifests](https://developer.apple.com/videos/play/wwdc2023/10060/)).
-2. ⚠️ Revisar que el PDF **traiga los SDK de las 4 redes**. Hay reportes de
+2. ⚠️ Revisar que el PDF **traiga los SDK de las dos redes (Unity y Meta)**. Hay reportes de
    que sólo incluye los frameworks embebidos
    ([foro de Apple](https://developer.apple.com/forums/thread/734971)), y este
    proyecto ya tuvo los frameworks de AdMob como stubs en el archive
    (`checklist-submission.md`, punto 6). Si falta alguno, abrir el
    `PrivacyInfo.xcprivacy` del paquete SPM de esa red.
 3. 🔒 Declarar en App Store Connect **la unión** de lo que dicen Google y las
-   4 redes. Como punto de partida, la v1 declaró **"Data Used to Track You"**
+   dos redes. Como punto de partida, la v1 declaró **"Data Used to Track You"**
    (identificador de publicidad) más datos de uso y diagnóstico de
    publicidad de terceros (`checklist-submission.md`, punto 5).
 4. Tiene que coincidir con la política del sitio (4.2). Declarar de menos es

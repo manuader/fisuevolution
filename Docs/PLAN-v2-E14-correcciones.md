@@ -30,6 +30,7 @@
 | C19 | Fuera los botones y chips genéricos: todo botón es un asset custom del juego (regla global) | chip de ofertas, `ActionPill`/`PillBackground`, los ~124 SF Symbols de `UI/` | **sí: 7 íconos** | prompts listos |
 | C20 | Los avisos de «no hay lugar» / «no alcanza» (y todo toast) salen arriba, no abajo, y no frenan el juego | `RootView` (`TowerNoticeView`, toast de logros), `QuickHireButton` | no | anotada |
 | C21 | El desbloqueo de un piso nuevo no se puede saltear | `BoardScene.tapDuringCelebration`, `CelebrationQueue.skip`, `CinematicOverlay` | no | anotada |
+| C22 | Los 43 personajes base, sólo estáticos: fuera sus videos (los especiales y lo demás siguen animados) | `loops_manifest.json › characters`, `ArtClips`, `BoardScene`, `CharacterSheetView`, `AnimPacks/anim-piso-*` | no | anotada |
 
 ---
 
@@ -866,3 +867,36 @@ Si el piso tiene cinemática, `CinematicOverlay` muestra «Saltear» al segundo 
 
 **Listo cuando:** al desbloquear un piso, tocar la pantalla diez veces seguidas no acorta la
 celebración, y el resto de las celebraciones siguen salteables.
+
+## C22 — Personajes base y fondos, sólo imagen estática
+
+**Lo que dijo el dueño:** sacar los videos de las skins base; los personajes del tablero usan sólo
+imágenes estáticas. Los especiales y todo lo demás siguen con video. Para los personajes y **sobre
+todo para los fondos**, imagen estática: el fondo en video se ve mucho peor que las imágenes
+reescaladas de la última vez. (Los fondos ya están en C1; esto lo confirma y lo extiende a los
+personajes.)
+
+**Alcance (medido):** `loops_manifest.json › characters` tiene 53 clips: **43 de personajes base**
+(`homeless` … `trillonario`, 512×512, matte blanco, **8,6 MB**, repartidos en los packs ODR
+`anim-piso-1…10`) y 10 especiales (`sp_*`). Se consumen en `BoardScene` (~l. 1577 y 1755, el
+personaje del tablero y su skin activa), `CharacterSheetView` (la ficha), y vía `ArtClips.character`.
+
+**Qué hacer:**
+
+1. **Se quitan los 43 clips base:** sus entradas de `characters` (quedan sólo las `sp_*`), sus `.mov`
+   de los packs `AnimPacks/anim-piso-*` y, si un pack queda vacío, su `resourceTags` de
+   `project.yml` (y el pedido de ODR en `ArtPacks`). Bundle y descargas más livianos.
+2. `BoardScene`, `CharacterSheetView` y el Álbum/organigrama, si los usan, muestran siempre el PNG
+   del personaje con su skin (`*_idle__<skin>`), en la mejor resolución que haya. La vida del tablero
+   (deambular, rebote, fusión) sigue como hoy: es animación de SpriteKit, no video.
+3. **Siguen con video:** especiales (`sp_*` en el Álbum, el drop especial, el escenario), visitantes
+   (`portraits`, `talking`, `visitorActions`), eventos, íconos de la tienda, objetos (paquete y
+   colchón) y la cabina del ascensor (C7 decide sus ventanas). Los fondos de piso, fuera (C1).
+4. `VideoPlaybackPolicy` (tope de 3) gana lugares: revisar que el tope siga teniendo sentido.
+5. Pipeline: `Tools/asset-pipeline/scripts/video_assets.py` y su test dejan de esperar clips de
+   personajes base; `Tools/v2/oraculo.sh` y los tests de manifiesto se actualizan.
+6. Las skins de oro y diamante, si tenían brillo animado, se mantienen como animación de
+   SpriteKit sobre la imagen (no video).
+
+**Listo cuando:** ningún personaje base reproduce video en ninguna pantalla, el tamaño de los packs
+baja ~8,6 MB, y los especiales siguen animados.

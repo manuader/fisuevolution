@@ -2316,3 +2316,75 @@ lo tapó fue filtrar la salida con `grep` por las líneas que interesaban: el
 patrón se comió el encabezado. **Al barrer configs, comparar siempre la primera
 corrida contra la línea de base conocida antes de creerle a las demás** — acá el
 sanity check (1,06 tenía que dar 20,67 h y no dio) es lo que destapó todo.
+
+---
+
+# 2.0 — la calibración declarada (2026-10-12)
+
+El dueño pidió el 2026-10-12 que Dios llegue en ~45 h activas y no en ~31 («con todos los videos y anuncios y ventajas nuevas… los usuarios son propensos a terminar el juego muy rápido»; `tasks.md` §7 «2026-10-12»). La búsqueda de E2b T13 eligió las perillas y E2b T14 (`6c702730`) las declaró y prendió `PacingContractTests`. Todos los números de abajo son del CLI (`Tools/pacing-sim`, defaults del contrato: perfil `.free`, política ×5, descuento de prestigio cobrado, 400 días, semilla 0,5), corridos sobre `2e70dd83`. El detalle de la sesión, con la tabla por tarea y las preguntas al dueño, está en `Docs/SESION-2026-10-12-v2-e2b.md`.
+
+## El contrato de 45 h que prendió T14
+
+| # | Contrato | Medido |
+|---|---|---|
+| 1 | Dios entre 2.600 y 2.800 min activos | 2.724 min (**45,40 h**; semillas 0,1 y 0,9: 2.724 y 2.720) |
+| 2 | 5 o 6 reencarnaciones | **6** |
+| 3 | las 6 líneas al tope antes del 80 % de Dios y no antes de la 5ª | 2.080 min (76 %), a la 5ª |
+| 4 | 1ª reencarnación 1–2 h activas | **1,67 h** (semilla 0,9: 1,33) |
+| 5 | cada run más lejos y antes en lo ya visto | más lejos sí; «antes»: 11 tiers tardan más (provisorio, ≤ 15) |
+| 6 | reencarnar paga ≥ 65 % | 23 · 18 · 36 · 37 · 38 · 24 % (provisorio, ≥ 15 %) |
+| 7 | pisos: urban ≤ 1,5 · corporate 6–12 · luxury 45–80 · island 270–410 · moon 710–930 · mars 1.230–1.500 · solar 1.840–2.110 · galaxy 2.250–2.520 · Dios 2.600–2.800 | 0,5 · 10,2 · 60,2 · **240,9** · 720,5 · 1.380 · 1.980 · 2.401 · 2.724 (isla y luna provisorias: 215 y 680) |
+| 8 | sin reencarnar no se llega a Dios | llega a los 6.510 min = 2,39× Dios (provisorio, ≥ 2,3×) |
+| 9 | `.ads` ≥ 65 % y `.max` ≥ 55 % de `.free` | 69,1 % y 66,2 % (abajo) |
+| G | ORO al llegar a Dios 5.000–12.000 | 5.996 |
+
+- **Reencarnaciones (las 6):** a las 1,7 · 6,1 · 15,3 · 26,3 · 34,7 · 41,3 h activas; Dios a las 45,4 h (la 7ª run). ORO por reencarnación 1 · 4 · 20 · 102 · 541 · 3.066. Ley de diseño R ≈ ln(ORO_dios/ORO₁)/ln 5 = 5,40 contra 6 medidas.
+- **Tier máximo por run:** T14 · T19 · T23 · T27 · T31 · T35 · T37. Pared por run: T11 · T15 · T15 · T18 · T22 · T24 · T28. Techo del prestigio: 46 · 61 · 52 · 47 · 48 · 40 %.
+- **Las líneas:** son **seis** (no siete); con `baseCost` 2 suman 348 ORO (el cálculo continuo del simulador da 313,8).
+- **El piso de plausibilidad `minRealSecondsToGod` (E12 T17) no está definido en el repo.** No hay clave en ningún JSON ni en el código: es un valor de la tabla `settings` de Supabase (`min_real_seconds_to_god`), provisorio en **36.000 s (10 h)** según el plan de E12, y T17 lo fija como «la mitad del perfil `.max` más rápido, en horas de reloj real». Con los números de arriba: `.max` tarda **30,05 h activas / 537,05 h de pared**, o sea la mitad es 54.100 s (activas) o 966.700 s (pared). Cuál de los dos relojes es lo elige quien haga T17; este log sólo deja los dos.
+
+## La variante de precios elegida
+
+g **1,11** · r **1** · K **12**, más las bandas de escalada y el paso por piso (el par (1,12 · 2) se descartó: es un muro, Dios en 416 h):
+
+| Perilla | Valor |
+|---|---|
+| `hire.defaultCostGrowth` (g) | 1,11 |
+| `hire.mergeRefundCounts` (r) | 1 |
+| `hire.priceReliefPurchases` (K, amortiguador) | 12 |
+| `hire.escalationBands` (`fromTier`: `factor`) | 8: 1,7 · 13: 2,0 · 17: 2,2 · 21: 1,9 · 25: 1,6 · 29: 1,3 · 33: 1,0 |
+| `hire.costGrowthStepPerFloor` desde `luxury` | +0,03 |
+| `oro.divisor` | 8e11 (era 1e10; `oro.exponent` 0,25 y `globalMultiplierPerOro` 0,18 sin cambio) |
+| `staffedFloorBonus` · capacidad por piso | 0,05 · 15 |
+| `upgrades.json` `baseCost` | 2 (era 1) |
+| `treasures.json` colchón | cada 720 s (era 480), premio de ORO con peso 5 (era 15) |
+
+Lo que decidió cada una (candidata §5): el divisor atrasa la 1ª reencarnación (cuantizada a sesiones de 20 min: 0,67 → 1,00 → 1,33 → 1,67 → 2,00 h); las bandas son duras en los tiers 13–24 y suaves desde el 25 para que galaxy y Dios caigan juntos; K 12 deja luxury en 58–60 min (con K 24 caía a 36–41 y salía de su ventana de 45–80); r < 1 frena luxury y el arranque. La isla (270–410) choca con el punto 4: en las 81 corridas con Dios en ventana ninguna la tiene en 270 o más sin pasar la 1ª reencarnación de 2 h.
+
+## Los perfiles
+
+| Perfil | Dios (h activas) | de pared | % de `.free` | ORO a Dios | Reencarnaciones |
+|---|---|---|---|---|---|
+| `.free` | 45,40 | 816,07 | 100 % | 5.996 | 6 |
+| `.ads` | 31,36 | 561,02 | 69,1 % (guarda ≥ 65 %) | 7.846 | 6 |
+| `.max` | 30,05 | 537,05 | 66,2 % (guarda ≥ 55 %) | 8.344 | 6 |
+
+Con la pausa a 240 s, que es la de la app: el CLI usaba 120 s hasta T14 (el reparto de la alternancia no se aplicaba), y con 120 s la candidata de T13 midió 66,9 % y 65,5 %. Con las fuentes reales y sin el cambio del colchón, `.ads` quedaba en 60–61 %: el ORO de los premios del colchón es lo que lo acelera. El brief de T15 anotó `.max` en 30,36 h en el CLI contra 30,05 h en la app: la corrida de esta sesión da 30,05 h y la diferencia queda abierta.
+
+## Lo que el simulador modela y lo que no
+
+Modela: capacidad 15, pisos en marcha, piso móvil (la política ×5 sólo reencarna si además llegó a la pared anterior), herencia de pasivos, descuento de prestigio, escalada por bandas, «Fusionar todo» y los tres perfiles con su tiempo de video. No modela: el comportamiento de un jugador real (el bot reencarna por política y juega sesiones de 20 min), los eventos y los visitantes (se miden por presupuesto analítico, E2b T10) ni lo que no existe en el contenido.
+
+## Cómo re-correr y dónde está la evidencia
+
+```
+P=Tools/pacing-sim/.build/release/pacing-sim; R=FisuEvolution/Resources
+$P --economy $R/Data/economy.json --tiers $R/Data/tiers.json --upgrades $R/Config/upgrades.json --sources $R/Config --profile free   # ads | max
+$P … --no-reincarnation        # el punto 8
+$P … --seed-fraction 0.1       # y 0.9
+```
+
+- Las 75 corridas por mecánica de T12: `Docs/balance-run-v2-e2b-mecanicas.md` y `.csv`.
+- Las 208 corridas de la búsqueda de T13, con los flags completos: `Docs/balance-run-v2-e2b-candidata.md` y `.csv`.
+- El journal de la búsqueda (hipótesis, descartados con su número, el estado CERRADO): `.claude/avo/2026-10-12-e2b-t13-busqueda/journal.md`, en el checkout principal y excluido de git.
+- Recordatorio de método: **comparar siempre la primera corrida contra la línea de base conocida** (la trampa de la quinta ronda, arriba) y pasar `--upgrades`.

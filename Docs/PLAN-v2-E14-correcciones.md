@@ -27,6 +27,7 @@
 | C16 | Los que se llevan un empleado lo piden como el alien de Cow Evolution: globo con la cara del empleado | `StageController`, `SpeechBubbleNode` (→ globo de pedido), mecánicas `take`/`arrest`/`sale` | no (usa las caras) | anotada |
 | C17 | Intercambiar el orden: Empleado de Fast Food pasa a tier 7 y Chofer de App a tier 8 | `tiers.json`, migración del save | no | anotada |
 | C18 | Contratar y Reencarnar, pegados a la barra de abajo e integrados a ella | `RootView.bottomBar`, `QuickHireButton`, `PrestigeButton`, `BottomMenuBar` | no | anotada |
+| C19 | Fuera los botones y chips genéricos: todo botón es un asset custom del juego (regla global) | chip de ofertas, `ActionPill`/`PillBackground`, los ~124 SF Symbols de `UI/` | **sí: 7 íconos** | prompts listos |
 
 ---
 
@@ -757,3 +758,46 @@ tablero.
 **Listo cuando:** entre el tablero y la barra no hay una franja aparte: contratar y reencarnar se
 leen como parte de la barra, y el tablero gana la altura que ocupaba la fila vieja (medido en pt en el
 SE y en el Pro Max).
+
+## C19 — Nada genérico: todo botón es un asset custom (regla global)
+
+Referencia: `Docs/correcciones-v2/C19-chip-promo-generico.png` (el chip rosa de la oferta de la
+Mudanza: cápsula plana, un SF Symbol de camión blanco y el reloj).
+
+**Lo que dijo el dueño:** este botón promocional es demasiado genérico. Los botones **nunca** pueden ser
+así, cápsulas planas sin onda. Siempre tienen que ser **assets custom** que mantengan la identidad
+del Fisu: una promoción, un botón de la ruleta, lo que sea. Si el asset no existe, se crea y se mete al
+juego. Vale para los botones de los popups y del juego entero: toda la estética integrada, como en Cow
+Evolution o AdVenture Capitalist.
+
+**Alcance medido:** las tres ofertas (`offers.json`) usan SF Symbols (`box.truck.fill`,
+`hand.wave.fill`, `arrow.counterclockwise.circle.fill`); en `FisuEvolution/UI` hay **44** `systemName:`
+y **80** `systemImage:` (los que más: `lock.fill` ×8, `checkmark.circle.fill` ×6, `play.rectangle.fill`
+×5, `sparkles` ×5, `clock.fill` ×3).
+
+**Qué hacer:**
+
+1. **Regla del proyecto (va al HANDOFF §5 como decisión del dueño):** ningún control visible del juego
+   usa un SF Symbol ni una cápsula plana de sistema. Ícono = PNG del juego (`GameIcon`/`UIArt` con
+   fallback vectorial **dibujado**, nunca un SF Symbol). Botón = la gramática de botón de la casa.
+   Excepciones aceptadas: los glifos internos de accesibilidad y el andamiaje de DEBUG.
+2. **La gramática de botón, subida de nivel (estilo Cow Evolution / AdVenture Capitalist):** cuerpo
+   con volumen (cara clara arriba, labio oscuro abajo, contorno grueso tono-sobre-tono, sombra de
+   apoyo), un **medallón** a la izquierda con el ícono custom (como el play rojo del «Open» de Cow
+   Evolution) y el texto en `Tokens.title`. Colores por función: verde = gratis o cobrar, naranja =
+   cuesta plata del juego, celeste = dólar blue, rojo = video. Se construye sobre `PillBackground`
+   (vectorial, para no volver a estirar PNG 9-slice) y reemplaza a `ActionPill`, `PricePill` y
+   `RewardedOfferButton` en todo el juego.
+3. **El chip de oferta** pasa a ser un **sello de oferta**: el ícono custom de cada oferta
+   (`ui_offer_mudanza`, `ui_offer_bienvenida`, `ui_offer_renacer`) grande, con una cinta debajo con el
+   reloj (`ui_icon_clock`) — la misma familia que los sellos de la esquina de premios (C9). Vive en la
+   columna derecha de C9 (debajo del especial), no flotando suelto.
+4. **Íconos de uso general que reemplazan SF Symbols:** `ui_icon_video` (play), `ui_icon_clock`
+   (reloj), `ui_icon_lock` (candado), `ui_icon_check` (listo). Prompts 20 a 26 de `fisu-v2-premios`.
+   Para el resto de los símbolos se hace un barrido: cada uno se reemplaza por un asset existente
+   (`ui_*`, `rw_*` de C4) o se suma su prompt a la cola; la tabla del barrido va en el doc de sesión.
+5. Esta regla aplica a todo lo de E14: los sellos de C9, las pantallas de premio de C4, los popups de
+   C15, las solapas de C18 y la barra de C12.
+
+**Listo cuando:** un `grep` de `systemName:`/`systemImage:` en `FisuEvolution/UI` sólo devuelve
+accesibilidad o DEBUG, y todos los botones del juego comparten la gramática nueva.

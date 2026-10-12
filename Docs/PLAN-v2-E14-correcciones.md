@@ -28,6 +28,7 @@
 | C17 | Intercambiar el orden: Empleado de Fast Food pasa a tier 7 y Chofer de App a tier 8 | `tiers.json`, migración del save | no | anotada |
 | C18 | Contratar y Reencarnar, pegados a la barra de abajo e integrados a ella | `RootView.bottomBar`, `QuickHireButton`, `PrestigeButton`, `BottomMenuBar` | no | anotada |
 | C19 | Fuera los botones y chips genéricos: todo botón es un asset custom del juego (regla global) | chip de ofertas, `ActionPill`/`PillBackground`, los ~124 SF Symbols de `UI/` | **sí: 7 íconos** | prompts listos |
+| C20 | Los avisos de «no hay lugar» / «no alcanza» (y todo toast) salen arriba, no abajo, y no frenan el juego | `RootView` (`TowerNoticeView`, toast de logros), `QuickHireButton` | no | anotada |
 
 ---
 
@@ -801,3 +802,32 @@ y **80** `systemImage:` (los que más: `lock.fill` ×8, `checkmark.circle.fill` 
 
 **Listo cuando:** un `grep` de `systemName:`/`systemImage:` en `FisuEvolution/UI` sólo devuelve
 accesibilidad o DEBUG, y todos los botones del juego comparten la gramática nueva.
+
+## C20 — Los avisos salen arriba y no estorban
+
+**Lo que dijo el dueño:** al tocar contratar sin plata o sin lugar en el piso, el aviso («no hay más
+lugar en el piso», «no tenés monedas suficientes») aparece abajo, interfiere con la zona de juego, no
+deja espacio para mergear e interrumpe. Tiene que aparecer en la parte de más arriba.
+
+**Hoy (verificado):** el aviso de piso es `TowerNoticeView` (`RootView.swift` ~l. 178), que entra
+**desde abajo** (`.move(edge: .bottom)`) sobre el tablero, en la franja donde se juega; el toast de
+logros vive en el mismo lugar con el mismo patrón.
+
+**Qué hacer:**
+
+1. **Todo aviso pasajero** (piso lleno, no alcanza, aviso de torre, toast de logros y cualquier toast
+   nuevo de E14) aparece **arriba**: debajo del HUD, centrado entre las dos columnas de las esquinas
+   (C9), y entra desde arriba.
+2. **No frena el juego:** el aviso no come toques del tablero (`allowsHitTesting(false)` salvo su
+   propia X o su botón, si tiene); se puede seguir arrastrando y fusionando con el aviso a la vista.
+   Dura lo de hoy y se va solo; tocar otra vez contratar no apila otro, renueva el que está.
+3. **Estética:** en la gramática de C19 (cinta o cartel de la casa con su ícono custom: `ui_icon_lock`
+   para piso lleno, la moneda para no alcanza), no una cápsula plana.
+4. Si el aviso ofrece una salida («ver un video para liberar lugar», «ir al ascensor»), el botón va
+   dentro del aviso, arriba, sin abrir nada encima del tablero.
+5. Los UI tests que esperan el aviso (`tower.notice.*`, `quickhire.blocker.*`) se actualizan a la
+   posición nueva; las lecciones del tutorial que apuntan al aviso (`tutorial.floor_full.explain`)
+   también.
+
+**Listo cuando:** con el piso lleno, tocar contratar muestra el aviso arriba y en ese mismo momento se
+pueden fusionar dos empleados de la parte de abajo del tablero.

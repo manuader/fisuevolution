@@ -42,6 +42,26 @@ enum TutorialCurriculum {
         .explain("tour.done", text: "tutorial.tour.done", pose: "fisura_celebrate"),
     ]
 
+    /// El repaso pedido desde Ajustes: el núcleo y las lecciones ya vistas, en demostración. Cada
+    /// paso se vuelve de explicar y de tablero: una demostración no abre hojas, señala lo que
+    /// hay en el tablero y deja los pasos de hoja sin recorte ni mano.
+    static func replay(seenLessons: [GameState.TutorialLesson]) -> [TutorialStep] {
+        let lessons = GameState.TutorialLesson.allCases.filter(seenLessons.contains)
+        return (core + lessons.flatMap(\.steps)).map { step in
+            let onBoard = step.surface == .board
+            return TutorialStep(
+                id: "replay." + step.id,
+                kind: .explain,
+                target: onBoard ? step.target : nil,
+                boardTarget: onBoard ? step.boardTarget : nil,
+                surface: .board,
+                hand: onBoard ? step.hand : .none,
+                textKey: step.textKey,
+                pose: step.pose
+            )
+        }
+    }
+
     /// Lo que el Tour ya enseñó: al terminarlo quedan dadas.
     static let tourCoveredLessons: [GameState.TutorialLesson] = [
         .quickHire, .menuSwipe, .characterSheet, .elevator, .sideRail,

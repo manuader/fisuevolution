@@ -176,7 +176,8 @@ struct TutorialOverlay: View {
                 unlocked: run.unlocked,
                 lockProgress: { gameState.tutorialLockProgress },
                 confirmKey: isCoreClose ? "tutorial.done" : "tutorial.confirm",
-                onConfirm: gameState.confirmTutorialStep
+                onConfirm: gameState.confirmTutorialStep,
+                onEnd: endAction(run)
             )
             .frame(maxWidth: PlayColumn.tutorialCardMaxWidth)
             .padding(.horizontal, 14)
@@ -188,6 +189,12 @@ struct TutorialOverlay: View {
             ? .opacity
             : .scale(scale: 0.92).combined(with: .opacity))
         .id(run.index)
+    }
+
+    /// «Terminar repaso» sólo en el repaso; el Tour y las lecciones no se terminan antes.
+    private func endAction(_ run: TutorialRun) -> (() -> Void)? {
+        guard run.script == .replay else { return nil }
+        return { gameState.endReplay() }
     }
 
     // MARK: - Marcadores para los tests de UI

@@ -110,6 +110,7 @@ struct SettingsView: View {
                 audioSection(music: $audio.musicVolume, sfx: $audio.sfxVolume)
                 gameSection
                 notificationsSection
+                tutorialSection
                 purchasesSection
                 privacySection
                 legalSection
@@ -308,6 +309,50 @@ struct SettingsView: View {
     private func openSystemNotificationSettings() {
         guard let url = URL(string: UIApplication.openNotificationSettingsURLString) else { return }
         openURL(url)
+    }
+
+    // MARK: Tutorial
+
+    /// El repaso y el Tour piden su turno y cierran Ajustes: la hoja tapa el tablero, y el
+    /// director espera a que vuelva a estar a la vista. Con el núcleo sin hacer no hay nada que
+    /// repasar: las filas quedan apagadas y lo dicen.
+    private var tutorialSection: some View {
+        let available = gameState.tutorialReplayAvailable
+        return VStack(spacing: Tokens.s12) {
+            SectionHeader("settings.section.tutorial")
+            GameCard(style: .normal) {
+                VStack(spacing: Tokens.s8) {
+                    if !available {
+                        Text("settings.tutorial.locked")
+                            .font(Tokens.caption)
+                            .foregroundStyle(Color("PaletteInk").opacity(0.7))
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    ActionPill(
+                        titleKey: "settings.tutorial.replay",
+                        systemImage: "graduationcap.fill",
+                        tint: Color("PaletteBlue"),
+                        identifier: "settings.tutorial.replay"
+                    ) {
+                        gameState.requestTutorialReplay()
+                        close()
+                    }
+                    ActionPill(
+                        titleKey: "settings.tutorial.tour",
+                        systemImage: "sparkles",
+                        tint: Color("PaletteOrange"),
+                        identifier: "settings.tutorial.tour"
+                    ) {
+                        gameState.requestTour()
+                        close()
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .disabled(!available)
+                .opacity(available ? 1 : 0.5)
+            }
+        }
     }
 
     // MARK: Compras

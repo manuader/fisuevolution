@@ -15,6 +15,8 @@
 > principal y excluido de git. Al llegar: este general + el handoff más nuevo
 > de `handoffs/` + `PLAN-v2.md` + `tasks.md` + el journal.
 >
+> 📍 **Estado al cierre del relevo 38 (la ola AJ, 2026-10-12; manda sobre los párrafos de abajo):** `version-2` = código `efd25858` + docs del 38 (pusheado). **Progreso: 259 de 283 (91,5 %)**, sin cambios: entró un carry sin fila (los eventos de 25 s dicen «En curso»; fuera `tutorial.tip.wheel`). `rapido` de `efd25858` VERDE (EK 875 · unit 1763 · Release 0). Detalle: `Docs/SESION-2026-10-12-v2-relevo-38-ola-aj.md`. Todo lo que falta espera al dueño (ver `tasks.md` §4.2, «Relevo 39»).
+>
 > 📍 **Estado al cierre del relevo 37 (la ola AI, 2026-10-12; manda sobre los párrafos de abajo):** `version-2` = la punta de `v2i/integ-r37` (código `2c6ea5dc`, pusheado). **Progreso: 259 de 283 (91,5 %)**, sin cambios: entraron dos carries sin fila (el UI test del otro colchón y el pager que ya no marca pestañas a mitad de arrastre). `rapido` de `2c6ea5dc` VERDE (EK 875 · unit 1763 · Release 0). Detalle: `Docs/SESION-2026-10-12-v2-relevo-37-ola-ai.md`. Casi todo lo que falta espera al dueño (ver `tasks.md` §4.2, «Relevo 38»).
 >
 > 📍 **Estado al cierre del relevo 36 (la ola AH, 2026-10-12; manda sobre los párrafos de abajo):** `version-2` = la punta de `v2i/integ-r36` (código `9696c99e`, pusheado). **Progreso: 259 de 283 (91,5 %).** Entraron **E9b T3, T4, T5 y T10, E9a T10 y E6b T10: E9 y E6b quedan cerradas** salvo lo 🔒 del dueño. `completo` de `f8cbabc8` con 1 rojo real (arreglado en `bbabbb92`) y `rapido` de `9696c99e` VERDE + 20 UI de tutorial/Ajustes. Detalle: `Docs/SESION-2026-10-12-v2-relevo-36-ola-ah.md`. Lo que queda despachable sin el dueño es poco (ver `tasks.md` §4.2, «Relevo 37»).
@@ -368,6 +370,10 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-10-12 (relevo 38) — La ola AJ: el texto de los eventos de 25 s
+
+`eventPresence` muestra «En curso» (`bonus.chip.event_presence`) en el chip y en el popup del evento; sale la clave muerta `tutorial.tip.wheel`. El «Cargando…» sin red ya estaba resuelto por `InventoryWait`. 259 de 283. `Docs/SESION-2026-10-12-v2-relevo-38-ola-aj.md`.
 
 ### Sesión del 2026-10-12 (relevo 37) — La ola AI: dos carries sin fila
 
@@ -3222,6 +3228,10 @@ El panel de debug es el ícono de herramientas del HUD.
 - **La cuota sin plata no se atenúa** en el evento de Corralito: se muestra igual aunque no se pueda pagar (E4b).
 - **`isCalmMoment` no se unificó con `isSafeMomentForInterstitial`:** `naturalBreakContext` suma `fullScreenUI`/`adOnScreen`; no copiar uno al otro, lo unifica E7b.
 
+### De la ola AJ (2026-10-12, relevo 38)
+
+- **Antes de despachar un carry, mirá si ya está hecho:** la fila 6 de `tasks.md` §4.2 arrastraba «sin red el botón de video queda en “Cargando…”» cuando `RewardedOfferButton` ya lo resolvía (`InventoryWait`, 10 s). Un `grep` del texto evita un subagente.
+
 ### De la ola AI (2026-10-12, relevo 37)
 
 - **XCUITest no reproduce un arrastre que pasa la mitad y vuelve con inercia:** el bug del pager (página marcada a mitad de arrastre) no da RED por UI; la lógica de «página asentada» se extrajo a `MenuPagerView.settledPage(...)` para probarla en unit. Un `scrollTo` programático también mueve la geometría: el flag `scrolled` evita que el arranque cuente como página vista.
@@ -4938,6 +4948,11 @@ Siguen vigentes y no estaban en ningún otro lado:
 
 ## 8. Qué queda
 
+### Lo que queda de la 2.0 (cierre del relevo 38)
+
+- **Al llegar:** confirmar `version-2` (código `efd25858` + docs del 38) y **259 de 283**. Sin oráculo pendiente.
+- **Cola:** `tasks.md` §4.2 «Relevo 39»: sin carries despachables (sólo `tour.done` con «¡Vamos!» si el dueño lo decide). Si el dueño no destrabó nada en `DUENO.md`, el relevo cierra corto sin despachar.
+
 ### Lo que queda de la 2.0 (cierre del relevo 37)
 
 - **Al llegar:** confirmar `version-2` (código `2c6ea5dc` + docs del 37) y **259 de 283**. Sin oráculo pendiente.
@@ -5476,6 +5491,7 @@ Anotado por si algún día importa, con su medición:
   Planes cerrados: `Docs/superpowers/plans/2026-10-07-v2-e7b-a-forzados-mediacion.md` (T6–T7 abiertos) y `…-e7b-b-columna-ubicaciones.md`.
 - **`Docs/SESION-2026-10-10-v2-e5a.md`**: el cierre de E5a (la tabla por tarea con su commit, la verificación que lo cubre, el porqué de cada default de
   «Para el dueño» y lo que le deja a E5b y a E6a). Plan cerrado: `Docs/superpowers/plans/2026-10-07-v2-e5a-aduana-colchon-ruleta.md`.
+- **`Docs/SESION-2026-10-12-v2-relevo-38-ola-aj.md`**: el relevo 38 (los eventos de 25 s dicen «En curso»; fuera `tutorial.tip.wheel`).
 - **`Docs/SESION-2026-10-12-v2-relevo-37-ola-ai.md`**: el relevo 37 (el UI test del otro colchón `extraOnly`; el pager asienta con el scroll quieto).
 - **`Docs/SESION-2026-10-12-v2-relevo-36-ola-ah.md`**: el relevo 36 (E9b T3–T5 y T10, E9a T10, E6b T10; E9 y E6b cerradas; el fixture `--uitest-lessons-done`).
 - **`Docs/SESION-2026-10-11-v2-relevo-35-ola-ag.md`**: el relevo 35 (el spike del tinte de pintas, hecho y rechazado por el dueño; las ocho pintas de la v1 a ORO con sus precios; las doce lecciones de la economía y el hueco `skinEffects` declarado; los eventos de 0 s a 25 s con `eventPresence`; el otro colchón guardado con su guard y `LossyModifier`; el reset que conserva las pintas de ORO; el `completo` de `c21d9e47` con su único rojo de test de cofres y el `rapido` de `0dc356dc`; las cuatro revisiones opus; el sitio publicado en `3f03716` y `e059c84`).

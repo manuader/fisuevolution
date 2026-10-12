@@ -40,6 +40,7 @@
 | C27 | Lo mismo para la caja de la Aduana y el Colchón: espera, sacudida y apertura nuevas | `PickupNode`, `PackageOpeningPlayer`, `loops_manifest.json › objects` | **sí: 6 videos** | prompts listos |
 | C28 | El Paquete de la Aduana se entiende: qué trae, dónde está y cómo se abre | `GameState+Packages`, `PackageRoller`, sello de C9, pantalla de premio de C4, lección del tutorial | **sí: `rw_package_employee`** | anotada |
 | C29 | Jerarquía y recorrido: Regalos y la tienda de blue guían al jugador; auditoría de UX de todas las pantallas | `GiftsView`, Mejoras › Permanentes/Boosts (C11), todas las hojas | no | anotada |
+| C30 | La botonera del ascensor, siempre en la capa de arriba de la columna derecha | `ElevatorRideOverlay`/`ElevatorKeypadLayer`, columna derecha de C9 | no | anotada |
 
 ---
 
@@ -1201,3 +1202,31 @@ La Tienda de plata real queda como referencia de lo que está bien.
 
 **Listo cuando:** al abrir Regalos lo primero que se ve es lo que se puede cobrar ya; al abrir el blue,
 la meta de ahorro y las permanentes; y la tabla de auditoría está cerrada con el visto bueno del dueño.
+
+## C30 — La botonera del ascensor tapa a los boosts, y sólo mientras está abierta
+
+**Lo que dijo el dueño:** si hay muchos boosts en la esquina superior derecha y el jugador mantiene
+apretado el ascensor para abrir la botonera y moverse por ese atajo, los botones del ascensor tienen que
+aparecer en la capa de arriba, por encima de todo lo demás. Cuando la botonera se va, deja de tapar a los
+boosts.
+
+**Hoy:** la botonera (`ElevatorKeypadLayer`) cuelga del ícono del ascensor del HUD, arriba a la derecha,
+en `ElevatorRideOverlay`, que `FisuEvolutionApp` monta por encima de `RootView`. Con C9 la columna
+derecha (especial › eventos › boosts) pasa a vivir justo debajo de ese ícono.
+
+**Qué hacer:**
+
+1. Orden de capas fijo, de abajo arriba: tablero → columnas de las esquinas (C9) → avisos (C20) →
+   **botonera del ascensor** → popups (C15) → celebraciones que cubren todo. La botonera nunca queda
+   debajo de un chip de boost ni de la tarjeta del especial.
+2. Mientras está abierta, la columna derecha no recibe toques (la capa que la recoge al tocar afuera ya
+   existe: tocar sobre un boost cierra la botonera y no activa el boost).
+3. Al cerrarse, la columna vuelve a verse y a tocarse igual que antes; ningún boost queda movido ni
+   tapado.
+4. Opcional, a medir en los mockups: atenuar la columna derecha mientras la botonera está abierta,
+   para que se lea mejor.
+5. Test de UI: con 4 boosts activos, abrir la botonera, elegir un piso y comprobar que el toque fue al
+   botón del piso y no al boost de abajo; al cerrarse, el boost se toca normalmente.
+
+**Listo cuando:** con la columna derecha llena, la botonera del ascensor se ve entera arriba de todo y
+se usa sin tocar boosts; al irse, los boosts quedan como estaban.

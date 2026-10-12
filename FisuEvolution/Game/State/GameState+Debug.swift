@@ -47,6 +47,15 @@ extension GameState {
             TutorialFlags.setCoreCompleted(true, in: defaults)
             TutorialFlags.markCurrent(in: defaults)
         }
+        // `--uitest-veteran`: el veterano de la v1 recién actualizado —núcleo hecho, las lecciones
+        // que la v1 ya enseñaba dadas y el Tour pendiente—. Va después del reset.
+        let veteran = arguments.contains("--uitest-veteran")
+        if veteran {
+            TutorialFlags.setCoreCompleted(true, in: defaults)
+            TutorialFlags.setTourPending(true, in: defaults)
+            for id in TutorialLesson.veteranKnownLessons { TutorialFlags.markLessonDone(id, in: defaults) }
+            TutorialFlags.markCurrent(in: defaults)
+        }
         // `--uitest-tutorial-at-finish`: el núcleo retoma en su cierre (los tres
         // milestones hechos, como quien cerró la app ahí). Sin "Saltar", es la
         // forma de llegar al cofre de bienvenida sin jugar el guion entero.
@@ -73,7 +82,7 @@ extension GameState {
         }
         tutorialEngine.forcedLesson = forcedLesson
         if arguments.contains(where: { $0.hasPrefix("--uitest") }),
-           !arguments.contains("--uitest-lessons"), forcedLesson == nil {
+           !arguments.contains("--uitest-lessons"), forcedLesson == nil, !veteran {
             tutorialLessonsAutorun = false
         }
         // `--uitest-tutorial-lock=<s>` cambia los 5 s del candado (fixtures de UI).

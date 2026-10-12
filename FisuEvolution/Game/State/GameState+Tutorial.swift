@@ -189,6 +189,7 @@ extension GameState {
               tutorialEngine.pacing.mayStartLesson,
               !uiCoversBoard, characterSheet == nil, shareCardMoment == nil
         else { return }
+        if startTourIfDue() { return }
         #if DEBUG
         if let probe = probeLessonScript() {
             startTutorialRun(.lesson(Self.probeExplainLesson), steps: probe)
@@ -197,6 +198,16 @@ extension GameState {
         #endif
         guard let lesson = nextLesson() else { return }
         startTutorialRun(.lesson(lesson.rawValue), steps: lesson.steps)
+    }
+
+    /// El Tour del veterano gana sobre cualquier lección, pero sólo en un momento tranquilo y con
+    /// el tablero listo: si no, espera al próximo refresh. Lo apaga `tutorialLessonsAutorun`, como
+    /// a las lecciones.
+    private func startTourIfDue() -> Bool {
+        guard TutorialFlags.tourPending(in: flagDefaults), TutorialFlags.coreCompleted(in: flagDefaults),
+              isCalmMoment else { return false }
+        startTutorialRun(.tour, steps: TutorialCurriculum.tour)
+        return true
     }
 
     #if DEBUG
@@ -324,7 +335,11 @@ extension GameState {
             if let id = run.lessonID { TutorialFlags.markLessonDone(id, in: flagDefaults) }
             tutorialRun = nil
             tutorialEngine.pacing.lessonEnded()
-        case .lesson, .tour, .replay:
+        case .tour:
+            TutorialFlags.setTourPending(false, in: flagDefaults)
+            for lesson in TutorialCurriculum.tourCoveredLessons { markLessonDone(lesson) }
+            celebrationFinished(.tutorialTip)
+        case .lesson, .replay:
             celebrationFinished(.tutorialTip)
         }
     }
@@ -332,7 +347,7 @@ extension GameState {
     /// Lo que suelta el turno de `.tutorialTip` (`releasePayload`): el último paso, el
     /// watchdog del paso y el momento que murió en pantalla. Ya no hay timeout ni toque que
     /// saltee (PLAN-v2 §2). La lección queda dada y el ritmo empieza a contar. El Tour y el
-    /// repaso no marcan lecciones acá: lo hacen al terminar (E9b).
+    /// repaso no marcan lecciones acá: el Tour lo hace al terminar (`finishTutorialRun`).
     func releaseTutorialTurn() {
         // El núcleo y las tarjetas embebidas no tienen turno en la cola: no se sueltan acá.
         guard let run = tutorialRun, runTakesAQueueTurn(run) else { return }

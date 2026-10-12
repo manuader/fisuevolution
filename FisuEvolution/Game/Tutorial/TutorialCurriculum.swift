@@ -1,7 +1,7 @@
 import Foundation
 
 /// El currículo del tutorial v2 (PLAN-v2 E9). El núcleo va acá; las lecciones, en su
-/// `TutorialLesson.steps`; el Tour, en E9b.
+/// `TutorialLesson.steps`; el Tour de novedades, acá también.
 enum TutorialCurriculum {
     /// Tocar → contratar → fusionar → cierre, 2-3 minutos, y termina justo después del reveal
     /// del primer merge (que se reproduce limpio: con una celebración en pantalla el overlay
@@ -24,6 +24,27 @@ enum TutorialCurriculum {
         // hay un solo par mergeable, así que no pueden ser dos pasos.
         .act("core.merge", .coreMerged, text: "tutorial.step.merge", on: .boardUnit, boardTarget: .mergePair),
         .explain("core.finish", text: "tutorial.step.finish", pose: "fisura_celebrate"),
+    ]
+
+    /// Lo nuevo de la 2.0 para el veterano (PLAN-v2 E9). Sólo explicar: el estado del jugador es
+    /// arbitrario, así que señala y cuenta. Lo que depende de eventos (visitantes, paquetes,
+    /// ofertas) se enseña en su primera ocurrencia.
+    static let tour: [TutorialStep] = [
+        .explain("tour.intro", text: "tutorial.tour.intro", pose: "fisura_celebrate"),
+        .explain("tour.quick_hire", text: "tutorial.tour.quick_hire", on: .quickHire, hand: .hold),
+        .explain("tour.menu_swipe", text: "tutorial.tour.menu_swipe", on: .menu, hand: .swipe(.left)),
+        .explain("tour.character_sheet", text: "tutorial.tour.character_sheet", hand: .hold),
+        .explain("tour.elevator", text: "tutorial.tour.elevator", on: .map),
+        .explain("tour.side_rail", text: "tutorial.tour.side_rail", on: .sideRail, hand: .tap),
+        .explain("tour.visitors", text: "tutorial.tour.visitors"),
+        .explain("tour.album", text: "tutorial.tour.album", on: .menu),
+        .explain("tour.settings", text: "tutorial.tour.settings", on: .menu),
+        .explain("tour.done", text: "tutorial.tour.done", pose: "fisura_celebrate"),
+    ]
+
+    /// Lo que el Tour ya enseñó: al terminarlo quedan dadas.
+    static let tourCoveredLessons: [GameState.TutorialLesson] = [
+        .quickHire, .menuSwipe, .characterSheet, .elevator, .sideRail,
     ]
 }
 
@@ -124,6 +145,7 @@ enum TutorialMechanic: String, CaseIterable {
 
     static var allCurriculumSteps: [TutorialStep] {
         TutorialCurriculum.core
+            + TutorialCurriculum.tour
             + GameState.TutorialLesson.allCases.flatMap(\.steps)
             + TutorialInlineLesson.allCases.flatMap(\.steps)
     }

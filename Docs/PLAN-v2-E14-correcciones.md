@@ -15,6 +15,7 @@
 | C4 | Toda recompensa se ilustra: visitantes, eventos, Ruleta, Colchón, Paquete | popups de premio, `WheelView`, `MattressPopupView`, `EventPopupView` | **sí: 13 ilustraciones** | prompts listos |
 | C5 | Rotación pareja de visitantes; el vendedor deja de tener carril propio; decirle que no a cualquiera | `VisitorScheduler`, `visitors.json`, `VisitorPopupView` | no | anotada |
 | C6 | El visitante se queda en el piso donde apareció | `StageController`, `BoardScene` (capa del piso) | no | anotada |
+| C7 | Viaje en ascensor: por las ventanas se ve la torre pasando, piso por piso | `ElevatorRideView`, `ElevatorCabin`, `BoardScene` (cámara) | quizás (ventanas de la cabina en video) | anotada |
 
 ---
 
@@ -235,3 +236,47 @@ apareció. Hoy se mueve con vos, y se ve raro.
 
 **Listo cuando:** con un visitante esperando en el piso 3, viajar al 7 y volver lo muestra en el 3,
 nunca en el 7. Test de UI o de escena que lo cubra.
+
+## C7 — Viaje en ascensor: la torre pasa por las ventanas
+
+Referencia: `Docs/correcciones-v2/C7-ascensor-ventanas-negras.webp` (captura en pleno viaje: las
+dos ventanas de las puertas son negras y el visor dice ▲1).
+
+**Lo que dijo el dueño:** en la transición del ascensor no se ve el fondo. Antes del kit del
+ascensor había una transición que recorría la torre con todos los pisos apilados. Hay que hacer lo
+mismo pero con el kit del ascensor encima, de modo que por las ventanas se vea cómo se avanza por
+todos los pisos.
+
+**Hoy (verificado):**
+
+- `ElevatorRideView` ya intenta esto: en `.traveling` pinta `backdropLayer`, con miniaturas de los
+  fondos de `plan.passingOrdinals` (`FloorBackdrops`, achicadas al 60 % si son más de 5) que pasan
+  detrás, y encima la cabina.
+- La cabina se resuelve en `ElevatorCabinArt.resolve`: **gana el video**
+  (`cabina_puertas_cierran/abren.mov`, matte verde) sobre los PNG. En `cabina_cerrada.png` las
+  ventanas **sí son transparentes** (alfa 0, medido), pero el video sólo recorta el verde de
+  afuera: sus ventanas son gris oscuro opaco. Hipótesis principal: durante el viaje queda el último
+  frame del video de cierre, con las ventanas tapadas. Hipótesis a descartar: las miniaturas no
+  llegan a cargar (la `task` es async) y debajo hay negro.
+
+**Qué hacer:**
+
+1. Lo que pasa por la ventana es **la torre real apilada**, como la transición vieja: los pisos uno
+   arriba del otro, en continuidad, con sus fotos buenas (C1) y sus personajes, desplazándose a la
+   velocidad del viaje. Dos caminos, a elegir midiendo en el SE:
+   - (a) mover la cámara del `BoardScene` por la torre durante el viaje (la transición vieja; hay
+     que ver en `git log` cómo era antes del kit) con la cabina SwiftUI encima;
+   - (b) seguir con `backdropLayer`, pero con las fotos apiladas sin hueco, a resolución
+     suficiente y precargadas antes de cerrar las puertas.
+   Preferencia: (a), porque es literalmente «la torre» y ya existió.
+2. **Ventanas transparentes durante todo el viaje:** en `.traveling` la cabina se pinta con el
+   PNG cerrado (ventanas con alfa 0) y no con el último frame del video. Si se quiere el video
+   también en el cierre o la apertura, hay que re-exportar los dos `.mov` con las ventanas en
+   verde de croma para que se recorten. Si no, una máscara con la forma de las ventanas encima del
+   video.
+3. Las puertas abren con el piso destino ya detrás, como hoy. El visor ▲N cuenta los pisos que pasan.
+4. Viajes largos (1 → 30): se acelera en el medio y se frena al final. Se ve pasar la torre sin que
+   el viaje dure más que hoy. El tope de memoria del SE manda: medir.
+
+**Listo cuando:** en un viaje 1 → 10 en un SE se ven por las dos ventanas los pisos pasando en
+orden, sin negro en ningún frame, y el visor llega al número del destino cuando abren las puertas.

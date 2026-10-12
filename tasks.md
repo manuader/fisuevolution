@@ -689,7 +689,7 @@ que toma · commit o rama · nota.
 | E7b-a-T4 | El app open al volver | ✅ | T2 | — | | no ∥ T3 (los dos editan `+Ads`) |
 | E7b-a-T5 | "Opciones de privacidad" (UMP) en Ajustes | ✅ | E11-T4 | 🔥 SettingsView, catálogo | `86e6413` (integ-r20) | antes de los Ajustes de E9; **hecha (r20):** `AdsConsent.privacyRowVisible`, fila tras `purchasesSection`, +3 claves; sin prueba en región UE con el SDK real |
 | E7b-a-T6 | La mediación: adaptadores, SKAdNetwork, Ad Inspector | ✅ | T1; E3a-T5 | 🔥 project.yml; Info.plist, DebugPanelView | `db38542b` (merge `24fce67d`) | sonnet · **Relevo 49:** ✅ SPM `GoogleMobileAdsMediationUnity` 4.21.000 y `…Meta` 6.22.000 (por `revision:`), `-ObjC` (también en la línea Debug que lo pisaba), SKAdNetwork 50 → 89 (`Tools/v2/skadnetwork.py verificar`), Ad Inspector en el panel; App Privacy de los SDK en `Distribution/setup-v2-asc-admob-mediacion.md`; Release 0 warnings · `.app` 247 MB; `Package.resolved` re-resuelto en integ. Meta sigue con su onboarding (dueño) |
-| E7b-a-T7 | Cierre de E7b-a (controlador) | ⛔ | T1–T6 | `Docs/` | | **Relevo 26:** prueba con el anuncio real; `BonusHUDUITests` en orden |
+| E7b-a-T7 | Cierre de E7b-a (controlador) | ✅ | T1–T6 | `Docs/` | `c96ab82b` (merge) | sonnet (docs) · **Relevo 49:** ✅ `Docs/SESION-2026-10-12-v2-e7b-a-cierre.md`, HANDOFF §5 32; 7 escenarios 🔒; `rapido` de `f70c6456` (EK 879 · unit 1767 + 1 flake conocido, `ElevatorRideTests.skipWhileOpeningDoesNotDingTwice`, VERDE aislado 13/13 · Release 0). **E7b cerrada** |
 
 ### E7b-b — Anuncios v2, la columna plegable (`2026-10-07-v2-e7b-b-columna-ubicaciones.md`)
 

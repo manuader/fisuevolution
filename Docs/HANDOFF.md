@@ -15,9 +15,9 @@
 > principal y excluido de git. Al llegar: este general + el handoff más nuevo
 > de `handoffs/` + `PLAN-v2.md` + `tasks.md` + el journal.
 >
-> 🚨 **E14 — PRIORIDAD ABSOLUTA (2026-10-12, sesión del dueño):** 30 correcciones antes de la App Store
+> 🚨 **E14 — PRIORIDAD ABSOLUTA (2026-10-12, sesión del dueño):** 31 correcciones antes de la App Store
 > (`Docs/PLAN-v2-E14-correcciones.md`), plan `Docs/superpowers/plans/2026-10-12-v2-e14-correcciones-dueno.md`,
-> mockups aprobados (`Docs/correcciones-v2/mockups/`), 28 tareas en `tasks.md` §5 «E14» y §4.0. Va antes que
+> mockups aprobados (`Docs/correcciones-v2/mockups/`), 29 tareas en `tasks.md` §5 «E14» y §4.0. Va antes que
 > todo lo demás de la cola. Detalle: `Docs/SESION-2026-10-12-v2-e14-correcciones-dueno.md`.
 >
 > 📍 **Estado al cierre del relevo 38 (la ola AJ, 2026-10-12; manda sobre los párrafos de abajo):** `version-2` = código `efd25858` + docs del 38 (pusheado). **Progreso: 259 de 283 (91,5 %)**, sin cambios: entró un carry sin fila (los eventos de 25 s dicen «En curso»; fuera `tutorial.tip.wheel`). `rapido` de `efd25858` VERDE (EK 875 · unit 1763 · Release 0). Detalle: `Docs/SESION-2026-10-12-v2-relevo-38-ola-aj.md`. Todo lo que falta espera al dueño (ver `tasks.md` §4.2, «Relevo 39»).
@@ -378,10 +378,10 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ### Sesión del dueño (2026-10-12) — E14: las correcciones antes de la App Store
 
-Sin código. El dueño dictó 30 correcciones (C1–C30), se verificó la causa de cada una en el código y quedó la épica
+Sin código. El dueño dictó 31 correcciones (C1–C31), se verificó la causa de cada una en el código y quedó la épica
 E14: spec (`Docs/PLAN-v2-E14-correcciones.md`), plan por tareas con 13 decisiones y 4 gates
 (`Docs/superpowers/plans/2026-10-12-v2-e14-correcciones-dueno.md`), 21 mockups **aprobados** (G1) y E14 cargada en
-`tasks.md` con prioridad absoluta: 28 tareas, la ola 1 (T9 · T4 · T5) lista para despachar. Arte de E14 en
+`tasks.md` con prioridad absoluta: 29 tareas, la ola 1 (T9 · T4 · T5) lista para despachar. Arte de E14 en
 `automatic-image-generation/projects/fisu-v2-premios`: 11 videos generados (8 ok, 3 dudosos; G3) y 27 imágenes
 generándose con Gemini (G2). Hallazgos que cambian el diseño: el vendedor tenía carril propio (cada 180 s, tope
 20/día); la imagen que se comparte es un SF Symbol; hay 124 SF Symbols en `UI/`; el video del fondo (1024²) tapa
@@ -5483,7 +5483,7 @@ Anotado por si algún día importa, con su medición:
 
 ## 9. Mapa de documentos
 
-- **`Docs/PLAN-v2-E14-correcciones.md`** — la spec de E14 (C1–C30): por corrección, lo que dijo el dueño, la
+- **`Docs/PLAN-v2-E14-correcciones.md`** — la spec de E14 (C1–C31): por corrección, lo que dijo el dueño, la
   causa en el código, qué hacer y cuándo está lista. Plan por tareas:
   `Docs/superpowers/plans/2026-10-12-v2-e14-correcciones-dueno.md`. Mockups aprobados y referencias:
   `Docs/correcciones-v2/` (`mockups/fisu-e14.html` se abre local).

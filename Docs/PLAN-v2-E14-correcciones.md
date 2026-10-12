@@ -41,6 +41,7 @@
 | C28 | El Paquete de la Aduana se entiende: qué trae, dónde está y cómo se abre | `GameState+Packages`, `PackageRoller`, sello de C9, pantalla de premio de C4, lección del tutorial | **sí: `rw_package_employee`** | anotada |
 | C29 | Jerarquía y recorrido: Regalos y la tienda de blue guían al jugador; auditoría de UX de todas las pantallas | `GiftsView`, Mejoras › Permanentes/Boosts (C11), todas las hojas | no | anotada |
 | C30 | La botonera del ascensor, siempre en la capa de arriba de la columna derecha | `ElevatorRideOverlay`/`ElevatorKeypadLayer`, columna derecha de C9 | no | anotada |
+| C31 | El permiso de seguimiento (ATT) no tapa el video de presentación: se pide antes y la intro espera | `AdsCoordinator`/`AdsConsent`, `FisuEvolutionApp.startServices`, `GameState+Cinematics.reconcileIntro` | no | anotada |
 
 ---
 
@@ -1233,3 +1234,34 @@ derecha (especial › eventos › boosts) pasa a vivir justo debajo de ese ícon
 
 **Listo cuando:** con la columna derecha llena, la botonera del ascensor se ve entera arriba de todo y
 se usa sin tocar boosts; al irse, los boosts quedan como estaban.
+
+## C31 — El permiso de seguimiento no tapa el video de presentación
+
+**Lo que dijo el dueño:** cuando arranca el juego aparece el cartel de Apple «Permitir que la app rastree…» y tapa
+el video de presentación. Que ese cartel salga más tarde, o que el video no se reproduzca hasta que el jugador lo
+haya respondido, para que no se interrumpa la animación.
+
+**Hoy (verificado):** `FisuEvolutionApp.startServices` → `AdsCoordinator` → `AdsConsent.resolve()` pide UMP
+(sólo UE) y después ATT apenas la app está activa, en paralelo al arranque del juego. En una partida nueva,
+`GameState.reconcileIntro(isNewGame:)` lanza la cinemática `.intro` sin esperar a nadie, así que los dos
+coinciden. (El ESTADO del run ya lo había visto en el simulador: el ATT salía encima de la primera tarjeta del
+tutorial.)
+
+**Qué hacer (default: el video espera):**
+
+1. En una **partida nueva**, la intro no arranca hasta que el consentimiento terminó (UMP si corresponde y
+   ATT): `reconcileIntro` espera una señal `consentResolved` del coordinador de anuncios. Mientras tanto se ve
+   el telón del menú o el póster quieto de la intro, sin nada que se pierda. Si el jugador ya respondió en un
+   lanzamiento anterior (`trackingAuthorizationStatus != .notDetermined`), no hay espera.
+2. Con `useRealAds == false` (desarrollo, UI tests) la señal llega al instante: nada cambia para los tests.
+3. **Tope:** si el consentimiento no termina en ~10 s (sin red, UMP colgado), la intro arranca igual y el ATT
+   queda para **después** de la intro y del primer paso del tutorial (nunca encima de una cinemática ni de una
+   tarjeta de lección). Para eso el pedido de ATT respeta la cola de celebraciones: no se presenta mientras
+   `showing` es una cinemática, el reveal del tablero o una lección.
+4. Lanzamientos siguientes (cuando el ATT ya se respondió): sin cambios.
+5. Tests: con consentimiento lento simulado, la intro no empieza antes de la señal; con la señal, empieza; con
+   el tope vencido, empieza y el ATT se difiere. UI test en el simulador de una partida nueva: no hay alerta del
+   sistema durante la intro.
+
+**Listo cuando:** en una instalación nueva, el cartel de Apple aparece primero (sobre el telón quieto) y la
+intro corre entera después, sin ningún diálogo encima.

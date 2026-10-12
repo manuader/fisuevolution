@@ -130,7 +130,7 @@
 | E13 | 14 | 14 |  |  |  |  |  |  |
 | E13b | 11 | 11 |  |  |  |  |  |  |
 | E10 | 14 | 8 |  |  |  | 5 | 1 |  |
-| E14 | 28 | 1 |  |  | 3 | 22 | 2 |  |
+| E14 | 29 | 1 |  |  | 4 | 22 | 2 |  |
 | **Total** | **283** | **251** |  | **1** | **1** | **27** | **3** | **5** |
 
 Fuera del conteo:
@@ -154,7 +154,7 @@ Progreso = integradas / (filas de tarea − salteadas). Hoy: 246 / (288 − 5) =
 también `E1-T5b` y `E1-T9b`; por eso el `grep -v seguimiento`. Cualquier otro estado se cuenta igual, cambiando el ✅.
 La tabla por épica se recalculó en el relevo 33 (con un `awk` sobre las mismas filas que cuentan los `grep` de arriba, una columna por estado); antes, en el 32 (con un script sobre las filas de §5); antes, en el 31 (a mano); antes, en el 28 (con un script sobre las mismas filas); la columna ⏭️ cuenta las salteadas, que no entran en "Activas"; si discrepa, vale el `grep`.
 
-> **E14 (2026-10-12, sesión del dueño):** 28 tareas nuevas (T0–T27) que el total de arriba todavía no suma: el controlador que integre la rama `v2/e14-correcciones-dueno` sube el total a 283 + 28 y recuenta con el `grep` de siempre. Fila en §5 «E14».
+> **E14 (2026-10-12, sesión del dueño):** 29 tareas nuevas (T0–T28) que el total de arriba todavía no suma: el controlador que integre la rama `v2/e14-correcciones-dueno` sube el total a 283 + 29 y recuenta con el `grep` de siempre. Fila en §5 «E14».
 
 ## 3. Reglas de concurrencia (PLAN-v2 §0.1, operativas)
 
@@ -229,7 +229,7 @@ partirlo.
 
 ### 4.0 E14 — PRIORIDAD ABSOLUTA (pedido del dueño, 2026-10-12)
 
-El dueño cerró la lista de correcciones antes de la App Store (C1–C30) y **aprobó todos los mockups (G1 ✅)**.
+El dueño cerró la lista de correcciones antes de la App Store (C1–C31) y **aprobó todos los mockups (G1 ✅)**.
 E14 va **antes que cualquier otra fila de esta cola** (decisión D9; DUENO.md «E14»). Spec:
 `Docs/PLAN-v2-E14-correcciones.md`; plan por tareas, decisiones D1–D13, gates y olas:
 `Docs/superpowers/plans/2026-10-12-v2-e14-correcciones-dueno.md`; mockups aprobados:
@@ -240,7 +240,7 @@ Evolution y AdVenture Capitalist).
 |---|---|---|
 | 1 | Integrar `v2/e14-correcciones-dueno` a `version-2` (sólo docs + mockups; ya trae `origin/version-2` mergeado) | merge normal; si `tasks.md` choca con la integración en curso, gana lo de la integración y se re-aplican las secciones de E14 (§2 nota, §4.0, §5 E14, §6 «Gates de E14», §7 «2026-10-12 (tarde)») |
 | 2 | **Ola 1: E14-T9 · E14-T4 · E14-T5** | T9 con opus y revisión opus (es la base de todas las pantallas); T4 y T5 sonnet/opus según el plan. Archivos disjuntos (ver «Dueño de» en §5 E14) |
-| 3 | Ola 2: E14-T6 · E14-T8 · E14-T10 (+ T7, sin compilar) | T6 corre el simulador de pacing y compensa para Dios ~45 h (D11) |
+| 3 | Ola 2: E14-T6 · E14-T8 · E14-T10 (+ T7, sin compilar); E14-T28 (ATT antes de la intro) en la primera ola con lugar | T6 corre el simulador de pacing y compensa para Dios ~45 h (D11) |
 | 4 | Olas 3–9 en el orden del plan | cada pantalla con su captura SE/Pro Max al lado de su mockup |
 | 5 | E2b T14 y el resto de esta cola, **detrás** de E14 y sin pisar archivos de E14 | |
 
@@ -982,7 +982,7 @@ La parte de agente, partida en 14 tareas. **Nada sale de la máquina sin 🔒**:
 
 ### E14 — Correcciones del dueño antes de la App Store (plan `2026-10-12-v2-e14-correcciones-dueno.md`)
 
-**PRIORIDAD ABSOLUTA (§4.0).** Spec: `Docs/PLAN-v2-E14-correcciones.md` (C1–C30). Mockups aprobados (G1 ✅):
+**PRIORIDAD ABSOLUTA (§4.0).** Spec: `Docs/PLAN-v2-E14-correcciones.md` (C1–C31). Mockups aprobados (G1 ✅):
 `Docs/correcciones-v2/mockups/fisu-e14.html`; cada fila nombra su mockup (M…). Decisiones D1–D13 en el plan
 y en §7. Regla D13 (del dueño): los mockups son inspiración, **nada pixel perfect**, como las referencias de Cow Evolution y
 AdVenture Capitalist; la apariencia sale de la gramática v3 y el arte real (FisuJobs manda). Regla del dueño para toda la UI: cero SF Symbols / cápsulas planas, premios siempre
@@ -1000,6 +1000,7 @@ ilustrados, popups centrados y contenidos (C19, C29), y **cero superposición** 
 | E14-T7 | ORO → dólar blue (es/en «Blue Dollars»), ASC y docs de review | ⛔ | ola 1 | `claves-pendientes/e14-t7.json`, `Distribution/*`, `GameArt` (ícono) |  | C8 · D2 · ola 2 |
 | E14-T8 | Desbloqueo de piso insalteable | ⛔ | ola 1 | `CelebrationQueue`, `BoardScene.tapDuringCelebration`, `CinematicOverlay` |  | C21 · D6 · M2 · ola 2 |
 | E14-T9 | Componentes base: `GameButton`, `PopupContainer`, `RewardIllustration`, estados, `CornerSeal` | ⏳ | — (G1 ✅) | `GameArtComponents.swift`, `PanelFrames.swift`, componentes nuevos |  | C4, C15, C19, C29 · opus + revisión opus · ola 1 |
+| E14-T28 | El ATT antes de la intro: la intro espera al consentimiento (tope 10 s); el ATT nunca encima de una cinemática ni de una lección | ⏳ | — | `AdsCoordinator`, `AdsConsent`, `FisuEvolutionApp.startServices`, `GameState+Cinematics` |  | C31 · sonnet · entra en la primera ola con lugar |
 | E14-T10 | Atajo de contratar: «el primero del piso» | ⛔ | ola 1 | `QuickHirePicker`, `GameState+Hiring`, save |  | C14 · M12 · ola 2 |
 | E14-T11 | Los 10 popups al `PopupContainer` | ⛔ | T9 | las 10 vistas con `presentationDetents` |  | C15 · M3, M7b · ola 3 |
 | E14-T12 | Barra a todo el ancho con leyendas + solapas Contratar/Reencarnar | ⛔ | T9 | `BottomMenuBar`, `GameTabBar`, `RootView.bottomBar`, `QuickHireButton`, `PrestigeButton` |  | C12, C18 · M1 · ola 3 |

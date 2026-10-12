@@ -81,6 +81,7 @@ G1 y T9). Modelo sugerido: opus para EK, migraciones y componentes base; sonnet 
 | T7 | ORO → dólar blue en textos (es/en), ASC y docs de review | C8 | — | `claves-pendientes/t7.json`, `Distribution/*`, `GameArt` (ícono, con fallback) |
 | T8 | Desbloqueo de piso insalteable (M2) | C21 | — | `CelebrationQueue`, `BoardScene.tapDuringCelebration`, `CinematicOverlay` |
 | T9 | **Componentes base**: `GameButton` (medallón, colores por función), `PopupContainer` (centrado, alto máximo, scroll interno), `RewardIllustration(kind:)` con rayos, estados (listo/en curso/bloqueado/hecho), `CornerSeal` | C4, C15, C19, C29 | — (G1 ✅) | `GameArtComponents.swift`, `PanelFrames.swift`, componentes nuevos |
+| T28 | El ATT antes de la intro: la intro espera al consentimiento (tope 10 s) y el ATT nunca sale encima de una cinemática ni de una lección | C31 | — | `AdsCoordinator`, `AdsConsent`, `FisuEvolutionApp.startServices`, `GameState+Cinematics` |
 | T10 | Atajo de contratar: modo «el primero del piso» (M12) | C14 | — | `QuickHirePicker`, `GameState+Hiring`, save |
 
 ### Fase 2 — pantallas (mockups aprobados: cada una sigue el suyo y espera T9)
@@ -108,7 +109,8 @@ G1 y T9). Modelo sugerido: opus para EK, migraciones y componentes base; sonnet 
 ### Olas (≤ 3 compilando, un dueño por archivo) — G1 ya está cerrada
 
 1. **Ola 1 (el próximo relevo):** T9 (componentes base; opus, con revisión opus) · T4 · T5.
-2. **Ola 2:** T6 · T8 · T10 (T7 no compila: va con ellas, sólo claves y docs).
+2. **Ola 2:** T6 · T8 · T10 (T7 no compila: va con ellas, sólo claves y docs). T28 entra en la primera ola con
+   lugar libre (archivos disjuntos de todo lo demás).
 3. **Ola 3:** T11 · T12 · T21.
 4. **Ola 4:** T13 · T17 · T19.
 5. **Ola 5:** T14 · T15 · T22.

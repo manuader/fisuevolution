@@ -1,14 +1,14 @@
 # Sesión 2026-10-12 — E14: las correcciones del dueño antes de la App Store
 
-Sesión del dueño (en vivo, en paralelo al relevo 49). No hay código: la salida es la spec de E14 (C1–C30),
+Sesión del dueño (en vivo, en paralelo al relevo 49). No hay código: la salida es la spec de E14 (C1–C31),
 el plan por tareas con sus decisiones, los mockups aprobados y el arte de E14 en producción.
 
 ## Qué quedó
 
-- **Spec:** `Docs/PLAN-v2-E14-correcciones.md`. Las 30 correcciones, cada una con lo que dijo el dueño, la causa
+- **Spec:** `Docs/PLAN-v2-E14-correcciones.md`. Las 31 correcciones, cada una con lo que dijo el dueño, la causa
   verificada en el código, qué hacer y el criterio de «listo».
 - **Plan:** `Docs/superpowers/plans/2026-10-12-v2-e14-correcciones-dueno.md`. Incluye:
-  - 28 tareas (T0–T27);
+  - 29 tareas (T0–T28);
   - las decisiones D1–D13;
   - los gates G1–G4;
   - 9 olas.

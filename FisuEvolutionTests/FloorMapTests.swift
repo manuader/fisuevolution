@@ -91,6 +91,30 @@ struct FloorMapTests {
         #expect(gameState.floorMap.first { $0.isVisible }?.ordinal == top.ordinal)
     }
 
+    /// La escalada por bandas recorre la frontera tier por tier: una frontera más
+    /// allá de Dios no es un estado del juego y, con `Int.max`, colgaba el arranque
+    /// de `--uitest-unlock-tower-all`.
+    @Test("abrir más allá de la torre deja la frontera en Dios")
+    func unlockingPastTheTopStopsAtGod() async throws {
+        let gameState = await makeGameState()
+        let godTier = try #require(gameState.godTier)
+
+        gameState.debugUnlockFloors(throughTier: godTier + 1_000)
+
+        #expect(gameState.player?.run.maxTierReached == godTier)
+        #expect(gameState.floorMap.filter { !$0.isUnlocked }.isEmpty, "la torre entera queda abierta")
+    }
+
+    @Test("la torre entera de los UI tests arranca sin colgarse")
+    func unlockingTheWholeTowerIsBounded() async throws {
+        let gameState = await makeGameState()
+
+        gameState.debugUnlockFloors(throughTier: .max)
+
+        #expect(gameState.player?.run.maxTierReached == gameState.godTier)
+        #expect(gameState.floorMap.filter { !$0.isUnlocked }.isEmpty)
+    }
+
     /// El vuelo dura más cuanto más lejos vas, pero se aplana: el salto más
     /// largo posible no puede durar diez veces más que el más corto o deja de
     /// ser un atajo. La regla sale del ALTO DE LA TORRE, así que sigue dando

@@ -352,4 +352,93 @@ struct GameStateResetTests {
         #expect(gameState.showing == nil, "la cola quedó restringida a la fase del núcleo")
         #expect(defaults.string(forKey: "settings.language") == "en")
     }
+
+    // MARK: El ranking
+
+    private func rankingRig(_ gameState: GameState, state: RankingState) async -> (RankingStore, SimulatedRankingClient) {
+        let simulated = SimulatedRankingClient()
+        let config = RankingConfig(
+            schemaVersion: RankingConfig.supportedSchemaVersion, enabled: true,
+            baseURL: URL(string: "https://example.test"), anonKey: "k")
+        let store = RankingStore(
+            client: simulated, config: config, appVersion: "2.0",
+            cacheURL: URL.temporaryDirectory.appending(path: "ranking-board-\(UUID().uuidString).json"))
+        gameState.attachRanking(store)
+        await store.settled()
+        gameState.player?.meta.ranking = state
+        return (store, simulated)
+    }
+
+    private func running(_ runId: String) -> RankingState {
+        var state = RankingState.newGame
+        state.registered(runId: runId, serverStartedAt: 1_000)
+        state.lastName = "Fisu"
+        return state
+    }
+
+    private func starts(_ calls: [SimulatedRankingClient.Call]) -> [StartRunRequest] {
+        calls.compactMap { if case .startRun(let request) = $0 { request } else { nil } }
+    }
+
+    private func finishes(_ calls: [SimulatedRankingClient.Call]) -> [FinishRunRequest] {
+        calls.compactMap { if case .finishRun(let request) = $0 { request } else { nil } }
+    }
+
+    @Test("resetear abre un intento nuevo: un startRun, la partida vieja no manda nada de más")
+    func resetOpensANewAttempt() async throws {
+        let world = await makeWorld()
+        let gameState = world.gameState
+        let (store, simulated) = await rankingRig(gameState, state: running("vieja"))
+        let before = await simulated.calls.count
+
+        let plan = try #require(gameState.resetPlan())
+        #expect(await gameState.resetGame(plan, repushEntitlements: {}) == .done)
+        await store.settled()
+
+        let calls = Array(await simulated.calls.dropFirst(before))
+        #expect(starts(calls).count == 1)
+        #expect(finishes(calls).isEmpty, "sin llegada a Dios no hay nada que mandar")
+        guard case .running(let runId, _) = gameState.player?.meta.ranking.phase else {
+            Issue.record("el intento nuevo debía quedar registrado")
+            return
+        }
+        #expect(runId != "vieja")
+        #expect(gameState.player?.meta.ranking.lastName == "Fisu")
+        #expect(gameState.player?.meta.ranking.carriedSubmission == nil)
+    }
+
+    @Test("una llegada a Dios sin enviar se manda antes del startRun nuevo")
+    func resetSendsTheUnsentArrivalFirst() async throws {
+        let world = await makeWorld()
+        let gameState = world.gameState
+        var arrived = running("vieja")
+        arrived.playedSeconds = 321
+        arrived.reachedGod(at: 5_000)
+        arrived.sealed(realSeconds: 4_000, underReview: false, nameStatus: .missing)
+        arrived.nameChosen("Fisu")
+        let (store, simulated) = await rankingRig(gameState, state: arrived)
+        let before = await simulated.calls.count
+
+        let plan = try #require(gameState.resetPlan())
+        #expect(plan.result.meta.ranking.carriedSubmission?.runId == "vieja", "lo que se muestra es lo que se ejecuta")
+        #expect(await gameState.resetGame(plan, repushEntitlements: {}) == .done)
+        await store.settled()
+
+        let calls = Array(await simulated.calls.dropFirst(before))
+        let sent = finishes(calls)
+        #expect(sent.count == 1)
+        #expect(sent.first?.runId == "vieja")
+        #expect(sent.first?.name == "Fisu")
+        #expect(sent.first?.playedSeconds == 321)
+        #expect(starts(calls).count == 1, "el intento nuevo también salió")
+        let order = calls.compactMap { call -> String? in
+            switch call {
+            case .finishRun: "finish"
+            case .startRun: "start"
+            default: nil
+            }
+        }
+        #expect(order == ["finish", "start"], "la vieja primero")
+        #expect(gameState.player?.meta.ranking.carriedSubmission == nil, "enviada, deja de viajar")
+    }
 }

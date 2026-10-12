@@ -46,6 +46,7 @@ public struct ResetPlan: Sendable, Equatable {
         result.meta.engagement.offers.purchases = old.engagement.offers.purchases
         result.meta.engagement.offers.lastClosedAt = old.engagement.offers.lastClosedAt
         result.meta.engagement.firstLaunchDay = old.engagement.firstLaunchDay
+        result.meta.ranking = old.ranking.forNewGame()
         result.meta.resetEpoch = old.resetEpoch + 1
 
         let lostSkins = old.allOwnedSkins.subtracting(keptSkins)

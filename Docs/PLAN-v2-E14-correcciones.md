@@ -16,6 +16,7 @@
 | C5 | Rotación pareja de visitantes; el vendedor deja de tener carril propio; decirle que no a cualquiera | `VisitorScheduler`, `visitors.json`, `VisitorPopupView` | no | anotada |
 | C6 | El visitante se queda en el piso donde apareció | `StageController`, `BoardScene` (capa del piso) | no | anotada |
 | C7 | Viaje en ascensor: por las ventanas se ve la torre pasando, piso por piso | `ElevatorRideView`, `ElevatorCabin`, `BoardScene` (cámara) | quizás (ventanas de la cabina en video) | anotada |
+| C8 | La moneda premium deja de llamarse ORO: ahora es el **dólar blue**, con su ícono | `Localizable.xcstrings`, `GameArt` (`ui_oro`), App Store Connect | **sí: `ui_dolar_blue`** | prompt listo |
 
 ---
 
@@ -149,7 +150,7 @@ que muestre todas las posibilidades. Es prioridad en todo el juego.
 | `fine`, `fee`, `take` | `rw_fine` (nueva) |
 | `arrest` | `rw_arrest` (nueva) |
 | `spendingFrozen` | `rw_frozen` (nueva) |
-| `oro` | `ui_oro` (existe) |
+| `oro` | `ui_dolar_blue` (nueva, C8) |
 | `package`, `packageRateMultiplier` | `pickup_package_full` / `ui_oro_package_rain` (existen) |
 | `skinChest` | `ui_chest_closed` (existe) |
 | `wheelSpin` | `wheel_icon` (existe) |
@@ -297,3 +298,41 @@ todos los pisos.
 
 **Listo cuando:** en un viaje 1 → 10 en un SE se ven por las dos ventanas los pisos pasando en
 orden, sin negro en ningún frame, y el visor llega al número del destino cuando abren las puertas.
+
+## C8 — ORO pasa a llamarse dólar blue
+
+**Lo que dijo el dueño:** la moneda premium deja de llamarse ORO y se llama **dólar blue**, con
+un ícono de dólar blue. Todo lo demás queda exactamente igual.
+
+**Alcance (medido):** 48 claves de `Localizable.xcstrings` (94 traducciones, es y en) dicen ORO,
+y el inglés también dice «ORO» («Handful of ORO»). Un solo call-site de arte: `GameArt.swift:163-170`
+(`ui_oro`).
+
+**Qué hacer:**
+
+1. **Sólo presentación.** Los identificadores internos quedan como están (`oro` en el código, el
+   save, `oro_shop.json`, `ui_oro_*`, los product IDs `com.fisuevolution.iap.oro_*`, que en App
+   Store Connect no se pueden renombrar). Ni precios, ni cantidades, ni lógica.
+2. **Textos.** Cada «ORO» de moneda pasa a «dólares blue» o «dólar blue», con la concordancia
+   arreglada a mano, no con un reemplazo ciego: «Puñado de ORO» → «Puñado de dólares blue»,
+   «+%@ ORO» → «+%@ blue», «Tienda de ORO» → «Tienda del Blue», «Comprar ORO / Gastar ORO» →
+   «Comprar blue / Gastar blue». El número corto con el ícono no lleva palabra.
+   Inglés (default): «Blue Dollars», abreviado «Blue». **No se tocan** los «oro» que no son la
+   moneda: la skin «De Oro» (tier oro/diamante), «monedas de oro» de la cinemática, el toque «de
+   oro» de Suerte, `ui_up_golden`.
+3. **Ícono.** `ui_dolar_blue` reemplaza a `ui_oro` en el HUD, la tienda, las ofertas, los premios, el
+   prestigio y los logros. Prompt 14 de `fisu-v2-premios`. El de la pila de premios ya cambió los
+   lingotes por un fajo de blue.
+4. **Fuera del juego:** los nombres y descripciones de los IAP en App Store Connect (`releaseops`),
+   `Distribution/iap-appstore-connect.md`, la nota a App Review (`app-review-reply.md`: «plata» y
+   «ORO» → «plata» y «dólar blue»), las capturas de la tienda y el texto de la ficha si lo nombra.
+5. El tutorial, el Tour de novedades y las lecciones de la tienda nombran la moneda: revisarlos
+   con el resto de las claves.
+
+**Ojo con el humor:** el Arbolito (`sp_arbolito`, guiones `arbolito_cambio` y `arbolito_blue`) y
+los eventos de devaluación ya juegan con el blue. Hay que releer sus frases para que no choquen
+con que ahora la moneda premium **es** el blue. Default: se dejan, y donde se pisan, el chiste se
+ajusta al nuevo sentido (p. ej., el Arbolito te cambia plata por blue).
+
+**Listo cuando:** `grep -w ORO` sobre el catálogo da cero en es y en; el ícono nuevo está en todas
+las pantallas donde estaba el viejo; ASC tiene los nombres nuevos.

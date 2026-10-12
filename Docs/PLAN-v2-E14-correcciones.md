@@ -163,8 +163,25 @@ que muestre todas las posibilidades. Es prioridad en todo el juego.
    modelo **Flash**, modo `game-asset` (384 y 512). Entra por el `dropbox/` del pipeline como
    siempre y pasa por la revisión del dueño.
 
+4. **Pantallas de premio más interactivas, al estilo Cow Evolution** (el dueño, en un segundo
+   mensaje: «la ruleta, las cajas y todo lo que te dé premios»). Rige para la Ruleta, el Paquete
+   de la Aduana, el Colchón, el cofre de skins, los regalos y los premios de visitantes y eventos:
+   - **Antes:** la imagen de lo que puede tocar, grande y con rayos girando detrás. Si es al azar,
+     `rw_mystery_all` o, en la Ruleta, **cada gajo con la imagen de su premio** (no sólo el texto).
+     Un título corto, una pregunta y un botón grande (video, gratis o precio).
+   - **Durante:** el jugador hace algo. La caja o el colchón se tocan para abrirlos (tiembla con
+     cada toque y se abre al tercero), la Ruleta se tira con un gesto, el cofre se sacude. Con
+     haptics y sonido de los que ya existen. Con Reduce Motion, un solo toque y un fundido.
+   - **Después:** el premio **ganado** grande, con su imagen, rayos y un pop con partículas, el monto
+     o la duración debajo y un botón «¡Cobrar!». Si se pueden doblar con video, un segundo botón.
+   - Todo en la gramática de la casa (`PanelCard`, cinta de título, píldoras caramelo), no la
+     estética de Cow Evolution: de allá se toma la **composición y el ritmo**, no los colores.
+5. Las hojas que hoy describen premios en listas de texto (las probabilidades del cofre, la tabla
+   de la Ruleta) muestran una grilla de imágenes, con el texto como pie.
+
 **Listo cuando:** ningún popup que ofrece o entrega algo muestra el premio sólo como texto, y la
-Ruleta y el Colchón muestran sus posibilidades con imagen antes de jugar.
+Ruleta y el Colchón muestran sus posibilidades con imagen antes de jugar. Toda pantalla de premio tiene
+sus tres momentos (antes, durante y después) con imagen e interacción.
 
 ## C5 — Rotación pareja de visitantes; fuera el carril del vendedor
 

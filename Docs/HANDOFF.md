@@ -365,6 +365,15 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ## 4. Qué cambió, sesión por sesión
 
+### Cierre de E9 (2026-10-12) — El currículo, el Tour, Ajustes y el reset
+
+E9b T1–T9 están en `version-2` y T10 es este cierre (sólo docs; el `completo` de cierre lo corre el controlador). Con él, **E9 queda entera** salvo lo 🔒 del dueño. Detalle, la tabla por tarea con su commit, los descartes, los escenarios a mano con sus pasos y los carries en **`Docs/SESION-2026-10-12-v2-e9b.md`**.
+
+- **Qué entró:** las lecciones del tablero y la torre (T1) y de la economía, el ORO, la tienda y el menú (T2), las 16 heredadas de la v1 al formato de pasos con el orden fijado (T3), el Tour de novedades de 10 pasos para los veteranos (T4), la sección «Tutorial» de Ajustes con el repaso y el Tour pedidos (T5), y el reset de la partida: época en el save (T6), `ResetPlan` (T7), la secuencia en la app (T8) y la zona de peligro en tres pasos (T9).
+- **Cobertura:** 38 lecciones, 50 mecánicas y **un solo hueco declarado, `skinEffects`** (la mecánica no existe; decisión del dueño del 35). No termina en cero a propósito.
+- **🔒 del dueño (no se hicieron):** instalación nueva → núcleo (SE e iPad, es/en, Reduce Motion en los dos sentidos); una v1 real actualizada → Tour una sola vez; el repaso con «Terminar repaso»; «Resetear partida» con una compra de ORO de sandbox y `SaveBackups/reset-*.json`; el orden del aviso de ATT en device. Los pasos están en el SESION.
+- **Carries:** `visitor` quedó 28.º (una visita se va sola: otra lección puede comérsela); `tour.done` dice «Entendido»; `eventChip` quedó como acción y `wheel` usa `tutorial.tip.wheel.rail`; los de la opus de E9b T8/T9 (sin test de `.stale` en la vista, `.writeFailed` sin verificar la escritura).
+
 ### Cierre de E9a (2026-10-12) — El tutorial v2: el motor
 
 E9a T1–T9 están en `version-2` y T10 es este cierre (sólo docs y capturas; el `completo` de cierre lo corre el controlador). Detalle, la tabla por tarea con su commit y su revisión, el escenario a mano y los carries en **`Docs/SESION-2026-10-11-v2-e9a.md`**.
@@ -2719,6 +2728,11 @@ paréntesis; el porqué completo está en la sesión de cada uno):
     **El hueco `skinEffects` queda declarado** (la mecánica no existe): E9b T3 cierra con ese único hueco con razón, no con cero. **E6b T8 elegida:** legendarias `agujero_negro`, `dinastia`, `iluminado`, `titan` a 300 ORO; épicas `corona_solar`, `selenita`, `terraformador`, `moneda_propia` a 150; quien las tiene las conserva. El pacing no se movió: Dios 31,34 h · 13 reenc.
 29. **Cierre de E6b: lugares extra, pintas con ORO y familias** (T10, `Docs/SESION-2026-10-11-v2-e6b-cierre.md`). **La capacidad vive en la tabla de pisos** (`FloorTable.expanded(by:)`, `applyExtraSlots` idempotente desde `baseFloorTable`), no en `slots.count`: quien arme una tabla de pisos parte de `content.floorTable`. Los lugares son deltas (+3, +2; 600 y 1500 ORO) sobre la base vigente. **Una pinta de ORO vive en `shop.skins`** (no en `milestoneSkins`): sobrevive a la reencarnación y al reset de cuenta; las de cofre se pierden como antes. **No se vende lo que no se ve:** sin el atlas completo, una familia no se vende, de a una. Las 8 exclusivas de ORO de la v1 salen del cofre (bolsa de 33) y quien las tiene las conserva. Los efectos por shader no existen (decisión del dueño, 2026-10-07): no se reabren. Sin decisión nueva del dueño.
 30. **Cierre de E9a: el tutorial no se saltea y su motor** (T10, `Docs/SESION-2026-10-11-v2-e9a.md`). **Lo que quedó fijo y no se reabre sin el dueño:** sin «Saltar» y tocar el scrim no mueve el paso (la salida es hacerlo); el candado de 5 s y el watchdog de 180 s viven en el tick del director (`advanceTutorial(delta:)`), no en una vista; las banderas `tutorial.v2.*` y `tutorial.lesson.*` son **de la partida** (se van con «Resetear partida» y con `--uitest-reset`) y las del dispositivo (idioma, audio, avisos, UMP, ATT) **no pasan** por `TutorialFlags`; hay **un solo renderer** (`TutorialOverlay`); y toda mecánica nueva es un caso en `TutorialMechanic` que no compila sin su cobertura. Lo demás de E9a ya está en 25–28.
+31. **Cierre de E9: el currículo completo, el Tour, el repaso y el reset** (T10, `Docs/SESION-2026-10-12-v2-e9b.md`). **Lo que quedó fijo y no se reabre sin el dueño:**
+    **El currículo y la regla de cobertura.** 38 lecciones (`GameState.TutorialLesson`, ninguna con paso heredado), el núcleo, tres tarjetas inline y dos pantallas que se explican solas; el orden está fijado en `TutorialLessonsTests.order` (lo que se usa primero se enseña primero). `TutorialCoverageTests` cruza las 50 `TutorialMechanic` con el currículo y **el único hueco es `skinEffects`** (`gapReasons`, `knownGapsCeiling = 1`): la mecánica no existe, así que no hay nada que enseñar. Un hueco nuevo, o una lección que gana el hueco sin salir de `knownGaps`, pone el test en rojo.
+    **El Tour para veteranos** (`TutorialCurriculum.tour`): 10 pasos de sólo explicar, nace con `tutorial.v2.tourPending` y el núcleo hecho, gana sobre cualquier lección, espera un momento tranquilo y no se repite. Al terminar deja dadas `tourCoveredLessons` (`quickHire`, `menuSwipe`, `characterSheet`, `elevator`, `sideRail`). Un veterano a medio núcleo sigue el núcleo y no recibe el Tour.
+    **El repaso no toca el save.** Ajustes › Tutorial pide el repaso (el núcleo y las lecciones ya vistas, todo en demostración: pasos de explicar sobre el tablero, sin abrir hojas) o el Tour; lo pedido espera al tablero libre (`tutorialEngine.requested`), no mira `tutorialLessonsAutorun` ni el ritmo, no escribe banderas ni el cofre de bienvenida, y el Tour pedido no marca lecciones. «Terminar repaso» existe sólo en el repaso; el Tour no se termina antes. Con el núcleo sin hacer o vivo (`tutorialReplayAvailable`) las filas quedan apagadas y lo dicen.
+    **El reset y su época.** «Resetear partida» sube `meta.resetEpoch` (el resolver deja ganar a la época mayor, así una partida borrada no resucita desde otro dispositivo) y conserva lo comprado con plata: sin anuncios, pintas compradas, y **el ORO comprado que no se gastó, `oro = min(saldo, comprado)`**. Las pintas compradas con ORO viven en `shop.skins` y se conservan; las de cofre se pierden. Las banderas del tutorial son de la partida y se van con el reset (el núcleo vuelve a empezar). Lo que se muestra en el resumen de la zona de peligro es lo que se ejecuta (`ResetPlan`). Lo demás del reset ya está en 26, 27 y 28.
 ---
 
 ## 6. Cómo verificar
@@ -3144,6 +3158,8 @@ se documentaron recién en `version-2`):
 | `--uitest-tutorial-at-finish` | El núcleo retoma en su cierre (los tres milestones `ftue.*` hechos): sin «Saltar», es la forma de llegar al cierre con su candado de 5 s y al cofre de bienvenida sin jugar el guion entero |
 | `--uitest-tutorial-lock=<s>` | Cambia los 5 s del candado de los pasos de «explicar» (E9a T4). La mayoría de los UI lo bajan a `0.3`; `TutorialLockUITests` lo deja en 5 s o lo sube a `60` para probar que «Entendido» no avanza cerrado |
 | `--uitest-lesson=<id>` | Fuerza una lección mientras no esté dada: gana sobre el orden y saltea su señal y `needsCalmBoard`; implica `--uitest-lessons`. Un id inexistente sólo deja un error en el log. `probe_explain` es una lección sólo de DEBUG (un paso de explicar y nada más) |
+| `--uitest-veteran` | El veterano de la v1 recién actualizado (E9b T4): núcleo hecho, las lecciones de la v1 (`veteranKnownLessons`) dadas y el Tour pendiente. Va después del reset y **no** apaga los autoarranques, así que el Tour nace solo; lo usa `WhatsNewTourUITests`. Sirve también para la captura del Tour de la ficha |
+| `--uitest-lessons-done=<id>,<id>` | Esas lecciones quedan dadas (E9b T3, arreglo `bbabbb92`): un test de una lección no depende de las que el orden pone antes. |
 
 El panel de debug es el ícono de herramientas del HUD.
 
@@ -4890,6 +4906,15 @@ Siguen vigentes y no estaban en ningún otro lado:
 - **Una instalación nueva sin argumentos muestra el aviso de ATT sobre el primer paso del núcleo en el simulador** y `simctl privacy … user-tracking` no se deja usar («Operation not permitted»). Para mirar el juego sin el aviso se usa un fixture `--uitest-*`; si el orden en un device real es un problema es del dueño (no verificado).
 - **Un UI test puede caer con `Failed to get background assertion for target app … Timed out` antes de hacer nada** cuando la máquina está a carga muy alta (medido con carga ~750): es del runner, no del test; repetido en un simulador libre pasa.
 
+### Del cierre de E9 (2026-10-12)
+
+- **Una lección tardía en el orden cuelga de las que van antes.** Desde E9b T3 el orden está fijado y `quickHire` va primero: un UI test que mide la lección de Mejoras (o cualquier otra) se encontraba con el atajo en pantalla. Se arregla con `--uitest-lessons-done=<ids>`, no cambiando el orden.
+- **`visitor` es la 28.ª y una visita se va sola:** si otra lección tiene el turno cuando llega, la visita se pierde sin lección. No es un bug del orden; es lo que cuesta que sea una por vez.
+- **El Tour pedido desde Ajustes no es el Tour del veterano.** `finishTutorialRun` sólo apaga `tourPending` y marca `tourCoveredLessons` si el Tour estaba pendiente; el pedido no toca banderas. Quien lo "simplifique" a un solo camino marcaría lecciones sin que el jugador las haya visto.
+- **`tour.done` dice «Entendido»:** «¡Vamos!» es sólo del cierre del núcleo (`isCoreClose` en `TutorialOverlay`: `script == .core` y último paso).
+- **El repaso se retira si el núcleo volvió a vivir** y no arranca con el núcleo sin hacer: no hay que "arreglarlo" para que arranque igual, pisaría la fase.
+- **El reset del ORO es `min(saldo, comprado)`:** devolver el comprado entero regala ORO gastado; devolver el saldo entero regala el ORO ganado jugando. Cualquier cambio a `ResetPlan` o a `resolveAcrossReset` se prueba con `ResetEpochTests`.
+
 ## 8. Qué queda
 
 ### Lo que queda de la 2.0 (cierre del relevo 35)
@@ -5408,6 +5433,7 @@ Anotado por si algún día importa, con su medición:
 - **`Docs/SESION-2026-10-10-v2-e4b.md`**: el cierre de E4b y, con él, de E4 (la tabla por tarea con su commit, la verificación que lo cubre y los siete
   escenarios a mano que quedan para el dueño, el porqué de cada default de «Para el dueño» y lo que le deja a E5b y a E6). Plan cerrado:
   `Docs/superpowers/plans/2026-10-07-v2-e4b-visitantes-eventos.md`.
+- **`Docs/SESION-2026-10-12-v2-e9b.md`**: el cierre de E9b y, con él, de E9 (la tabla T1–T9 con su commit y su revisión, la regla de cobertura que termina en `skinEffects` y no en cero, los descartes, los escenarios a mano 🔒 con sus pasos y los carries: `visitor` 28.ª, `tour.done`, la v1 real, el aviso de ATT). Plan cerrado: `Docs/superpowers/plans/2026-10-07-v2-e9b-tutorial-tour-ajustes.md`.
 - **`Docs/SESION-2026-10-11-v2-e9a.md`**: el cierre de E9a (la tabla T1–T9 con su commit y su revisión, el escenario a mano en SE e iPad 13" con sus capturas en `Docs/capturas/e9a/`, lo que no se pudo ver y los carries: `HoldHand` sin lección, el ancla `.offerChip`).
 - **`Docs/SESION-2026-10-11-v2-e6b-cierre.md`**: el cierre de E6b y, con él, de E6 (la tabla por tarea con su commit y su revisión, lo que se descartó y por qué —los efectos por shader—, las decisiones que quedaron, el peso medido, los siete escenarios a mano 🔒 y los carries). Plan cerrado: `Docs/superpowers/plans/2026-10-07-v2-e6b-lugares-skins.md`.
 - **`Docs/SESION-2026-10-11-v2-e6.md`**: el cierre de E6a (la tabla por tarea con su commit y su revisión opus, la bajada de `StoreView` y el cofre que no se reprodujo, la verificación que lo cubre, los escenarios a mano pendientes del dueño y el estado de E6b). Plan cerrado: `Docs/superpowers/plans/2026-10-07-v2-e6a-tienda-ofertas.md`.

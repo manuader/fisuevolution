@@ -1082,6 +1082,12 @@ Ver §5. Lo que suma el diseño:
 
 ### E9 — Tutorial v2 + Tour de novedades + Ajustes
 
+> **Estado (2026-10-12): E9 HECHA salvo lo 🔒 del dueño.** E9a (el motor) y E9b (el currículo, el Tour, Ajustes y el reset) están en
+> `version-2`; los cierres son `Docs/SESION-2026-10-11-v2-e9a.md` (E9a) y `Docs/SESION-2026-10-12-v2-e9b.md` (E9b). **Desvíos:** la regla
+> de cobertura termina con **un hueco declarado, `skinEffects`** (la mecánica no existe; decisión del dueño), no en cero; las pintas
+> compradas con ORO sobreviven al reset; el repaso y el Tour de Ajustes no tocan el save. Pendiente: los escenarios a mano en device
+> (núcleo en instalación nueva, una v1 real actualizada, repaso, reset con ORO de sandbox, el aviso de ATT) y el `completo` de cierre.
+
 - **Motor**:
   - `.tutorialTip` pasa a no tener timeout y deja de ser salteable: se corta el acople
     `isSkippable = timeout != nil` (`CelebrationQueue.swift:64-81`) y el toque al tablero ya no

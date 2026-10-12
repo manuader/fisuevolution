@@ -233,8 +233,8 @@ El dueño cerró la lista de correcciones antes de la App Store (C1–C30) y **a
 E14 va **antes que cualquier otra fila de esta cola** (decisión D9; DUENO.md «E14»). Spec:
 `Docs/PLAN-v2-E14-correcciones.md`; plan por tareas, decisiones D1–D13, gates y olas:
 `Docs/superpowers/plans/2026-10-12-v2-e14-correcciones-dueno.md`; mockups aprobados:
-`Docs/correcciones-v2/mockups/fisu-e14.html` (D13: el mockup fija disposición y jerarquía; la apariencia sale
-de los componentes reales del juego).
+`Docs/correcciones-v2/mockups/fisu-e14.html` (D13: inspiración, nada pixel perfect, como las referencias de Cow
+Evolution y AdVenture Capitalist).
 
 | # | Qué | Nota |
 |---|---|---|
@@ -984,8 +984,8 @@ La parte de agente, partida en 14 tareas. **Nada sale de la máquina sin 🔒**:
 
 **PRIORIDAD ABSOLUTA (§4.0).** Spec: `Docs/PLAN-v2-E14-correcciones.md` (C1–C30). Mockups aprobados (G1 ✅):
 `Docs/correcciones-v2/mockups/fisu-e14.html`; cada fila nombra su mockup (M…). Decisiones D1–D13 en el plan
-y en §7. Regla D13: el mockup fija disposición, jerarquía y flujo; la apariencia sale de la gramática v3 y el arte
-real (FisuJobs manda). Regla del dueño para toda la UI: cero SF Symbols / cápsulas planas, premios siempre
+y en §7. Regla D13 (del dueño): los mockups son inspiración, **nada pixel perfect**, como las referencias de Cow Evolution y
+AdVenture Capitalist; la apariencia sale de la gramática v3 y el arte real (FisuJobs manda). Regla del dueño para toda la UI: cero SF Symbols / cápsulas planas, premios siempre
 ilustrados, popups centrados y contenidos (C19, C29).
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
@@ -1222,7 +1222,7 @@ El dueño contestó «hacé todo lo recomendado» a `Docs/PREGUNTAS-DUENO-v2.md`
 | Tema | Decisión | Consecuencia |
 |---|---|---|
 | Prioridad | E14 primero; el resto de la cola, detrás (D9) | §4.0 |
-| Mockups | G1 ✅: aprobados todos; el mockup fija disposición y jerarquía, no la apariencia (D13) | cada pantalla sigue su M… con los componentes reales |
+| Mockups | G1 ✅: aprobados todos. Son **inspiración, no especificación**: nada pixel perfect; se usan como las referencias de Cow Evolution y AdVenture Capitalist (idea, disposición, jerarquía, flujo); la apariencia sale de la identidad del Fisu (D13) | cada pantalla toma su M… como guía y se construye con los componentes reales |
 | Fondos | 2048, sin reescalar a 4K (D1); fuera los videos de fondo y de los 43 personajes base (C1, C22) | E14-T4 |
 | Moneda premium | «dólar blue»; en inglés «Blue Dollars», abreviado «Blue» (D2); IDs internos intactos | E14-T7 |
 | Cosméticos con blue | a la hoja de Pintas (D3); la Tienda queda sólo para plata real (C11) | E14-T19 |

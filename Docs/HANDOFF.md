@@ -2782,7 +2782,7 @@ paréntesis; el porqué completo está en la sesión de cada uno):
    - La Tienda es sólo para plata real; lo que se paga con blue va a Mejoras y a Pintas.
    - Los fondos y los personajes base son estáticos; sólo los especiales, visitantes, eventos y objetos van en video.
    - Los visitantes rotan en bolsa barajada y comparten un solo carril.
-   - Los mockups aprobados fijan disposición y jerarquía, no la apariencia (D13).
+   - Los mockups aprobados son inspiración, no especificación: **nada pixel perfect**; se usan como las referencias de Cow Evolution y AdVenture Capitalist, y la apariencia la da la identidad del Fisu (D13).
 
 ---
 

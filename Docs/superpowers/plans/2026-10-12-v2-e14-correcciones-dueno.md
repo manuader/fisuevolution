@@ -30,13 +30,13 @@ antes por la **aprobación del dueño en mockups** (G1).
 | D10 | El arte (27 imágenes con Gemini Flash, 11 videos con Higgsfield) se genera ya, en paralelo a los mockups, y pasa por la revisión del dueño. |
 | D11 | Si C5 mueve el pacing, el agente compensa para sostener Dios en ~45 h e informa los números. |
 | D12 | Mockups en alta fidelidad con el arte real, aprobados antes de programar cada pantalla. |
-| D13 | **G1 cerrada (2026-10-12): el dueño aprobó TODOS los mockups.** «Algunos no se ven exactamente como en el juego, pero la idea general está bien.» → El mockup fija **disposición, jerarquía, contenido y flujo**; la apariencia final sale de los componentes reales del juego (gramática v3, FisuJobs como referencia, el arte real). No se copian colores ni medidas del CSS del mockup. |
+| D13 | **G1 cerrada (2026-10-12): el dueño aprobó TODOS los mockups.** Regla del dueño: los mockups son **inspiración, no especificación**: buena disposición, pero no se ven exactamente como el juego. **Nada pixel perfect.** Se usan igual que las referencias de Cow Evolution y AdVenture Capitalist: de ahí se toman la idea, la disposición, la jerarquía y el flujo; la apariencia la dan la identidad del Fisu, la gramática v3 y el arte real. No se copian colores, medidas ni tipografías del CSS del mockup. |
 
 ## Gates del dueño
 
 - **G1 — Mockups aprobados: ✅ CERRADA (2026-10-12).** Página: https://claude.ai/artifact/CSQZvzWWFZYzst4Krx6Pn1
   (privada del dueño); copia en el repo: `Docs/correcciones-v2/mockups/fisu-e14.html` (abrir local, con su
-  carpeta `a/`). Cada tarea de la fase 2 nombra su mockup (M1…M14) y lo sigue según D13.
+  carpeta `a/`). Cada tarea de la fase 2 nombra su mockup (M1…M14) como inspiración (D13: nada pixel perfect).
 - **G2 — Arte de imágenes aprobado** (las 27 de `fisu-v2-premios`, revisión en la interfaz local). Estado:
   **generadas las 27** (Gemini, 2026-10-12, 0 afuera) en `projects/fisu-v2-premios/output/`; hoja de revisión
   `projects/fisu-v2-premios/revision/index.html`. Esperan la revisión del dueño.
@@ -125,5 +125,5 @@ Fuera del relevo, ya en marcha: T1 (batch de Gemini) y T2 (videos generados, esp
 - EK: tests de C5 (bolsa barajada pareja, el vendedor no repite), C17 (migración), C24/C28 (bonus una
   vez, chances del paquete = `PackageRoller`), C25 (`openShop` no toca la economía).
 - Pacing: el simulador después de T6 y al cierre; Dios en ~45 h (D11).
-- Capturas de cada pantalla tocada en SE y Pro Max contra su mockup aprobado: la revisión compara
-  mockup ↔ captura.
+- Capturas de cada pantalla tocada en SE y Pro Max. La revisión mira que respete la **idea** de su mockup
+  (qué hay, en qué orden, qué se destaca), no que se le parezca al píxel (D13).

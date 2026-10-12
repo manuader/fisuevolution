@@ -37,9 +37,9 @@ antes por la **aprobación del dueño en mockups** (G1).
 - **G1 — Mockups aprobados: ✅ CERRADA (2026-10-12).** Página: https://claude.ai/artifact/CSQZvzWWFZYzst4Krx6Pn1
   (privada del dueño); copia en el repo: `Docs/correcciones-v2/mockups/fisu-e14.html` (abrir local, con su
   carpeta `a/`). Cada tarea de la fase 2 nombra su mockup (M1…M14) y lo sigue según D13.
-- **G2 — Arte de imágenes aprobado** (las 27 de `fisu-v2-premios`, revisión en la interfaz local). Estado
-  al cierre de la sesión: el batch de Gemini corre (`correr-batch-gemini.command`, supervisor); salida en
-  `projects/fisu-v2-premios/output/`.
+- **G2 — Arte de imágenes aprobado** (las 27 de `fisu-v2-premios`, revisión en la interfaz local). Estado:
+  **generadas las 27** (Gemini, 2026-10-12, 0 afuera) en `projects/fisu-v2-premios/output/`; hoja de revisión
+  `projects/fisu-v2-premios/revision/index.html`. Esperan la revisión del dueño.
 - **G3 — Videos aprobados** (los 11 de `fisu-v2-premios/video`). Estado: **generados** con Kling v3.0
   (720×720, 24 fps; 94,5 créditos); 8 ok y 3 dudosos (`cofre_sacude`, `cofre_abre`, `colchon_abre`) según
   `video/out/revision.md`. Los `_sacude` y `ruleta_premio` salieron de 3 s (Kling no baja de 3): T3 los

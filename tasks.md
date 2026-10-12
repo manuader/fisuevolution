@@ -130,7 +130,7 @@
 | E13 | 14 | 14 |  |  |  |  |  |  |
 | E13b | 11 | 11 |  |  |  |  |  |  |
 | E10 | 14 | 8 |  |  |  | 5 | 1 |  |
-| E14 | 28 | 1 |  | 1 | 3 | 22 | 1 |  |
+| E14 | 28 | 1 |  |  | 3 | 22 | 2 |  |
 | **Total** | **283** | **251** |  | **1** | **1** | **27** | **3** | **5** |
 
 Fuera del conteo:
@@ -991,7 +991,7 @@ ilustrados, popups centrados y contenidos (C19, C29).
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
 | E14-T0 | Mockups de alta fidelidad y aprobación | ✅ | — | — | `Docs/correcciones-v2/mockups/` | G1 cerrada: el dueño aprobó todos (2026-10-12); D4 = opción A |
-| E14-T1 | Generar las 27 imágenes (Gemini Flash) | 🔄 | — | `automatic-image-generation/projects/fisu-v2-premios` |  | sesión del dueño; batch con supervisor (`correr-batch-gemini.command`); después revisión del dueño (G2) |
+| E14-T1 | Generar las 27 imágenes (Gemini Flash) | 🔒 | — | `automatic-image-generation/projects/fisu-v2-premios` |  | **generadas las 27** (2026-10-12 18:28, 0 afuera; `output/`, hoja `revision/index.html`); esperan la revisión del dueño (G2) |
 | E14-T2 | Generar los 11 videos (Higgsfield) | 🔒 | — | `fisu-v2-premios/video` | `ef16ceb` (a-i-g) | generados (Kling v3.0, 720², 94,5 créditos): 8 ok, 3 dudosos (`video/out/revision.md`); esperan G3 |
 | E14-T3 | Integrar el arte aprobado (pipeline, atlas, manifest) | ⛔ | T1+G2, T2+G3 | `Tools/asset-pipeline`, `*.atlas`, `loops_manifest.json` |  | `video_assets.py` de a uno; recortar a 1 s los `_sacude` y a 2 s `ruleta_premio` |
 | E14-T4 | Fuera videos de fondos de piso y de los 43 personajes base | ⏳ | — | `FloorNode`, `BoardScene` (fondo/clip), `loops_manifest` (`floors`, `characters` base), `AnimPacks/`, `project.yml`, `video_assets.py` |  | C1, C22 · ola 1 |
@@ -1125,7 +1125,7 @@ Las cinco nuevas de E7b-b (relevo 6), con su default:
 | Gate | Qué hace el dueño | Bloquea | Estado |
 |---|---|---|---|
 | G1 · Mockups | aprobar los mockups | la fase 2 de E14 | ✅ aprobados todos (2026-10-12) |
-| G2 · Imágenes de E14 | revisar las 27 de `fisu-v2-premios` (va / regenerar / obviar) | E14-T3 (las pantallas usan el fallback mientras tanto) | 🔒 el batch corre; revisión pendiente |
+| G2 · Imágenes de E14 | revisar las 27 de `fisu-v2-premios` (va / regenerar / obviar) | E14-T3 (las pantallas usan el fallback mientras tanto) | 🔒 generadas las 27; revisión pendiente |
 | G3 · Videos de E14 | revisar los 11 clips de `fisu-v2-premios/video/out/` (3 dudosos) | E14-T3 | 🔒 pendiente |
 | G4 · iPhone real | pasada en SE y Pro Max con la lista del cierre de E14 | el lanzamiento | 🔒 al final |
 

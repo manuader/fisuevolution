@@ -22,6 +22,7 @@
 | C11 | Todo lo que se paga con dólar blue sale de la Tienda y va a Mejoras; la Tienda queda sólo para plata real | `StoreView`, `OroShopView`, `UpgradesView`, `MenuPagerView` | no | anotada |
 | C12 | La barra de abajo: los íconos llenan todo el ancho, escalan por dispositivo y llevan leyenda | `BottomMenuBar`, `GameTabBar` (`GameArtComponents.swift`) | no | anotada |
 | C13 | El menú deslizable es UNA sola card fija; desliza el contenido de adentro; afuera, transparente | `MenuPagerView`, `panelSheet` (`PanelFrames.swift`), las hojas de cada pestaña | no | anotada |
+| C14 | El atajo de contratar suma la opción «El primero del piso» | `QuickHirePicker`, `QuickHireButton`, `GameState+Hiring`, `meta` del save | no | anotada |
 
 ---
 
@@ -569,3 +570,34 @@ debajo del panel (la presentación del sheet, no el arte).
 
 **Listo cuando:** a mitad de deslizar entre dos pestañas se ve **un solo** marco quieto con dos
 contenidos pasando por adentro, y en ningún momento hay blanco fuera del marco.
+
+## C14 — El atajo de contratar: «El primero del piso»
+
+**Lo que dijo el dueño:** en el botón de atajo (la ficha del Fisura, abajo), además de elegir un
+personaje o «el mejor disponible», tiene que estar la opción de elegir **al primero de cada piso**,
+como una de las opciones por defecto. Con esa opción, parado en el Callejón te da al Fisura; en la
+Ciudad, al Mantero; y así, el primer tier del piso donde está parado el jugador.
+
+**Hoy (verificado):** el atajo guarda `player.meta.quickHirePinnedTypeId: String?`: `nil` es «el
+mejor» y un id es un personaje fijo (`GameState+Hiring.swift:240-346`). `QuickHirePicker` muestra el
+botón «El mejor» (`quickhire.picker.best`) y la grilla de personajes.
+
+**Qué hacer:**
+
+1. El modo del atajo pasa a ser explícito: **el mejor · el primero del piso · un personaje fijo**.
+   En el save, un campo nuevo opcional (`quickHireMode`) con migración sin pérdida: lo que hoy es
+   `nil` sigue siendo «el mejor» y un id sigue siendo ese personaje.
+2. En el picker, junto a «El mejor», un segundo botón de modo, **«El primero del piso»**, con el
+   mismo formato (ícono: la cara del tier base del piso visible, que cambia al cambiar de piso). Las
+   dos opciones de modo arriba, la grilla de personajes debajo.
+3. Con ese modo, la ficha muestra y contrata el **tier base del piso visible** (`board.floor`): Fisura
+   en el Callejón, Mantero en la Ciudad, etc. Al scrollear o usar el ascensor, la cara y el precio de la
+   ficha se actualizan solos.
+4. Los estados de siempre (piso lleno, no alcanza) se comportan igual que hoy, contra ese tier y ese piso.
+5. Accesibilidad: el valor del botón dice el modo y el personaje que toca ahora («El primero del
+   piso: el Mantero»).
+6. Tests: EK o unit del resolvedor (mejor, piso, fijo × piso 1 y piso 2), la migración del save, y un
+   UI test que elige el modo, cambia de piso y ve cambiar la cara.
+
+**Listo cuando:** con «El primero del piso» elegido, en el Callejón la ficha contrata al Fisura y,
+al subir a la Ciudad, al Mantero, sin volver a tocar el picker.

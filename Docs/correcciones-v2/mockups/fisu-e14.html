@@ -270,7 +270,7 @@ img.ic{object-fit:contain;display:block}
 
 <!-- ===================================== MOCKUPS ===================================== -->
 <section class="pane" id="p-mock">
-<p class="lede">Marcá cada pantalla con <b>Apruebo</b> o <b>Cambios</b> (y escribí qué cambiar). Al final, «Copiar resumen» te arma el texto para pegarme en el chat. En el pedido de empleado (C16) elegí una de las dos opciones.</p>
+<p class="lede"><b style="color:var(--ok)">✓ Aprobados todos (G1, 2026-10-12).</b> El mockup fija la disposición, la jerarquía y el flujo; la apariencia final sale de los componentes reales del juego. Pedido de empleado: opción A (horizonte). Marcá cada pantalla con <b>Apruebo</b> o <b>Cambios</b> (y escribí qué cambiar). Al final, «Copiar resumen» te arma el texto para pegarme en el chat. En el pedido de empleado (C16) elegí una de las dos opciones.</p>
 
 <h2>La pantalla principal <small>C3 · C9 · C10 · C12 · C18 · C20</small></h2>
 <div class="grid">
@@ -786,9 +786,9 @@ img.ic{object-fit:contain;display:block}
 <p class="lede">Se ejecuta con el relevo automático de siempre: agentes con contexto fresco en worktrees, un dueño por archivo, como mucho 3 compilando, el oráculo verifica y el controlador integra. E14 va primero (D9). Plan completo en <code>docs/superpowers/plans/2026-10-12-v2-e14-correcciones-dueno.md</code>.</p>
 <h2>Las puertas que dependen de vos</h2>
 <div class="phase">
-  <div class="ph-box"><h4>G1 · Mockups</h4><p>Esta página. Ninguna pantalla se programa sin tu visto bueno; lo que cambies acá manda sobre la spec.</p></div>
-  <div class="ph-box"><h4>G2 · Imágenes</h4><p>Las 27 de Gemini Flash, en la interfaz de revisión (va / regenerar / obviar).</p></div>
-  <div class="ph-box"><h4>G3 · Videos</h4><p>Los 11 de Higgsfield (cofre, Ruleta, caja, colchón), cuadro por cuadro.</p></div>
+  <div class="ph-box"><h4>G1 · Mockups ✅</h4><p>Aprobados todos el 2026-10-12. Cada pantalla sigue su mockup en disposición y jerarquía.</p></div>
+  <div class="ph-box"><h4>G2 · Imágenes 🔒</h4><p>Las 27 ya están generadas (0 afuera). Falta tu revisión: <code>fisu-v2-premios/revision/index.html</code>.</p></div>
+  <div class="ph-box"><h4>G3 · Videos 🔒</h4><p>Los 11 generados con Kling: 8 ok y 3 dudosos (cofre_sacude, cofre_abre, colchon_abre). Falta tu revisión.</p></div>
   <div class="ph-box"><h4>G4 · iPhone real</h4><p>Pasada final en el SE y el Pro Max con la lista de escenarios.</p></div>
 </div>
 <h2>Las fases</h2>
@@ -801,17 +801,23 @@ img.ic{object-fit:contain;display:block}
 <div class="tw"><table class="t">
 <thead><tr><th>Ola</th><th>Tareas</th><th>Espera</th></tr></thead>
 <tbody>
-<tr><td>1</td><td>T4 · T5 · T6 (T1 y T2 en paralelo, fuera del relevo)</td><td>nada: arranca ya</td></tr>
-<tr><td>2</td><td>T7 · T8 · T10</td><td>—</td></tr>
-<tr><td>3</td><td>T9 sola, con revisión opus</td><td>G1</td></tr>
-<tr><td>4</td><td>T11 · T12 · T21</td><td>T9</td></tr>
-<tr><td>5</td><td>T13 · T17 · T19</td><td>ola 4</td></tr>
-<tr><td>6</td><td>T14 · T15 · T22</td><td>ola 5</td></tr>
-<tr><td>7</td><td>T16 · T18 · T23</td><td>ola 6</td></tr>
-<tr><td>8</td><td>T20 · T24 · T3</td><td>G2 y G3 para T3</td></tr>
-<tr><td>9</td><td>T25 · T26</td><td>—</td></tr>
-<tr><td>10</td><td>T27: <code>completo</code>, capturas, docs</td><td>después, G4</td></tr>
+<tr><td>1</td><td>T9 componentes base (opus + revisión opus) · T4 estáticos · T5 tiers 7↔8</td><td>nada: la arranca el próximo relevo</td></tr>
+<tr><td>2</td><td>T6 visitantes · T8 piso insalteable · T10 «el primero del piso» (+ T7 blue)</td><td>ola 1</td></tr>
+<tr><td>3</td><td>T11 popups · T12 barra y solapas · T21 menú de un marco</td><td>T9</td></tr>
+<tr><td>4</td><td>T13 esquinas · T17 Ruleta/Colchón/cofre · T19 Mejoras y Tienda</td><td>ola 3</td></tr>
+<tr><td>5</td><td>T14 avisos y botonera · T15 visitantes en escena · T22 ascensor</td><td>ola 4</td></tr>
+<tr><td>6</td><td>T16 caja y colchón · T18 Paquete · T23 compartir</td><td>ola 5</td></tr>
+<tr><td>7</td><td>T20 Regalos · T24 eventos a la Tienda · T3 integrar el arte</td><td>G2 y G3 para T3</td></tr>
+<tr><td>8</td><td>T25 barrido y auditoría · T26 textos y tutorial</td><td>—</td></tr>
+<tr><td>9</td><td>T27 cierre: <code>completo</code>, capturas, docs</td><td>después, G4</td></tr>
 </tbody></table></div>
+<h2>La 2.0 completa, hasta la App Store</h2>
+<div class="phase">
+  <div class="ph-box"><h4>Ya integrado</h4><p>262 de 282 tareas de las épicas E0–E13 en <code>version-2</code> (relevo 49): economía, visitantes y eventos, Aduana, Colchón y Ruleta, tienda y ofertas, anuncios y mediación, tutorial y Tour, ranking, animaciones y la configuración candidata para Dios en ~45 h.</p></div>
+  <div class="ph-box"><h4>E14 — lo nuevo, primero</h4><p>28 tareas (esta página). Prioridad absoluta: el próximo relevo arranca la ola 1.</p></div>
+  <div class="ph-box"><h4>Lo que queda de E0–E13</h4><ul><li>E2b: la calibración final al contrato de 45 h</li><li>E8e: videos que esperan tu medición en el SE</li><li>E12 T16: el ranking en producción (Supabase)</li><li>E10: release (capturas, notas a Review, build)</li></ul></div>
+  <div class="ph-box"><h4>Lo que sólo podés hacer vos</h4><ul><li>G2 y G3: revisar el arte de E14</li><li>Pasada en iPhone real (SE y Pro Max)</li><li>TestFlight con anuncios y compras reales</li><li>Publicar: notas a App Review, el sitio, mandar a revisión</li></ul></div>
+</div>
 <h2>Cómo se verifica</h2>
 <div class="phase">
   <div class="ph-box"><h4>Por tarea</h4><p><code>oraculo.sh tarea</code> una vez; UI tests sólo si el cambio sólo se ve por UI.</p></div>

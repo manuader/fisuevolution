@@ -23,6 +23,7 @@
 | C12 | La barra de abajo: los íconos llenan todo el ancho, escalan por dispositivo y llevan leyenda | `BottomMenuBar`, `GameTabBar` (`GameArtComponents.swift`) | no | anotada |
 | C13 | El menú deslizable es UNA sola card fija; desliza el contenido de adentro; afuera, transparente | `MenuPagerView`, `panelSheet` (`PanelFrames.swift`), las hojas de cada pestaña | no | anotada |
 | C14 | El atajo de contratar suma la opción «El primero del piso» | `QuickHirePicker`, `QuickHireButton`, `GameState+Hiring`, `meta` del save | no | anotada |
+| C15 | El vendedor se va ofendido si no le comprás; TODOS los popups, centrados, contenidos y con una sola estética | las 10 vistas con `presentationDetents`, `PanelFrames.swift`, `VendorCardsView` | **sí: vendedor enojado** | prompt listo |
 
 ---
 
@@ -601,3 +602,46 @@ botón «El mejor» (`quickhire.picker.best`) y la grilla de personajes.
 
 **Listo cuando:** con «El primero del piso» elegido, en el Callejón la ficha contrata al Fisura y,
 al subir a la Ciudad, al Mantero, sin volver a tocar el picker.
+
+## C15 — El vendedor se ofende; todos los popups, contenidos en pantalla
+
+Referencia: `Docs/correcciones-v2/C15-popup-vendedor-desborda.webp` (el popup del vendedor como
+hoja desde abajo: la card se sale por el borde inferior y debajo se ve un fondo blanco).
+
+**Lo que dijo el dueño:**
+
+- Al vendedor ambulante hay que poder decirle que no («no darle bola»), y que se vaya **enojado
+  porque no le compraste nada, tirándote un berretín**.
+- La card del popup es muy grande y no se ve entera. **Todas** las cards y popups tienen que tener la
+  misma estética, estar **contenidos adentro de la pantalla** y cumplir las reglas de antes,
+  inspiradas en Cow Evolution.
+
+**Hoy (verificado):** 10 vistas se presentan como hoja desde abajo con `presentationDetents`
+(`VisitorPopupView` en `.fraction(0.62)`, y `SkinAwardView`, `DailyRewardView`, `PrestigeView`,
+`CareerChoiceView`, `SpecialDropView`, `OfflineEarningsView`, `MattressPopupView`, `EventPopupView`,
+`ShareCardView`). Con contenido alto, la card pasa el detent y se corta, y la hoja deja ver su fondo.
+
+**Qué hacer:**
+
+1. **El berretín del vendedor.** En su popup, «No, gracias» (C2/C5) dispara la reacción: frase
+   ofendida en su globo (2–3 variantes por idioma, en el registro del Anexo A, p. ej. «¡Bueno, bueno!
+   Después no vengas llorando cuando se te acabe el mate…»), el arte del vendedor enojado
+   (`npc_vendedor_enojado`, prompt 19 de `fisu-v2-premios`; si después se quiere animado, un clip de
+   Higgsfield con el método de [[videos-higgsfield]]) y, al cerrarse, se va caminando rápido y
+   pisando fuerte, de espaldas. Sin penalidad de juego. Mismo patrón, opcional, para otros
+   visitantes con personalidad (comisario, vecina) si el dueño lo pide.
+2. **Un solo contenedor de popup para todo el juego**, al estilo Cow Evolution: card **centrada**
+   en la pantalla sobre el juego atenuado (no hoja desde abajo), con el marco de la casa
+   (`PanelCard`/`WoodPanelBackground`, cinta de título, X arriba a la derecha que no se sale del marco),
+   y **alto máximo** = la zona segura menos un margen. Si el contenido no entra, scrollea **adentro**
+   de la card, nunca la card fuera de la pantalla. Afuera, transparente; adentro, pergamino liso.
+3. Se migran a ese contenedor las 10 vistas de arriba y cualquier popup nuevo de E14 (visitantes,
+   premios de C4, ganancias offline de C9). Se retiran sus `presentationDetents`.
+4. **Ritmo Cow Evolution** en todos: arriba el título, al centro la ilustración grande (personaje y/o
+   premio, C4), una línea de texto, y abajo los botones grandes lado a lado (o apilados si son más de
+   dos). Las cards de opciones del vendedor (`VendorCardsView`) se achican para que las tres entren
+   en una fila en el SE sin cortar el texto.
+5. Se mide en SE, iPhone 15, Pro Max e iPad, y con texto dinámico grande: captura de cada popup.
+
+**Listo cuando:** ningún popup del juego se sale de la pantalla ni muestra fondo blanco afuera del
+marco, todos se ven con la misma estructura, y decirle que no al vendedor lo hace irse ofendido.

@@ -215,6 +215,11 @@ sources:, seedFraction:)` y los flags del CLI (T8).
 
 ## El contrato en una página
 
+> **⚠️ 2026-10-12 — el dueño cambió el contrato: Dios en ~45 h (2.600–2.800 min activos), no 31–35.**
+> Mandan los números de `tasks.md` §7 «2026-10-12»: Dios 2.600–2.800 · 1ª reencarnación 1–2 h ·
+> pisos desde luxury ×45/33 · `.ads` ≥ 65 % y `.max` ≥ 55 % de `.free`. El gate del playtest de T12
+> queda cerrado: (g, r) y K los elige T13. La tabla de abajo es la original.
+
 Reloj del simulador, perfil `.free`, política `.whenOroMultiplies(4)`. Cada número es de PLAN-v2
 E2b; lo que se interpreta está en la duda que lo nombra.
 

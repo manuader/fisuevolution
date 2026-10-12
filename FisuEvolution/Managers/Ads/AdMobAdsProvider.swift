@@ -1,6 +1,7 @@
 import Foundation
 import GoogleMobileAds
 import Observation
+import os
 import UIKit
 import UserMessagingPlatform
 
@@ -408,3 +409,21 @@ private final class FullScreenAdObserver: NSObject, FullScreenContentDelegate {
         finish()
     }
 }
+
+#if DEBUG
+/// El Ad Inspector de AdMob (PLAN-v2 E7b-a): qué red sirvió cada anuncio y por
+/// qué otra no llenó. Sólo para el panel de debug, y sólo en un dispositivo de
+/// prueba (el simulador lo es).
+@MainActor
+enum AdInspector {
+    private nonisolated static let log = Logger(subsystem: "com.adergames.fisu", category: "ads")
+
+    static func present() {
+        MobileAds.shared.presentAdInspector(from: nil) { error in
+            if let error {
+                log.error("ad inspector: \(error.localizedDescription)")
+            }
+        }
+    }
+}
+#endif

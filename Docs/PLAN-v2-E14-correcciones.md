@@ -37,6 +37,7 @@
 | C26 | Videos nuevos de Higgsfield para abrir el cofre y para la Ruleta, pensados para encastrar en el juego | `ChestCinematicPlayer`/`ChestAnim`, `WheelView`, `loops_manifest.json` | **sí: 5 videos** | prompts listos |
 | C27 | Lo mismo para la caja de la Aduana y el Colchón: espera, sacudida y apertura nuevas | `PickupNode`, `PackageOpeningPlayer`, `loops_manifest.json › objects` | **sí: 6 videos** | prompts listos |
 | C28 | El Paquete de la Aduana se entiende: qué trae, dónde está y cómo se abre | `GameState+Packages`, `PackageRoller`, sello de C9, pantalla de premio de C4, lección del tutorial | **sí: `rw_package_employee`** | anotada |
+| C29 | Jerarquía y recorrido: Regalos y la tienda de blue guían al jugador; auditoría de UX de todas las pantallas | `GiftsView`, Mejoras › Permanentes/Boosts (C11), todas las hojas | no | anotada |
 
 ---
 
@@ -1129,3 +1130,72 @@ o escondido en el riel (C9).
 
 **Listo cuando:** un jugador que gana un paquete ve volar la caja al sello, sabe que adentro viene un
 empleado, ve quiénes pueden salir, lo abre con tres toques y ve a quién le tocó y a qué piso llega.
+
+## C29 — Jerarquía y recorrido en Regalos, en el blue y en todo el juego
+
+**Lo que dijo el dueño:** mejorar la jerarquía de la página de bonus (Regalos) y de la tienda de dólar
+blue: lo más importante siempre arriba y que la página guíe; un recorrido que incite a gastar y que
+haga entender el flujo, qué conviene ahorrar y qué conviene gastar. La Tienda de plata real está bien
+jerarquizada; Regalos y el blue no. Si se puede, mejorar la jerarquía de todas las pantallas: que la UI
+se entienda sola, no estrese, se note de calidad, con las mejores prácticas de UX/UI, digna de los
+mejores juegos del App Store. Referencias: Cow Evolution y AdVenture Capitalist, con la identidad del Fisu.
+
+**Hoy (verificado en `GiftsView.swift`):** el orden es fijo — Cofres (si hay), La Ruleta, Racha diaria,
+Boosts, el cartel del cobro y Videos —, sin importar qué está listo para cobrar. Todas las filas pesan
+lo mismo y el texto explicativo va en párrafos (la racha: «Se cobra solo con que aparezcas…»).
+
+### Principios que rigen toda la UI (van al HANDOFF §5 como regla del dueño)
+
+1. **Una acción principal por pantalla y por fila**, y se ve primero: el botón más grande y de color es
+   lo que conviene hacer ahora; lo secundario es más chico o neutro.
+2. **Lo accionable arriba, lo que espera abajo, lo informativo al final.** El orden de una lista se
+   decide por estado (listo › pronto › bloqueado), no por catálogo.
+3. **Mostrar, no explicar:** imagen del beneficio (C4), un número grande y una línea de texto. Nada de
+   párrafos en las filas; la explicación larga va detrás de un «?» que abre un popup ilustrado.
+4. **Estados consistentes en todo el juego:** listo (verde, con el «!» que late), en curso (reloj),
+   bloqueado (gris con lo que falta: «Te faltan 40 blue», «Desde el piso 3»), hecho (check). Los mismos
+   colores y los mismos íconos custom (C19) en todas las pantallas.
+5. **Agrupar con aire y ritmo constante** (Gestalt): secciones con su cinta, filas del mismo alto y la
+   misma grilla de espaciados (`Tokens`), alineación a una sola columna.
+6. **Feedback inmediato y celebratorio** al cobrar o comprar (la ilustración vuela a su destino, el
+   saldo cuenta para arriba, haptic y sonido). Nunca un cambio silencioso.
+7. **Divulgación progresiva:** lo que todavía no se usa no aparece o aparece como «se desbloquea en…»,
+   para que el jugador nuevo no vea veinte cosas a la vez.
+8. **Legibilidad y accesibilidad:** nada por debajo de `Tokens.caption`, contraste AA sobre el
+   pergamino, objetivos de toque ≥ 44 pt, texto dinámico y VoiceOver con label y estado en cada fila.
+
+### Regalos (bonus)
+
+1. **Arriba, «Para cobrar ahora»:** una tarjeta destacada (hero) con lo más valioso que está listo
+   (orden de valor: cofre sin abrir › paquetes › racha del día › giros de Ruleta › video con bonus),
+   grande, con su ilustración y su botón. Debajo, el resto de lo listo, en filas.
+2. **Después, «Pronto»:** lo que corre con reloj (la próxima Ruleta, el próximo paquete, mañana en la
+   racha), con el reloj como protagonista.
+3. **Al final, la racha completa** (la tira de 7 días) y la explicación detrás del «?».
+4. Si no hay nada para cobrar, la cabecera lo dice con humor y muestra lo próximo con su reloj («Vení en
+   12 min: la Ruleta vuelve a girar»), nunca una página vacía.
+
+### La tienda del dólar blue (Mejoras › Permanentes y Boosts, C11)
+
+1. **Cabecera:** saldo de blue grande con su ícono (C8) y el «+» a la Tienda.
+2. **«Tu meta»:** una tarjeta arriba que guía el ahorro: la próxima mejora permanente recomendada (por
+   defecto, la de mayor impacto que todavía no compraste; el jugador puede fijar otra) con una barra
+   «ahorrando: 160 / 200 blue». Cuando alcanza, la barra se vuelve el botón «¡Comprar!».
+3. **Permanentes primero**, con el sello «**Para siempre**: se quedan aunque reencarnes»; ordenadas por
+   impacto (lugares extra en la torre arriba). **Boosts después**, con el sello «**Por un rato**» y su
+   duración, ordenados por precio. Así la página enseña sola qué conviene ahorrar (permanentes) y qué
+   conviene gastar en el momento (boosts).
+4. Cada fila dice su efecto en números y con imagen («+2 lugares por piso», «×2 ingresos · 30 min»);
+   lo que no alcanza muestra cuánto falta; lo comprado al máximo se va al fondo con un check.
+5. Una pista contextual cuando aplica (no siempre): «Tenés 3 pisos llenos: los lugares extra te
+   destraban» destacando esa fila.
+
+### El resto de las pantallas
+
+Auditoría de las 13 pantallas, los popups y el HUD contra los 8 principios, con una tabla por pantalla
+(qué está mal, qué se cambia) en el doc de sesión, captura antes/después en el SE y en el Pro Max, y
+la revisión del dueño. Prioridad: Regalos, Mejoras, FisuJobs, Pintas, la ficha del personaje y Ajustes.
+La Tienda de plata real queda como referencia de lo que está bien.
+
+**Listo cuando:** al abrir Regalos lo primero que se ve es lo que se puede cobrar ya; al abrir el blue,
+la meta de ahorro y las permanentes; y la tabla de auditoría está cerrada con el visto bueno del dueño.

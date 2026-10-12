@@ -15,6 +15,11 @@
 > principal y excluido de git. Al llegar: este general + el handoff más nuevo
 > de `handoffs/` + `PLAN-v2.md` + `tasks.md` + el journal.
 >
+> 🚨 **E14 — PRIORIDAD ABSOLUTA (2026-10-12, sesión del dueño):** 30 correcciones antes de la App Store
+> (`Docs/PLAN-v2-E14-correcciones.md`), plan `Docs/superpowers/plans/2026-10-12-v2-e14-correcciones-dueno.md`,
+> mockups aprobados (`Docs/correcciones-v2/mockups/`), 28 tareas en `tasks.md` §5 «E14» y §4.0. Va antes que
+> todo lo demás de la cola. Detalle: `Docs/SESION-2026-10-12-v2-e14-correcciones-dueno.md`.
+>
 > 📍 **Estado al cierre del relevo 38 (la ola AJ, 2026-10-12; manda sobre los párrafos de abajo):** `version-2` = código `efd25858` + docs del 38 (pusheado). **Progreso: 259 de 283 (91,5 %)**, sin cambios: entró un carry sin fila (los eventos de 25 s dicen «En curso»; fuera `tutorial.tip.wheel`). `rapido` de `efd25858` VERDE (EK 875 · unit 1763 · Release 0). Detalle: `Docs/SESION-2026-10-12-v2-relevo-38-ola-aj.md`. Todo lo que falta espera al dueño (ver `tasks.md` §4.2, «Relevo 39»).
 >
 > 📍 **Estado al cierre del relevo 37 (la ola AI, 2026-10-12; manda sobre los párrafos de abajo):** `version-2` = la punta de `v2i/integ-r37` (código `2c6ea5dc`, pusheado). **Progreso: 259 de 283 (91,5 %)**, sin cambios: entraron dos carries sin fila (el UI test del otro colchón y el pager que ya no marca pestañas a mitad de arrastre). `rapido` de `2c6ea5dc` VERDE (EK 875 · unit 1763 · Release 0). Detalle: `Docs/SESION-2026-10-12-v2-relevo-37-ola-ai.md`. Casi todo lo que falta espera al dueño (ver `tasks.md` §4.2, «Relevo 38»).
@@ -370,6 +375,17 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del dueño (2026-10-12) — E14: las correcciones antes de la App Store
+
+Sin código. El dueño dictó 30 correcciones (C1–C30), se verificó la causa de cada una en el código y quedó la épica
+E14: spec (`Docs/PLAN-v2-E14-correcciones.md`), plan por tareas con 13 decisiones y 4 gates
+(`Docs/superpowers/plans/2026-10-12-v2-e14-correcciones-dueno.md`), 21 mockups **aprobados** (G1) y E14 cargada en
+`tasks.md` con prioridad absoluta: 28 tareas, la ola 1 (T9 · T4 · T5) lista para despachar. Arte de E14 en
+`automatic-image-generation/projects/fisu-v2-premios`: 11 videos generados (8 ok, 3 dudosos; G3) y 27 imágenes
+generándose con Gemini (G2). Hallazgos que cambian el diseño: el vendedor tenía carril propio (cada 180 s, tope
+20/día); la imagen que se comparte es un SF Symbol; hay 124 SF Symbols en `UI/`; el video del fondo (1024²) tapa
+la foto (2048²). `Docs/SESION-2026-10-12-v2-e14-correcciones-dueno.md`.
 
 ### Cierre de E7b-a (2026-10-12, relevo 49) — La mediación y los forzados cerrados
 
@@ -2756,6 +2772,17 @@ paréntesis; el porqué completo está en la sesión de cada uno):
     **El repaso no toca el save.** Ajustes › Tutorial pide el repaso (el núcleo y las lecciones ya vistas, todo en demostración: pasos de explicar sobre el tablero, sin abrir hojas) o el Tour; lo pedido espera al tablero libre (`tutorialEngine.requested`), no mira `tutorialLessonsAutorun` ni el ritmo, no escribe banderas ni el cofre de bienvenida, y el Tour pedido no marca lecciones. «Terminar repaso» existe sólo en el repaso; el Tour no se termina antes. Con el núcleo sin hacer o vivo (`tutorialReplayAvailable`) las filas quedan apagadas y lo dicen.
     **El reset y su época.** «Resetear partida» sube `meta.resetEpoch` (el resolver deja ganar a la época mayor, así una partida borrada no resucita desde otro dispositivo) y conserva lo comprado con plata: sin anuncios, pintas compradas, y **el ORO comprado que no se gastó, `oro = min(saldo, comprado)`**. Las pintas compradas con ORO viven en `shop.skins` y se conservan; las de cofre se pierden. Las banderas del tutorial son de la partida y se van con el reset (el núcleo vuelve a empezar). Lo que se muestra en el resumen de la zona de peligro es lo que se ejecuta (`ResetPlan`). Lo demás del reset ya está en 26, 27 y 28.
 32. **La mediación de E7b-a: dos redes, por `revision:`, y la app sigue sin declarar rastreo** (T6/T7, relevo 49, `Docs/SESION-2026-10-12-v2-e7b-a-cierre.md`). **Lo que quedó fijo y no se reabre sin el dueño:** sólo **Unity Ads y Meta Audience Network** (AppLovin rechazó la cuenta; Mintegral no se pudo crear); los paquetes de Google van por `revision:` (sus tags llevan ceros y no son semver); `-ObjC` va en la base **y** en la línea de Debug; el `PrivacyInfo.xcprivacy` de la app queda en `NSPrivacyTracking = false` porque describe el código propio, y Meta declara su rastreo (`ep1`/`ep6.facebook.com`) en su propio manifiesto, que Apple suma (E10 T14 / B22 ⏭). App open queda sólo con AdMob. Los defaults de E7b-a (rechazar la pausa cuenta como el corte, los IDs del sitio mandan en Release, `celebrationsDrained` sólo tras las celebraciones grandes) no cambiaron: el porqué de cada uno está en el SESION.
+33. **E14, la UI del lanzamiento** (sesión del dueño, 2026-10-12; `Docs/SESION-2026-10-12-v2-e14-correcciones-dueno.md`, decisiones D1–D13 del plan de E14 y `tasks.md` §7). **Lo que quedó fijo:**
+   - Cero SF Symbols y cápsulas planas en controles visibles: todo botón o ícono es un asset del juego (C19).
+   - Toda recompensa se muestra con imagen; lo aleatorio muestra sus posibilidades (C4).
+   - Los popups van centrados y contenidos en la pantalla, transparentes afuera y con pergamino adentro (C15).
+   - Lo accionable va arriba y el orden lo da el estado, no el catálogo (C29).
+   - La referencia es Cow Evolution / AdVenture Capitalist, con la identidad del Fisu.
+   - La moneda premium es el **dólar blue** («Blue Dollars» en inglés), con los IDs internos intactos.
+   - La Tienda es sólo para plata real; lo que se paga con blue va a Mejoras y a Pintas.
+   - Los fondos y los personajes base son estáticos; sólo los especiales, visitantes, eventos y objetos van en video.
+   - Los visitantes rotan en bolsa barajada y comparten un solo carril.
+   - Los mockups aprobados fijan disposición y jerarquía, no la apariencia (D13).
 
 ---
 
@@ -4962,6 +4989,19 @@ Siguen vigentes y no estaban en ningún otro lado:
 - **El repaso se retira si el núcleo volvió a vivir** y no arranca con el núcleo sin hacer: no hay que "arreglarlo" para que arranque igual, pisaría la fase.
 - **El reset del ORO es `min(saldo, comprado)`:** devolver el comprado entero regala ORO gastado; devolver el saldo entero regala el ORO ganado jugando. Cualquier cambio a `ResetPlan` o a `resolveAcrossReset` se prueba con `ResetEpochTests`.
 
+### De la sesión de E14 (2026-10-12)
+
+- **`.claude/worktrees.nosync/X` y `.claude/worktrees/X` son el MISMO directorio.** Un `git switch` en
+  `worktrees.nosync/version-2` le cambia la rama al worktree de `version-2` de los relevos (pasó: quedó en
+  `v2/e14-correcciones-dueno` hasta que se devolvió). Una sesión que necesite su propia rama crea **su propio
+  worktree** con `git worktree add`; nunca cambia la rama de uno existente.
+- **`docs/` = `Docs/` en disco, pero no en git.** Escribir en `docs/superpowers/...` funciona, y un `git add
+  docs/...` no agrega nada (el índice lo tiene como `Docs/...`). Siempre `Docs/`.
+- **El batch de Gemini no corre con `--launch`:** eso sólo abre el Chrome aislado. El batch es
+  `open projects/<p>/correr-batch-gemini.command` (supervisor), y el modelo se elige a mano en ese Chrome.
+- **Kling (Higgsfield) no hace clips de menos de 3 s:** lo de 1–2 s se recorta al integrar. Y Higgsfield frena el
+  envío ofreciendo presets: hay que rechazarlos.
+
 ## 8. Qué queda
 
 ### Lo que queda de la 2.0 (cierre del relevo 38)
@@ -5442,6 +5482,10 @@ Anotado por si algún día importa, con su medición:
 
 ## 9. Mapa de documentos
 
+- **`Docs/PLAN-v2-E14-correcciones.md`** — la spec de E14 (C1–C30): por corrección, lo que dijo el dueño, la
+  causa en el código, qué hacer y cuándo está lista. Plan por tareas:
+  `Docs/superpowers/plans/2026-10-12-v2-e14-correcciones-dueno.md`. Mockups aprobados y referencias:
+  `Docs/correcciones-v2/` (`mockups/fisu-e14.html` se abre local).
 - **`Docs/PLAN-v2.md`** — **el plan maestro de la 2.0**:
   - §0, el protocolo de relevo automático de agentes;
   - §0.1, el despliegue de agentes concurrentes: el mecanismo, el

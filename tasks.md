@@ -130,6 +130,7 @@
 | E13 | 14 | 14 |  |  |  |  |  |  |
 | E13b | 11 | 11 |  |  |  |  |  |  |
 | E10 | 14 | 8 |  |  |  | 5 | 1 |  |
+| E14 | 28 | 1 |  | 1 | 3 | 22 | 1 |  |
 | **Total** | **283** | **251** |  | **1** | **1** | **27** | **3** | **5** |
 
 Fuera del conteo:
@@ -152,6 +153,8 @@ grep -E '^\| E2a-T[0-9]+ \|[^|]*\| ✅' tasks.md | grep -vc seguimiento         
 Progreso = integradas / (filas de tarea − salteadas). Hoy: 246 / (288 − 5) = 246 / 283. Las filas de E8e T10 llevan sufijo `a`–`f`: con `[a-f]?` en lugar de `[ab]?` el grep las cuenta todas (con `[ab]?` quedan 270 filas). Con el sufijo el grep levanta
 también `E1-T5b` y `E1-T9b`; por eso el `grep -v seguimiento`. Cualquier otro estado se cuenta igual, cambiando el ✅.
 La tabla por épica se recalculó en el relevo 33 (con un `awk` sobre las mismas filas que cuentan los `grep` de arriba, una columna por estado); antes, en el 32 (con un script sobre las filas de §5); antes, en el 31 (a mano); antes, en el 28 (con un script sobre las mismas filas); la columna ⏭️ cuenta las salteadas, que no entran en "Activas"; si discrepa, vale el `grep`.
+
+> **E14 (2026-10-12, sesión del dueño):** 28 tareas nuevas (T0–T27) que el total de arriba todavía no suma: el controlador que integre la rama `v2/e14-correcciones-dueno` sube el total a 283 + 28 y recuenta con el `grep` de siempre. Fila en §5 «E14».
 
 ## 3. Reglas de concurrencia (PLAN-v2 §0.1, operativas)
 
@@ -223,6 +226,24 @@ partirlo.
 | `GameState+TutorialTips.swift`, `TutorialAnchor.swift` | E3b T5, T9 · E4b T3, T4, T8 · E5b T5 · E6a T8, T12 · E7b-b T3, T5 |
 
 ## 4. Cola de despacho — lo próximo (relevo 37)
+
+### 4.0 E14 — PRIORIDAD ABSOLUTA (pedido del dueño, 2026-10-12)
+
+El dueño cerró la lista de correcciones antes de la App Store (C1–C30) y **aprobó todos los mockups (G1 ✅)**.
+E14 va **antes que cualquier otra fila de esta cola** (decisión D9; DUENO.md «E14»). Spec:
+`Docs/PLAN-v2-E14-correcciones.md`; plan por tareas, decisiones D1–D13, gates y olas:
+`Docs/superpowers/plans/2026-10-12-v2-e14-correcciones-dueno.md`; mockups aprobados:
+`Docs/correcciones-v2/mockups/fisu-e14.html` (D13: el mockup fija disposición y jerarquía; la apariencia sale
+de los componentes reales del juego).
+
+| # | Qué | Nota |
+|---|---|---|
+| 1 | Integrar `v2/e14-correcciones-dueno` a `version-2` (sólo docs + mockups; ya trae `origin/version-2` mergeado) | merge normal; si `tasks.md` choca con la integración en curso, gana lo de la integración y se re-aplican las secciones de E14 (§2 nota, §4.0, §5 E14, §6 «Gates de E14», §7 «2026-10-12 (tarde)») |
+| 2 | **Ola 1: E14-T9 · E14-T4 · E14-T5** | T9 con opus y revisión opus (es la base de todas las pantallas); T4 y T5 sonnet/opus según el plan. Archivos disjuntos (ver «Dueño de» en §5 E14) |
+| 3 | Ola 2: E14-T6 · E14-T8 · E14-T10 (+ T7, sin compilar) | T6 corre el simulador de pacing y compensa para Dios ~45 h (D11) |
+| 4 | Olas 3–9 en el orden del plan | cada pantalla con su captura SE/Pro Max al lado de su mockup |
+| 5 | E2b T14 y el resto de esta cola, **detrás** de E14 y sin pisar archivos de E14 | |
+
 
 ### 4.1 Al llegar
 
@@ -959,6 +980,45 @@ La parte de agente, partida en 14 tareas. **Nada sale de la máquina sin 🔒**:
 | E10-T14 | B22: `NSPrivacyTracking` en `true` con los dominios | ⏭ | 🔒 los dominios de AdMob/Unity/Meta (dueño) | `PrivacyInfo.xcprivacy`, `PrivacyManifestTests` | — | **Relevo 49: no hace falta.** Leídos los `PrivacyInfo.xcprivacy` de los SDK: Google Mobile Ads, UMP y Unity no declaran rastreo; Meta Audience Network declara `NSPrivacyTracking = true` con sus dominios (`ep1.facebook.com`, `ep6.facebook.com`) **en su propio manifiesto**, que Apple suma al de la app. El código de la app no rastrea: su manifiesto queda en `false` (sin rechazo ITMS-91064). Lo que sí queda del dueño: declarar «Data Used to Track You» (Meta) en App Privacy de App Store Connect (E10 T11) |
 | Parte humana | subir a ASC, TestFlight, App Privacy, edad, sitio, mediación SPM, enviar | 🔒 | — | — | — | §8 y «Lo que queda del dueño» del plan |
 
+### E14 — Correcciones del dueño antes de la App Store (plan `2026-10-12-v2-e14-correcciones-dueno.md`)
+
+**PRIORIDAD ABSOLUTA (§4.0).** Spec: `Docs/PLAN-v2-E14-correcciones.md` (C1–C30). Mockups aprobados (G1 ✅):
+`Docs/correcciones-v2/mockups/fisu-e14.html`; cada fila nombra su mockup (M…). Decisiones D1–D13 en el plan
+y en §7. Regla D13: el mockup fija disposición, jerarquía y flujo; la apariencia sale de la gramática v3 y el arte
+real (FisuJobs manda). Regla del dueño para toda la UI: cero SF Symbols / cápsulas planas, premios siempre
+ilustrados, popups centrados y contenidos (C19, C29).
+
+| ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
+|---|---|---|---|---|---|---|
+| E14-T0 | Mockups de alta fidelidad y aprobación | ✅ | — | — | `Docs/correcciones-v2/mockups/` | G1 cerrada: el dueño aprobó todos (2026-10-12); D4 = opción A |
+| E14-T1 | Generar las 27 imágenes (Gemini Flash) | 🔄 | — | `automatic-image-generation/projects/fisu-v2-premios` |  | sesión del dueño; batch con supervisor (`correr-batch-gemini.command`); después revisión del dueño (G2) |
+| E14-T2 | Generar los 11 videos (Higgsfield) | 🔒 | — | `fisu-v2-premios/video` | `ef16ceb` (a-i-g) | generados (Kling v3.0, 720², 94,5 créditos): 8 ok, 3 dudosos (`video/out/revision.md`); esperan G3 |
+| E14-T3 | Integrar el arte aprobado (pipeline, atlas, manifest) | ⛔ | T1+G2, T2+G3 | `Tools/asset-pipeline`, `*.atlas`, `loops_manifest.json` |  | `video_assets.py` de a uno; recortar a 1 s los `_sacude` y a 2 s `ruleta_premio` |
+| E14-T4 | Fuera videos de fondos de piso y de los 43 personajes base | ⏳ | — | `FloorNode`, `BoardScene` (fondo/clip), `loops_manifest` (`floors`, `characters` base), `AnimPacks/`, `project.yml`, `video_assets.py` |  | C1, C22 · ola 1 |
+| E14-T5 | Fast Food ↔ Chofer de App + migración del save por posición | ⏳ | — | `tiers.json`, EK (migración), tests de save |  | C17 · opus · ola 1 |
+| E14-T6 | Visitantes: un solo carril, bolsa barajada, «No, gracias»; pacing compensado | ⛔ | ola 1 | `VisitorScheduler`, `VisitorsConfig`, `visitors.json`, save, simulador |  | C5 · opus · D11 · ola 2 |
+| E14-T7 | ORO → dólar blue (es/en «Blue Dollars»), ASC y docs de review | ⛔ | ola 1 | `claves-pendientes/e14-t7.json`, `Distribution/*`, `GameArt` (ícono) |  | C8 · D2 · ola 2 |
+| E14-T8 | Desbloqueo de piso insalteable | ⛔ | ola 1 | `CelebrationQueue`, `BoardScene.tapDuringCelebration`, `CinematicOverlay` |  | C21 · D6 · M2 · ola 2 |
+| E14-T9 | Componentes base: `GameButton`, `PopupContainer`, `RewardIllustration`, estados, `CornerSeal` | ⏳ | — (G1 ✅) | `GameArtComponents.swift`, `PanelFrames.swift`, componentes nuevos |  | C4, C15, C19, C29 · opus + revisión opus · ola 1 |
+| E14-T10 | Atajo de contratar: «el primero del piso» | ⛔ | ola 1 | `QuickHirePicker`, `GameState+Hiring`, save |  | C14 · M12 · ola 2 |
+| E14-T11 | Los 10 popups al `PopupContainer` | ⛔ | T9 | las 10 vistas con `presentationDetents` |  | C15 · M3, M7b · ola 3 |
+| E14-T12 | Barra a todo el ancho con leyendas + solapas Contratar/Reencarnar | ⛔ | T9 | `BottomMenuBar`, `GameTabBar`, `RootView.bottomBar`, `QuickHireButton`, `PrestigeButton` |  | C12, C18 · M1 · ola 3 |
+| E14-T13 | Esquinas: sellos de premios y especial › eventos › boosts | ⛔ | T9, T12 | `SideRailView`, `ActiveBonusBar`, `StageChips`, `HUDView` |  | C3, C9, C19 · D8 · M1 · ola 4 |
+| E14-T14 | Avisos arriba sin comer toques; botonera del ascensor encima | ⛔ | T13 | `TowerNoticeView`, toast de logros, `RootView` (overlay), `ElevatorRideOverlay` |  | C20, C30 · M1, M1b · ola 5 |
+| E14-T15 | Escenario de visitantes: horizonte, popup solo, anclado al piso, pedido con la cara, arrastrar, berretín | ⛔ | T6, T11, T13 | `StageLayout`, `StageController`, `VisitorNode`, `SpeechBubbleNode`, `VisitorPopupView`, `VendorCardsView` |  | C2, C6, C15, C16 · D4 (A) · M3, M3b, M4 · ola 5 |
+| E14-T16 | Caja y colchón +85 % y al horizonte | ⛔ | T12, T15 | `PickupLayout`, `PickupController`, `PickupNode` |  | C10 · M1 · ola 6 |
+| E14-T17 | Pantallas de premio en tres momentos: Ruleta, Colchón, cofre | ⛔ | T9, T11 | `WheelView`/`WheelCanvas`, `MattressPopupView`, `ChestOpeningView`/`ChestCinematicPlayer` |  | C4, C26, C27 · M6, M7 · ola 4 |
+| E14-T18 | El Paquete de la Aduana explicado | ⛔ | T13, T17 | `GameState+Packages`, `PackageOpeningPlayer`, `PrizeSheets`, lección |  | C28 · M5–M5c · ola 6 |
+| E14-T19 | Mejoras con 3 pestañas; Tienda sólo plata real; cosméticos a Pintas; «Tu meta» | ⛔ | T9 | `StoreView`, `OroShopView`, `UpgradesView`, hoja de Pintas |  | C11, C29 · D3 · M10 · ola 4 |
+| E14-T20 | Regalos ordenado por estado | ⛔ | T9, T18 | `GiftsView` |  | C29 · M9 · ola 7 |
+| E14-T21 | Menú deslizable de un solo marco, transparente afuera | ⛔ | T9 | `MenuPagerView`, `panelSheet` |  | C13 · M9, M11 · ola 3 |
+| E14-T22 | Ascensor: la torre por las ventanas | ⛔ | T4 | `ElevatorRideView`, `ElevatorCabin`, `BoardScene` (cámara del viaje) |  | C7 · M13 · ola 5 |
+| E14-T23 | Compartir: card de personaje nuevo y la imagen real | ⛔ | T11 | `ShareCardView`, `ShareMomentChip`, celebración de personaje nuevo |  | C23, C24 · D5 · M8, M8b · ola 6 |
+| E14-T24 | Eventos `openShop` y 4 eventos nuevos | ⛔ | T11, T19 | `events.json`, EK de eventos, `EventPopupView` |  | C25 · D7 · M14 · ola 7 |
+| E14-T25 | Barrido de SF Symbols y auditoría de UX | ⛔ | T11–T24 | lo que quede, una pantalla por commit |  | C19, C29 · ola 8 |
+| E14-T26 | Textos: catálogo, tutorial, Tour, lecciones | ⛔ | T7, T11–T24 | `Localizable.xcstrings`, `Tutorial*` |  | todas · ola 8 |
+| E14-T27 | Cierre de E14 (controlador) | ⛔ | todo | `Docs/` |  | `completo`, capturas SE/15/Pro Max/iPad, SESION, HANDOFF; después G4 🔒 |
+
 ### Inconsistencias y huecos entre planes (abiertas)
 
 1. **E8 y la parte de agente de E10 no tienen plan por tareas.** ~~Sin ellos no hay forma de contar
@@ -1060,6 +1120,15 @@ Las cinco nuevas de E7b-b (relevo 6), con su default:
 **2026-10-11 — del chat del relevo 33 (el dueño):**
 - **El «cofre bajo la hoja» (carry de la rev. opus de E6a T12) queda CERRADO como «no se reproduce»**: era una sospecha de lectura de código; dos UI tests (hoja de oferta por la cola y por el chip) dieron el cofre visible y tocable al cerrar. Se reabre sólo si el dueño lo ve en device.
 - **El vigilante del núcleo del tutorial NO saltea a un paso imposible (opción B):** si a los 180 s el jugador no cumplió el paso (p. ej. `core.tap`), el núcleo no avanza a `core.hire`/`core.merge` sin plata ni par: se queda en el mismo paso y lo vuelve a mostrar más insistente (reinicia el reloj). El núcleo sigue sin poder saltearse; nadie cae en un paso que no puede cumplir. Las lecciones (de un paso) siguen terminando por watchdog como hoy. Lo hace la próxima tarea de tutorial que toque `GameState+Tutorial` (E9a T7), con test que lo fije y RED por mutación.
+### Gates de E14 (2026-10-12)
+
+| Gate | Qué hace el dueño | Bloquea | Estado |
+|---|---|---|---|
+| G1 · Mockups | aprobar los mockups | la fase 2 de E14 | ✅ aprobados todos (2026-10-12) |
+| G2 · Imágenes de E14 | revisar las 27 de `fisu-v2-premios` (va / regenerar / obviar) | E14-T3 (las pantallas usan el fallback mientras tanto) | 🔒 el batch corre; revisión pendiente |
+| G3 · Videos de E14 | revisar los 11 clips de `fisu-v2-premios/video/out/` (3 dudosos) | E14-T3 | 🔒 pendiente |
+| G4 · iPhone real | pasada en SE y Pro Max con la lista del cierre de E14 | el lanzamiento | 🔒 al final |
+
 ## 7. Decisiones del dueño (no se vuelven a preguntar)
 
 ### Decisiones del dueño del relevo 6
@@ -1147,6 +1216,23 @@ El dueño contestó «hacé todo lo recomendado» a `Docs/PREGUNTAS-DUENO-v2.md`
 - **«Seguí con más tareas en paralelo; no esperes la build; verificar con tests y revisión, sincrónico con el resto» (00:57, 2026-10-11):** régimen de verificación barata (`tarea` con las clases propias al final; UI sólo en el oráculo de tanda del controlador; EK con `swift test`), escrito en `comun.md` «Tercera tanda». El tope real de la máquina quedó en ≤ 3 compilando (con 6+ builds la carga pasó de 900).
 - **«Cerrar todo para que sigan los relevos de la noche; revisar agentes/builds trabados y reiniciar sólo tras verificar» (02:35):** se cortó el despacho; `TaskStop` autorizado sobre agentes ya entregados con esperas colgadas (E8e T6).
 - **Decisión del controlador (no del dueño), E7b-b T2:** un «Fusionar todo» por video con TODOS sus eslabones descartados **compensa una vez** (un video nunca es en vano; sin farmeo porque el enfriamiento ya se marcó); reemplaza lo pineado en E7b-b T1 (`discardedMergeAllDoesNotCompensate`).
+
+### 2026-10-12 (tarde) — E14: las correcciones del dueño antes de la App Store (sesión del dueño)
+
+| Tema | Decisión | Consecuencia |
+|---|---|---|
+| Prioridad | E14 primero; el resto de la cola, detrás (D9) | §4.0 |
+| Mockups | G1 ✅: aprobados todos; el mockup fija disposición y jerarquía, no la apariencia (D13) | cada pantalla sigue su M… con los componentes reales |
+| Fondos | 2048, sin reescalar a 4K (D1); fuera los videos de fondo y de los 43 personajes base (C1, C22) | E14-T4 |
+| Moneda premium | «dólar blue»; en inglés «Blue Dollars», abreviado «Blue» (D2); IDs internos intactos | E14-T7 |
+| Cosméticos con blue | a la hoja de Pintas (D3); la Tienda queda sólo para plata real (C11) | E14-T19 |
+| Pedido de empleado | opción A, en el horizonte al medio (D4); la B queda en el mockup por si el dueño la prefiere al verla | E14-T15 |
+| Compartir | la card de personaje nuevo con «¡Compartir!» en todos, también los del tutorial (D5) | E14-T23 |
+| Piso nuevo | insalteable; tras reencarnar, la primera vez de cada vida, versión corta (D6) | E14-T8 |
+| Eventos a la tienda | sin descuento; 1 por sesión; nunca en el arranque (D7) | E14-T24 |
+| Sellos de premios | los no disponibles no aparecen (D8) | E14-T13 |
+| Arte | se genera ya, con revisión del dueño (D10) | G2, G3 |
+| Pacing | si C5 lo mueve, se compensa para Dios ~45 h e informa (D11) | E14-T6 |
 
 ## 8. El camino hasta el final
 

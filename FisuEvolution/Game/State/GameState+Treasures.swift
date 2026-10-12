@@ -64,10 +64,11 @@ extension GameState {
     }
 
     #if DEBUG
-    func debugSpawnMattress() {
+    /// `extraSaved`: el colchón ya se abrió y le queda «otro colchón» guardado.
+    func debugSpawnMattress(extraSaved: Bool = false) {
         guard var player else { return }
-        player.meta.engagement.treasures.waiting = true
-        player.meta.engagement.treasures.extraOpensLeft = 0
+        player.meta.engagement.treasures.waiting = !extraSaved
+        player.meta.engagement.treasures.extraOpensLeft = extraSaved ? 1 : 0
         self.player = player
     }
     #endif

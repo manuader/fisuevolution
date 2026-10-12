@@ -36,6 +36,7 @@
 | C25 | Eventos que te llevan directo a la Tienda (plata real) o a gastar dólar blue (Mejoras) | `events.json` (efecto nuevo), `EventPopupView`, navegación a Tienda/Mejoras con foco | quizás (ilustraciones de los eventos nuevos) | anotada |
 | C26 | Videos nuevos de Higgsfield para abrir el cofre y para la Ruleta, pensados para encastrar en el juego | `ChestCinematicPlayer`/`ChestAnim`, `WheelView`, `loops_manifest.json` | **sí: 5 videos** | prompts listos |
 | C27 | Lo mismo para la caja de la Aduana y el Colchón: espera, sacudida y apertura nuevas | `PickupNode`, `PackageOpeningPlayer`, `loops_manifest.json › objects` | **sí: 6 videos** | prompts listos |
+| C28 | El Paquete de la Aduana se entiende: qué trae, dónde está y cómo se abre | `GameState+Packages`, `PackageRoller`, sello de C9, pantalla de premio de C4, lección del tutorial | **sí: `rw_package_employee`** | anotada |
 
 ---
 
@@ -1079,3 +1080,52 @@ memoria con el tope de 3 videos).
 
 **Listo cuando:** la caja y el colchón del tablero respiran, saltan con cada toque y se abren a un
 brillo del que sale el premio ilustrado, con los clips nuevos aprobados por el dueño.
+
+## C28 — El Paquete de la Aduana, explicado y a la vista
+
+**Lo que dijo el dueño:** muchas veces gana o le dan paquetes de la Aduana y no entiende qué le dan: no
+los puede abrir, no ve dónde están, no entiende el beneficio. Hay que explicarlo mucho más claro,
+quizás abrirlo con una animación en la página de bonus, y darle una vuelta de tuerca: un asset que lo
+identifique (estático o que se abra animado, como la Ruleta, el cofre, la caja y el colchón), integrado
+al juego y con los popups estilo Cow Evolution, donde la imagen deja reconocer la recompensa posible.
+
+**Qué es hoy (verificado en `GameState+Packages.swift`):** un paquete trae **un empleado gratis**: al
+abrirlo, `PackageRoller.roll` sortea un tipo entre los que FisuJobs vende con lugar (ventana de
+`windowTiers = 4` tiers, pesados por `tierRatioByBestSupplierLevel`, que mejora con «Mejor
+proveedor») y lo manda al tablero como llegada. Los paquetes esperan en un buzón
+(`engagement.packages.waiting`): caen solos cada 120 s (tope 2) y llegan además como premio de
+visitantes, Ruleta y eventos. Si no hay lugar, el paquete no se gasta («LLENO»). **Nada de esto se le
+dice al jugador:** el premio de un visitante dice «1 paquete» y el paquete aparece chiquito abajo (C10)
+o escondido en el riel (C9).
+
+**Qué hacer:**
+
+1. **Identidad:** el Paquete de la Aduana es «**una caja con un empleado sorpresa adentro**». Su
+   ilustración de premio deja de ser una caja sola: `rw_package_employee` (la caja con un empleado
+   asomándose y saludando, prompt 27). Es la imagen del paquete en todo premio (C4) y en su sello (C9).
+   Subtítulo fijo donde aparezca: «¡Adentro viene un empleado gratis!».
+2. **Dónde está:** su sello en la columna de premios de arriba a la izquierda (C9), con la cinta
+   «×N» de los que tenés guardados; y en el tablero, la caja grande de C10. Al **ganar** un paquete
+   (visitante, Ruleta, evento), la ilustración vuela desde el popup hasta el sello y el sello rebota, con
+   un aviso arriba (C20): «¡Te llegó un paquete de la Aduana!».
+3. **Abrirlo — pantalla de premio de C4, estilo Cow Evolution:**
+   - **Antes:** la caja grande (video `paquete_espera`, C27) y, debajo, «**Adentro puede venir:**» con
+     las **caras de los posibles empleados** (los 4 de la ventana de `PackageRoller` para el estado
+     actual) y su probabilidad debajo de cada una (la tabla sale del mismo cálculo; los paquetes se
+     pueden conseguir con dólar blue — lluvia de paquetes —, así que mostrar las chances es lo
+     correcto para Apple 3.1.1). Botón «¡Abrir!» (y «Abrir todos» si hay más de uno).
+   - **Durante:** tres toques con `paquete_sacude` y `paquete_abre` (C27).
+   - **Después:** el empleado que salió, grande, con su nombre y «**¡Llega a tu piso N!**»; al cerrar,
+     cae al tablero en ese piso (la llegada de siempre). Si es un personaje nunca visto, se encadena la
+     card de C24.
+4. **Sin lugar:** si no entra nadie, la pantalla lo dice antes de abrir, con la cara del empleado y
+   «No hay lugar en tus pisos: fusioná o liberá un lugar y volvé», con el paquete guardado (como hoy).
+5. **En la página de Regalos/bonus:** una fila del Paquete con su ilustración, cuántos tenés y
+   «¡Abrir!», que lleva a la misma pantalla.
+6. **Tutorial:** la lección del paquete se reescribe en torno a esto (qué trae, dónde está, ábrelo ahora),
+   disparada la primera vez que se gana uno; el Tour de novedades lo nombra igual.
+7. Tests: la tabla de «puede venir» coincide con las probabilidades de `PackageRoller` (EK); abrir resta
+   uno y encola la llegada en el piso que se anuncia; sin lugar no se gasta.
+
+**Listo cuando:** un jugador que gana un paquete ve volar la caja al sello, sabe que adentro viene un
+empleado, ve quiénes pueden salir, lo abre con tres toques y ve a quién le tocó y a qué piso llega.

@@ -29,6 +29,7 @@
 | C18 | Contratar y Reencarnar, pegados a la barra de abajo e integrados a ella | `RootView.bottomBar`, `QuickHireButton`, `PrestigeButton`, `BottomMenuBar` | no | anotada |
 | C19 | Fuera los botones y chips genéricos: todo botón es un asset custom del juego (regla global) | chip de ofertas, `ActionPill`/`PillBackground`, los ~124 SF Symbols de `UI/` | **sí: 7 íconos** | prompts listos |
 | C20 | Los avisos de «no hay lugar» / «no alcanza» (y todo toast) salen arriba, no abajo, y no frenan el juego | `RootView` (`TowerNoticeView`, toast de logros), `QuickHireButton` | no | anotada |
+| C21 | El desbloqueo de un piso nuevo no se puede saltear | `BoardScene.tapDuringCelebration`, `CelebrationQueue.skip`, `CinematicOverlay` | no | anotada |
 
 ---
 
@@ -831,3 +832,37 @@ logros vive en el mismo lugar con el mismo patrón.
 
 **Listo cuando:** con el piso lleno, tocar contratar muestra el aviso arriba y en ese mismo momento se
 pueden fusionar dos empleados de la parte de abajo del tablero.
+
+## C21 — El desbloqueo de piso no se saltea
+
+**Lo que dijo el dueño:** la animación de desbloqueo de un piso nuevo tiene que ser **insalteable**:
+aunque el jugador toque muchas veces, no se puede saltear. Descubrir un piso es siempre una gran
+celebración y un evento importante del juego.
+
+**Hoy (verificado):** el desbloqueo es una celebración del tablero (`BoardScene.runFloorUnlockCelebration`,
+~l. 1980: cartel con pop, ~0,9 s de espera y el ascenso). Un toque al tablero llama a
+`GameState.skipCurrentCelebration()` → `celebrations.skip()` → `abortBoardCelebration()`, y la corta.
+Si el piso tiene cinemática, `CinematicOverlay` muestra «Saltear» al segundo (`skipDelay = 1 s`).
+
+**Qué hacer:**
+
+1. La celebración de **piso recién desbloqueado** (y su cinemática, si la tiene) se marca como no
+   salteable en la cola (`CelebrationQueue`: un flag por tipo, p. ej. `isSkippable == false` para el
+   desbloqueo de piso). `skip()` devuelve `false` para ella y los toques al tablero se consumen sin
+   efecto mientras dura; no agarran personajes.
+2. En `CinematicOverlay`, sin botón «Saltear» para las cinemáticas de piso nuevo. Las demás
+   cinemáticas siguen como hoy.
+3. **Sólo la primera vez:** volver a un piso ya conocido (ascensor, scroll) no dispara nada ni se
+   bloquea. Una reencarnación que re-desbloquea pisos: se decide con el dueño; default, la primera
+   vez **en esa vida** también es insalteable, pero corta (sin la cinemática larga si ya la vio).
+4. Ya que pasa a ser obligatoria, que valga la pena: el anuncio en grande del nombre del piso (en la
+   gramática de C19), sonido y haptic de evento, el fondo nuevo en su calidad buena (C1) y el
+   personaje base del piso entrando. Duración total razonable (~3–4 s sin cinemática) para no hartar.
+5. Con Reduce Motion se mantiene insalteable pero sin movimiento brusco (fundidos).
+6. El watchdog de celebraciones sigue mandando: si algo se cuelga, la libera igual (no puede trabar
+   el juego).
+7. Tests: N toques durante el desbloqueo no lo cortan (la celebración sigue `current` hasta su fin);
+   un toque durante otra celebración común sí la saltea como hoy.
+
+**Listo cuando:** al desbloquear un piso, tocar la pantalla diez veces seguidas no acorta la
+celebración, y el resto de las celebraciones siguen salteables.

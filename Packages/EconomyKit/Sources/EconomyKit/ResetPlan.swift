@@ -2,7 +2,8 @@ import Foundation
 
 /// "Resetear partida" (PLAN-v2 E9), puro: la pantalla muestra `summary` y el juego escribe
 /// `result`, los dos salidos de la misma cuenta. Se conserva lo comprado con plata; el ORO
-/// comprado sólo si no se gastó (`min(saldo, comprado)`). Lo demás es la partida nueva que
+/// comprado sólo si no se gastó (`min(saldo, comprado)`), y las pintas pagadas, con plata
+/// (`ownedSkins`) o con ORO (`shop.skins`: ese ORO pudo ser comprado). Lo demás es la partida nueva que
 /// recibe. De las ofertas queda lo ya usado y lo pagado (no se vuelven a vender las de una
 /// vez); las abiertas se cierran.
 public struct ResetPlan: Sendable, Equatable {
@@ -31,7 +32,9 @@ public struct ResetPlan: Sendable, Equatable {
         result.meta.oro = kept
         result.meta.removedAds = old.removedAds
         result.meta.ownedSkins = old.ownedSkins
-        result.meta.activeSkinByType = old.activeSkinByType.filter { old.ownedSkins.contains($0.value) }
+        result.meta.engagement.shop.skins = old.engagement.shop.skins
+        let keptSkins = Set(old.ownedSkins).union(old.engagement.shop.skins)
+        result.meta.activeSkinByType = old.activeSkinByType.filter { keptSkins.contains($0.value) }
         result.meta.creditedPurchases = old.creditedPurchases
         for (id, amount) in old.oroPurchases { result.meta.recordOroPurchase(transactionID: id, amount: amount) }
         for id in old.revokedPurchases { result.meta.revokePurchase(transactionID: id) }
@@ -43,7 +46,7 @@ public struct ResetPlan: Sendable, Equatable {
         result.meta.engagement.firstLaunchDay = old.engagement.firstLaunchDay
         result.meta.resetEpoch = old.resetEpoch + 1
 
-        let lostSkins = old.allOwnedSkins.subtracting(old.ownedSkins)
+        let lostSkins = old.allOwnedSkins.subtracting(keptSkins)
         let summary = Summary(
             oroBalance: old.oro,
             oroPurchased: old.oroPurchasedLifetime,
@@ -54,7 +57,7 @@ public struct ResetPlan: Sendable, Equatable {
             achievements: old.unlockedAchievements.count,
             skinsLost: lostSkins.count,
             keepsRemoveAds: old.removedAds,
-            keptSkins: old.ownedSkins.count,
+            keptSkins: keptSkins.count,
             losesPendingTriple: old.engagement.shop.pendingOfflineMultiplier != nil
                 || old.engagement.shop.pendingDailyMultiplier != nil
         )

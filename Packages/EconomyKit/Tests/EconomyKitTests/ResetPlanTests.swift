@@ -96,13 +96,33 @@ struct ResetPlanTests {
         #expect(plan.result.meta.floorChestsAwarded == fxState().meta.floorChestsAwarded)
     }
 
-    @Test("las pintas de la tienda de ORO se pierden y cuentan como perdidas")
-    func shopSkinsLost() {
+    @Test("las pintas compradas con ORO se conservan y cuentan como conservadas; las de cofre se pierden")
+    func shopSkinsKept() {
+        var state = current(balance: 0, purchased: [:])
+        state.meta.engagement.shop.skins = ["oro_skin", "oro_skin2"]
+        let plan = ResetPlan.make(current: state, fresh: fxState())
+        #expect(plan.result.meta.engagement.shop.skins == ["oro_skin", "oro_skin2"])
+        #expect(plan.result.meta.allOwnedSkins == ["iap_skin", "oro_skin", "oro_skin2"])
+        #expect(plan.summary.skinsLost == 2, "sólo las de cofre e hitos")
+        #expect(plan.summary.keptSkins == 3)
+        #expect(plan.result.meta.milestoneSkins.isEmpty)
+    }
+
+    @Test("el plan con pintas de ORO es estable: re-armarlo sobre su resultado no cambia nada")
+    func shopSkinsPlanIdempotent() {
         var state = current(balance: 0, purchased: [:])
         state.meta.engagement.shop.skins = ["oro_skin"]
         let plan = ResetPlan.make(current: state, fresh: fxState())
-        #expect(plan.summary.skinsLost == 3)
-        #expect(plan.result.meta.engagement.shop.skins.isEmpty)
+        #expect(ResetPlan.make(current: state, fresh: plan.result).result == plan.result)
+    }
+
+    @Test("la pinta de ORO equipada sigue puesta")
+    func equippedShopSkin() {
+        var state = current(balance: 0, purchased: [:])
+        state.meta.engagement.shop.skins = ["oro_skin"]
+        state.meta.activeSkinByType = ["homeless": "oro_skin", "chef": "m1"]
+        let plan = ResetPlan.make(current: state, fresh: fxState())
+        #expect(plan.result.meta.activeSkinByType == ["homeless": "oro_skin"])
     }
 
     @Test("las ofertas de una vez no vuelven, lo pagado queda y las abiertas se cierran")

@@ -136,7 +136,7 @@ struct ResetGameFlowView: View {
                     row("reset.summary.prestige \(String(summary.prestigeLevel))")
                     row("reset.summary.units \(String(summary.unitsOnBoard))")
                     row("reset.summary.achievements \(String(summary.achievements))")
-                    row("reset.summary.skins \(String(summary.skinsLost))")
+                    row("reset.summary.skins_chest \(String(summary.skinsLost))")
                     if summary.losesPendingTriple { row("reset.summary.triple") }
                     RowDivider()
                     Text("reset.summary.kept").font(Tokens.body.weight(.heavy))

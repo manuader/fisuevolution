@@ -192,6 +192,53 @@ struct GameStateResetTests {
         #expect(gameState.player?.run.units == plan.result.run.units)
     }
 
+    // MARK: Pintas compradas con ORO
+
+    private func skinPrice(_ gameState: GameState) throws -> Int {
+        try #require(gameState.content?.skins.oroPrice(of: "pijama"))
+    }
+
+    @Test("la pinta comprada con ORO sobrevive al reset, sigue puesta y la tienda no la cobra de nuevo")
+    func oroSkinSurvivesReset() async throws {
+        let world = await makeWorld()
+        let gameState = world.gameState
+        let cost = try skinPrice(gameState)
+        gameState.creditStorePurchase(oroPack(amount: cost * 3), transactionID: "tx-1")
+        #expect(gameState.buySkinWithOro(skinID: "pijama") == .bought)
+        gameState.equipSkin(id: "pijama", forCharacterType: "homeless")
+        gameState.player?.meta.milestoneSkins = ["de_cofre"]
+        let plan = try #require(gameState.resetPlan())
+        #expect(plan.summary.keptSkins == 1)
+        #expect(plan.summary.skinsLost == 1, "la de cofre sí se pierde")
+
+        #expect(await gameState.resetGame(plan, repushEntitlements: {}) == .done)
+
+        #expect(gameState.ownsSkin("pijama"))
+        #expect(gameState.activeSkinID(forCharacterType: "homeless") == "pijama")
+        #expect(gameState.player?.meta.milestoneSkins.isEmpty == true)
+        let oro = gameState.player?.meta.oro
+        #expect(gameState.buySkinWithOro(skinID: "pijama") == .unavailable)
+        #expect(gameState.player?.meta.oro == oro, "no se cobra dos veces")
+        #expect(gameState.player?.meta.oroPurchasedLifetime == cost * 3, "el ORO comprado se conserva igual")
+    }
+
+    @Test("una pinta de ORO comprada entre armar el plan y confirmar lo deja viejo, y el nuevo la conserva")
+    func skinBoughtAfterPlanIsStaleThenKept() async throws {
+        let world = await makeWorld()
+        let gameState = world.gameState
+        let cost = try skinPrice(gameState)
+        gameState.creditStorePurchase(oroPack(amount: cost * 2), transactionID: "tx-1")
+        let stale = try #require(gameState.resetPlan())
+        #expect(gameState.buySkinWithOro(skinID: "pijama") == .bought)
+
+        #expect(await gameState.resetGame(stale, repushEntitlements: {}) == .stale)
+        #expect(gameState.ownsSkin("pijama"), "el plan viejo no se la lleva")
+
+        let fresh = try #require(gameState.resetPlan())
+        #expect(await gameState.resetGame(fresh, repushEntitlements: {}) == .done)
+        #expect(gameState.ownsSkin("pijama"))
+    }
+
     // MARK: Plan viejo y compras en vuelo
 
     @Test("un plan viejo (hubo una compra después de mostrarlo) no se ejecuta ni borra la compra")

@@ -2708,6 +2708,7 @@ paréntesis; el porqué completo está en la sesión de cada uno):
     **El «otro colchón» se guarda** (matar la app con el popup del colchón abierto ya no lo pierde; va al save) y **el «!» de Premios cuenta el otro colchón pendiente** (opción A del dueño): queda prendido mientras el 2º premio espera en la columna. Un `Effect` desconocido ya no tira el save (`LossyModifier`).
     **El reset conserva las pintas compradas con ORO** (`engagement.shop.skins`); las de cofre (`milestoneSkins`) se pierden como antes. El ORO conservado es `min(saldo, comprado)`.
     **El hueco `skinEffects` queda declarado** (la mecánica no existe): E9b T3 cierra con ese único hueco con razón, no con cero. **E6b T8 elegida:** legendarias `agujero_negro`, `dinastia`, `iluminado`, `titan` a 300 ORO; épicas `corona_solar`, `selenita`, `terraformador`, `moneda_propia` a 150; quien las tiene las conserva. El pacing no se movió: Dios 31,34 h · 13 reenc.
+29. **Cierre de E6b: lugares extra, pintas con ORO y familias** (T10, `Docs/SESION-2026-10-11-v2-e6b-cierre.md`). **La capacidad vive en la tabla de pisos** (`FloorTable.expanded(by:)`, `applyExtraSlots` idempotente desde `baseFloorTable`), no en `slots.count`: quien arme una tabla de pisos parte de `content.floorTable`. Los lugares son deltas (+3, +2; 600 y 1500 ORO) sobre la base vigente. **Una pinta de ORO vive en `shop.skins`** (no en `milestoneSkins`): sobrevive a la reencarnación y al reset de cuenta; las de cofre se pierden como antes. **No se vende lo que no se ve:** sin el atlas completo, una familia no se vende, de a una. Las 8 exclusivas de ORO de la v1 salen del cofre (bolsa de 33) y quien las tiene las conserva. Los efectos por shader no existen (decisión del dueño, 2026-10-07): no se reabren. Sin decisión nueva del dueño.
 ---
 
 ## 6. Cómo verificar
@@ -3190,6 +3191,8 @@ El panel de debug es el ícono de herramientas del HUD.
 - **Un spike visual se muestra con capturas de todas las variantes antes de generalizar:** el tinte se hizo en una pinta, el dueño miró la comparativa (base, gradient, monochrome, multiply, PNG real) y eligió el PNG: se revirtió con un `revert` y quedó una rama como traza.
 - **No dos tareas de save a la vez, ni mergear a `integ` con un `completo` corriendo:** el otro colchón esperó a E6b T8; el reset de las pintas esperó al fin del `completo`.
 - **Un worktree con una corrida en vuelo no se borra** (el `xcodebuild` no se corta con `TaskStop`): esperar al PID.
+- **Un UI test de layout puede pasar sin la mecánica aplicada** (E6b T7): `ExtraSlotsLayoutUITests` pasaba sin lugares extra; hoy exige `count > 10` y `rows >= 3`. Un test de «se ve X» comprueba antes que X existe.
+- **Una tabla de pisos armada desde `baseFloorTable` ignora los lugares comprados** (E6b T6/T7): quien arme una (el simulador, el Paquete) parte de `content.floorTable`.
 - Siguen: briefs con la ruta absoluta del protocolo y «prohibido `find /`», claves por snapshot, ≤ 3 compilando, esperar por PID, borrar sólo el simulador propio por UDID, `Package.resolved` en los worktrees nuevos, rutas de worktree absolutas, la revisión opus de plata y save no se saltea, la tarjeta inline se calla con `tutorialLessonsAutorun`.
 
 ### De la ola AF (2026-10-11, relevo 34)
@@ -5385,6 +5388,7 @@ Anotado por si algún día importa, con su medición:
 - **`Docs/SESION-2026-10-10-v2-e4b.md`**: el cierre de E4b y, con él, de E4 (la tabla por tarea con su commit, la verificación que lo cubre y los siete
   escenarios a mano que quedan para el dueño, el porqué de cada default de «Para el dueño» y lo que le deja a E5b y a E6). Plan cerrado:
   `Docs/superpowers/plans/2026-10-07-v2-e4b-visitantes-eventos.md`.
+- **`Docs/SESION-2026-10-11-v2-e6b-cierre.md`**: el cierre de E6b y, con él, de E6 (la tabla por tarea con su commit y su revisión, lo que se descartó y por qué —los efectos por shader—, las decisiones que quedaron, el peso medido, los siete escenarios a mano 🔒 y los carries). Plan cerrado: `Docs/superpowers/plans/2026-10-07-v2-e6b-lugares-skins.md`.
 - **`Docs/SESION-2026-10-11-v2-e6.md`**: el cierre de E6a (la tabla por tarea con su commit y su revisión opus, la bajada de `StoreView` y el cofre que no se reprodujo, la verificación que lo cubre, los escenarios a mano pendientes del dueño y el estado de E6b). Plan cerrado: `Docs/superpowers/plans/2026-10-07-v2-e6a-tienda-ofertas.md`.
 - **`Docs/SESION-2026-10-11-v2-e5.md`**: el cierre de E5b y, con él, de E5 (la tabla por tarea con su commit, la verificación que lo cubre, los escenarios a mano que quedan para el dueño, el porqué de cada default de
   «Para el dueño» y lo que le deja a E7b, E8, E9 y E2b). Plan cerrado: `Docs/superpowers/plans/2026-10-07-v2-e5b-aduana-colchon-ruleta.md`.

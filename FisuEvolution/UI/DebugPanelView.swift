@@ -241,6 +241,12 @@ struct DebugPanelView: View {
                     }
                     .accessibilityIdentifier("debug.prizes.newday")
                 }
+                Section("Mediación") {
+                    Button("Ad Inspector (mediación)") {
+                        AdInspector.present()
+                    }
+                    .accessibilityIdentifier("debug.ads.inspector")
+                }
             }
             .navigationTitle("Debug")
             .navigationBarTitleDisplayMode(.inline)

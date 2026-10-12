@@ -10,7 +10,8 @@ options:
 packages:
   EconomyKit:
     path: Packages/EconomyKit
-  # ÚNICA dependencia externa del proyecto, y es una excepción documentada a
+  # Las únicas dependencias externas son las de anuncios: el SDK de Google y
+  # sus adaptadores de mediación (abajo). Son una excepción documentada a
   # "sin librerías de terceros" (Docs/ads-integration.md): Apple no ofrece red
   # publicitaria, así que monetizar con ads obliga a un SDK ajeno.
   #
@@ -27,6 +28,17 @@ packages:
   GoogleMobileAds:
     url: https://github.com/googleads/swift-package-manager-google-mobile-ads.git
     from: 13.9.0
+  # La mediación (PLAN-v2 E7b-a): un paquete de Google por red, y cada uno fija
+  # el SDK de su red con `exact:` — NO se suma el paquete de la red aparte, o
+  # SPM no resuelve. Sólo Unity Ads y Meta (AppLovin y Mintegral quedaron
+  # afuera). Sus tags (4.21.000, 6.22.000) llevan ceros a la izquierda, no son
+  # semver y SPM los ignora: por eso van por `revision:` (SHA del tag).
+  GoogleMobileAdsMediationUnity:
+    url: https://github.com/googleads/googleads-mobile-ios-mediation-unity.git
+    revision: 188967a5c062987496cd276b83dc25e84f87d9a6 # 4.21.000 (Unity Ads 4.21.0)
+  GoogleMobileAdsMediationMeta:
+    url: https://github.com/googleads/googleads-mobile-ios-mediation-meta.git
+    revision: 0a3d0597402162334fb5e11816ca612478180095 # 6.22.000 (Audience Network 6.22.0)
 settings:
   base:
     SWIFT_VERSION: "6.0"
@@ -123,8 +135,15 @@ targets:
       - package: EconomyKit
       - package: GoogleMobileAds
         product: GoogleMobileAds
+      - package: GoogleMobileAdsMediationUnity
+        product: UnityAdapterTarget
+      - package: GoogleMobileAdsMediationMeta
+        product: MetaAdapterTarget
     settings:
       base:
+        # Los adaptadores de mediación lo piden (sus categorías de Objective-C
+        # no se enlazan sin esto) y MediationContractTests lo vigila.
+        OTHER_LDFLAGS: -ObjC
         PRODUCT_BUNDLE_IDENTIFIER: com.manuader.fisuevolution
         GENERATE_INFOPLIST_FILE: YES
         # Los dos convivien a propósito: `FisuEvolution/Info.plist` es la BASE y
@@ -210,7 +229,9 @@ targets:
           # 2026-08-18). Débil, dyld tolera la falta y `StoreManager` pregunta
           # por la clase antes de tocarla: sin frameworks la app arranca igual
           # y la tienda cae al camino de siempre.
-          OTHER_LDFLAGS: -weak_framework StoreKitTest
+          # Pisa al de la base, así que repite `-ObjC` (el de la mediación): sin
+          # él los adaptadores no se enlazan en Debug y no pujan.
+          OTHER_LDFLAGS: -ObjC -weak_framework StoreKitTest
           # Y estos DOS rpaths son los que hacen que la tienda local funcione
           # también instalada a pelo: XCTest (la dependencia de StoreKitTest) y
           # sus re-exports (XCTestCore, XCUIAutomation) viven en el platform

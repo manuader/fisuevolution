@@ -1130,7 +1130,7 @@ El dueño contestó «hacé todo lo recomendado» a `Docs/PREGUNTAS-DUENO-v2.md`
 - **El contrato de pacing pasa de 31–35 h a ~45 h activas** (perfil `.free`, política ×5). Reemplaza la tabla «El contrato en una página» del plan de E2b donde difiera:
   1. Dios entre **2.600 y 2.800 min activos** (43,3–46,7 h).
   2. **5 o 6** reencarnaciones (sin cambio).
-  3. Las 7 líneas al tope antes del 80 % y no antes de la 5ª (sin cambio).
+  3. Las 6 líneas (348 redondeado) al tope antes del 80 % y no antes de la 5ª (sin cambio).
   4. 1ª reencarnación entre **1 y 2 h activas** (antes 0,75–1,5).
   5. y 6. Sin cambio.
   7. Primera llegada por piso (min activos): urban ≤ 1,5 · corporate 6–12 · luxury 45–80 · island 270–410 · moon 710–930 · mars 1.230–1.500 · solar 1.840–2.110 · galaxy 2.250–2.520 · Dios 2.600–2.800 (los pisos desde luxury escalados ×45/33).

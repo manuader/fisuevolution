@@ -371,6 +371,10 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ## 4. Qué cambió, sesión por sesión
 
+### Cierre de E2b (2026-10-12, relevo 49) — La calibración de 45 h
+
+E2b queda hecha salvo lo 🔒 (el `completo` del controlador y el recorrido a mano). El dueño pidió Dios en ~45 h (antes ~31) porque los videos, los anuncios y las ventajas nuevas acortaban el juego; la búsqueda de T13 eligió g 1,11 · r 1 · K 12 con siete bandas de escalada y el divisor del ORO en 8e11, y T14 las declaró y prendió el contrato (`PacingContractTests`, Dios 2.724 min · 6 reencarnaciones · 1ª en 1,67 h). **Cuatro asserts quedan provisorios** (el «antes» del 5, el 6, la isla y la luna del 7, el 8): la búsqueda no los alcanza con precios y son preguntas al dueño con sus números. Detalle, tabla T1–T15 con su commit, perillas, semáforo y preguntas en **`Docs/SESION-2026-10-12-v2-e2b.md`**; los números en `Docs/balance-log.md` («2.0 — la calibración declarada»).
+
 ### Cierre de E7b-a (2026-10-12, relevo 49) — La mediación y los forzados cerrados
 
 E7b-a T6 (Unity Ads 4.21.000 y Meta Audience Network 6.22.000 por SPM, `-ObjC`, SKAdNetwork 89, Ad Inspector en el panel de debug) y T7 (este cierre, sólo documentación). Con esto **E7b queda cerrada entera**. Lo que E7b-a dejó en marcha: un pacer por proceso con la config del sitio (`ForcedAdsSetup`), los cortes naturales como único camino (`GameState+Ads`), la pausa con su pantalla previa, el app open antes del popup offline, el UMP y la mediación. Quedan del dueño: el onboarding de Meta, armar los grupos de mediación en AdMob, «Data Used to Track You» en App Privacy y los escenarios con el anuncio real. Detalle, tabla por tarea con su commit y escenarios con pasos en **`Docs/SESION-2026-10-12-v2-e7b-a-cierre.md`**.
@@ -2620,7 +2624,8 @@ paréntesis; el porqué completo está en la sesión de cada uno):
    en `balance-log`, "Cuarta ronda".
 4. **Los tintes IAP se retiraron** aunque eran los únicos productos pagos además
    de remove_ads.
-5. 🟡 **`PacingTests.theOwnersTargetsAreMet` sigue en ROJO, pero por OTRA cosa —
+5. ⚠️ **HISTÓRICO: `theOwnersTargetsAreMet` ya no existe (E2b T14, relevo 49); el contrato vigente es el de 45 h (#33).** Lo de abajo es la historia de la v1.
+   🟡 **`PacingTests.theOwnersTargetsAreMet` sigue en ROJO, pero por OTRA cosa —
    y ése es el progreso.** El primer assert (maxear en 20-30 h activas) **pasa
    desde el 2026-08-23**: mide 20,67 h. Lo que queda rojo es el segundo,
    **9 reencarnaciones contra ≤8**.
@@ -2688,7 +2693,7 @@ paréntesis; el porqué completo está en la sesión de cada uno):
     los mismos pisos **no** da cofres de nuevo; sólo cobra el piso más alto jamás alcanzado. Un veterano v1 que ya reencarnó cobra una última vez (migra
     `max(meta, run viejo)`). El reset de cuenta lo devuelve a 0. Cualquier texto o sim que diga "se vuelven a cobrar al reencarnar" está mal.
 12. **Maxear son las seis mejoras** (E13 T7): `lucky` ("Toque premiado", 20 niveles, ×1,09) reemplaza a las dos de toque; 192 ORO con `baseCost` 1, 348 con
-    `baseCost` 2 (E2b T14). Dios en 31,34 h activas (decisión del dueño, opción a).
+    `baseCost` 2 (E2b T14). Dios en 31,34 h activas (decisión del dueño, opción a) — **reemplazado el 2026-10-12 por Dios en ~45 h (#33)**.
 13. **La Startup y el regalo por video salen de frontera − n** (E13 T2/T6): el regalo nombra a quién llega (frontera − 3, cooldown 14400 s) y la Startup
     evoluciona dos tiers abajo de la frontera o paga S(300). "Fusionar todo" por video es uno solo, 600 s, en Regalos y en la columna.
 14. **El ascensor es una placa colgante y el viaje sólo ocurre al elegir** (E13b): mantener apretado el ícono del mapa despliega un botón por piso abierto
@@ -2756,6 +2761,7 @@ paréntesis; el porqué completo está en la sesión de cada uno):
     **El repaso no toca el save.** Ajustes › Tutorial pide el repaso (el núcleo y las lecciones ya vistas, todo en demostración: pasos de explicar sobre el tablero, sin abrir hojas) o el Tour; lo pedido espera al tablero libre (`tutorialEngine.requested`), no mira `tutorialLessonsAutorun` ni el ritmo, no escribe banderas ni el cofre de bienvenida, y el Tour pedido no marca lecciones. «Terminar repaso» existe sólo en el repaso; el Tour no se termina antes. Con el núcleo sin hacer o vivo (`tutorialReplayAvailable`) las filas quedan apagadas y lo dicen.
     **El reset y su época.** «Resetear partida» sube `meta.resetEpoch` (el resolver deja ganar a la época mayor, así una partida borrada no resucita desde otro dispositivo) y conserva lo comprado con plata: sin anuncios, pintas compradas, y **el ORO comprado que no se gastó, `oro = min(saldo, comprado)`**. Las pintas compradas con ORO viven en `shop.skins` y se conservan; las de cofre se pierden. Las banderas del tutorial son de la partida y se van con el reset (el núcleo vuelve a empezar). Lo que se muestra en el resumen de la zona de peligro es lo que se ejecuta (`ResetPlan`). Lo demás del reset ya está en 26, 27 y 28.
 32. **La mediación de E7b-a: dos redes, por `revision:`, y la app sigue sin declarar rastreo** (T6/T7, relevo 49, `Docs/SESION-2026-10-12-v2-e7b-a-cierre.md`). **Lo que quedó fijo y no se reabre sin el dueño:** sólo **Unity Ads y Meta Audience Network** (AppLovin rechazó la cuenta; Mintegral no se pudo crear); los paquetes de Google van por `revision:` (sus tags llevan ceros y no son semver); `-ObjC` va en la base **y** en la línea de Debug; el `PrivacyInfo.xcprivacy` de la app queda en `NSPrivacyTracking = false` porque describe el código propio, y Meta declara su rastreo (`ep1`/`ep6.facebook.com`) en su propio manifiesto, que Apple suma (E10 T14 / B22 ⏭). App open queda sólo con AdMob. Los defaults de E7b-a (rechazar la pausa cuenta como el corte, los IDs del sitio mandan en Release, `celebrationsDrained` sólo tras las celebraciones grandes) no cambiaron: el porqué de cada uno está en el SESION.
+33. **El contrato de 45 h y de dónde salen las perillas** (E2b T12–T15, relevo 49, `Docs/SESION-2026-10-12-v2-e2b.md`). **Lo que quedó fijo y no se reabre sin el dueño:** Dios entre 2.600 y 2.800 min activos (perfil `.free`, política ×5) y 5 o 6 reencarnaciones; la 1ª reencarnación en 1–2 h; las 6 líneas (348 redondeado) al tope antes del 80 % de Dios y no antes de la 5ª; `.ads` ≥ 65 % y `.max` ≥ 55 % de lo que tarda `.free`; ORO a Dios entre 5.000 y 12.000. **Las perillas** (`economy.json`: g 1,11 · r 1 · K 12 · siete bandas desde T8 · +0,03 de g por piso desde luxury · pisos en marcha 0,05 · capacidad 15 · `oro.divisor` 8e11 · piso móvil y herencia de pasivos prendidos; `upgrades.json`: `baseCost` 2; `treasures.json`: colchón cada 720 s y el ORO en peso 5) salen de la búsqueda de T13 (`Docs/balance-run-v2-e2b-candidata.md`), no se tocan a ojo y **cualquier cambio se re-mide con `pacing-sim`** (los defaults del CLI son los del contrato). **El ORO de la colchón paga la guarda de `.ads`:** sin el colchón a 720 s y con el ORO en peso 5 la curva de 45 h deja `.ads` en 60–61 %; es contenido de E5a. **La capacidad es 15 y vive en la tabla de pisos** (#29). **Cuatro asserts de `PacingContractTests` son provisorios** y llevan el número del contrato original en su mensaje: el «antes» del punto 5 (techo 15; contrato 0), el 6 (≥ 15 %; contrato ≥ 65 %), la isla y la luna del 7 (215 y 680; contrato 270 y 710) y el 8 (≥ 2,3× Dios; contrato «nunca»). Los decide el dueño: preguntas con sus números en la sesión §5. Si los resuelve, se **sube el piso del test**, no se toca la economía.
 
 ---
 
@@ -4962,6 +4968,14 @@ Siguen vigentes y no estaban en ningún otro lado:
 - **El repaso se retira si el núcleo volvió a vivir** y no arranca con el núcleo sin hacer: no hay que "arreglarlo" para que arranque igual, pisaría la fase.
 - **El reset del ORO es `min(saldo, comprado)`:** devolver el comprado entero regala ORO gastado; devolver el saldo entero regala el ORO ganado jugando. Cualquier cambio a `ResetPlan` o a `resolveAcrossReset` se prueba con `ResetEpochTests`.
 
+### Del cierre de E2b (2026-10-12)
+
+- **La pausa bonificada sale cada 240 s en la app y salía cada 120 s en el CLI.** La app la calcula en `PacingFixture.adBreakIntervalSeconds` (`minSecondsBetweenForced` de `ads.json` × turnos de la alternancia / turnos con premio = 120 × 2 / 1); `rewarded_ads.json` no trae `intervalSeconds`, así que el CLI caía al `minSecondsBetweenForced` pelado. T14 le dio el mismo reparto en `SourcesLoader.swift`. **Las fuentes se arman en dos lugares (`PacingFixture` y el CLI): si dan distinto, una se mapea mal;** al tocar una, mirar la otra. Las cifras de `.ads` y `.max` anteriores a T14 (66,9 % y 65,5 % en la candidata) están medidas con 120 s.
+- **La palabra «seguimiento» en una fila de `tasks.md` rompe el `grep` de progreso.** Los `grep` del §2 terminan en `| grep -vc seguimiento` (para dejar afuera las filas «(seguimiento)» de E1 y E6b): cualquier fila de tarea que lleve esa palabra en cualquier columna, también en las notas, **sale de la cuenta** de integradas y de filas de tarea. Al escribir una fila de E2b (o de cualquier épica) evitar la palabra y recalcular el progreso con los `grep` antes de dar un número.
+- **El CLI imprime el contrato de 45 h sólo con un perfil que no es `.bare`** (por defecto es `.free`): con `--profile bare` vuelven los targets viejos de F7.1c. Para reproducir una fila de las 208 de T13, partir de los flags de `balance-run-v2-e2b-candidata.md` («Cómo se reproduce»); el CSV trae los `flags_completos` de cada una.
+- **Dos de los cuatro asserts provisorios dependen de la semilla.** La luna cae en la semilla 0,9 (686 contra 710) y una run paga 2 % en la 0,1; los pisos del test (680 y 15 %) llevan margen para eso. Si se re-pinea el contrato, correr las tres semillas (`--seed-fraction 0.1 / 0.9`), no una.
+- **Un `.max` de la app y el del CLI deben coincidir.** El brief de T15 anotó 30,36 h (CLI) contra 30,05 h (app); la corrida del CLI sobre `2e70dd83` dio 30,05 h y la diferencia no se reprodujo. Si el `completo` la trae de vuelta, es la trampa de arriba.
+
 ## 8. Qué queda
 
 ### Lo que queda de la 2.0 (cierre del relevo 38)
@@ -5507,6 +5521,7 @@ Anotado por si algún día importa, con su medición:
   Planes cerrados: `Docs/superpowers/plans/2026-10-07-v2-e7b-a-forzados-mediacion.md` (T6–T7 abiertos) y `…-e7b-b-columna-ubicaciones.md`.
 - **`Docs/SESION-2026-10-10-v2-e5a.md`**: el cierre de E5a (la tabla por tarea con su commit, la verificación que lo cubre, el porqué de cada default de
   «Para el dueño» y lo que le deja a E5b y a E6a). Plan cerrado: `Docs/superpowers/plans/2026-10-07-v2-e5a-aduana-colchon-ruleta.md`.
+- **`Docs/SESION-2026-10-12-v2-e2b.md`**: el cierre de E2b (el contrato de 45 h que pidió el dueño, la tabla T1–T15 con su commit, las perillas clave → valor, el semáforo con los cuatro asserts provisorios como preguntas al dueño, la pausa a 240 s y la diferencia abierta de `.max`). Plan cerrado: `Docs/superpowers/plans/2026-10-07-v2-e2b-calibracion.md`. Los números, en `Docs/balance-log.md` («2.0 — la calibración declarada»); la búsqueda, en `Docs/balance-run-v2-e2b-candidata.md` y `…-mecanicas.md`.
 - **`Docs/SESION-2026-10-12-v2-e7b-a-cierre.md`**: el cierre de E7b-a y, con él, de E7b entera (la tabla T1–T7 con su commit, lo que entró en la mediación, qué cubren los tests, el porqué de cada default de «Para el dueño», los escenarios 🔒 con pasos y los carries: Meta sin onboarding, app open sólo AdMob, los grupos de AdMob, «Data Used to Track You»). Plan cerrado: `Docs/superpowers/plans/2026-10-07-v2-e7b-a-forzados-mediacion.md`.
 - **`Docs/SESION-2026-10-12-v2-relevo-38-ola-aj.md`**: el relevo 38 (los eventos de 25 s dicen «En curso»; fuera `tutorial.tip.wheel`).
 - **`Docs/SESION-2026-10-12-v2-relevo-37-ola-ai.md`**: el relevo 37 (el UI test del otro colchón `extraOnly`; el pager asienta con el scroll quieto).

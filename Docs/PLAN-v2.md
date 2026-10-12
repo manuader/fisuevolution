@@ -555,6 +555,8 @@ exacta):
     - Se activa con video (`rewardedBoost`) o con ORO (tienda, tope diario).
     - Nunca toca el par de la carrera de la UBA sin elegir.
 
+> **Estado (2026-10-12): E2b HECHA salvo lo 🔒 del dueño.** T1–T14 están en `version-2`; el cierre es `Docs/SESION-2026-10-12-v2-e2b.md`. **El contrato de abajo ya no es el vigente:** el dueño pidió Dios en ~45 h (`tasks.md` §7 «2026-10-12»: Dios 2.600–2.800 min, 1ª reencarnación 1–2 h, `.ads` ≥ 65 %, `.max` ≥ 55 %, pisos escalados ×45/33) y T14 lo prendió con g 1,11 · r 1 · K 12 y siete bandas. **Desvíos:** cuatro asserts de `PacingContractTests` son provisorios (el «antes» del 5, el 6, la isla y la luna del 7, el 8) y esperan la decisión del dueño; las líneas son seis (348), no siete. Pendiente: el `completo` de cierre y el recorrido a mano del plan (T15 pasos 1–2).
+
 **E2b — Calibración final** (después de E4–E6, cuando existen todas las fuentes):
 
 - **Herencia al reencarnar** (decisión del dueño: **sólo los pasivos**). En

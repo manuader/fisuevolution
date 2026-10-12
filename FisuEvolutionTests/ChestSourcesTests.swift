@@ -159,8 +159,10 @@ struct ChestOpeningTests {
 
         // Una sola tirada no pinea el mínimo: con los pesos que se shippean, una
         // épica o mejor sale sola el 17 % de las veces, así que un mínimo roto
-        // pasaría cinco de cada seis corridas. Doce seguidas es una en 2e9.
-        for _ in 0..<12 {
+        // pasaría cinco de cada seis corridas. Diez seguidas es una en 5e7. No más de
+        // diez: desde E6b T8 la bolsa tiene 12 pintas de épica o mejor (8 + 4) y, con
+        // todas ganadas, el mínimo cede (la regla de arriba) y el cofre paga rara.
+        for _ in 0..<10 {
             state.chestReward = nil
             state.awardChest(minRarity: .epica)
             state.openChest()

@@ -125,6 +125,23 @@ struct ResetPlanTests {
         #expect(plan.result.meta.activeSkinByType == ["homeless": "oro_skin"])
     }
 
+    @Test("resolver entre épocas no une las pintas de ORO ni las de cofre del lado viejo")
+    func resolverDoesNotUnionOldOroOrChestSkins() {
+        var older = current(balance: 0, purchased: [:])
+        older.meta.engagement.shop.skins = ["oro_skin"]
+        older.meta.resetEpoch = 4
+        var newer = fxState()
+        newer.meta.resetEpoch = 5
+        newer.meta.ownedSkins = ["iap_skin"]
+        for (local, remote) in [(older, newer), (newer, older)] {
+            let resolved = SaveConflictResolver.resolve(local: local, remote: remote)
+            #expect(resolved.meta.resetEpoch == 5)
+            #expect(resolved.meta.engagement.shop.skins.isEmpty)
+            #expect(resolved.meta.milestoneSkins.isEmpty)
+            #expect(resolved.meta.ownedSkins == ["iap_skin"], "lo pagado con plata sí cruza")
+        }
+    }
+
     @Test("las ofertas de una vez no vuelven, lo pagado queda y las abiertas se cierran")
     func offersSurvive() {
         var state = current(balance: 0, purchased: [:])

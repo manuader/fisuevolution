@@ -2,8 +2,10 @@ import Foundation
 
 /// "Resetear partida" (PLAN-v2 E9), puro: la pantalla muestra `summary` y el juego escribe
 /// `result`, los dos salidos de la misma cuenta. Se conserva lo comprado con plata; el ORO
-/// comprado sólo si no se gastó (`min(saldo, comprado)`), y las pintas pagadas, con plata
-/// (`ownedSkins`) o con ORO (`shop.skins`: ese ORO pudo ser comprado). Lo demás es la partida nueva que
+/// comprado sólo si no se gastó (`min(saldo, comprado)`), y las pintas pagadas con plata
+/// (`ownedSkins`). De `shop.skins` se conservan TODAS las pintas de ORO, sea el ORO comprado
+/// o ganado: no se distingue el origen, así que gastar ORO ganado en pintas antes de resetear
+/// es legal y es la forma de llevárselo. Lo demás es la partida nueva que
 /// recibe. De las ofertas queda lo ya usado y lo pagado (no se vuelven a vender las de una
 /// vez); las abiertas se cierran.
 public struct ResetPlan: Sendable, Equatable {

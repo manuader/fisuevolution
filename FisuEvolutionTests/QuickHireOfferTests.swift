@@ -86,13 +86,13 @@ struct QuickHireOfferTests {
     /// (2026-08-23): el factor de piso es el MISMO que cobra el tap
     /// (`tapFloorMultiplier`, hoy con el exponente en 0 y por lo tanto 1 en los
     /// diez pisos), el ancla es `tapYield(frontera)` con `1,5^(tier − frontera)`
-    /// por la distancia, y desde la desaceleración lleva además
-    /// `1,6^(frontera − 7)`. Con la frontera en 18 esa escalada vale 1,6¹¹ =
-    /// 175,92, así que un Senior (tier 12) cotiza **370.348.029.352,24** y el
-    /// Oficinista —el `firstTier` del piso— **109.732.749.437,70**. Con
-    /// cuatrocientos mil millones en la mano los dos se pagan y los dos salen
-    /// `hirable`, así que lo único que puede elegir al Oficinista es la regla
-    /// del tier base.
+    /// por la distancia, y desde la desaceleración lleva además la escalada por
+    /// bandas de la 2.0 (E2b T14: ×1,7 del 8 al 12, ×2,0 del 13 al 16, ×2,2 del
+    /// 17 al 20). Con la frontera en 18 esa escalada vale 1,7⁵ × 2⁴ × 2,2² =
+    /// 1.099,54, así que un Senior (tier 12) cotiza **2.314.729.145.704** y el
+    /// Oficinista —el `firstTier` del piso— **685.845.672.801**. Con 2,5
+    /// billones en la mano los dos se pagan y los dos salen `hirable`, así que
+    /// lo único que puede elegir al Oficinista es la regla del tier base.
     /// El tier NO-base pagable **es** la oferta: ésa es la regla, y este test es
     /// su cara exacta.
     ///
@@ -110,7 +110,7 @@ struct QuickHireOfferTests {
         gameState.debugUnlockFloors(throughTier: 13)
         gameState.debugMarkTypesSeen(throughTier: 12)
         gameState.debugSetMaxTier(18)
-        try giveCoins(400_000_000_000, to: gameState)
+        try giveCoins(2_500_000_000_000, to: gameState)
         gameState.refreshProjections()
 
         // El escenario, antes del assert: el Senior es una fila que FisuJobs
@@ -153,7 +153,8 @@ struct QuickHireOfferTests {
         gameState.debugMarkTypesSeen(throughTier: 9)
         // El saldo tiene que cubrir al Fast Food para que el test pueda decir
         // que lo que decide es la regla y no la plata.
-        try giveCoins(1_000_000_000, to: gameState)
+        // Con la frontera en 14 el Fast Food cotiza 1.945 millones (2.0).
+        try giveCoins(2_500_000_000, to: gameState)
         gameState.refreshProjections()
 
         let best = try #require(gameState.quickHireOffer)
@@ -250,18 +251,18 @@ struct QuickHireOfferTests {
         // ⚠️ **Acá el Fisura ya no sale 25, y son las dos mitades nuevas de la
         // regla juntas**: con la frontera en 13 el ancla es lo que rinde un click
         // de TU frontera —(2,8/1,5)¹² = 1.789,8×— y encima pesa la desaceleración
-        // desde el tier 7 —1,6⁶ = 16,78×—. 25 × 1.789,8 × 16,78 = 750.690,94.
-        // Los 25 pelados sólo valen con la frontera en T1, y eso lo pinea
-        // `hirePricesFollowTheOwnersRule`.
-        let fisuraConLaFronteraEn13 = 25 * pow(2.8 / 1.5, 12) * pow(1.6, 6)
-        #expect(abs(fisuraConLaFronteraEn13 - 750_690.94) < 0.01)
+        // por bandas de la 2.0 —1,7⁵ × 2,0 = 28,40×—. 25 × 1.789,8 × 28,40 =
+        // 1.270.620,56. Los 25 pelados sólo valen con la frontera en T1, y eso
+        // lo pinea `hirePricesFollowTheOwnersRule`.
+        let fisuraConLaFronteraEn13 = 25 * pow(2.8 / 1.5, 12) * pow(1.7, 5) * 2.0
+        #expect(abs(fisuraConLaFronteraEn13 - 1_270_620.56) < 0.01)
         #expect(best.costText == CoinFormatter.string(from: fisuraConLaFronteraEn13))
         #expect(!best.affordable)
     }
 
     /// **El desempate de precio vuelve a decidir.** Los cuatro Senior arrancan
     /// costando lo mismo; comprar uno le sube la curva —que es POR TIPO
-    /// (`run.hireCountsByType`), un `growth` de ×1,06 desde el rebalance— y la
+    /// (`run.hireCountsByType`), un `growth` de ×1,11 en la 2.0— y la
     /// oferta pasa al siguiente más barato del mismo tier.
     ///
     /// Este test **existió, se retiró el 2026-08-21 por inalcanzable y vuelve el
@@ -274,9 +275,10 @@ struct QuickHireOfferTests {
         gameState.debugUnlockFloors(throughTier: 13)
         gameState.debugMarkTypesSeen(throughTier: 12)
         gameState.debugSetMaxTier(18)   // la compuerta del Senior (T12) pide 18
-        // Saldo para DOS Senior: si sólo alcanzara para uno, después de comprar
-        // la oferta se caería de tier y el test mediría otra cosa.
-        try giveCoins(2_000_000_000_000, to: gameState)
+        // Saldo para DOS Senior (2,31 billones cada uno en la 2.0): si sólo
+        // alcanzara para uno, después de comprar la oferta se caería de tier y
+        // el test mediría otra cosa.
+        try giveCoins(5_000_000_000_000, to: gameState)
         gameState.refreshProjections()
         let before = try #require(gameState.quickHireOffer)
         #expect(before.typeId == "senior_architect", "empate a cuatro: gana el id ascendente")
@@ -308,7 +310,7 @@ struct QuickHireOfferTests {
         gameState.debugUnlockFloors(throughTier: 13)
         gameState.debugMarkTypesSeen(throughTier: 12)
         gameState.debugSetMaxTier(18)
-        try giveCoins(400_000_000_000, to: gameState)
+        try giveCoins(2_500_000_000_000, to: gameState)
         gameState.refreshProjections()
 
         let seniors = ["senior_architect", "senior_doctor", "senior_lawyer", "senior_programmer"]
@@ -324,8 +326,12 @@ struct QuickHireOfferTests {
         let player = try #require(gameState.player)
         let quotes = seniors.compactMap { gameState.currentQuote(player: player, typeId: $0)?.cost }
         #expect(quotes.count == 4)
-        #expect(Set(quotes).count == 1, "los cuatro cotizan 370.348.029.352,24")
-        #expect(abs(try #require(quotes.first) - 370_348_029_352.24) < 0.01)
+        // 600 clicks × lo que rinde la frontera 18 × las bandas × 1,5⁻⁶ por los
+        // seis tiers de distancia: 2.314.729.145.704 (2.0, E2b T14).
+        let bands: Double = pow(1.7, 5) * pow(2.0, 4) * pow(2.2, 2)
+        let senior: Double = 600 * pow(2.8, 17) * bands * pow(1.5, -6)
+        #expect(Set(quotes).count == 1, "los cuatro cotizan lo mismo")
+        #expect(abs(try #require(quotes.first) / senior - 1) < 1e-12, "cotizan \(quotes)")
 
         let best = try #require(gameState.quickHireOffer)
         #expect(best.tier == 12)
@@ -396,7 +402,7 @@ struct QuickHireOfferTests {
         gameState.debugUnlockFloors(throughTier: 13)
         gameState.debugMarkTypesSeen(throughTier: 12)
         gameState.debugSetMaxTier(18)
-        try giveCoins(400_000_000_000, to: gameState)
+        try giveCoins(2_500_000_000_000, to: gameState)
         gameState.refreshProjections()
         #expect(gameState.quickHireOffer?.typeId == "senior_architect", "sin pin, el más alto pagable")
 
@@ -416,7 +422,7 @@ struct QuickHireOfferTests {
         #expect(offer.blocker == .cantAfford)
 
         gameState.pinQuickHire(typeId: nil)
-        try giveCoins(400_000_000_000, to: gameState)
+        try giveCoins(2_500_000_000_000, to: gameState)
         gameState.refreshProjections()
         #expect(gameState.quickHireOffer?.typeId == "senior_architect", "soltar el pin vuelve a la regla")
         #expect(gameState.quickHireOffer?.isPinned == false)

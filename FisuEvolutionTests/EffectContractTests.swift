@@ -331,7 +331,9 @@ struct EffectContractTests {
     func staffedFloorsShowWhatTheyPay() async throws {
         let gameState = await makeGameState()
         let content = try #require(gameState.content)
-        let plainEconomy = content.economy
+        // Sin la perilla, contra con la perilla: el `economy.json` real ya trae
+        // el 0,05 desde la 2.0 (E2b T14), así que la base se apaga a mano.
+        let plainEconomy = try content.economy.tuned(EconomyKnobs(staffedFloorBonus: 0))
         gameState.replaceEconomy(try content.economy.tuned(EconomyKnobs(staffedFloorBonus: 0.05)))
         gameState.player?.run.units = [base.id: content.floorTable[0].capacity]
         gameState.player?.run.passiveUnlocked[base.id] = true

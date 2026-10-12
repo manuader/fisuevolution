@@ -209,6 +209,8 @@ struct TutorialLessonsTests {
         let gameState = await makeGameState()
         only(.staffedFloors, in: gameState)
         let content = try #require(gameState.content)
+        // Apagada a mano: el `economy.json` de la 2.0 la trae en 0,05 (E2b T14).
+        gameState.replaceEconomy(try content.economy.tuned(EconomyKnobs(staffedFloorBonus: 0)))
         let base = try baseType(gameState)
         gameState.player?.run.units = [base.id: content.floorTable[0].capacity]
         gameState.reconcileTower()

@@ -25,10 +25,14 @@ struct PrizesContentTests {
         #expect(top.probability > 0.05 && top.probability < 0.08, "§2: el tope sale ~5–8 %")
     }
 
-    @Test("el colchón: cada 8 min de juego, uno solo, y plata 20 min / un Paquete / 2 ORO")
+    /// 2.0 (E2b T14): cada 12 min y no cada 8, y el ORO con peso 5 y no 15. Es
+    /// lo que deja a `.ads` en ≥ 65 % de lo que tarda `.free` (contrato de 45 h,
+    /// punto 9; `Docs/balance-run-v2-e2b-candidata.md` §4).
+    @Test("el colchón: cada 12 min de juego, uno solo, y plata 20 min / un Paquete / 2 ORO")
     func treasures() {
         let treasures = content.treasures
-        #expect(treasures.spawnIntervalSeconds == 480)
+        #expect(treasures.spawnIntervalSeconds == 720)
+        #expect(treasures.prizes.map(\.weight) == [60, 25, 5])
         #expect(treasures.extraOpensPerTreasure == 1)
         #expect(treasures.prizes.map(\.id) == ["coins", "package", "oro"])
         #expect(treasures.prizes[0].rewards == [.coinsSeconds(1200)])

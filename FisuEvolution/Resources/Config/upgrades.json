@@ -8,7 +8,7 @@
       "effectType": "incomeMultiplier",
       "magnitudePerLevel": 0.2,
       "maxLevel": 10,
-      "baseCost": 1,
+      "baseCost": 2,
       "costGrowth": 1.1,
       "currency": "oro"
     },
@@ -19,7 +19,7 @@
       "effectType": "spawnCostDiscount",
       "magnitudePerLevel": 0.03,
       "maxLevel": 10,
-      "baseCost": 1,
+      "baseCost": 2,
       "costGrowth": 1.15,
       "currency": "oro"
     },
@@ -30,7 +30,7 @@
       "effectType": "offlineEfficiency",
       "magnitudePerLevel": 0.05,
       "maxLevel": 10,
-      "baseCost": 1,
+      "baseCost": 2,
       "costGrowth": 1.15,
       "currency": "oro"
     },
@@ -41,7 +41,7 @@
       "effectType": "tapMultiplier",
       "magnitudePerLevel": 0.5,
       "maxLevel": 10,
-      "baseCost": 1,
+      "baseCost": 2,
       "costGrowth": 1.1,
       "currency": "oro"
     },
@@ -53,7 +53,7 @@
       "magnitudePerLevel": 0.0125,
       "goldenPerLevel": 0.0025,
       "maxLevel": 20,
-      "baseCost": 1,
+      "baseCost": 2,
       "costGrowth": 1.09,
       "currency": "oro"
     },
@@ -64,7 +64,7 @@
       "effectType": "prestigeBonusPerSoulPoint",
       "magnitudePerLevel": 0.005,
       "maxLevel": 10,
-      "baseCost": 1,
+      "baseCost": 2,
       "costGrowth": 1.25,
       "currency": "oro"
     }

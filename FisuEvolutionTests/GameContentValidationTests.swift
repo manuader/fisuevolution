@@ -6,6 +6,14 @@ import Testing
 /// Validates the real bundled content (the JSON that ships in the app).
 @Suite("Bundled game content")
 struct GameContentValidationTests {
+    /// Las bandas de la escalada de la 2.0 (E2b T14), escritas a mano: las
+    /// pinea `economyConfigMatchesTunedValues` y las usa
+    /// `hirePricesFollowTheOwnersRule` para no calcular lo esperado con el
+    /// código bajo test.
+    static let escalationBands: [(fromTier: Int, factor: Double)] = [
+        (8, 1.7), (13, 2.0), (17, 2.2), (21, 1.9), (25, 1.6), (29, 1.3), (33, 1.0),
+    ]
+
     let content: GameContent
 
     init() throws {
@@ -96,7 +104,7 @@ struct GameContentValidationTests {
         }
     }
 
-    @Test func economyConfigMatchesTunedValues() {
+    @Test func economyConfigMatchesTunedValues() throws {
         // Pins de la calibración FINAL de economy.json v2 (F7 "La Torre").
         // Si tuneás la economía, actualizá estos pins A PROPÓSITO — el drift
         // silencioso del JSON es exactamente el bug que este test caza.
@@ -135,7 +143,14 @@ struct GameContentValidationTests {
         // Este factor es una de las dos patas de la desaceleración; el arranque
         // se arregla donde el arranque vive (ver `hireCostGrowthOverride` del
         // callejón en `floorHireOverridesMatchTunedValues`).
-        #expect(economy.hire.defaultCostGrowth == 1.06)
+        //
+        // 2.0 (E2b T14, contrato de 45 h): sube a 1,11 con r = 1 (fusionar un
+        // par devuelve una compra a la curva) y el amortiguador en K = 12. Es el
+        // par que eligió la búsqueda de T13 (`Docs/balance-run-v2-e2b-candidata.md`):
+        // 1,12 pone la 1ª reencarnación en 2 h y 1,10 baja moon de su ventana.
+        #expect(economy.hire.defaultCostGrowth == 1.11)
+        #expect(economy.hire.mergeRefundCounts == 1)
+        #expect(economy.hire.priceReliefPurchases == 12)
         // La pendiente del precio por tier (cuarta ronda de balance): **1,5, y
         // lo que importa es que esté por DEBAJO de 2**, que es el factor de
         // merge. Con 1,5, una unidad de tu frontera comprada `d` tiers más abajo
@@ -165,6 +180,17 @@ struct GameContentValidationTests {
         // desde el tier 1 las primeras cinco runs se traban EN el callejón.
         #expect(economy.hire.frontierEscalationPerTier == 1.6)
         #expect(economy.hire.frontierEscalationFromTier == 7)
+        // 2.0 (PLAN-v2 E2b, «dificultad tardía»): las bandas reemplazan al 1,6
+        // parejo, que queda declarado sólo porque el decoder lo exige. Duras en
+        // los pisos medios (13–24) y suaves desde el 25, para que galaxy y Dios
+        // caigan juntos; la curva por compra suma 0,03 por piso desde luxury.
+        // Medido en T13: Dios a 2.724 min activos con 6 reencarnaciones.
+        let bands = try #require(economy.hire.escalationBands)
+        #expect(bands.map(\.fromTier) == Self.escalationBands.map(\.fromTier))
+        #expect(bands.map(\.factor) == Self.escalationBands.map(\.factor))
+        #expect(economy.hire.costGrowthStepPerFloor == 0.03)
+        #expect(economy.hire.costGrowthStepFromFloorId == "luxury")
+        #expect(economy.staffedFloorBonus == 0.05)
         #expect(economy.charUpgrades.baseCostMultiplier == 50)
         // Bajó de 4,0 el 2026-08-22, y no es un ajuste de precio sino la
         // consecuencia del efecto secuencial: contra un efecto LINEAL, un costo
@@ -196,7 +222,13 @@ struct GameContentValidationTests {
         // la pared que construyó la desaceleración. Con 1e9 la pared corría
         // +1 · +3 y a los saltos; con 1e10 corre +1 · +1 · +2 · +2 · +2, parejo,
         // y maxear entra en la banda de 20-30 h. Medido en `balance-log.md`.
-        #expect(economy.oro.divisor == 10_000_000_000)
+        // 2.0 (E2b T14): 8e11. Atrasa la 1ª reencarnación a 1,67 h activas
+        // (contrato de 45 h: 1–2 h) y deja ~6.000 ORO al llegar a Dios, adentro
+        // de la guarda de 5.000–12.000.
+        #expect(economy.oro.divisor == 800_000_000_000)
+        // Piso móvil y herencia de pasivos (PLAN-v2 §2): decisiones del dueño.
+        #expect(economy.oro.requiresWall)
+        #expect(economy.oro.inheritsPassives)
         // RF-07 (Ola 3) lo había bajado de 0.5 a 0.45; el rebalance lo baja a
         // 0.25 porque con 0,45 hacen falta ×4,65 de ganancias por duplicar el
         // ORO y las 8 entregas entraban en 1,3 h activas. Con 0,25 hacen falta
@@ -253,17 +285,21 @@ struct GameContentValidationTests {
     }
 
     /// Pin del catálogo de las seis líneas. `economy.json` tiene el suyo desde
-    /// F7 y `upgrades.json` no tenía ninguno — y sobre estos 192 ORO (348 con `baseCost` 2, E2b T14) descansa
-    /// toda la calibración del rebalance, incluido el techo de 8
-    /// reencarnaciones: el bot reencarna al DUPLICAR su ORO histórico, así que
-    /// las reencarnaciones para maxear son log₂(costo total), y log₂(192) = 7,6.
-    /// Un catálogo por encima de ~450 ORO totales rompe ese techo en silencio.
+    /// F7 y `upgrades.json` no tenía ninguno — y sobre estos 348 ORO descansa
+    /// el punto 3 del contrato de la 2.0 (las líneas al tope antes del 80 % de
+    /// Dios y no antes de la 5ª reencarnación). La ley es la de la política ×5:
+    /// el bot reencarna cuando su ORO histórico se multiplica por 5, así que
+    /// junta 1 · 5 · 25 · 125 · 625… y **con 348 la 5ª reencarnación es la
+    /// primera que maxea** (E2b T14: `baseCost` 1 → 2; con 1 eran 192 y
+    /// maxeaba la 4ª). Las líneas son SEIS, no siete: con el redondeo para
+    /// arriba de cada nivel suman 348 (313,8 en continuo, que es lo que cobra
+    /// el simulador).
     @Test func upgradeCatalogMatchesTunedValues() {
         let esperado: [String: (levels: Int, magnitude: Double, base: Double, growth: Double)] = [
-            "income": (10, 0.2, 1, 1.10), "tap": (10, 0.5, 1, 1.10),
-            "offline": (10, 0.05, 1, 1.15), "spawn": (10, 0.03, 1, 1.15),
-            "lucky": (20, 0.0125, 1, 1.09),
-            "prestige": (10, 0.005, 1, 1.25),
+            "income": (10, 0.2, 2, 1.10), "tap": (10, 0.5, 2, 1.10),
+            "offline": (10, 0.05, 2, 1.15), "spawn": (10, 0.03, 2, 1.15),
+            "lucky": (20, 0.0125, 2, 1.09),
+            "prestige": (10, 0.005, 2, 1.25),
         ]
         let lineas = content.upgradesConfig.upgrades
         #expect(lineas.count == esperado.count)
@@ -283,7 +319,7 @@ struct GameContentValidationTests {
             // (`UpgradeManager.purchase`), así que el total se suma así.
             total += (0..<line.maxLevel).reduce(0) { $0 + Int(UpgradeManager.cost(of: line, level: $1).rounded(.up)) }
         }
-        #expect(total == 192, "maxear las seis cuesta \(total) ORO")
+        #expect(total == 348, "maxear las seis cuesta \(total) ORO")
         // Y ninguna línea puede volver a ser el 99,99% del costo de ganar, que
         // es lo que `crit` era antes del rebalance (1,776e10 de 1,778e10).
         let porNivel = lineas.map { line in
@@ -295,8 +331,10 @@ struct GameContentValidationTests {
         #expect(masCara / masBarata < 2.0, "\(masCara) vs \(masBarata)")
     }
 
-    /// Pin de los DOCE logros que pagan ORO fijo, contra los 193 que cuesta
-    /// maxear las siete líneas.
+    /// Pin de los DOCE logros que pagan ORO fijo, contra los 348 que cuesta
+    /// maxear las seis líneas (2.0, E2b T14: las líneas pasaron de 192 a 348 y
+    /// los doce montos se duplicaron, 33 → 66, para seguir en la banda:
+    /// 66/348 = 19,0 %).
     ///
     /// Existe porque la calibración del rebalance dejó una regla en pie que
     /// nadie estaba midiendo: los doce sumaban **620 ORO** contra un camino de
@@ -308,7 +346,7 @@ struct GameContentValidationTests {
     ///
     /// La regla del re-escalado, para que el próximo logro de ORO tenga de dónde
     /// salir en vez de inventarse: **el monto viejo dividido 20, redondeado para
-    /// arriba, con piso en 1**. Conserva el orden entero del catálogo (el más
+    /// arriba, con piso en 1**, y desde la 2.0 **por 2**. Conserva el orden entero del catálogo (el más
     /// caro sigue siendo `ach_skins_all`) y ningún logro pasa a pagar cero.
     ///
     /// El assert que importa es el TOTAL, no los doce montos: los montos son
@@ -323,7 +361,7 @@ struct GameContentValidationTests {
             #expect(monto > 0, "\(logro.id) paga \(monto) de ORO: un logro que no paga nada")
             total += monto
         }
-        #expect(total == 33, "los doce logros de ORO suman \(total)")
+        #expect(total == 66, "los doce logros de ORO suman \(total)")
 
         // Contra el costo REAL de maxear, derivado del catálogo y no un literal:
         // si mañana `upgrades.json` se encarece, esta proporción se mueve sola y
@@ -440,14 +478,14 @@ struct GameContentValidationTests {
                 let click = economy.tapYield(forTier: tier)
                     * content.economy.tapFloorMultiplier(for: floor)
                 let clicks = precio / click
-                // Del tier `frontierEscalationFromTier` para arriba se suma la
-                // DESACELERACIÓN: tu propia frontera se encarece
-                // `frontierEscalationPerTier` por tier. Es el renglón (3) de la
-                // regla y es lo que pone densa la torre arriba.
-                let escalada = pow(
-                    content.economy.hire.frontierEscalationPerTier,
-                    Double(max(0, tier - content.economy.hire.frontierEscalationFromTier))
-                )
+                // Se suma la DESACELERACIÓN: cada tier de tu propia frontera
+                // encarece el factor de su banda. Es el renglón (3) de la regla
+                // y es lo que pone densa la torre arriba. Se calcula con el
+                // LITERAL de las bandas de la 2.0 y no con `hire.escalation`, que
+                // es el código bajo test (trampa 24).
+                let escalada = (2...max(2, tier)).reduce(1.0) { producto, t in
+                    producto * (Self.escalationBands.last { $0.fromTier <= t }?.factor ?? 1)
+                }
                 let esperado = content.economy.hireCostMultiplier(for: floor) * escalada
                 // Tolerancia RELATIVA y no absoluta: con la desaceleración el
                 // número esperado llega a 600 × 1,6³⁰, y a esa escala un `1e-9`
@@ -582,7 +620,8 @@ struct GameContentValidationTests {
 
     @Test func towerFloorsMatchCalibratedLayout() throws {
         // Layout FINAL de La Torre: 10 pisos data-driven, del callejón al reino
-        // divino, capacity 10 en todos e income estrictamente creciente.
+        // divino, capacity 15 en todos (2.0, E2b T14: era 10) e income
+        // estrictamente creciente.
         // El `incomeMultiplier` es una progresión geométrica interpolada, no
         // inventada: va de 1,0 a 620,0 en 9 saltos, o sea razón 620^(1/9) =
         // 2,0431 redondeada al estilo de la tabla vieja.
@@ -604,7 +643,7 @@ struct GameContentValidationTests {
             #expect(floor.id == pin.id)
             #expect(floor.firstTier == pin.tiers.lowerBound, "\(pin.id).firstTier")
             #expect(floor.lastTier == pin.tiers.upperBound, "\(pin.id).lastTier")
-            #expect(floor.capacity == 10, "\(pin.id).capacity")
+            #expect(floor.capacity == 15, "\(pin.id).capacity")
             expectRelativelyEqual(floor.incomeMultiplier, pin.income, context: "\(pin.id).incomeMultiplier")
         }
         // Estrictamente creciente: un piso más alto SIEMPRE rinde más.

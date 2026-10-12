@@ -2,10 +2,13 @@ import EconomyKit
 import Foundation
 
 /// Corre `PacingSimulator` contra economy.json + tiers.json reales e imprime el
-/// reporte con el semáforo de targets (PLAN-F7 §F7.1c, tolerancia ±30% ya aplicada).
+/// reporte con el semáforo del contrato de la 2.0 (45 h, `tasks.md` §7
+/// «2026-10-12»). Los defaults son los del contrato: perfil `.free`, política ×5
+/// (`--prestige-threshold 4`), descuento de prestigio cobrado y 400 días; con
+/// `--profile bare` vuelven los targets viejos de F7.1c.
 ///
 ///     swift run pacing-sim --economy <economy.json> --tiers <tiers.json> \
-///         [--upgrades <upgrades.json>] [--max-days 90] [--csv <out.csv>] \
+///         [--upgrades <upgrades.json>] [--max-days 400] [--csv <out.csv>] \
 ///         [--prestige-threshold X | --no-reincarnation]
 ///         [--profile bare|free|ads|max] [--sources <dir>] [--seed-fraction x] [--contract]
 ///         [--prestige-discount | --no-prestige-discount]
@@ -17,7 +20,7 @@ import Foundation
 /// `resolveUpgradesURL`). Sin catálogo el bot NO compra mejoras permanentes, o
 /// sea que mide el modelo viejo — y lo dice en la salida.
 ///
-/// Los targets duros viven en PacingTests (app target); esta tool es el loop de
+/// Los targets duros viven en PacingContractTests (app target); esta tool es el loop de
 /// calibración: tocar knob en economy.json → correr → mirar el semáforo.
 
 struct SimToolError: Error, CustomStringConvertible {
@@ -42,7 +45,7 @@ struct SimArguments {
     let sourcesURL: URL?
     let seedFraction: Double
     let knobs: EconomyKnobs
-    /// Cobrar o no el descuento de `prestige_unlocks.json` (default no hasta E2b T14).
+    /// Cobrar o no el descuento de `prestige_unlocks.json` (default sí desde E2b T14).
     let prestigeDiscount: Bool
     /// Imprime el contrato de la 2.0 en vez de los targets de F7.1c. Con
     /// cualquier perfil que no sea `.bare` va solo.
@@ -67,14 +70,14 @@ func parseArguments() throws -> SimArguments {
     var tiersPath: String?
     var upgradesPath: String?
     var csvPath: String?
-    var maxDays = 90
-    var prestigeThreshold = 1.0
+    var maxDays = 400
+    var prestigeThreshold = 4.0
     var noReincarnation = false
-    var profile = PacingProfile.bare
+    var profile = PacingProfile.free
     var sourcesPath: String?
     var seedFraction = 0.5
     var knobs = EconomyKnobs()
-    var prestigeDiscount = false
+    var prestigeDiscount = true
     var contract = false
     var shop: ShopPermanents?
     var iterator = CommandLine.arguments.dropFirst().makeIterator()
@@ -357,7 +360,7 @@ do {
         .map { String(format: "%.0f%%", $0 * 100) }
         .joined(separator: " · ")
     print("  reencarnar paga (ahorro al volver a tu pared): \(pago.isEmpty ? "—" : pago)")
-    print("     (contrato del dueño: ≥67 %, o sea volver cuesta menos de un tercio)")
+    print("     (contrato del dueño: ≥65 %, o sea volver cuesta cerca de un tercio)")
 
     if arguments.contract {
         printContract(report: report, floorTable: floorTable)

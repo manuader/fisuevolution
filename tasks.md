@@ -1029,6 +1029,9 @@ Las cinco nuevas de E7b-b (relevo 6), con su default:
 - **El sonido de llegada (`visitorArrive`) suena también con el presentador de evento:** queda así (era un carry de E8e T2).
 - **«Todas las pintas» a 1350 ORO:** queda.
 - **El «otro colchón» se guarda:** matar la app con el popup del colchón abierto ya no lo pierde (va al save).
+- **El «!» de Premios cuenta el «otro colchón» pendiente** (opción A del dueño): queda prendido mientras el 2º premio espera en la columna. No se cambia.
+- **El reset conserva las pintas compradas con ORO** (`engagement.shop.skins`).
+- **El hueco `skinEffects` queda declarado** (la mecánica no existe): E9b T3 cierra con ese único hueco con razón, no con cero.
 
 **2026-10-11 — del chat del relevo 34 (el dueño: «hacé todo lo recomendado»):**
 - **E6b T8 destrabada:** las pintas de la v1 que pasan a exclusivas de ORO ya no se ganan jugando; quien ya las tiene las conserva.

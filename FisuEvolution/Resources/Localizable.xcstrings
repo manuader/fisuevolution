@@ -8858,13 +8858,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Purchased outfits: %@"
+            "value" : "Purchased outfits (money or ORO): %@"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pintas compradas: %@"
+            "value" : "Pintas compradas (con plata o con ORO): %@"
           }
         }
       }
@@ -8971,19 +8971,19 @@
         }
       }
     },
-    "reset.summary.skins %@" : {
+    "reset.summary.skins_chest %@" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Outfits earned with ORO: %@"
+            "value" : "Outfits from chests and milestones: %@"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pintas ganadas con ORO: %@"
+            "value" : "Pintas de cofres e hitos: %@"
           }
         }
       }

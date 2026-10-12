@@ -19,6 +19,7 @@
 | C8 | La moneda premium deja de llamarse ORO: ahora es el **dólar blue**, con su ícono | `Localizable.xcstrings`, `GameArt` (`ui_oro`), App Store Connect | **sí: `ui_dolar_blue`** | prompt listo |
 | C9 | Las dos esquinas de arriba, como Cow Evolution: premios a la izquierda; especial + boosts + relojes a la derecha | `SideRailView`, `ActiveBonusBar`, `StageChips`, `PlayColumn`/`HUDView` | **sí: 4 botones** | prompts listos |
 | C10 | La caja y el colchón del tablero: ~90 % más grandes y más arriba, a la vista | `PickupLayout`, `PickupController`, `PickupNode`, `PackageOpeningPlayer` | no | anotada |
+| C11 | Todo lo que se paga con dólar blue sale de la Tienda y va a Mejoras; la Tienda queda sólo para plata real | `StoreView`, `OroShopView`, `UpgradesView`, `MenuPagerView` | no | anotada |
 
 ---
 
@@ -440,3 +441,49 @@ grandes** y aparecer **más arriba**, visibles.
 **Listo cuando:** en el SE y en el Pro Max, con la ficha del Fisura y el botón de reencarnar a la
 vista, la caja y el colchón se ven enteros y se tocan sin tocar otra cosa, y la animación de apertura
 se ve completa.
+
+## C11 — Lo que se paga con blue, en Mejoras; la Tienda, sólo plata real
+
+**Lo que dijo el dueño:** las mejoras permanentes (más lugares en la torre, etc.) son muy importantes,
+pero están escondidas en la Tienda. Tienen que estar en el menú de Mejoras, junto a las mejoras
+permanentes que ya se pagan con blue. Y lo mismo con **todo** lo que se compra con blue: va a Mejoras
+(o a Boosts), no a la Tienda. La Tienda se entiende como el lugar donde se paga con plata real y
+asusta; así se incentiva a entrar a Mejoras. (ORO = dólar blue, C8.)
+
+**Hoy (verificado):**
+
+- `StoreView` tiene dos pestañas: **Comprar** (IAP con plata real: destacado, quitar anuncios,
+  monedas, packs de ORO, skins) y **Gastar** (`OroShopView`, los estantes de `oro_shop.json`).
+- `oro_shop.json` › estantes: `boosts` (×2, ×3, auto-tap, lluvia de paquetes), `shortcuts` (saltos
+  de 1 h y 4 h, offline ×3, diario ×3, saltear cooldowns, fusionar todo), `permanents` (lugares extra,
+  mejor proveedor, tiradas de ruleta), `luck` (el cofre de skins) y los cosméticos (pintas y familias
+  con blue).
+- `UpgradesView` ya tiene dos pestañas: **Personajes** y **Permanentes** (las siete mejoras globales
+  en ORO, con el saldo arriba).
+
+**Qué hacer:**
+
+1. **Mejoras pasa a tener tres pestañas:** Personajes · **Permanentes** · **Boosts**.
+   - **Permanentes** = las siete globales de hoy **más** el estante `permanents` de `oro_shop.json`
+     (lugares extra en la torre, mejor proveedor, tiradas de ruleta), en el mismo formato de fila
+     (`GameCard` + `PricePill` con el ícono del blue). Arriba, lo que más mueve el juego: lugares
+     extra primero.
+   - **Boosts** = los estantes `boosts` y `shortcuts`.
+   - El saldo de blue va arriba en las dos pestañas de blue, con un «+» que lleva a la Tienda a
+     comprar más (único puente hacia la plata real, y sólo si el jugador lo toca).
+2. **Lo cosmético con blue** (pintas, familias y el cofre de skins del estante `luck`) va a la hoja
+   de Pintas/Personalización, donde ya se eligen las skins, y no a Mejoras. Default del agente:
+   ahí se entiende mejor; si el dueño lo prefiere en Mejoras › Boosts, se mueve.
+3. **La Tienda pierde la pestaña Gastar:** queda una sola vista, sólo con lo que se paga con plata
+   real (incluidos los packs para comprar blue). Se retira el selector Comprar/Gastar.
+4. Los atajos que hoy abren «Gastar ORO» (lecciones del tutorial, el Tour de novedades, el «!» de la
+   barra, notificaciones, `ShopIconFocus`) apuntan a la pestaña nueva de Mejoras. El «!» de algo
+   comprable con blue se mueve al ícono de Mejoras.
+5. Las probabilidades del cofre (`ChestOddsDisplay`, Apple 3.1.1) viajan con el cofre a su hoja
+   nueva, intactas.
+6. Lógica intacta: `buyOroShopItem`, precios y `oro_shop.json` no cambian; sólo dónde se muestran.
+   Se reescriben los UI tests de la Tienda (`store.*`), de Mejoras (`upgrades.tab.*`) y de las
+   lecciones que la nombran; el `MenuPagerUITests` y `CustomizationUITests` se corren (regla de la ola).
+
+**Listo cuando:** abrir la Tienda muestra sólo precios en plata real; Mejoras › Permanentes
+muestra los lugares extra de la torre arriba de todo; ninguna compra con blue requiere entrar a la Tienda.

@@ -56,12 +56,47 @@ final class MenuPagerUITests: XCTestCase {
         XCTAssertEqual(dots(app), "5/5")
     }
 
+    /// Arrastrar hacia una pestaña nueva y soltar para volver no la muestra quieta:
+    /// conserva su «¡Nuevo!».
+    @MainActor
+    func testArrastrarYVolverNoLeSacaElNuevoAlaPestanaDeAlLado() throws {
+        let app = launch(extra: ["--uitest-progressive-tabs"])
+        let gifts = app.buttons["hud.bonus"]
+        XCTAssertTrue(gifts.waitForExistence(timeout: 10))
+        XCTAssertTrue(isNew(gifts), "Bonus arranca con su ¡Nuevo!")
+        tapTab("hud.hire", in: app)
+        let jobs = dots(app)
+
+        let window = app.windows.firstMatch
+        let from = window.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.5))
+        let partway = window.coordinate(withNormalizedOffset: CGVector(dx: 0.55, dy: 0.5))
+        from.press(forDuration: 0.1, thenDragTo: partway, withVelocity: .slow, thenHoldForDuration: 0.6)
+        XCTAssertEqual(dots(app), jobs, "soltar sin llegar no cambia de página")
+        app.buttons["sheet.close"].tap()
+        XCTAssertTrue(app.buttons["sheet.close"].waitForNonExistence(timeout: 10))
+        XCTAssertTrue(isNew(app.buttons["hud.bonus"]), "la pestaña de al lado no se vio quieta: conserva su ¡Nuevo!")
+    }
+
+    /// La contracara: deslizar del todo la deja quieta y sí se lo saca.
+    @MainActor
+    func testDeslizarDelTodoLeSacaElNuevoALaPestanaDeAlLado() throws {
+        let app = launch(extra: ["--uitest-progressive-tabs"])
+        XCTAssertTrue(isNew(app.buttons["hud.bonus"]))
+        tapTab("hud.hire", in: app)
+        let jobs = dots(app)
+        app.windows.firstMatch.swipeLeft()
+        XCTAssertNotEqual(dots(app), jobs, "deslizar del todo cambia de página")
+        app.buttons["sheet.close"].tap()
+        XCTAssertTrue(app.buttons["sheet.close"].waitForNonExistence(timeout: 10))
+        XCTAssertFalse(isNew(app.buttons["hud.bonus"]), "la página quieta sí cuenta como vista")
+    }
+
     // MARK: - Utilidades
 
     @MainActor
-    private func launch() -> XCUIApplication {
+    private func launch(extra: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-coins"]
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-coins"] + extra
         app.launch()
         XCTAssertTrue(app.buttons["hud.hire"].waitForExistence(timeout: 20))
         return app
@@ -73,6 +108,11 @@ final class MenuPagerUITests: XCTestCase {
         XCTAssertTrue(tab.waitForExistence(timeout: 10))
         tab.tap()
         XCTAssertTrue(app.buttons["sheet.close"].waitForExistence(timeout: 10))
+    }
+
+    @MainActor
+    private func isNew(_ tab: XCUIElement) -> Bool {
+        (tab.value as? String)?.contains("new") == true
     }
 
     @MainActor

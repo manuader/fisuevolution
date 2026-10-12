@@ -2141,6 +2141,23 @@
         }
       }
     },
+    "bonus.chip.event_presence" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ongoing"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En curso"
+          }
+        }
+      }
+    },
     "bonus.chip.free_hire" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -15210,23 +15227,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¡Tenés visita! Tocá su cara para ver qué trae."
-          }
-        }
-      }
-    },
-    "tutorial.tip.wheel" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The Wheel is waiting in Gifts: new spins every day."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La Ruleta te espera en Regalos: giros nuevos todos los días."
           }
         }
       }

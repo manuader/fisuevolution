@@ -1,17 +1,9 @@
 import SwiftUI
 
-/// Reencarnar, como cápsula del sistema visual de la casa.
-///
-/// ⚠️ **Era el último `.buttonStyle(.borderedProminent)` de la pantalla
-/// principal**, y por eso desentonaba: un botón del sistema —esquinas de iOS,
-/// sin contorno, sin sombra— al lado de cápsulas con borde ink de 3 pt. No era
-/// un problema de color sino de material.
-///
-/// Es el **espejo** de `QuickHireButton`, a propósito: misma cápsula, mismo
-/// borde, misma sombra, mismo alto y la misma composición icono+dos líneas. Los
-/// dos comparten fila y dicen lo mismo desde los dos extremos —a la izquierda lo
-/// que comprás, a la derecha lo que cobrás—, así que tienen que leerse como un
-/// par y no como dos botones que quedaron cerca.
+/// Reencarnar, como solapa de la barra de abajo (C18; ver `BarFlaps`): el ícono
+/// del ORO y su estado, en el mismo material que la solapa de Contratar con el
+/// tinte del prestigio. Los dos se leen como un par: a la izquierda lo que
+/// comprás, a la derecha lo que cobrás.
 struct PrestigeButton: View {
     @Environment(GameState.self) private var gameState
     let action: () -> Void
@@ -28,52 +20,28 @@ struct PrestigeButton: View {
 
     private var button: some View {
         Button(action: action) {
-            HStack(spacing: Tokens.s8) {
-                // Círculo crema + borde ink + glifo tintado: el mismo material
-                // que los iconos del HUD. Le da a la cápsula el peso visual que
-                // del otro lado aporta la carita del personaje, así las dos
-                // tienen la misma densidad.
-                ZStack {
-                    Circle()
-                        .fill(Color("PaletteCream"))
-                        .overlay(Circle().strokeBorder(Color("PalettePink").deepened(0.3), lineWidth: 2.5))
-                    OroIcon(size: 22)
-                }
-                .frame(width: 40, height: 40)
-
-                VStack(alignment: .leading, spacing: 1) {
+            HStack(spacing: 5) {
+                OroIcon(size: 28)
+                VStack(alignment: .leading, spacing: 0) {
                     Text("prestige.button")
                         .font(Tokens.caption)
                         .lineLimit(1)
-                        .minimumScaleFactor(0.7)
+                        .minimumScaleFactor(0.6)
                     // El ORO que te llevás es lo que hace que valga la pena
-                    // tocarlo, y es el gemelo del precio del otro botón. Sin
-                    // ORO todavía (el teaser), el renglón dice cuánto camino
-                    // hay hecho hacia el primero: un objetivo, no una ganancia.
-                    HStack(spacing: 5) {
-                        OroIcon(size: 20)
-                        // Con el "+" delante: del otro lado el número es un
-                        // PRECIO y acá es una ganancia, y a igual tipografía eso
-                        // es lo único que los distingue.
-                        Text(verbatim: secondLine)
-                            .font(Tokens.body)
-                            .monospacedDigit()
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.5)
-                    }
+                    // tocarlo. Sin ORO todavía (el teaser), el renglón dice
+                    // cuánto camino hay hecho hacia el primero: un objetivo,
+                    // no una ganancia. Con el "+" delante, porque acá el número
+                    // es una ganancia y no un precio.
+                    Text(verbatim: secondLine)
+                        .font(Tokens.body)
+                        .monospacedDigit()
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.5)
                 }
             }
-            .foregroundStyle(.white)
-            .shadow(color: .black.opacity(0.45), radius: 1, y: 1)
-            .padding(.horizontal, Tokens.s16)
-            .padding(.vertical, Tokens.s8)
-            .background(
-                // El mismo material caramelo que QuickHire, en el rosa del
-                // prestigio.
-                PillBackground(fill: Color("PalettePink"))
-                    .shadow(color: .black.opacity(0.12), radius: 3, y: 2)
-            )
-            .contentShape(Capsule())
+            .foregroundStyle(Color("PaletteInk"))
+            .dynamicTypeSize(...DynamicTypeSize.large)
+            .barFlapSurface(tint: Color("PalettePink"))
         }
         .buttonStyle(.plain)
         // ⚠️ Mismo patrón —y misma razón— que `QuickHireButton`: un `Button` de
@@ -93,7 +61,7 @@ struct PrestigeButton: View {
         .accessibilityIdentifier("hud.prestige")
     }
 
-    /// La segunda línea de la cápsula: "+N" con ORO por cobrar, o el porcentaje
+    /// La segunda línea de la solapa: "+N" con ORO por cobrar, o el porcentaje
     /// del camino al próximo en el teaser (verbatim: un número con % no
     /// necesita clave).
     private var secondLine: String {

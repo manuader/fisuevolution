@@ -47,7 +47,7 @@ struct BottomMenuBar: View {
         gameState.unlockedTabsInBarOrder.map { screen in
             GameTabItem(
                 screen: screen,
-                icon: icon(for: screen),
+                icon: { side in icon(for: screen, side: side) },
                 labelKey: Self.labelKey(for: screen),
                 identifier: screen.identifier,
                 prominent: Self.isProminent(screen),
@@ -95,25 +95,16 @@ struct BottomMenuBar: View {
 
     // MARK: - Glifos
 
-    /// Espejan a `GameTabButton.iconSide`, que es privado: el icono se dibuja a
-    /// su propio tamaño y el botón lo enmarca en el mismo, así que si allá
-    /// cambiaran quedarían centrados en el plato en vez de romperse.
-    private static let iconSide: CGFloat = 39
-    private static let prominentIconSide: CGFloat = 64
-
-    /// El glifo de cada tab, ya type-borrado, **y con el ancla del tutorial
-    /// puesta donde corresponde**.
+    /// El glifo de cada tab al lado que le da su celda (C12), ya type-borrado,
+    /// **y con el ancla del tutorial puesta donde corresponde**.
     ///
     /// ⚠️ El ancla va en el ICONO y no en la barra: `GameTabItem` no expone el
-    /// botón, y marcar el contenedor le daría al tutorial el frame de los cinco
-    /// tabs juntos —un recorte que abarca media pantalla y no enseña nada—. El
-    /// icono está centrado en su plato y mide `iconSide`, así que el recorte
-    /// —que `TutorialOverlay` infla 10 pt por lado— cae sobre el plato con un
-    /// hilo de aire alrededor: 64+20 = 84 sobre los 72 de Contratar,
-    /// 46+20 = 66 sobre los 52 de una común. El recorte sobra 6 pt por lado:
+    /// botón, y marcar el contenedor le daría al tutorial el frame de los tabs
+    /// juntos —un recorte que abarca media pantalla y no enseña nada—. El icono
+    /// está centrado en su plato, así que el recorte —que `TutorialOverlay`
+    /// infla 10 pt por lado— cae sobre el plato con un hilo de aire alrededor y
     /// sigue leyéndose como un halo del tab y no como un cuadrado suelto.
-    private func icon(for screen: GameScreen) -> AnyView {
-        let side = Self.isProminent(screen) ? Self.prominentIconSide : Self.iconSide
+    private func icon(for screen: GameScreen, side: CGFloat) -> AnyView {
         switch screen {
         case .jobs:
             // Sin `GameIcon`: FisuJobs es el único tab que NO tiene PNG propio

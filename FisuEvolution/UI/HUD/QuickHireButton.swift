@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// El atajo de contratación de la pantalla principal: compra la oferta
+/// El atajo de contratación de la pantalla principal, hecho solapa de la barra de
+/// abajo (C18; ver `BarFlaps`): compra la oferta
 /// `quickHireOffer` sin abrir FisuJobs, y mantenerlo presionado abre el selector
 /// para fijar a quién. **Nunca desaparece** con la partida cargada: cuando no
 /// compra dice por qué ("no te alcanza" o "Piso lleno") y tiembla al tocarlo
@@ -35,51 +36,6 @@ struct QuickHireButton: View {
     /// baja el fin del dedo (ver el `DragGesture`), para que no se trague el
     /// próximo toque real.
     @State private var longPressFired = false
-
-    /// Cuánto mide de alto la cápsula, para lo que se apoye sobre ella.
-    ///
-    /// Es la suma del layout del label, no una medición suelta: **40** de la
-    /// carita —que es el hijo más alto del `HStack`, porque la columna de texto
-    /// mide ~35 al tamaño por defecto— más los **8 + 8** de
-    /// `padding(.vertical, Tokens.s8)`. Confirmado en el árbol de AX de una
-    /// corrida real: **56,0 exactos** en 3× (16 Pro) y en 2× (SE 3), sin el
-    /// medio punto que sí tiene el botón de prestigio.
-    ///
-    /// ⚠️ Existe por lo mismo que `GameTabBar.barHeight`: este número lo
-    /// necesitan DOS lugares fuera de acá —los dos toasts de `RootView`, que
-    /// flotan sobre la franja de abajo ENTERA— y allá el despeje es de 1,0 pt
-    /// en 3× y 0,5 pt en 2×. Con el alto copiado como literal en cada padding,
-    /// el día que cambie se arregla en uno y se olvida en el otro, que es
-    /// exactamente las dos veces que `barHeight` tuvo que aprender a subir sola.
-    ///
-    /// ⚠️⚠️ **El gatillo de que este número deje de valer es Dynamic Type, no un
-    /// rediseño.** `Tokens.caption` y `Tokens.body` son text styles DINÁMICOS: a
-    /// tamaños de accesibilidad la columna de texto pasa los 40 pt de la carita
-    /// y la cápsula crece por encima de 56. El `minimumScaleFactor` **no** lo
-    /// frena —con `minWidth: 170` y sin ancho máximo, el `HStack` se ensancha
-    /// antes que escalar el texto—, así que el despeje de los toasts se puede
-    /// comer **en runtime** y no en un commit. Es una exposición que este botón
-    /// COMPARTE con el de prestigio, cuyo 45 es igual de estático, y que precede
-    /// a los dos: el número está pineado al tamaño por defecto, que es donde se
-    /// midió y lo único que garantiza.
-    ///
-    /// ⚠️ **Está aislado al main actor, como todo el tipo.** `View` es
-    /// `@MainActor @preconcurrency`, así que la conformance aísla al struct
-    /// ENTERO y a sus statics con él. No lleva anotación porque no le hace
-    /// falta —sus dos consumidores son `body`s de SwiftUI, que ya corren ahí—,
-    /// **no** porque esté exento: la exención de inmutable-`Sendable` es para
-    /// los statics de tipos NO aislados globalmente, y SE-0434 cubre los `let`
-    /// **de instancia**, no los estáticos. Ninguna de las dos aplica acá. Si
-    /// alguna vez lo necesitara un contexto `nonisolated`, la anotación hay que
-    /// escribirla —`nonisolated static let`— y no darla por puesta.
-    ///
-    /// Comprobado compilando las tres formas con `-swift-version 6
-    /// -strict-concurrency=complete`: el static de un tipo que conforma `View`,
-    /// leído desde `nonisolated`, es **error** ("main actor-isolated static
-    /// property 'h' can not be referenced from a nonisolated context"); el mismo
-    /// static en un tipo sin la conformance compila; y un `let` de instancia
-    /// `Sendable` del mismo `View` también.
-    static let capsuleHeight: CGFloat = 56
 
     /// El mismo reloj que el mantener presionado del tablero (`BoardScene`).
     static let longPressDuration: Double = 0.45
@@ -153,66 +109,44 @@ struct QuickHireButton: View {
         }
     }
 
+    /// Una sola fila (C18): la cara, el precio con su moneda y el triángulo del
+    /// selector. El nombre no se ve —lo dice VoiceOver— y el pin es un puntito en
+    /// la esquina de la cara.
     private func label(for offer: QuickHireOffer) -> some View {
         let ready = offer.blocker == nil
-        return HStack(spacing: Tokens.s8) {
-            GameIcon(artKey: offer.faceKey, size: 40) { EmptyView() }
-            VStack(alignment: .leading, spacing: 1) {
-                HStack(spacing: 4) {
-                    Text(verbatim: offer.displayName)
-                        .font(Tokens.caption)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
+        return HStack(spacing: 5) {
+            GameIcon(artKey: offer.faceKey, size: 30) { EmptyView() }
+                .overlay(alignment: .topTrailing) {
                     if offer.isPinned {
-                        Image(systemName: "pin.fill")
-                            .font(.system(size: 9, weight: .black))
-                            .rotationEffect(.degrees(30))
+                        Circle()
+                            .fill(Color("PaletteOrange"))
+                            .overlay(Circle().strokeBorder(Color("PaletteInk"), lineWidth: 1.5))
+                            .frame(width: 10, height: 10)
+                            .offset(x: 3, y: -3)
                     }
                 }
-                secondLine(for: offer)
-            }
-            // "Hay más": mantener presionado abre el selector.
-            Image(systemName: "chevron.up")
-                .font(.system(size: 10, weight: .black))
-                .opacity(0.6)
+            priceLine(for: offer)
+            FlapChevron()
         }
-        .foregroundStyle(ready ? .white : Color("PaletteInk"))
-        .shadow(color: .black.opacity(ready ? 0.45 : 0), radius: 1, y: 1)
-        .padding(.horizontal, Tokens.s16)
-        .padding(.vertical, Tokens.s8)
-        .frame(minWidth: 170)
-        .background(
-            // Verde caramelo cuando compra; el gris de la casa (el de
-            // `GameCard.locked`) cuando no.
-            PillBackground(
-                fill: ready ? Color("PaletteGreen") : CardMaterials.lockedFill,
-                border: ready ? nil : CardMaterials.lockedBorder
-            )
-            .shadow(color: .black.opacity(0.12), radius: 3, y: 2)
-        )
-        .contentShape(Capsule())
+        .foregroundStyle(Color("PaletteInk"))
+        .dynamicTypeSize(...DynamicTypeSize.large)
+        .opacity(ready ? 1 : 0.6)
+        .barFlapSurface(tint: ready ? Color("PaletteGreen") : nil)
     }
 
-    /// La segunda línea mide lo mismo en los tres estados (20 pt, el alto de la
-    /// moneda): el atajo no cambia de tamaño.
-    @ViewBuilder private func secondLine(for offer: QuickHireOffer) -> some View {
+    /// El precio (con el de lista tachado encima) o, con el piso lleno, el motivo.
+    @ViewBuilder private func priceLine(for offer: QuickHireOffer) -> some View {
         if offer.blocker == .floorFull {
-            HStack(spacing: 5) {
-                Image(systemName: "person.3.fill")
-                    .font(.system(size: 12, weight: .black))
-                Text("quickhire.blocker.floor_full")
-                    .font(Tokens.body)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.5)
-            }
-            .frame(height: 20)
+            Text("quickhire.blocker.floor_full")
+                .font(Tokens.caption)
+                .lineLimit(2)
+                .minimumScaleFactor(0.5)
         } else {
-            HStack(spacing: 5) {
-                CoinIcon(size: 20)
+            HStack(spacing: 3) {
+                CoinIcon(size: 18)
                 VStack(spacing: -2) {
                     if let list = offer.listCostText {
-                        StrikePrice(text: list,
-                                    color: offer.blocker == nil ? .white.opacity(0.8) : Color("PaletteInk").opacity(0.6))
+                        StrikePrice(text: list)
                     }
                     Text(verbatim: offer.costText)
                         .font(Tokens.body)

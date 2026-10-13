@@ -1129,7 +1129,8 @@ enum GameScreen: String, Identifiable, CaseIterable {
 /// va destacado (Contratar, al centro, como la vaca de Cow Evolution).
 struct GameTabItem: Identifiable {
     let screen: GameScreen
-    let icon: AnyView
+    /// El ícono dibujado al lado que le toca a su celda (C12): la barra lo escala por ancho.
+    let icon: (CGFloat) -> AnyView
     let labelKey: String
     let identifier: String
     let prominent: Bool
@@ -1141,7 +1142,7 @@ struct GameTabItem: Identifiable {
     var id: String { screen.rawValue }
 
     init(screen: GameScreen,
-         icon: AnyView,
+         icon: @escaping (CGFloat) -> AnyView,
          labelKey: String,
          identifier: String,
          prominent: Bool = false,
@@ -1160,13 +1161,15 @@ struct GameTabItem: Identifiable {
 /// Barra inferior de pantallas. No guarda selección —cada tab abre su hoja— así
 /// que el estado "activo" es el destaque de los extremos más el pulso del toque.
 ///
-/// Dejó de ser una isla flotante: ahora es una franja de ancho completo fundida
-/// con el borde de abajo, **gemela** del `topPanel` de `HUDView` arriba —mismo
-/// crema, mismo contorno ink de 3 pt, mismas esquinas de 24, y en cada una el
-/// trazo se ve sólo en la cara que da al tablero—. La isla gastaba tres márgenes
-/// de pantalla en aire alrededor de una barra que igual vivía pegada al fondo, y
-/// el crema recortado contra el tablero competía con las tarjetas del juego, que
-/// usan la misma forma.
+/// Es una franja de ancho completo fundida con el borde de abajo, **gemela** del
+/// `topPanel` de `HUDView` arriba —mismo crema, mismo contorno ink de 3 pt, mismas
+/// esquinas de 24, y en cada una el trazo se ve sólo en la cara que da al tablero—.
+///
+/// Las pestañas se reparten TODO el ancho (C12): cada una ocupa una fracción igual
+/// y la de Contratar, al centro, 1,4 de ellas; el ícono se dimensiona contra su
+/// celda y lleva su leyenda debajo. Con 3 o con 7 pestañas el reparto se recalcula.
+/// Arriba del borde, la barra deja `riseHeight` para lo que sobresale: el plato de
+/// Contratar y las dos solapas de `BarFlaps` (C18).
 ///
 /// ⚠️ El `HStack` NO lleva identifier: cada botón lleva el suyo (trampa 9a-bis).
 struct GameTabBar: View {
@@ -1177,11 +1180,9 @@ struct GameTabBar: View {
     ///
     /// Es el mismo piso que `HUDView.minimumTopGap` y existe por lo mismo, en el
     /// otro borde: en un teléfono sin home indicator (SE) la safe area inferior
-    /// es 0, así que el panel fundido —que llega hasta el borde— apoyaba los
-    /// labels contra el bezel. Medido en un SE 3 antes del piso: la 'j' de
-    /// "Mejoras" a **1,5 pt** del borde físico. Con home indicator el inset ya
-    /// pone 34, el `max` devuelve 0 y el layout **no cambia en nada** —de ahí
-    /// que `BoardScene.bottomInset` siga valiendo lo mismo—.
+    /// es 0, así que el panel fundido —que llega hasta el borde— apoyaba las
+    /// leyendas contra el bezel. Con home indicator el inset ya pone 34, el `max`
+    /// devuelve 0 y el layout **no cambia en nada**.
     private static let minimumBottomGap: CGFloat = 12
     private var bottomGap: CGFloat {
         ScreenInsets.floorGap(minimum: Self.minimumBottomGap, inset: ScreenInsets.shared.bottom)
@@ -1194,109 +1195,90 @@ struct GameTabBar: View {
         ScreenInsets.floorGap(minimum: minimumBottomGap, inset: ScreenInsets.shared.bottom)
     }
 
+    // MARK: - El reparto (C12)
+
+    /// Margen lateral fijo de la fila de pestañas.
+    static let sideMargin: CGFloat = Tokens.s12
+    /// Cuántas fracciones ocupa la pestaña destacada del centro.
+    static let prominentWeight: CGFloat = 1.4
+    /// El plato ocupa esta fracción del ancho de su celda; el ícono, `iconRatio` del
+    /// plato (≈ 70 % de la celda, como pide la spec).
+    static let plateFill: CGFloat = 0.8
+    static let iconRatio: CGFloat = 0.88
+    /// Los topes del plato, para que en iPad no se vuelvan gigantes.
+    static let tabPlateSide: CGFloat = 48
+    static let centerPlateSide: CGFloat = 70
+
     /// Aire arriba de los platos comunes, adentro del panel.
     static let topPadding: CGFloat = 6
-    /// Plato de una pestaña común y el de Contratar. `plateSide` es la altura de
-    /// referencia de la barra (de ahí salen `panelHeight` y `centerRise`);
-    /// `tabPlateSide` es lo que se dibuja: con tres lugares por lado el plato de 52 no
-    /// entra en el SE.
-    static let plateSide: CGFloat = 52
-    static let tabPlateSide: CGFloat = 44
-    static let centerPlateSide: CGFloat = 72
-    /// El espacio entre pestañas: el literal 2 de la v1.
-    static let spacing: CGFloat = 2
+    /// Aire entre la leyenda y el piso de la barra.
+    static let bottomPadding: CGFloat = 4
+    /// La leyenda de cada pestaña y su aire con el plato.
+    static let legendHeight: CGFloat = 14
+    static let legendGap: CGFloat = 2
 
-    /// Aire entre los platos y el piso de la barra, ahora que no hay rótulos.
-    static let bottomPadding: CGFloat = 6
-    /// Lugares por lado de Contratar: la barra es 3 + 1 + 3.
-    static let slotsPerSide = 3
-
-    enum Side { case leading, trailing }
-
-    /// Los lugares de un lado de la barra, del borde al centro (`leading`) o del centro al borde
-    /// (`trailing`). Las pestañas se pegan a Contratar: con una sola abierta, ocupa el lugar de al
-    /// lado del centro (PLAN-v2 E13, ítem 14).
-    static func slots(_ items: [GameTabItem], towardCenterFrom side: Side) -> [GameTabItem?] {
-        let padding = [GameTabItem?](repeating: nil, count: max(0, slotsPerSide - items.count))
-        let filled = items.prefix(slotsPerSide).map { Optional($0) }
-        return side == .leading ? padding + filled : filled + padding
+    /// Los anchos de cada celda: fracciones iguales del ancho útil, con la
+    /// destacada pesando `prominentWeight`.
+    static func cellWidths(prominent: [Bool], available: CGFloat) -> [CGFloat] {
+        let weights = prominent.map { $0 ? prominentWeight : 1 }
+        let total = weights.reduce(0, +)
+        guard total > 0 else { return [] }
+        return weights.map { max(0, available) * $0 / total }
     }
 
-    /// Alto del panel visible, sin la safe area ni el piso de abajo: 6 de aire +
-    /// 52 de plato + 6 hasta el piso. Es lo que le tapa el tablero a la
-    /// multitud (`BoardScene.bottomInset`): 20 pt menos que la v1 (84), que es lo
-    /// que pidió la crítica de la barra (PLAN-v2 §2).
-    static let panelHeight: CGFloat = 64
-    /// Cuánto sobresale Contratar por encima del panel.
-    static let centerRise: CGFloat = centerPlateSide - plateSide
+    /// El lado del plato de una celda de ese ancho.
+    static func plateSide(cellWidth: CGFloat, prominent: Bool) -> CGFloat {
+        min(cellWidth * plateFill, prominent ? centerPlateSide : tabPlateSide)
+    }
 
-    /// Alto del cuadro entero, con Contratar sobresaliendo. Sobre esto se apoya
-    /// la pila de arriba —el atajo, el prestigio y los dos toasts de `RootView`—,
-    /// así que conserva el nombre y el valor de la v1 (84) y esa pila no se
-    /// mueve. `BoardScene.bottomInset` y el espejo de `AscentRenderingUITests`
-    /// lo siguen leyendo.
+    /// Alto del panel visible, sin la safe area ni el piso de abajo: aire +
+    /// plato + leyenda + aire. Es lo que le tapa el tablero a la multitud
+    /// (`BoardScene.bottomInset`).
+    static let panelHeight: CGFloat = topPadding + tabPlateSide + legendGap + legendHeight + bottomPadding
+    /// Cuánto sobresale Contratar por encima de las pestañas comunes.
+    static let centerRise: CGFloat = centerPlateSide - tabPlateSide
+    /// Cuánto sobresalen las solapas de Contratar y Reencarnar (C18): su alto
+    /// menos lo que se meten en el panel para fundirse con él.
+    static let flapHeight: CGFloat = 44
+    static let flapOverlap: CGFloat = 6
+    static let flapRise: CGFloat = flapHeight - flapOverlap
+    /// Lo que sobresale del panel: lo más alto de los dos.
+    static let riseHeight: CGFloat = max(centerRise, flapRise)
+
+    /// Alto del cuadro entero, con las solapas y Contratar sobresaliendo. Sobre
+    /// esto se apoya la pila de arriba (los toasts de `RootView`).
     ///
     /// ⚠️ Aislado al main actor como todo el tipo: `GameTabBar` conforma `View`
     /// y la conformance aísla al struct entero y a sus statics. `BoardScene` lo
     /// lee sin problema porque `SKScene` también es `@MainActor`; un contexto
     /// `nonisolated` necesitaría `nonisolated static let`.
-    static let barHeight: CGFloat = panelHeight + centerRise
-
-    /// El ancho fijo de la columna de Contratar: su plato y un poco de aire para
-    /// el nombre. Fijo, para que las dos zonas se repartan el resto por igual.
-    static let centerColumnWidth: CGFloat = centerPlateSide + Tokens.s8
-
-    /// El ancho mínimo de la barra. Las dos zonas miden lo mismo, así que manda
-    /// la que tiene más pestañas.
-    static func minimumWidth(tabsPerSide: Int) -> CGFloat {
-        let zone = CGFloat(tabsPerSide) * tabPlateSide + CGFloat(max(0, tabsPerSide - 1)) * spacing
-        return Tokens.s8 * 2 + centerColumnWidth + zone * 2 + spacing * 2
-    }
+    static let barHeight: CGFloat = panelHeight + riseHeight
 
     var body: some View {
-        let center = items.first { $0.screen == GameScreen.centerTab }
-        let leading = Array(items.prefix { $0.screen != GameScreen.centerTab })
-        let trailing = center == nil ? [] : Array(items.drop { $0.screen != GameScreen.centerTab }.dropFirst())
-        // Alineados abajo: los nombres de las seis comparten renglón y la
-        // diferencia de alto se va toda para arriba, que es donde sobresale
-        // Contratar. Las dos zonas miden lo mismo, así que Contratar queda al
-        // centro exacto tenga cuantas pestañas tenga cada lado.
-        HStack(alignment: .bottom, spacing: Self.spacing) {
-            zone(leading, side: .leading)
-            if let center {
-                GameTabButton(item: center) { selection(center.screen) }
-                    // Ancho fijo: el botón se estira (`maxWidth: .infinity`) y,
-                    // sin esto, se llevaría un tercio de la barra y la zona de
-                    // tres pestañas no entraría en el SE.
-                    .frame(width: Self.centerColumnWidth)
+        VStack(spacing: 0) {
+            GeometryReader { proxy in
+                row(available: min(proxy.size.width, PlayColumn.maxWidth) - Self.sideMargin * 2)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
             }
-            zone(trailing, side: .trailing)
+            .frame(height: Self.barHeight - Self.bottomPadding)
+            Color.clear.frame(height: Self.bottomPadding + bottomGap)
         }
-        .padding(.horizontal, Tokens.s8)
-        .padding(.top, Self.topPadding)
-        .padding(.bottom, Self.bottomPadding + bottomGap)
-        .playColumn()
         .background(alignment: .bottom) {
-            bottomPanel.padding(.top, Self.centerRise)
+            bottomPanel.padding(.top, Self.riseHeight)
         }
     }
 
-    private func zone(_ zoneItems: [GameTabItem], side: Side) -> some View {
-        let slots = Self.slots(zoneItems, towardCenterFrom: side)
-        return HStack(alignment: .bottom, spacing: Self.spacing) {
-            ForEach(slots.indices, id: \.self) { index in
-                if let item = slots[index] {
-                    GameTabButton(item: item) { selection(item.screen) }
-                        .frame(maxWidth: .infinity)
-                        .transition(.scale(scale: 0.4).combined(with: .opacity))
-                } else {
-                    Color.clear
-                        .frame(maxWidth: .infinity)
-                        .frame(height: Self.plateSide)
-                }
+    /// Alineadas abajo: las leyendas comparten renglón y la diferencia de alto se
+    /// va toda para arriba, que es donde sobresale Contratar.
+    private func row(available: CGFloat) -> some View {
+        let widths = Self.cellWidths(prominent: items.map(\.prominent), available: available)
+        return HStack(alignment: .bottom, spacing: 0) {
+            ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                GameTabButton(item: item, cellWidth: widths[index]) { selection(item.screen) }
+                    .frame(width: widths[index])
+                    .transition(.scale(scale: 0.4).combined(with: .opacity))
             }
         }
-        .frame(maxWidth: .infinity)
     }
 
     /// Panel crema fundido con el borde inferior.
@@ -1310,12 +1292,11 @@ struct GameTabBar: View {
     ///
     /// El `ignoresSafeArea` es lo que lo estira por debajo del home indicator:
     /// sin él quedaba una lonja de tablero de 34 pt entre la barra y el borde
-    /// físico, que es exactamente la isla que este rediseño vino a matar. En un
-    /// teléfono sin notch (SE) el inset es 0 y no hay nada que estirar: el panel
-    /// ya nace contra el borde y se ve igual.
+    /// físico. En un teléfono sin notch (SE) el inset es 0 y no hay nada que
+    /// estirar: el panel ya nace contra el borde y se ve igual.
     ///
-    /// ⚠️ La sombra va hacia ARRIBA (`y: -2`), al revés que la de la isla: es la
-    /// única cara que todavía da al tablero.
+    /// ⚠️ La sombra va hacia ARRIBA (`y: -2`): es la única cara que todavía da al
+    /// tablero.
     private var bottomPanel: some View {
         UnevenRoundedRectangle(
             topLeadingRadius: 24, topTrailingRadius: 24, style: .continuous
@@ -1337,57 +1318,31 @@ struct GameTabBar: View {
     }
 }
 
-/// Un tab. El bounce es un **pulso** de keyframes disparado por el toque
-/// (`trigger`), no un `repeatForever`: en reposo no hay animación viva y el
-/// display link no queda corriendo toda la sesión.
+/// Un tab: el plato con su ícono y la leyenda debajo. El bounce es un **pulso**
+/// de keyframes disparado por el toque (`trigger`), no un `repeatForever`: en
+/// reposo no hay animación viva y el display link no queda corriendo toda la
+/// sesión.
 private struct GameTabButton: View {
     let item: GameTabItem
+    let cellWidth: CGFloat
     let action: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var bounce = 0
 
-    /// Platos de 44 y 72 (Contratar) con iconos de 39 y 64, sin rótulos: el centro
-    /// sobresale 20 pt del panel. Las seis entran en el SE (`GameTabBar.minimumWidth`).
-    private var side: CGFloat { item.prominent ? GameTabBar.centerPlateSide : GameTabBar.tabPlateSide }
-    private var iconSide: CGFloat { item.prominent ? 64 : 39 }
+    private var side: CGFloat { GameTabBar.plateSide(cellWidth: cellWidth, prominent: item.prominent) }
+    private var iconSide: CGFloat { side * GameTabBar.iconRatio }
 
     var body: some View {
         Button {
             if !reduceMotion { bounce += 1 }
             action()
         } label: {
-            ZStack {
-                plate
-                item.icon
-                    .frame(width: iconSide, height: iconSide)
+            VStack(spacing: GameTabBar.legendGap) {
+                plateWithIcon
+                legend
             }
-            .frame(width: side, height: side)
-            // `.overlay`, no un hijo: el badge no puede mover ni un punto
-            // del layout (374 ≤ 375 en SE). Dentro del `keyframeAnimator`
-            // a propósito: el puntito rebota con su tab.
-            .overlay(alignment: .topTrailing) {
-                if item.showsBadge {
-                    NotificationBadge()
-                        .offset(x: 5, y: -3)
-                }
-            }
-            .overlay(alignment: .top) {
-                if item.isNew {
-                    NewTabBadge()
-                        .offset(y: -12)
-                }
-            }
-            .keyframeAnimator(initialValue: 1.0, trigger: bounce) { view, scale in
-                view.scaleEffect(scale)
-            } keyframes: { _ in
-                KeyframeTrack {
-                    CubicKeyframe(0.9, duration: 0.08)
-                    SpringKeyframe(1.14, duration: 0.14, spring: .bouncy)
-                    SpringKeyframe(1.0, duration: 0.22, spring: .bouncy)
-                }
-            }
-            .frame(maxWidth: .infinity)
+            .frame(width: cellWidth)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -1396,6 +1351,54 @@ private struct GameTabButton: View {
         // El badge avisa por acá (trampa 9a: jamás un elemento de AX adentro
         // del label de un botón). Vacío cuando no hay nada que cobrar.
         .accessibilityValue(accessibilityValue)
+    }
+
+    private var plateWithIcon: some View {
+        ZStack {
+            plate
+            item.icon(iconSide)
+                .frame(width: iconSide, height: iconSide)
+        }
+        .frame(width: side, height: side)
+        // `.overlay`, no un hijo: el badge no puede mover ni un punto del
+        // layout. Anclado a la esquina del ícono y no a la de la celda. Dentro
+        // del `keyframeAnimator` a propósito: el puntito rebota con su tab.
+        .overlay(alignment: .topTrailing) {
+            if item.showsBadge {
+                NotificationBadge()
+                    .offset(x: 5, y: -3)
+            }
+        }
+        .overlay(alignment: .top) {
+            if item.isNew {
+                NewTabBadge()
+                    .offset(y: -12)
+            }
+        }
+        .keyframeAnimator(initialValue: 1.0, trigger: bounce) { view, scale in
+            view.scaleEffect(scale)
+        } keyframes: { _ in
+            KeyframeTrack {
+                CubicKeyframe(0.9, duration: 0.08)
+                SpringKeyframe(1.14, duration: 0.14, spring: .bouncy)
+                SpringKeyframe(1.0, duration: 0.22, spring: .bouncy)
+            }
+        }
+    }
+
+    /// La leyenda de la pestaña (las claves `hud.*.label`). Decoración: el botón
+    /// ya dice lo mismo por AX, así que no entra al árbol. Una línea que se
+    /// achica para el SE y para los textos largos del inglés; el tamaño de texto
+    /// se topa en `.xLarge` porque el alto de la barra es fijo.
+    private var legend: some View {
+        Text(LocalizedStringKey(item.labelKey))
+            .font(item.prominent ? .system(.footnote, design: .rounded).weight(.heavy) : Tokens.caption)
+            .foregroundStyle(Color("PaletteInk"))
+            .lineLimit(1)
+            .minimumScaleFactor(0.55)
+            .dynamicTypeSize(...DynamicTypeSize.xLarge)
+            .frame(width: cellWidth, height: GameTabBar.legendHeight)
+            .accessibilityHidden(true)
     }
 
     /// El puntito de cobrar y el "¡Nuevo!", dichos por el botón (trampa 9a:

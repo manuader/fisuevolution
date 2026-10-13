@@ -1,0 +1,6 @@
+{
+  "state.ready.ax": {"es": "Listo para cobrar", "en": "Ready to collect"},
+  "state.running.ax": {"es": "En curso", "en": "In progress"},
+  "state.locked.ax": {"es": "Bloqueado", "en": "Locked"},
+  "state.done.ax": {"es": "Hecho", "en": "Done"}
+}

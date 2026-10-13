@@ -195,7 +195,15 @@ struct RewardIllustration: View {
         .accessibilityHidden(true)
     }
 
-    @ViewBuilder private var art: some View {
+    private var art: some View { RewardArt(kind: kind) }
+}
+
+/// El dibujo del premio sin rayos ni marco: para donde el premio es chico (un
+/// gajo de la Ruleta, una fila de probabilidades).
+struct RewardArt: View {
+    let kind: RewardKind
+
+    var body: some View {
         if let key = kind.resolvedArtKey, let image = UIArt.image(key) {
             image.resizable().scaledToFit()
         } else {

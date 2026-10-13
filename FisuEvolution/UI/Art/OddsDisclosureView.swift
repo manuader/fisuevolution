@@ -9,6 +9,8 @@ struct OddsDisclosureView: View {
         let title: String
         let symbol: String
         let probability: Double
+        /// El dibujo del premio (E14 C4): con él, el SF Symbol no se usa.
+        var kind: RewardKind?
     }
 
     let titleKey: LocalizedStringKey
@@ -23,9 +25,13 @@ struct OddsDisclosureView: View {
                     .foregroundStyle(Color("PaletteInk").opacity(0.7))
                 ForEach(rows) { row in
                     HStack(spacing: Tokens.s8) {
-                        Image(systemName: row.symbol)
-                            .font(.system(size: 14, weight: .bold))
-                            .frame(width: 22)
+                        if let kind = row.kind {
+                            RewardArt(kind: kind).frame(width: 28, height: 28)
+                        } else {
+                            Image(systemName: row.symbol)
+                                .font(.system(size: 14, weight: .bold))
+                                .frame(width: 28)
+                        }
                         Text(verbatim: row.title)
                             .font(Tokens.body)
                             .lineLimit(1)

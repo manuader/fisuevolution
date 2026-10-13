@@ -257,6 +257,17 @@ struct ChestOpeningView: View {
                 controls
                     .frame(maxWidth: 250)
                     .offset(y: Self.controlsY)
+            } else if beat >= .waiting, beat < .cinematic {
+                // Antes y durante (E14 C4): lo que hay que hacer, a la vista.
+                Text("chest.tap.hint")
+                    .font(Tokens.title)
+                    .foregroundStyle(.white)
+                    .shadow(color: .black.opacity(0.6), radius: 0, y: 2)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 250)
+                    .offset(y: Self.controlsY)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
             }
 
             // El área tappable: una capa propia, ARRIBA del arte y ABAJO de
@@ -431,13 +442,20 @@ struct ChestOpeningView: View {
             case let .skin(id, characterType, _):
                 skinPortrait(skinID: id, typeID: characterType)
             case .coins:
-                CoinIcon(size: Self.portraitSide * 0.8)
+                RewardArt(kind: .coins).padding(Tokens.s8)
             }
         }
         .frame(width: Self.portraitSide, height: Self.portraitSide)
         .background(Color("PaletteYellow").opacity(0.3))
         .clipShape(Self.plateShape)
         .overlay(Self.plateShape.strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
+        // Los rayos del premio (E14 C4) detrás de la placa, del color de la
+        // rareza, y el pop al aparecer. Van de fondo y de overlay: no mueven nada.
+        .background {
+            RewardRays(tint: ChestRarityStyle.color(rarity))
+                .frame(width: Self.portraitSide * 1.6, height: Self.portraitSide * 1.6)
+        }
+        .overlay { PrizePop() }
         .accessibilityHidden(true)
     }
 

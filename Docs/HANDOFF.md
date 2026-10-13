@@ -20,6 +20,8 @@
 > mockups aprobados (`Docs/correcciones-v2/mockups/`), 30 tareas en `tasks.md` §5 «E14» y §4.0. Va antes que
 > todo lo demás de la cola. Detalle: `Docs/SESION-2026-10-12-v2-e14-correcciones-dueno.md`.
 >
+> 📍 **Estado al cierre del relevo 52 (2026-10-13; manda sobre los párrafos de abajo):** `version-2` = la punta de `v2i/integ-r52` (pusheada). **Progreso: 283 de 306 (92,5 %).** Entraron de **E14: T12 (la barra de abajo a todo el ancho; Contratar y Reencarnar como solapas; el tablero gana 44 pt) y T11 (los 10 popups al contenedor único; el vendedor que se ofende)**. La cola del 53 está en `tasks.md` §4.0 fila 0 (resto de la ola 3: T21 · T22, y el `completo`). Detalle: `Docs/SESION-2026-10-13-v2-relevo-52.md`.
+>
 > 📍 **Estado al cierre del relevo 51 (2026-10-13; manda sobre los párrafos de abajo):** `version-2` = la punta de `v2i/integ-r51` (pusheada). **Progreso: 281 de 306 (91,8 %).** Entraron de **E14: T8 (el desbloqueo de piso no se saltea; corto en cada vida nueva), T3 (las 27 imágenes y los 11 videos aprobados) y T10 (atajo «el primero del piso»)**. La cola del 52 está en `tasks.md` §4.0 fila 0 (ola 3: T11 · T12 · T21, más T22). Detalle: `Docs/SESION-2026-10-13-v2-relevo-51.md`.
 >
 > 📍 **Estado al cierre del relevo 50 (2026-10-13; manda sobre los párrafos de abajo):** `version-2` = la punta de `v2i/integ-r50` (pusheada). **Progreso: 278 de 306 (90,8 %).** Entraron de **E14: T4 (fuera los videos de fondos y de los 43 personajes base), T6 (visitantes en un carril con bolsa barajada y «No, gracias»; Dios sigue en 45,40 h) y T28 (la intro espera al consentimiento)**. La cola del 51 está en `tasks.md` §4.0 fila 0 (T8 · T10 · T3). Detalle: `Docs/SESION-2026-10-13-v2-relevo-50.md`.
@@ -381,6 +383,10 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-10-13 (relevo 52) — La ola 3 de E14, primera mitad: T11, T12
+
+Relevo automático con la semanal en 94–95 %: la barra inferior a todo el ancho con leyendas y Contratar/Reencarnar como solapas (C12, C18; `BarFlaps.swift`, pila de abajo 156→112 pt) y los 10 popups al `PopupContainer` desde un único `ViewModifier` (C15; `GamePopups.swift`; el vendedor ofendido). `Docs/SESION-2026-10-13-v2-relevo-52.md`.
 
 ### Sesión del 2026-10-13 (relevo 51) — La tercera tanda de E14: T8, T3, T10
 
@@ -5021,6 +5027,12 @@ Siguen vigentes y no estaban en ningún otro lado:
 - **El repaso se retira si el núcleo volvió a vivir** y no arranca con el núcleo sin hacer: no hay que "arreglarlo" para que arranque igual, pisaría la fase.
 - **El reset del ORO es `min(saldo, comprado)`:** devolver el comprado entero regala ORO gastado; devolver el saldo entero regala el ORO ganado jugando. Cualquier cambio a `ResetPlan` o a `resolveAcrossReset` se prueba con `ResetEpochTests`.
 
+### Del relevo 52 (2026-10-13)
+
+- **`RootView` se puede repartir por región** entre dos tareas (cadena de hojas / `bottomBar`): el merge sale limpio.
+- **Los popups de E14 son overlay de `GameBoardView`:** uno que aparece con el menú u otra hoja abierta queda debajo.
+- **La altura de la barra se lee de `GameTabBar.panelHeight`/`barHeight`:** `BoardScene.bottomInset`, toasts y `ShareMomentChip` la siguen solos; el espejo de `AscentRenderingUITests` se actualiza a mano (108).
+
 ### Del relevo 51 (2026-10-13)
 
 - **El runtime de simulador instalado es `iOS-26-5`** (y `iOS-18-6`): `simctl create … SimRuntime.iOS-26-0` falla con «Invalid runtime».
@@ -5619,6 +5631,7 @@ Anotado por si algún día importa, con su medición:
 - **`Docs/SESION-2026-10-12-v2-relevo-38-ola-aj.md`**: el relevo 38 (los eventos de 25 s dicen «En curso»; fuera `tutorial.tip.wheel`).
 - **`Docs/SESION-2026-10-12-v2-relevo-37-ola-ai.md`**: el relevo 37 (el UI test del otro colchón `extraOnly`; el pager asienta con el scroll quieto).
 - **`Docs/SESION-2026-10-13-v2-relevo-50.md`**: el relevo 50 (E14 T4, T6, T28; la carga de la máquina).
+- **`Docs/SESION-2026-10-13-v2-relevo-52.md`**: el relevo 52 (E14 T11, T12).
 - **`Docs/SESION-2026-10-13-v2-relevo-51.md`**: el relevo 51 (E14 T8, T3, T10).
 - **`Docs/SESION-2026-10-13-v2-relevo-49.md`**: el relevo 49 en vivo (la calibración de 45 h, la mediación, E14 T29/T9/T5/T7, los dos arreglos de arranque).
 - **`Docs/SESION-2026-10-12-v2-relevo-36-ola-ah.md`**: el relevo 36 (E9b T3–T5 y T10, E9a T10, E6b T10; E9 y E6b cerradas; el fixture `--uitest-lessons-done`).

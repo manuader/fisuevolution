@@ -5,8 +5,10 @@ PLAN-v2 E8, "Pipeline de video". Estas clases de pieza:
 
 - **Retratos**: los 18 loops de visitante (Kling, cuadro inicial = final = la
   canonica). HEVC con alfa, 512x512, sin sonido, en `Resources/Loops/`.
-- **Objetos**: el Paquete de la Aduana y el Colchon, su apertura y su espera en
-  loop. Como los retratos, 512x512 con alfa, en `Resources/Loops/`.
+- **Objetos**: el Paquete de la Aduana, el Colchon, el cofre y la Ruleta: espera
+  en loop, sacudida y apertura (E14 C26/C27). Como los retratos, 512x512 con
+  alfa, en `Resources/Loops/`. Tres abren sobre verde (`OBJECT_MATTE_VERDE`) y
+  cuatro piezas se recortan en el tiempo (`OBJECT_TIEMPO`).
 - **Cabina**: las puertas del ascensor que cierran y abren. 720x1280 en
   `Resources/Cinematics/`, opaca salvo el hueco y las ventanas. Mas sus dos
   cuadros fijos en PNG (`cabina-cuadros`), el respaldo del juego si faltan los
@@ -52,6 +54,7 @@ en vez de adivinar.
     .venv/bin/python scripts/video_assets.py medir video/chest-animation.mp4
     .venv/bin/python scripts/video_assets.py retrato npc_comisario
     .venv/bin/python scripts/video_assets.py objeto paquete_espera
+    .venv/bin/python scripts/video_assets.py objeto cofre_abre --video <master.mp4>
     .venv/bin/python scripts/video_assets.py cabina puertas_abren
     .venv/bin/python scripts/video_assets.py cabina-cuadros [--dir video/ascensor]
     .venv/bin/python scripts/video_assets.py cinematica arresto [--sin-key]
@@ -212,7 +215,27 @@ ODR_SHOP = "anim-tienda"
 # tienen una apertura y una espera en loop; la cabina, las puertas en un sentido
 # y en el otro (E13, item 13).
 CINEMATIC_IDS = ("intro", "reencarnacion", "arresto", "dios")
-OBJECT_IDS = ("paquete_abre", "paquete_espera", "colchon_abre", "colchon_espera")
+OBJECT_IDS = (
+    "paquete_abre", "paquete_espera", "paquete_sacude",
+    "colchon_abre", "colchon_espera", "colchon_sacude",
+    "cofre_abre", "cofre_espera", "cofre_sacude",
+    "ruleta_espera", "ruleta_premio",
+)
+# Los objetos que NO van sobre blanco (E14 C26/C27): sus rayos y chispas blancas se
+# perderian en el recorte topologico, asi que se generan sobre verde croma y salen
+# con el key medido. `colchon_abre` (v3: billetes verdes) es la excepcion: blanco.
+OBJECT_MATTE_VERDE = frozenset({"cofre_abre", "paquete_abre", "ruleta_premio"})
+# Kling no baja de 3 s. La accion de una sacudida cae en el medio del master, asi
+# que recortar el primer segundo la dejaria afuera: se toma la ventana donde hay
+# movimiento (cuadros del master, inclusive, con un cuadro quieto de cada lado,
+# medidos contra el primer cuadro) y se comprime en el tiempo hasta la duracion
+# del juego. Vuelve al cuadro de reposo, como el master.
+OBJECT_TIEMPO = {
+    "cofre_sacude": (8, 57, 1.0),
+    "paquete_sacude": (22, 52, 1.0),
+    "colchon_sacude": (30, 60, 1.0),
+    "ruleta_premio": (0, 72, 2.0),
+}
 CABIN_IDS = ("puertas_cierran", "puertas_abren")
 EVENT_IDS = (
     "aguinaldo", "blanqueo", "home_banking", "corralito", "devaluacion",
@@ -421,16 +444,36 @@ def keyed_filter(kind: str, key_color: str, similarity: float, blend: float,
     return f"{keying},premultiply=inplace=1,{framing},format=bgra"
 
 
+def matte_of(kind: str, piece_id: str) -> str:
+    """De donde sale el alfa de una pieza: el de su clase, salvo los objetos en verde."""
+    if kind == "objeto" and piece_id in OBJECT_MATTE_VERDE:
+        return "verde"
+    return KINDS[kind]["matte"]
+
+
+def time_filter(kind: str, piece_id: str, fps: str) -> str:
+    """El recorte en el tiempo de una pieza (`OBJECT_TIEMPO`), como prefijo de un
+    filtro de ffmpeg; vacio si va entera."""
+    if kind != "objeto" or piece_id not in OBJECT_TIEMPO:
+        return ""
+    desde, hasta, segundos = OBJECT_TIEMPO[piece_id]
+    cuadros = Fraction(fps) * Fraction(segundos).limit_denominator(1000)
+    factor = float(cuadros / (hasta - desde + 1))
+    return (f"trim=start_frame={desde}:end_frame={hasta + 1},"
+            f"setpts=(PTS-STARTPTS)*{factor:.6f},fps={fps},")
+
+
 def encode(kind: str, master: Path, output: Path, key_color: str | None,
-           similarity: float, blend: float) -> None:
+           similarity: float, blend: float, piece_id: str = "") -> None:
     info = probe(master)
     stream = video_stream(info)
     framing = framing_filter(kind, int(stream["width"]), int(stream["height"]))
+    tiempo = time_filter(kind, piece_id, stream["r_frame_rate"])
     if key_color is None:
-        video_filter = f"{framing},format=yuv420p"
+        video_filter = f"{tiempo}{framing},format=yuv420p"
         video_args = ["-c:v", "hevc_videotoolbox", "-q:v", HEVC_QUALITY]
     else:
-        video_filter = keyed_filter(kind, key_color, similarity, blend, framing)
+        video_filter = tiempo + keyed_filter(kind, key_color, similarity, blend, framing)
         video_args = [
             "-c:v", "hevc_videotoolbox",
             "-alpha_quality", HEVC_ALPHA_QUALITY,
@@ -500,7 +543,7 @@ def sin_islas_chicas(rgba: np.ndarray, menores: int) -> np.ndarray:
 
 
 def encode_cutout(kind: str, master: Path, output: Path, papel: bool = False,
-                  menores: int = 0, progreso=None) -> None:
+                  menores: int = 0, progreso=None, piece_id: str = "") -> None:
     """El camino del fondo blanco: un ffmpeg decodifica, Python recorta cada
     cuadro a la resolucion del master, y otro ffmpeg encuadra y codifica.
 
@@ -516,6 +559,7 @@ def encode_cutout(kind: str, master: Path, output: Path, papel: bool = False,
     output.parent.mkdir(parents=True, exist_ok=True)
     decoder = subprocess.Popen(
         ["ffmpeg", "-v", "error", "-i", str(master), "-fps_mode", "passthrough",
+         "-vf", time_filter(kind, piece_id, stream["r_frame_rate"]) + "null",
          "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
         stdout=subprocess.PIPE,
     )
@@ -536,7 +580,7 @@ def encode_cutout(kind: str, master: Path, output: Path, papel: bool = False,
             yield np.frombuffer(raw, np.uint8).reshape(height, width, 3)
 
     recortar = functools.partial(cutout_frame, bordes=spec["bordes"], papel=papel, menores=menores)
-    total = int(stream.get("nb_frames") or 0)
+    total = int(stream.get("nb_frames") or 0)  # sólo para el progreso: un recorte lo achica
     try:
         with multiprocessing.Pool() as pool:
             for hechos, rgba in enumerate(pool.imap(recortar, frames(), chunksize=2), 1):
@@ -620,15 +664,16 @@ def process(kind: str, piece_id: str, master: Path, keyed: bool = True,
             f"la pieza {kind!r} va siempre con alfa: --sin-key es de las cinematicas"
         )
     spec = KINDS[kind]
-    matte = spec["matte"] if keyed else None
+    matte = matte_of(kind, piece_id) if keyed else None
     output = piece_dir(kind, piece_id) / f"{spec['prefix']}{piece_id}.mov"
     key_color = None
     if matte == "blanco":
-        encode_cutout(kind, master, output, papel=piece_id in PAPEL_MEDIDO_VIDEO)
+        encode_cutout(kind, master, output, papel=piece_id in PAPEL_MEDIDO_VIDEO,
+                      piece_id=piece_id)
     else:
         if matte == "verde":
             key_color = measure_key_color(master, en_el_cuadro=kind == "cabina")
-        encode(kind, master, output, key_color, similarity, blend)
+        encode(kind, master, output, key_color, similarity, blend, piece_id)
     entry = manifest_entry(output, matte, key_color)
     if tag := odr_tag(kind, piece_id):
         entry["odrTag"] = tag
@@ -670,7 +715,7 @@ def main() -> int:
         piece = sub.add_parser(kind)
         piece.add_argument("id")
         piece.add_argument("--video", type=Path, help="el master, si no esta en video/")
-        if KINDS[kind]["matte"] == "verde":
+        if KINDS[kind]["matte"] == "verde" or kind == "objeto":
             piece.add_argument("--similarity", type=float, default=KEY_SIMILARITY)
             piece.add_argument("--blend", type=float, default=KEY_BLEND)
         if kind == "cinematica":

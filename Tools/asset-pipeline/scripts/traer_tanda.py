@@ -8,6 +8,7 @@ claves (el ×2 y el ×3 de ingresos comparten ícono).
 
     .venv/bin/python scripts/traer_tanda.py pijama
     .venv/bin/python scripts/traer_tanda.py ui --dry-run
+    .venv/bin/python scripts/traer_tanda.py premios      # E14: los 27 de fisu-v2-premios
 """
 
 from __future__ import annotations
@@ -27,7 +28,14 @@ GENERADOR = (
     / "projects" / "fisu-evolution-v2" / "output"
 )
 
+# Los premios ilustrados de E14 (C4/C8/C15): otro proyecto generador, otra tanda.
+GENERADOR_PREMIOS = (
+    Path.home() / "Desktop" / "projects" / "automatic-image-generation"
+    / "projects" / "fisu-v2-premios" / "output"
+)
+
 GRUPOS = {
+    "premios": lambda e: True,
     "npc": lambda e: e["category"] == "npc",
     "pijama": lambda e: e["category"] == "skinfam" and e["assetKey"].endswith("__pijama"),
     "gaucho": lambda e: e["category"] == "skinfam" and e["assetKey"].endswith("__gaucho"),
@@ -42,12 +50,19 @@ def entradas_v2() -> list[dict]:
     return [e for e in prompts if e.get("tanda") == "v2"]
 
 
+def entradas_premios() -> list[dict]:
+    prompts = json.loads((PIPELINE / "prompts" / "prompts.json").read_text())
+    return [e for e in prompts if e.get("tanda") == "premios"]
+
+
 def origen(entry: dict) -> Path:
-    return GENERADOR / f"{entry.get('generado_como', entry['assetKey'])}.png"
+    generador = GENERADOR_PREMIOS if entry.get("tanda") == "premios" else GENERADOR
+    return generador / f"{entry.get('generado_como', entry['assetKey'])}.png"
 
 
 def traer(grupo: str, dropbox: Path = DROPBOX, dry_run: bool = False) -> list[str]:
-    elegidas = sorted((e for e in entradas_v2() if GRUPOS[grupo](e)), key=lambda e: e["assetKey"])
+    entradas = entradas_premios() if grupo == "premios" else entradas_v2()
+    elegidas = sorted((e for e in entradas if GRUPOS[grupo](e)), key=lambda e: e["assetKey"])
     faltan = [str(origen(e)) for e in elegidas if not origen(e).exists()]
     if faltan:
         raise FileNotFoundError(f"faltan en el generador: {faltan}")

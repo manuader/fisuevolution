@@ -123,11 +123,14 @@ class Identificadores(unittest.TestCase):
             validate_id("cinematica", "boda")
 
     def test_los_objetos_y_la_cabina_son_los_del_plan(self):
-        self.assertEqual(
-            OBJECT_IDS, ("paquete_abre", "paquete_espera", "colchon_abre", "colchon_espera")
-        )
+        self.assertEqual(set(OBJECT_IDS), {
+            "paquete_abre", "paquete_espera", "paquete_sacude",
+            "colchon_abre", "colchon_espera", "colchon_sacude",
+            "cofre_abre", "cofre_espera", "cofre_sacude",
+            "ruleta_espera", "ruleta_premio",
+        })
         self.assertEqual(CABIN_IDS, ("puertas_cierran", "puertas_abren"))
-        for kind, invalido in (("objeto", "cofre_abre"), ("cabina", "puertas")):
+        for kind, invalido in (("objeto", "cofre_cierra"), ("cabina", "puertas")):
             with self.subTest(kind=kind), self.assertRaises(ValueError):
                 validate_id(kind, invalido)
 
@@ -302,11 +305,29 @@ class ManifestVersionado(unittest.TestCase):
                     self.assertEqual((entry["width"], entry["height"]), spec["size"])
                     self.assertTrue((piece_dir(kind, piece_id) / entry["file"]).exists())
                     self.assertEqual(entry["alpha"], entry["matte"] is not None)
-                    self.assertIn(entry["matte"], (spec["matte"], None))
+                    self.assertIn(entry["matte"], (video_assets.matte_of(kind, piece_id), None))
                     self.assertEqual(entry["keyColor"] is not None, entry["matte"] == "verde")
                     if kind != "cinematica":
-                        self.assertEqual(entry["matte"], spec["matte"])
+                        self.assertEqual(entry["matte"], video_assets.matte_of(kind, piece_id))
                         self.assertFalse(entry["audio"], f"un {kind} es mudo")
+
+    def test_los_objetos_en_verde_son_los_que_pierden_sus_rayos_en_el_blanco(self):
+        verdes = {id_ for id_, entry in self.piezas("objeto") if entry["matte"] == "verde"}
+        self.assertEqual(verdes, {"cofre_abre", "paquete_abre", "ruleta_premio"})
+        self.assertEqual(verdes, set(video_assets.OBJECT_MATTE_VERDE))
+        # El colchón v3 (billetes verdes) va sobre blanco, como las esperas y sacudidas.
+        self.assertEqual(self.manifest["objects"]["colchon_abre"]["matte"], "blanco")
+        for id_, entry in self.piezas("objeto"):
+            self.assertEqual(entry["keyColor"] is not None, id_ in verdes, id_)
+
+    def test_las_sacudidas_duran_1_s_y_el_festejo_de_la_ruleta_2_s(self):
+        for id_, (_, _, segundos) in video_assets.OBJECT_TIEMPO.items():
+            entry = self.manifest["objects"][id_]
+            self.assertEqual(entry["fps"], 24, id_)
+            self.assertEqual(entry["frames"], round(24 * segundos), id_)
+        self.assertEqual(set(video_assets.OBJECT_TIEMPO), {
+            "cofre_sacude", "paquete_sacude", "colchon_sacude", "ruleta_premio",
+        })
 
     def test_las_piezas_del_plan_estan_todas(self):
         for kind, ids in (("objeto", OBJECT_IDS), ("cabina", CABIN_IDS),
@@ -488,6 +509,33 @@ class DePuntaAPunta(unittest.TestCase):
         manifest = json.loads((self.resources / "Data" / "loops_manifest.json").read_text())
         self.assertEqual(manifest["objects"], {"paquete_espera": entry})
         self.assertEqual(manifest["portraits"], {})
+
+    def test_un_objeto_en_verde_se_keyea_y_lo_demas_va_sobre_blanco(self):
+        master = self.master(720, 720, fondo=self.VERDE)
+        entry = video_assets.process("objeto", "cofre_abre", master)
+        self.assertEqual((entry["matte"], entry["keyColor"]), ("verde", self.VERDE))
+        self.assert_keyeado(self.cuadro(self.resources / "Loops" / "obj_cofre_abre.mov"))
+        blanco = video_assets.process(
+            "objeto", "colchon_abre", self.master(720, 720, fondo="0xFFFFFF", caja="0x101010", t="8"))
+        self.assertEqual((blanco["matte"], blanco["keyColor"]), ("blanco", None))
+
+    def test_una_sacudida_se_comprime_a_su_duracion_sin_perder_el_reposo(self):
+        for id_, matte, fondo in (("paquete_sacude", "blanco", "0xFFFFFF"),
+                                  ("ruleta_premio", "verde", self.VERDE)):
+            # Master de 24 cuadros (1 s): la ventana toma 16 y los lleva a 12 (0,5 s).
+            with self.subTest(id=id_), mock.patch.dict(
+                video_assets.OBJECT_TIEMPO, {id_: (4, 19, 0.5)}
+            ):
+                entry = video_assets.process("objeto", id_, self.master(
+                    720, 720, fondo=fondo, caja="0x101010", t="8" if matte == "blanco" else "fill"))
+                self.assertEqual((entry["frames"], entry["fps"], entry["matte"]), (12, 24, matte))
+
+    def test_el_filtro_de_tiempo_solo_toca_las_piezas_recortadas(self):
+        self.assertEqual(video_assets.time_filter("objeto", "paquete_espera", "24/1"), "")
+        self.assertEqual(video_assets.time_filter("retrato", "npc_vecina", "24/1"), "")
+        filtro = video_assets.time_filter("objeto", "ruleta_premio", "24/1")
+        self.assertTrue(filtro.startswith("trim=start_frame=0:end_frame=73,"), filtro)
+        self.assertIn("fps=24/1,", filtro)
 
     def test_la_cabina_deja_transparente_solo_el_hueco_verde(self):
         # Pared amarilla a proposito: el despill del cofre la volveria naranja.

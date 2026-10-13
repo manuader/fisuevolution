@@ -55,6 +55,8 @@ TAMANO_POR_PREFIJO = (
     ("wheel_frame", (640, 960)),           # la ruleta mide 300 pt (WheelView, E5b)
     ("pickup_", (384, 512)),               # cajas y colchón del tablero, ~96 pt
     ("ui_album_card_frame", (448, 640)),   # la carta del Álbum de especiales
+    ("rw_", (384, 512)),                   # el premio ilustrado de los popups (E14 C4)
+    ("ui_offer_", (384, 512)),             # el arte de las ofertas (E14 C8)
 )
 
 

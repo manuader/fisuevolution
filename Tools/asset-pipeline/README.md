@@ -48,6 +48,13 @@ Las poses nuevas de los especiales van como `npc`, no como `special`: con
 `special` caerían en `manifest['characters']` con un id que no es especial, y
 `manifestEntriesReferenceRealTypes` se pone rojo.
 
+### Los premios de E14 (`tanda: "premios"`)
+
+Las 27 imágenes de `automatic-image-generation/projects/fisu-v2-premios/output/` (`rw_*`,
+`ui_icon_*`, `ui_offer_*`, `ui_rail_*`, `ui_dolar_blue`, `npc_vendedor_enojado`) se traen con
+`scripts/traer_tanda.py premios` y se integran con `process_dropbox.py`. Los 11 videos van de a
+uno con `video_assets.py objeto <id> --video <master>` (ver el docstring: verde, recortes).
+
 ### La tanda de la 2.0 (`tanda: "v2"`)
 
 Sus entradas ya están en `prompts.json`. En lugar del paso 3 a mano, traé un grupo entero

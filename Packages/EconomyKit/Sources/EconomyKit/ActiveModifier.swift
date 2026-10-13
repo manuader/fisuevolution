@@ -120,9 +120,10 @@ public enum ModifierMath {
             other.sourceKey == modifier.sourceKey && other.effect == modifier.effect
         }
         let latest = modifiers.filter(same).map(\.expiresAt).reduce(modifier.expiresAt, max)
+        let id = modifiers.first(where: same)?.id ?? modifier.id
         modifiers.removeAll(where: same)
         modifiers.append(ActiveModifier(
-            id: modifier.id, effect: modifier.effect, magnitude: modifier.magnitude, expiresAt: latest, sourceKey: modifier.sourceKey
+            id: id, effect: modifier.effect, magnitude: modifier.magnitude, expiresAt: latest, sourceKey: modifier.sourceKey
         ))
     }
 

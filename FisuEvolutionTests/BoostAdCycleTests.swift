@@ -142,10 +142,30 @@ struct BoostAdCycleTests {
         let gameState = try await makeGameState()
         let boost = try boost(gameState)
         let now = try activatedFree(gameState, elapsed: 60)
-        var player = try #require(gameState.player)
-        player.meta.rewardedActivations = [:]
-        let data = try JSONEncoder().encode(player)
-        let decoded = try JSONDecoder().decode(PlayerState.self, from: data)
+        let player = try #require(gameState.player)
+        var json = try #require(try JSONSerialization.jsonObject(with: JSONEncoder().encode(player)) as? [String: Any])
+        var meta = try #require(json["meta"] as? [String: Any])
+        meta["rewardedActivations"] = nil
+        json["meta"] = meta
+        let decoded = try JSONDecoder().decode(PlayerState.self, from: JSONSerialization.data(withJSONObject: json))
+        #expect(decoded.meta.rewardedActivations.isEmpty)
         #expect(BoostManager.canOfferAd(of: boost, state: decoded, now: now))
+    }
+
+    @Test("con el reloj atrás, el video no fecha el ciclo antes de la activación que reemplaza")
+    func videoWithTheClockBackKeepsTheCycle() async throws {
+        let gameState = try await makeGameState()
+        let boost = try boost(gameState)
+        let activation = try activatedFree(gameState, elapsed: 0)
+
+        let before = try #require(gameState.player?.meta.stats.boostsActivatedEver)
+        let rewound = activation - boost.cooldownSeconds
+        gameState.activateBoostFromAd(id: turbo, now: rewound)
+
+        let player = try #require(gameState.player)
+        #expect(player.meta.stats.boostsActivatedEver == before + 1, "el video sí se cobró")
+        #expect(player.meta.boostActivations[turbo] == activation)
+        #expect(BoostManager.cooldownRemaining(of: boost, state: player, now: activation) == boost.cooldownSeconds)
+        #expect(!BoostManager.canOfferAd(of: boost, state: player, now: activation))
     }
 }

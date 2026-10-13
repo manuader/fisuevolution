@@ -110,6 +110,10 @@ extension GameState {
             Log.economy.info("ad boost already used this cycle: \(id)")
             return nil
         }
+        // Nunca más temprano que la activación que reemplaza: con el reloj
+        // atrás, el video fecharía el ciclo en el pasado y el cooldown
+        // terminaría antes.
+        let stamp = max(now, player.meta.boostActivations[id] ?? now)
         player.meta.boostActivations[id] = nil
         do {
             let payout = try BoostManager.activate(
@@ -122,9 +126,9 @@ extension GameState {
                 tiers: content.tiers,
                 floorTable: content.floorTable,
                 economy: economy,
-                now: now
+                now: stamp
             )
-            player.meta.rewardedActivations[BoostManager.adUsageKey(id)] = now
+            player.meta.rewardedActivations[BoostManager.adUsageKey(id)] = stamp
             player.meta.stats.boostsActivatedEver += 1
             self.player = player
             effectsVersion += 1

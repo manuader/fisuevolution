@@ -1452,13 +1452,13 @@ de `Docs/HANDOFF.md` §5.
 
 ### E14 — Correcciones del dueño antes de la App Store (pedido del dueño, 2026-10-12) — PRIORIDAD ABSOLUTA
 
-El dueño revisó la 2.0 jugando y dictó 31 correcciones antes de subirla: la UI al nivel de Cow Evolution /
+El dueño revisó la 2.0 jugando y dictó 32 correcciones antes de subirla: la UI al nivel de Cow Evolution /
 AdVenture Capitalist con la identidad del Fisu (premios siempre ilustrados, popups centrados, sellos en las esquinas,
 botones custom), visitantes que no estorban y rotan parejo, la moneda premium como «dólar blue», la Tienda sólo
 para plata real, fondos y personajes base estáticos, el Paquete explicado, compartir con el personaje real y videos
 nuevos de cofre, Ruleta, caja y colchón.
 
-- **Spec:** `Docs/PLAN-v2-E14-correcciones.md` (C1–C31).
+- **Spec:** `Docs/PLAN-v2-E14-correcciones.md` (C1–C32).
 - **Plan por tareas:** `Docs/superpowers/plans/2026-10-12-v2-e14-correcciones-dueno.md` (T0–T27, D1–D13, G1–G4, 9 olas).
 - **Mockups aprobados (G1 ✅):** `Docs/correcciones-v2/mockups/fisu-e14.html`.
 - **Tablero:** `tasks.md` §4.0 y §5 «E14». Va antes que cualquier otra tarea de la cola (D9).

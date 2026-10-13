@@ -1018,7 +1018,7 @@ ilustrados, popups centrados y contenidos (C19, C29), y **cero superposición** 
 | E14-T19 | Mejoras con 3 pestañas; Tienda sólo plata real; cosméticos a Pintas; «Tu meta» | ⛔ | T9 | `StoreView`, `OroShopView`, `UpgradesView`, hoja de Pintas |  | C11, C29 · D3 · M10 · ola 4 |
 | E14-T20 | Regalos ordenado por estado | ⛔ | T9, T18 | `GiftsView` |  | C29 · M9 · ola 7 |
 | E14-T21 | Menú deslizable de un solo marco, transparente afuera | 🔄 | T9 | `MenuPagerView`, `panelSheet` |  | C13 · M9, M11 · ola 3 |
-| E14-T22 | Ascensor: la torre por las ventanas | 🔄 | T4 | `ElevatorRideView`, `ElevatorCabin`, `BoardScene` (cámara del viaje) |  | C7 · M13 · ola 5 |
+| E14-T22 | Ascensor: la torre por las ventanas | 🟢 | T4 | `ElevatorRideView`, `ElevatorCabin`, `BoardScene` (cámara del viaje) | 355912df (sonnet, DONE_WITH_CONCERNS; merge 1b5808a7 en integ-r53; espera el `rapido`) — camino (a): la cámara del tablero vuela con `RideCamera`; cabina cerrada PNG en `.traveling`. Carries: los pisos que pasan sin personajes (como el vuelo viejo); `.closing`/`.opening` con ventanas opacas (fuera de la spec); saltear a mitad muestra el tramo final | C7 · M13 · ola 5 |
 | E14-T23 | Compartir: card de personaje nuevo y la imagen real | ⛔ | T11 | `ShareCardView`, `ShareMomentChip`, celebración de personaje nuevo |  | C23, C24 · D5 · M8, M8b · ola 6 |
 | E14-T24 | Eventos `openShop` y 4 eventos nuevos | ⛔ | T11, T19 | `events.json`, EK de eventos, `EventPopupView` |  | C25 · D7 · M14 · ola 7 |
 | E14-T25 | Barrido de SF Symbols y auditoría de UX | ⛔ | T11–T24 | lo que quede, una pantalla por commit |  | C19, C29 · ola 8 |

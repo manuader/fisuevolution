@@ -42,6 +42,22 @@ struct GameContentValidationTests {
         }
     }
 
+    /// E14 C17: el Fast Food va antes que el Chofer. Cambian los personajes, no
+    /// la escalera: los números del tier 7 siguen siendo los del tier 7.
+    @Test("dos Repartidores dan un Fast Food y dos Fast Food dan un Chofer de App")
+    func fastFoodComesBeforeTheAppDriver() throws {
+        let repartidor = try #require(content.tiers.type(id: "repartidor"))
+        let fastFood = try #require(content.tiers.type(id: "fast_food"))
+        let chofer = try #require(content.tiers.type(id: "chofer_app"))
+        #expect(repartidor.mergesInto == "fast_food")
+        #expect(fastFood.tier == 7)
+        #expect(fastFood.mergesInto == "chofer_app")
+        #expect(chofer.tier == 8)
+        #expect(chofer.mergesInto == "oficinista")
+        #expect(fastFood.spritePlaceholder == "sf:takeoutbag.and.cup.and.straw.fill")
+        #expect(chofer.spritePlaceholder == "sf:car.fill")
+    }
+
     /// RF-10: el playtest pidió "al menos 4 personajes por piso, menos el último
     /// que sólo tiene a Dios". Con 4 exactos por piso el reparto queda forzado,
     /// así que este test es la aritmética entera del remapeo en una sola pieza.

@@ -609,7 +609,7 @@ public struct MetaState: Codable, Sendable, Equatable {
     }
 }
 
-/// The complete player save (schema v6): un sobre con dos secciones —`run`
+/// The complete player save (schema v7): un sobre con dos secciones —`run`
 /// muere al reencarnar, `meta` sobrevive—, forma que estrenó F7 "La Torre" en
 /// v4. CoreData lo guarda como JSON blob y el snapshot es la misma codificación.
 private struct LossyModifier: Decodable {
@@ -625,7 +625,7 @@ public struct PlayerState: Codable, Sendable, Equatable {
     public var run: RunState
     public var meta: MetaState
 
-    public static let currentSchemaVersion = 6
+    public static let currentSchemaVersion = 7
 
     public init(schemaVersion: Int, run: RunState, meta: MetaState) {
         self.schemaVersion = schemaVersion

@@ -3,7 +3,7 @@ import Foundation
 import Testing
 @testable import FisuEvolution
 
-/// Migraciones de schema (v1→v2→v3→v4→v5→v6). Son Codable puro: no hace falta
+/// Migraciones de schema (v1→v2→v3→v4→v5→v6→v7). Son Codable puro: no hace falta
 /// GameState ni contenido bundleado. Los fixtures viejos se arman por
 /// diccionario JSON (los tipos v1/v3 ya no existen congelados en código).
 @Suite("SaveMigrator")
@@ -342,7 +342,7 @@ struct SaveMigratorTests {
         }
     }
 
-    // MARK: - Cadena completa v1 → v6
+    // MARK: - Cadena completa v1 → v7
 
     @Test func v1SaveMigratesThroughTheWholeChain() throws {
         let v1Data = try JSONSerialization.data(withJSONObject: v1Fixture())
@@ -366,8 +366,8 @@ struct SaveMigratorTests {
         // v3→v4: curvas nuevas arrancan frescas.
         #expect(migrated.run.hireCounts.isEmpty)
         #expect(migrated.run.unlockedFloors.isEmpty)
-        // v5→v6: el último eslabón también corre en la cadena larga.
-        #expect(migrated.schemaVersion == 6)
+        // v5→v6 y v6→v7: los últimos eslabones también corren en la cadena larga.
+        #expect(migrated.schemaVersion == 7)
         #expect(migrated.meta.unlockedTabs == Set(SaveMigrator.v1Tabs))
         #expect(!migrated.meta.purchasedOroReconstructed)
     }
@@ -378,8 +378,8 @@ struct SaveMigratorTests {
         let data = try JSONSerialization.data(withJSONObject: v3Fixture())
         let migrated = try SaveMigrator.migrate(data)
 
-        // La cadena no para en v4: sigue hasta v6 y el sobre queda estampado ahí.
-        #expect(migrated.schemaVersion == 6)
+        // La cadena no para en v4: sigue hasta v7 y el sobre queda estampado ahí.
+        #expect(migrated.schemaVersion == 7)
         #expect(migrated.run.revealedTier == 12)
 
         // RUN — board posicional → units por tipo, con counts agrupados.
@@ -531,7 +531,7 @@ struct SaveMigratorTests {
         // pague de nuevo por pisos que subió antes de que los cofres existieran.
         // El caso del veterano lo ejerce `v4VeteranDoesNotCollectBackChests`.
         #expect(state.meta.floorChestsAwarded == 1)
-        // El sobre queda ESTAMPADO —la cadena sigue hasta v6—, y eso es lo único
+        // El sobre queda ESTAMPADO —la cadena sigue hasta v7—, y eso es lo único
         // que evita que el save vuelva a cruzar la migración —y con ella un
         // reescalado que no es idempotente— en cada carga. Que `migrate` llame
         // a `migrateV4toV5` lo prueba `floorChestsAwarded == 1` de arriba: los
@@ -643,7 +643,7 @@ struct SaveMigratorTests {
     @Test("un save v5 sube a v6 como veterano y con la reconstrucción pendiente")
     func v5MigratesToV6() throws {
         let state = try SaveMigrator.migrate(v5Fixture(maxTier: 14))
-        #expect(state.schemaVersion == 6)
+        #expect(state.schemaVersion == 7)
         #expect(state.run.revealedTier == 14)
         #expect(state.meta.unlockedTabs == ["jobs", "upgrades", "skins", "gifts", "store", "menu"])
         #expect(!state.meta.purchasedOroReconstructed)
@@ -686,8 +686,8 @@ struct SaveMigratorTests {
         #expect(state.run.hireCountsByType == ["homeless": 4.0])
     }
 
-    @Test("un v6 ya migrado decodifica sin pasar por ningún eslabón")
-    func aV6SaveIsNotMigratedAgain() throws {
+    @Test("un v7 ya migrado decodifica sin pasar por ningún eslabón")
+    func aCurrentSaveIsNotMigratedAgain() throws {
         var state = veteranState(maxTier: 9)
         state.run.revealedTier = 7
         state.run.priceRelief = 0.8
@@ -701,9 +701,113 @@ struct SaveMigratorTests {
         let migrated = try SaveMigrator.migrate(JSONEncoder().encode(state))
 
         #expect(migrated == state)
-        #expect(migrated.run.revealedTier == 7, "la migración no pisa la red de seguridad de un v6")
+        #expect(migrated.run.revealedTier == 7, "la migración no pisa la red de seguridad de un v7")
         #expect(migrated.meta.unlockedTabs == ["jobs"], "ni vuelve a regalar las seis pestañas")
         #expect(migrated.meta.purchasedOroReconstructed, "ni reabre la reconstrucción")
+    }
+
+    // MARK: - v6 → v7 (E14 C17: el Fast Food al tier 7, el Chofer al 8)
+
+    /// Un veterano con los dos personajes en la torre, tal como lo escribió la
+    /// escalera vieja (Chofer en el 7, Fast Food en el 8): unidades, pasivos,
+    /// contrataciones, mejoras, vistos, el atajo fijado y una pinta de cada uno.
+    private func veteranWithBothSwappedTiers() -> PlayerState {
+        var state = veteranState(maxTier: 9)
+        state.run.units = ["homeless": 3, "chofer_app": 4, "fast_food": 1]
+        state.run.passiveUnlocked = ["homeless": true, "chofer_app": true]
+        state.run.hireCountsByType = ["chofer_app": 6, "fast_food": 2.5]
+        state.run.charUpgradeLevels = ["homeless": 2, "chofer_app": 11, "fast_food": 3]
+        state.run.seenTypes = ["homeless", "chofer_app", "fast_food", "oficinista"]
+        state.meta.quickHirePinnedTypeId = "chofer_app"
+        state.meta.milestoneSkins = ["chef_estrella", "taxi_clasico"]
+        state.meta.activeSkinByType = ["chofer_app": "taxi_clasico", "fast_food": "chef_estrella"]
+        return state
+    }
+
+    /// El mismo veterano a medio camino: llegó al 7 y nunca vio el 8.
+    private func veteranStuckAtTheOldSeven() -> PlayerState {
+        var state = veteranState(maxTier: 7)
+        state.run.revealedTier = 7
+        state.run.units = ["repartidor": 2, "chofer_app": 3]
+        state.run.charUpgradeLevels = ["chofer_app": 5]
+        state.run.seenTypes = ["homeless", "repartidor", "chofer_app"]
+        state.meta.activeSkinByType = ["chofer_app": "taxi_clasico"]
+        state.meta.milestoneSkins = ["taxi_clasico"]
+        return state
+    }
+
+    private func encoded(_ state: PlayerState, asVersion version: Int) throws -> Data {
+        var object = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(state)) as? [String: Any])
+        object["schemaVersion"] = version
+        return try JSONSerialization.data(withJSONObject: object)
+    }
+
+    @Test("un v6 con los dos tiers cambia de personaje por posición y las pintas siguen al personaje")
+    func v6SwapsTheSeventhAndEighthByPosition() throws {
+        let migrated = try SaveMigrator.migrate(encoded(veteranWithBothSwappedTiers(), asVersion: 6))
+
+        #expect(migrated.schemaVersion == 7)
+        #expect(migrated.run.units == ["homeless": 3, "fast_food": 4, "chofer_app": 1])
+        #expect(migrated.run.passiveUnlocked == ["homeless": true, "fast_food": true])
+        #expect(migrated.run.hireCountsByType == ["fast_food": 6, "chofer_app": 2.5])
+        #expect(migrated.run.charUpgradeLevels == ["homeless": 2, "fast_food": 11, "chofer_app": 3])
+        #expect(migrated.run.seenTypes == ["homeless", "chofer_app", "fast_food", "oficinista"])
+        #expect(migrated.meta.quickHirePinnedTypeId == "fast_food")
+        #expect(migrated.meta.activeSkinByType == ["chofer_app": "taxi_clasico", "fast_food": "chef_estrella"])
+        #expect(migrated.meta.milestoneSkins == ["chef_estrella", "taxi_clasico"])
+    }
+
+    @Test("el que nunca llegó al 8 ve al Fast Food en el 7 y al Chofer todavía por descubrir")
+    func v6StuckAtTheSeventhKeepsItsFrontier() throws {
+        let migrated = try SaveMigrator.migrate(encoded(veteranStuckAtTheOldSeven(), asVersion: 6))
+
+        #expect(migrated.run.units == ["repartidor": 2, "fast_food": 3])
+        #expect(migrated.run.charUpgradeLevels == ["fast_food": 5])
+        #expect(migrated.run.seenTypes == ["homeless", "repartidor", "fast_food"])
+        #expect(migrated.run.maxTierReached == 7)
+        #expect(migrated.run.revealedTier == 7)
+        // La pinta del Chofer es del Chofer: la sigue teniendo puesta para cuando llegue.
+        #expect(migrated.meta.activeSkinByType == ["chofer_app": "taxi_clasico"])
+        #expect(migrated.meta.allOwnedSkins.contains("taxi_clasico"))
+    }
+
+    /// El listo-cuando de C17: un save de la v1 abre con la misma producción.
+    /// Las unidades y las mejoras por tier no se mueven, que es lo que la fija.
+    @Test("un v5 de la v1 conserva por tier las unidades y las mejoras: la misma producción")
+    func v5KeepsEveryTierCount() throws {
+        let content = try GameContentLoader.load(from: .main)
+        let original = veteranWithBothSwappedTiers()
+        let oldLadder = ["chofer_app": 7, "fast_food": 8]
+        func tier(_ id: String, old: Bool) throws -> Int {
+            if old, let tier = oldLadder[id] { return tier }
+            return try #require(content.tiers.type(id: id)).tier
+        }
+        func byTier(_ values: [String: Int], old: Bool) throws -> [Int: Int] {
+            Dictionary(try values.map { (try tier($0.key, old: old), $0.value) }, uniquingKeysWith: +)
+        }
+
+        let migrated = try SaveMigrator.migrate(JSONSerialization.data(withJSONObject: v5Object(from: original)))
+
+        #expect(migrated.schemaVersion == PlayerState.currentSchemaVersion)
+        #expect(try byTier(migrated.run.units, old: false) == byTier(original.run.units, old: true))
+        #expect(try byTier(migrated.run.charUpgradeLevels, old: false) == byTier(original.run.charUpgradeLevels, old: true))
+        #expect(try byTier(migrated.run.units, old: false)[7] == 4)
+    }
+
+    @Test("la migración corre una sola vez: volver a cargar lo guardado no vuelve a intercambiar")
+    func theSwapRunsOnce() throws {
+        let once = try SaveMigrator.migrate(encoded(veteranWithBothSwappedTiers(), asVersion: 6))
+        let again = try SaveMigrator.migrate(JSONEncoder().encode(once))
+
+        #expect(again == once)
+        #expect(again.run.units["fast_food"] == 4)
+    }
+
+    @Test("una cuenta nueva ya nace en la escalera nueva: el migrador no la toca")
+    func aFreshV7IsNotSwapped() throws {
+        var state = veteranWithBothSwappedTiers()
+        state.schemaVersion = PlayerState.currentSchemaVersion
+        #expect(try SaveMigrator.migrate(JSONEncoder().encode(state)) == state)
     }
 
     @Test("un v5 sin la sección run o meta no se migra: tira en vez de inventar una partida")
@@ -721,7 +825,7 @@ struct SaveMigratorTests {
     /// El candado de la cadena entera: cada versión de entrada llega a la
     /// actual con los defaults de veterano, y lo guardado después ya no vuelve
     /// a cruzar ningún eslabón.
-    @Test("toda versión de entrada llega a v6 como veterano y es estable al volver a guardarse")
+    @Test("toda versión de entrada llega a v7 como veterano y es estable al volver a guardarse")
     func everyEntryPointArrivesAsAVeteran() throws {
         let entries: [(version: Int, object: [String: Any])] = [
             (1, v1Fixture()),
@@ -733,7 +837,7 @@ struct SaveMigratorTests {
         for (version, object) in entries {
             let migrated = try SaveMigrator.migrate(JSONSerialization.data(withJSONObject: object))
 
-            #expect(migrated.schemaVersion == 6, "v\(version)")
+            #expect(migrated.schemaVersion == 7, "v\(version)")
             #expect(migrated.run.revealedTier == migrated.run.maxTierReached, "v\(version): nunca una lluvia de revelaciones")
             #expect(migrated.run.priceRelief == 1, "v\(version)")
             #expect(migrated.meta.unlockedTabs == Set(SaveMigrator.v1Tabs), "v\(version)")

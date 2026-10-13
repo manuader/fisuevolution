@@ -36,10 +36,10 @@ final class CustomizationUITests: XCTestCase {
     /// se pone rojo y hay que releerla acá.
     private static let unseenType = "deidad"
     private static let unseenSkin = "oraculo"
-    /// El Empleado de Fast Food: tier 8, el más nuevo que marca
+    /// El Chofer de App: tier 8 desde E14 C17, el más nuevo que marca
     /// `--uitest-seen-types` y por lo tanto el aterrizaje por defecto con ese
     /// fixture. Celda 8 de 43: fuera del cuadro con el carrusel en cero.
-    private static let landingType = "fast_food"
+    private static let landingType = "chofer_app"
 
     @MainActor
     func testPonerseUnaPintaSeLaSacaALaQueEstabaPuesta() throws {
@@ -318,8 +318,8 @@ final class CustomizationUITests: XCTestCase {
     /// El carrusel son 43 celdas de 82 pt y en un iPhone entran cuatro y media,
     /// así que a partir del quinto personaje el marco amarillo cae fuera del
     /// cuadro: la pantalla dice a quién estás vistiendo y la tira no muestra
-    /// nada resaltado. Con `--uitest-seen-types` el aterrizaje es el Empleado de
-    /// Fast Food (tier 8, celda 8), que con el scroll en 0 no se ve.
+    /// nada resaltado. Con `--uitest-seen-types` el aterrizaje es el
+    /// Chofer de App (tier 8, celda 8), que con el scroll en 0 no se ve.
     ///
     /// ⚠️ **No mide `exists`**: los 43 EXISTEN siempre (el `HStack` no es
     /// perezoso, y de eso se ocupa el otro test). Lo que mide es si la celda cae

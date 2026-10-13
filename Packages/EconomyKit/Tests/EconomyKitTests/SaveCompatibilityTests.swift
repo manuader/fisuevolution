@@ -284,11 +284,11 @@ struct SaveCompatibilityTests {
         }
     }
 
-    @Test("una cuenta nueva nace en v6, sin nada que reconstruir ni pestañas heredadas")
-    func newGameIsV6() {
+    @Test("una cuenta nueva nace en v7, sin nada que reconstruir ni pestañas heredadas")
+    func newGameIsV7() {
         let state = fxState()
-        #expect(PlayerState.currentSchemaVersion == 6)
-        #expect(state.schemaVersion == 6)
+        #expect(PlayerState.currentSchemaVersion == 7)
+        #expect(state.schemaVersion == 7)
         #expect(state.run.revealedTier == 1)
         #expect(state.run.priceRelief == 1)
         #expect(state.meta.purchasedOroReconstructed)

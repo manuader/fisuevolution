@@ -20,27 +20,26 @@ enum SaveMigrator {
 
     static func migrate(_ data: Data) throws -> PlayerState {
         let version = try Self.version(of: data)
+        let v6: Data
         switch version {
         case PlayerState.currentSchemaVersion:
             return try JSONDecoder().decode(PlayerState.self, from: data)
         case 1:
-            return try JSONDecoder().decode(
-                PlayerState.self,
-                from: migrateV5toV6(migrateV4toV5(migrateV3toV4(migrateV2toV3(migrateV1toV2(data)))))
-            )
+            v6 = try migrateV5toV6(migrateV4toV5(migrateV3toV4(migrateV2toV3(migrateV1toV2(data)))))
         case 2:
-            return try JSONDecoder().decode(
-                PlayerState.self, from: migrateV5toV6(migrateV4toV5(migrateV3toV4(migrateV2toV3(data))))
-            )
+            v6 = try migrateV5toV6(migrateV4toV5(migrateV3toV4(migrateV2toV3(data))))
         case 3:
-            return try JSONDecoder().decode(PlayerState.self, from: migrateV5toV6(migrateV4toV5(migrateV3toV4(data))))
+            v6 = try migrateV5toV6(migrateV4toV5(migrateV3toV4(data)))
         case 4:
-            return try JSONDecoder().decode(PlayerState.self, from: migrateV5toV6(migrateV4toV5(data)))
+            v6 = try migrateV5toV6(migrateV4toV5(data))
         case 5:
-            return try JSONDecoder().decode(PlayerState.self, from: migrateV5toV6(data))
+            v6 = try migrateV5toV6(data)
+        case 6:
+            v6 = data
         default:
             throw SaveMigrationError.unsupportedVersion(version)
         }
+        return migrateV6toV7(try JSONDecoder().decode(PlayerState.self, from: v6))
     }
 
     /// Las seis pestañas de la v1. Un veterano las tiene todas (PLAN-v2 E3); es
@@ -297,5 +296,23 @@ enum SaveMigrator {
         object["meta"] = meta
         object["schemaVersion"] = 6
         return try JSONSerialization.data(withJSONObject: object)
+    }
+
+    /// Los dos personajes que E14 C17 intercambió: el Chofer de App era el tier 7
+    /// y el Empleado de Fast Food el 8; hoy es al revés. Hardcodeados por lo mismo
+    /// que `rebalanceLevelCaps`: un migrador es una foto de un momento.
+    static let v7SwappedTypes = (first: "chofer_app", second: "fast_food")
+
+    /// v6 → v7 (E14 C17): el Fast Food pasa al tier 7 y el Chofer al 8. Se
+    /// remapea por posición —el que tenía tres del tier 7 sigue con tres del tier
+    /// 7, ahora Fast Food— y las pintas siguen al personaje
+    /// (`PlayerState.swappingTierPositions`). Tipado y no por diccionario: el
+    /// decoder ya es tolerante con todo lo que un v6 puede no traer. El
+    /// intercambio deshace lo que hizo si se aplica dos veces, así que lo que
+    /// asegura que corra una sola vez es la versión estampada.
+    private static func migrateV6toV7(_ state: PlayerState) -> PlayerState {
+        var migrated = state.swappingTierPositions(of: v7SwappedTypes.first, and: v7SwappedTypes.second)
+        migrated.schemaVersion = 7
+        return migrated
     }
 }

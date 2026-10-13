@@ -20,6 +20,8 @@
 > mockups aprobados (`Docs/correcciones-v2/mockups/`), 30 tareas en `tasks.md` §5 «E14» y §4.0. Va antes que
 > todo lo demás de la cola. Detalle: `Docs/SESION-2026-10-12-v2-e14-correcciones-dueno.md`.
 >
+> 📍 **Estado al cierre del relevo 51 (2026-10-13; manda sobre los párrafos de abajo):** `version-2` = la punta de `v2i/integ-r51` (pusheada). **Progreso: 281 de 306 (91,8 %).** Entraron de **E14: T8 (el desbloqueo de piso no se saltea; corto en cada vida nueva), T3 (las 27 imágenes y los 11 videos aprobados) y T10 (atajo «el primero del piso»)**. La cola del 52 está en `tasks.md` §4.0 fila 0 (ola 3: T11 · T12 · T21, más T22). Detalle: `Docs/SESION-2026-10-13-v2-relevo-51.md`.
+>
 > 📍 **Estado al cierre del relevo 50 (2026-10-13; manda sobre los párrafos de abajo):** `version-2` = la punta de `v2i/integ-r50` (pusheada). **Progreso: 278 de 306 (90,8 %).** Entraron de **E14: T4 (fuera los videos de fondos y de los 43 personajes base), T6 (visitantes en un carril con bolsa barajada y «No, gracias»; Dios sigue en 45,40 h) y T28 (la intro espera al consentimiento)**. La cola del 51 está en `tasks.md` §4.0 fila 0 (T8 · T10 · T3). Detalle: `Docs/SESION-2026-10-13-v2-relevo-50.md`.
 >
 > 📍 **Estado al cierre del relevo 49 (2026-10-13, en vivo con el dueño; manda sobre los párrafos de abajo):** `version-2` = la punta de `v2i/integ-r49` (pusheada). **Progreso: 275 de 306 (89,9 %)**, con E14 sumada. Entraron la **calibración de 45 h** (E2b T12–T15: Dios 45,40 h · 6 reenc., 4 asserts provisorios como preguntas al dueño), E12 T12, la **mediación Unity + Meta** (E7b cerrada), B22 resuelto sin dominios, y de **E14: T29 (crítico: el boost por video), T9 (componentes base), T5 (tiers 7↔8, save v7) y T7 (dólar blue en textos)**. La cola del 50 está en `tasks.md` §4.0 fila 1b. Detalle: `Docs/SESION-2026-10-13-v2-relevo-49.md`.
@@ -379,6 +381,10 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-10-13 (relevo 51) — La tercera tanda de E14: T8, T3, T10
+
+Relevo automático con la semanal en 93–94 %: el desbloqueo de piso insalteable (C21, D6; `CelebrationQueue.lockSkip`, `EngagementState.floorUnlocksSeen`), el arte aprobado de premios al juego (27 imágenes, 11 videos en `objects`; sacudidas comprimidas a 1 s) y el modo «el primero del piso» del atajo (C14; `meta.quickHireMode`). `Docs/SESION-2026-10-13-v2-relevo-51.md`.
 
 ### Sesión del 2026-10-13 (relevo 50) — La segunda ola de E14: T4, T6, T28
 
@@ -5015,6 +5021,13 @@ Siguen vigentes y no estaban en ningún otro lado:
 - **El repaso se retira si el núcleo volvió a vivir** y no arranca con el núcleo sin hacer: no hay que "arreglarlo" para que arranque igual, pisaría la fase.
 - **El reset del ORO es `min(saldo, comprado)`:** devolver el comprado entero regala ORO gastado; devolver el saldo entero regala el ORO ganado jugando. Cualquier cambio a `ResetPlan` o a `resolveAcrossReset` se prueba con `ResetEpochTests`.
 
+### Del relevo 51 (2026-10-13)
+
+- **El runtime de simulador instalado es `iOS-26-5`** (y `iOS-18-6`): `simctl create … SimRuntime.iOS-26-0` falla con «Invalid runtime».
+- **`oraculo.sh tarea` corre sólo clases de unit.** Para una clase de UI: después de un `rapido`, simulador propio y `xcodebuild test-without-building -derivedDataPath build/DD-oraculo.noindex -only-testing:FisuEvolutionUITests/<Clase>`; borrar el simulador por UDID.
+- **`QuickHireUITests.testConElPisoLlenoElAtajoSigueYAvisa` es flake de orden:** en la clase completa, a veces el panel de debug no muestra `debug.floor.fill`; aislado, VERDE.
+- **Los masters de Kling para las sacudidas tienen la acción en el medio:** se comprimen (`OBJECT_TIEMPO` en `video_assets.py`), no se recortan.
+
 ### Del relevo 50 (2026-10-13)
 
 - **Con la máquina sobre ~400 de carga (otra sesión pesada), una tarea chica tarda 5–7 h** y el `build-for-testing` solo, ~70 min: dos tareas a la vez es el techo práctico.
@@ -5606,6 +5619,7 @@ Anotado por si algún día importa, con su medición:
 - **`Docs/SESION-2026-10-12-v2-relevo-38-ola-aj.md`**: el relevo 38 (los eventos de 25 s dicen «En curso»; fuera `tutorial.tip.wheel`).
 - **`Docs/SESION-2026-10-12-v2-relevo-37-ola-ai.md`**: el relevo 37 (el UI test del otro colchón `extraOnly`; el pager asienta con el scroll quieto).
 - **`Docs/SESION-2026-10-13-v2-relevo-50.md`**: el relevo 50 (E14 T4, T6, T28; la carga de la máquina).
+- **`Docs/SESION-2026-10-13-v2-relevo-51.md`**: el relevo 51 (E14 T8, T3, T10).
 - **`Docs/SESION-2026-10-13-v2-relevo-49.md`**: el relevo 49 en vivo (la calibración de 45 h, la mediación, E14 T29/T9/T5/T7, los dos arreglos de arranque).
 - **`Docs/SESION-2026-10-12-v2-relevo-36-ola-ah.md`**: el relevo 36 (E9b T3–T5 y T10, E9a T10, E6b T10; E9 y E6b cerradas; el fixture `--uitest-lessons-done`).
 - **`Docs/SESION-2026-10-11-v2-relevo-35-ola-ag.md`**: el relevo 35 (el spike del tinte de pintas, hecho y rechazado por el dueño; las ocho pintas de la v1 a ORO con sus precios; las doce lecciones de la economía y el hueco `skinEffects` declarado; los eventos de 0 s a 25 s con `eventPresence`; el otro colchón guardado con su guard y `LossyModifier`; el reset que conserva las pintas de ORO; el `completo` de `c21d9e47` con su único rojo de test de cofres y el `rapido` de `0dc356dc`; las cuatro revisiones opus; el sitio publicado en `3f03716` y `e059c84`).

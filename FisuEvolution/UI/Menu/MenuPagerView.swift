@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Dónde está una página del paginador y cómo moverse (PLAN-v2 E3). `nil` fuera
-/// del paginador y en las vistas empujadas del Menú: ahí no hay flechas ni puntos.
+/// del paginador y en las vistas empujadas del Menú: ahí la vista se enmarca sola.
 struct MenuPagerContext {
     let index: Int
     let count: Int
@@ -22,9 +22,34 @@ extension EnvironmentValues {
     }
 }
 
-/// El menú deslizable (PLAN-v2 E3): UNA hoja con las pestañas desbloqueadas como
-/// páginas, en el orden de la barra. Cada página conserva su `NavigationStack`, su
-/// marco y su X.
+/// Lo que cambia de una pestaña a otra en el marco fijo del paginador. Cada página
+/// lo publica por preferencia (`panelSheet`); el paginador dibuja el de la que
+/// quedó asentada. El moño no entra en la igualdad: viaja con el índice.
+struct MenuPageChrome: Equatable {
+    var awning: Bool
+    var material: WoodPanelBackground.Material
+    var headerHeight: CGFloat
+    var ornament: AnyView
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.awning == rhs.awning && lhs.material == rhs.material && lhs.headerHeight == rhs.headerHeight
+    }
+}
+
+struct MenuPageChromeKey: PreferenceKey {
+    static var defaultValue: [Int: MenuPageChrome] { [:] }
+
+    static func reduce(value: inout [Int: MenuPageChrome], nextValue: () -> [Int: MenuPageChrome]) {
+        value.merge(nextValue()) { _, new in new }
+    }
+}
+
+/// El menú deslizable (PLAN-v2 E3, E14 C13): UNA hoja con las pestañas
+/// desbloqueadas como páginas, en el orden de la barra, y UN solo marco quieto
+/// (madera, toldo, X, flechas y puntos). Cada página conserva su `NavigationStack`
+/// pero aporta sólo título y cuerpo, que deslizan por adentro del pergamino,
+/// recortados por el borde interior del marco. Afuera no hay nada: el sheet es
+/// transparente.
 ///
 /// En reposo se monta SOLO la página actual: la X de cada página vive en la barra
 /// de navegación de UIKit, que `accessibilityHidden` no oculta, y con vecinas
@@ -43,6 +68,8 @@ struct MenuPagerView: View {
     /// (y perdería su estado).
     @State private var shown: GameScreen
     @State private var locked = false
+    @State private var chromes: [Int: MenuPageChrome] = [:]
+    @Environment(\.dismiss) private var dismiss
     @State private var phase: ScrollPhase = .idle
     /// La página más cercana al offset: la que queda cuando el scroll se asienta.
     @State private var nearest: Int?
@@ -63,6 +90,14 @@ struct MenuPagerView: View {
         _shown = State(initialValue: first)
     }
 
+    /// El hueco que cada página deja a los lados del título para las flechas
+    /// (34 del botón + 8 de aire).
+    static let chevronSlot: CGFloat = 42
+
+    /// El borde interior del marco: la banda de madera termina acá y empieza el
+    /// pergamino por el que desliza el contenido.
+    private static let innerInset: CGFloat = 22
+
     static func startIndex(of screen: GameScreen, in pages: [GameScreen]) -> Int {
         pages.firstIndex(of: screen) ?? 0
     }
@@ -78,6 +113,80 @@ struct MenuPagerView: View {
     }
 
     var body: some View {
+        ZStack(alignment: .topTrailing) {
+            ZStack {
+                if !locked { frame }
+                pager
+                    .mask { pergamino }
+                if !locked, pages.count > 1 { chevrons }
+            }
+            .ignoresSafeArea(edges: .top)
+            .frame(maxWidth: SheetColumn.maxWidth)
+            if !locked {
+                ArtCloseButton { dismiss() }
+                    .padding(.trailing, Tokens.s16)
+            }
+        }
+        .onPreferenceChange(MenuPageChromeKey.self) { chromes.merge($0) { _, new in new } }
+        .presentationBackground(.clear)
+    }
+
+    /// El marco quieto: madera, toldo y moño de la pestaña asentada (con fundido
+    /// cruzado al cambiar) y los puntos sobre la banda de abajo.
+    private var frame: some View {
+        let chrome = chromes[currentIndex]
+        return ZStack(alignment: .top) {
+            WoodPanelBackground(material: chrome?.material ?? .wood, awning: chrome?.awning ?? false)
+            if let ornament = chrome?.ornament {
+                ornament
+                    .id(currentIndex)
+                    .transition(.opacity)
+            }
+        }
+        .overlay(alignment: .bottom) {
+            if pages.count > 1 {
+                PagerDots(index: currentIndex, count: pages.count)
+                    .padding(.bottom, PagerDots.bandInset)
+            }
+        }
+        // La sombra del panel flotando sobre el juego: sin el material del
+        // sheet del sistema, la profundidad la pone el propio panel.
+        .shadow(color: .black.opacity(0.30), radius: 16, y: 6)
+    }
+
+    /// Por dónde se ve el deslizado: el interior del marco. Con un destino
+    /// empujado, nada: esa vista trae su marco entero.
+    @ViewBuilder private var pergamino: some View {
+        if locked {
+            Rectangle()
+        } else {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .padding(Self.innerInset)
+        }
+    }
+
+    /// Las flechas ‹ › en el renglón del título, fijas: el título de cada página
+    /// pasa por entre las dos.
+    private var chevrons: some View {
+        let chrome = chromes[currentIndex]
+        return HStack(spacing: 0) {
+            PagerChevronButton(direction: .previous, identifier: "menu.pager.previous") {
+                go(to: currentIndex - 1)
+            }
+            .disabled(currentIndex == 0)
+            Spacer(minLength: 0)
+            PagerChevronButton(direction: .next, identifier: "menu.pager.next") {
+                go(to: currentIndex + 1)
+            }
+            .disabled(currentIndex >= pages.count - 1)
+        }
+        .padding(.horizontal, WoodPanelBackground.columnInset)
+        .frame(height: max(chrome?.headerHeight ?? 0, 34))
+        .padding(.top, WoodPanelBackground.headerTopInset(awning: chrome?.awning ?? false))
+        .frame(maxHeight: .infinity, alignment: .top)
+    }
+
+    private var pager: some View {
         ScrollViewReader { proxy in
             ScrollView(.horizontal) {
                 LazyHStack(spacing: 0) {
@@ -141,7 +250,7 @@ struct MenuPagerView: View {
     private func settle(on page: GameScreen) {
         scrolled = false
         guard page != shown else { return }
-        shown = page
+        withAnimation(.easeInOut(duration: 0.25)) { shown = page }
         onPageChange(page)
     }
 
@@ -150,12 +259,12 @@ struct MenuPagerView: View {
         Group {
             if isCurrent || (phase != .idle && Self.isMounted(index: index, current: currentIndex)) {
                 MenuPage(screen: page, adsProvider: adsProvider, onStore: onStore)
-                    .environment(\.menuPager, pages.count > 1 ? MenuPagerContext(
+                    .environment(\.menuPager, MenuPagerContext(
                         index: index,
                         count: pages.count,
                         go: { go(to: $0) },
                         lock: { locked = $0 }
-                    ) : nil)
+                    ))
             } else {
                 Color.clear
             }

@@ -32,6 +32,7 @@ import SwiftUI
 struct GiftsView: View {
     @Environment(GameState.self) private var gameState
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.menuPager) private var pager
     let adsProvider: any AdsProvider
 
     /// Lo que pagó la picada del Asado, si se activó en esta visita.
@@ -187,6 +188,8 @@ struct GiftsView: View {
                     // Empujada, la vista pierde el telón transparente de la hoja.
                     .clearNavigationBackdrop()
             }
+            // La Ruleta empujada trae su marco: el paginador se suelta del suyo.
+            .onChange(of: showWheel) { _, pushed in pager?.lock(pushed) }
             .onReceive(timer) { now = $0 }
             .task { await preloadVideos() }
         }

@@ -387,6 +387,12 @@ generándose con Gemini (G2). Hallazgos que cambian el diseño: el vendedor ten�
 20/día); la imagen que se comparte es un SF Symbol; hay 124 SF Symbols en `UI/`; el video del fondo (1024²) tapa
 la foto (2048²). `Docs/SESION-2026-10-12-v2-e14-correcciones-dueno.md`.
 
+Más tarde, en la misma sesión:
+- se aprobó el arte;
+- entró C32 (CRÍTICO: el boost por video se repetía y se multiplicaba; E14-T29 va primero);
+- se saltearon E8e T10a–T10f por C22;
+- **E12 T16 ✅**: el ranking quedó desplegado en Supabase (proyecto `oejmjpwfxpwzzakdjxwp`) y la app apunta a él. Ver `supabase/README.md`, «El despliegue real`.
+
 ### Cierre de E7b-a (2026-10-12, relevo 49) — La mediación y los forzados cerrados
 
 E7b-a T6 (Unity Ads 4.21.000 y Meta Audience Network 6.22.000 por SPM, `-ObjC`, SKAdNetwork 89, Ad Inspector en el panel de debug) y T7 (este cierre, sólo documentación). Con esto **E7b queda cerrada entera**. Lo que E7b-a dejó en marcha: un pacer por proceso con la config del sitio (`ForcedAdsSetup`), los cortes naturales como único camino (`GameState+Ads`), la pausa con su pantalla previa, el app open antes del popup offline, el UMP y la mediación. Quedan del dueño: el onboarding de Meta, armar los grupos de mediación en AdMob, «Data Used to Track You» en App Privacy y los escenarios con el anuncio real. Detalle, tabla por tarea con su commit y escenarios con pasos en **`Docs/SESION-2026-10-12-v2-e7b-a-cierre.md`**.
@@ -5000,6 +5006,7 @@ Siguen vigentes y no estaban en ningún otro lado:
   docs/...` no agrega nada (el índice lo tiene como `Docs/...`). Siempre `Docs/`.
 - **El batch de Gemini no corre con `--launch`:** eso sólo abre el Chrome aislado. El batch es
   `open projects/<p>/correr-batch-gemini.command` (supervisor), y el modelo se elige a mano en ese Chrome.
+- **La clave publicable de Supabase (`sb_publishable_…`) sirve con `verify_jwt = true`** en las Edge Functions (medido): no hace falta la JWT `anon` legada. Y aplicar migraciones con el MCP registra versiones con la fecha del día: hay que renombrarlas a las de los archivos o `supabase db push` las vuelve a aplicar.
 - **Kling (Higgsfield) no hace clips de menos de 3 s:** lo de 1–2 s se recorta al integrar. Y Higgsfield frena el
   envío ofreciendo presets: hay que rechazarlos.
 

@@ -21,13 +21,13 @@ struct AnimatedArtViewTests {
     func resolvesWhenThePackArrives() async throws {
         let source = FakeArtPackSource()
         let packs = ArtPacks(source: source)
-        let manifest = try LoopsManifestTests.fixture(floors: ["urban": "cine_arresto.mov"], odrTag: "anim-piso-1")
-        #expect(AnimatedArt.resolve(.floor("urban"), manifest: manifest, packs: packs) == nil)
-        packs.request("anim-piso-1")
+        let manifest = try LoopsManifestTests.fixture(events: ["urban": "cine_arresto.mov"], odrTag: "anim-eventos")
+        #expect(AnimatedArt.resolve(.event("urban"), manifest: manifest, packs: packs) == nil)
+        packs.request("anim-eventos")
         for _ in 0..<5 { await Task.yield() }
         source.last?.complete()
         for _ in 0..<5 { await Task.yield() }
-        #expect(AnimatedArt.resolve(.floor("urban"), manifest: manifest, packs: packs) != nil)
+        #expect(AnimatedArt.resolve(.event("urban"), manifest: manifest, packs: packs) != nil)
     }
 
     @Test("la capa no crea player hasta que el pool la pone viva, y lo suelta al bajarla")

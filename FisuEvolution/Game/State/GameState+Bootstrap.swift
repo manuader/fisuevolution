@@ -245,7 +245,7 @@ extension GameState {
         if ProcessInfo.processInfo.arguments.contains("--uitest-ranking-god") {
             debugStartRankedRunNearGod()
         }
-        // El peor caso de la spec de los videos (fondo + especial + ícono) con la sonda corriendo.
+        // El peor caso de la spec de los videos (especial + ícono) con la sonda corriendo.
         // El manifest de estrés lo arma `LoopsManifest.main`; con los videos prendidos hace falta
         // pasar también `--uitest-video`.
         if ProcessInfo.processInfo.arguments.contains("--uitest-anim-stress") {

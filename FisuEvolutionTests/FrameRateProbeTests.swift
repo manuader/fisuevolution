@@ -73,16 +73,10 @@ struct FrameRateProbeTests {
         #expect(FrameRateProbe.footprintMB() > 1)
     }
 
-    @Test("el estrés pone el piso, el especial y el ícono sobre videos reales del bundle")
+    @Test("el estrés pone el especial y el ícono sobre videos reales del bundle")
     func stressManifest() throws {
         let content = try GameContentLoader.load(from: .main)
         let manifest = LoopsManifest.animStress(over: .main, content: content)
-        let backgrounds = Set(content.floorTable.floors.map(\.background))
-        #expect(!backgrounds.isEmpty)
-        for key in backgrounds {
-            #expect(manifest.floors[key]?.file == "cine_reencarnacion.mov")
-            #expect(manifest.url(for: .floor(key)) != nil)
-        }
         let special = try #require(content.specials.specials.first)
         #expect(manifest.url(for: .character(special.id)) != nil)
         #expect(manifest.url(for: .shopIcon(LoopsManifest.animStressIconID)) != nil)

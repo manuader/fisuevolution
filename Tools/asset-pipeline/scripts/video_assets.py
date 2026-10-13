@@ -13,21 +13,21 @@ PLAN-v2 E8, "Pipeline de video". Estas clases de pieza:
   clips; esos no van al manifest: el juego los pide por nombre.
 - **Cinematicas**: intro, reencarnacion, arresto y Dios (Seedance). 720x1280,
   en `Resources/Cinematics/`, con la pista de sonido del master si la trae.
-- **Personajes**: los cuerpos enteros de los puestos y los especiales, en loop.
-  512x512 con alfa, `char_<id>` en `Resources/Loops/`.
+- **Personajes**: los cuerpos enteros de los especiales (`sp_*`), en loop. 512x512
+  con alfa, `char_<id>`. Los 43 personajes base ya no tienen video (E14 C22): se
+  ven con su imagen estatica.
 - **Visitantes**: las poses de los visitantes (`_talk`, `_action`) en loop.
   512x512 con alfa, `vis_<id>` en `Resources/Loops/`.
 - **Eventos**: las ilustraciones de los eventos, en loop. 512x512 con alfa,
   `ev_<id>` en `Resources/Loops/`.
 - **Iconos**: las mejoras de la tienda de ORO, en loop. 256x256 con alfa,
   `icon_<id>` en `Resources/Loops/`.
-- **Fondos**: el fondo de cada piso, en loop. 1024x1024 opaco, `bgloop_<piso>`
-  en `Resources/Backgrounds/Loops/` (el master es `video/fondos/bg_<piso>.mp4`).
 
-**On-Demand Resources.** Lo pesado de la segunda tanda (personajes, poses,
+**On-Demand Resources.** Lo pesado de la segunda tanda (especiales, poses,
 eventos, iconos) viaja en packs y no en el paquete base: el `.mov` sale a
 `Resources/AnimPacks/<tag>/` y su entrada lleva `odrTag` (ver `odr_tag`). Retratos,
-objetos, cabina, cinematicas y fondos quedan en el paquete base.
+objetos, cabina y cinematicas quedan en el paquete base. Los fondos de piso no
+tienen video (E14 C1): el juego muestra siempre la foto.
 
 **Regla del dueno (2026-10-08): el arte va sobre fondo blanco.** Todo lo que
 lleva alfa salvo la cabina se recorta cuadro por cuadro con el criterio topologico de
@@ -55,10 +55,9 @@ en vez de adivinar.
     .venv/bin/python scripts/video_assets.py cabina puertas_abren
     .venv/bin/python scripts/video_assets.py cabina-cuadros [--dir video/ascensor]
     .venv/bin/python scripts/video_assets.py cinematica arresto [--sin-key]
-    .venv/bin/python scripts/video_assets.py personaje god
+    .venv/bin/python scripts/video_assets.py personaje sp_lizard
     .venv/bin/python scripts/video_assets.py personaje sp_influencer \
         --video video/personajes/sp_influencer_v2.mp4
-    .venv/bin/python scripts/video_assets.py fondo alley
 
 Los masters van en `video/<carpeta de la clase>/<id>.mp4` (`--video` para otro:
 una version corregida, `_v2`, entra con el id del juego, sin el sufijo). No se
@@ -166,7 +165,7 @@ KINDS = {
         "dir": "Cinematics", "section": "cinematics", "prefix": "cine_",
         "size": (720, 1280), "masters": "cinematicas", "matte": "verde",
     },
-    # Cuerpos enteros, poses, eventos e iconos flotan en el lienzo: ninguno
+    # Cuerpos enteros (sólo los especiales), poses, eventos e iconos flotan en el lienzo: ninguno
     # toca el marco de abajo (medido en los 26 masters de visitante), asi que
     # se siembran desde los cuatro lados.
     "personaje": {
@@ -190,12 +189,6 @@ KINDS = {
         "size": (256, 256), "masters": "iconos", "matte": "blanco",
         "bordes": TODOS_LOS_BORDES,
     },
-    # El fondo del piso es una escena entera: opaco, sin recorte ni key.
-    "fondo": {
-        "dir": "Backgrounds/Loops", "section": "floors", "prefix": "bgloop_",
-        "size": (1024, 1024), "masters": "fondos", "matte": None,
-        "master_prefix": "bg_",
-    },
 }
 
 # Las secciones del manifest, en el orden de KINDS (las poses de un visitante
@@ -208,7 +201,7 @@ SECTIONS = tuple(dict.fromkeys(
 ))
 
 # Los packs On-Demand Resources (`odrTag` del manifest). Lo que no figura aca
-# viaja en el paquete base: retratos, objetos, cabina, cinematicas y fondos.
+# viaja en el paquete base: retratos, objetos, cabina y cinematicas.
 ODR_SPECIALS = "anim-especiales"
 ODR_VISITORS = "anim-visitantes"
 ODR_EVENTS = "anim-eventos"
@@ -229,13 +222,9 @@ ICON_IDS = tuple(f"ui_oro_{n}" for n in (
     "autotap", "better_supplier", "daily_boost", "extra_slots", "extra_spins",
     "income_boost", "merge_all", "offline_boost", "package_rain", "time_skip",
 ))
-FLOOR_IDS = (
-    "alley", "urban", "corporate", "luxury", "island",
-    "moon", "mars", "solar", "galaxy", "god_realm",
-)
 FIXED_IDS = {
     "cinematica": CINEMATIC_IDS, "objeto": OBJECT_IDS, "cabina": CABIN_IDS,
-    "evento": EVENT_IDS, "icono": ICON_IDS, "fondo": FLOOR_IDS,
+    "evento": EVENT_IDS, "icono": ICON_IDS,
 }
 # Los cuadros fijos de la cabina: el master y el PNG del juego se llaman igual.
 CABIN_STILLS = ("cabina_cerrada.png", "cabina_abierta.png")
@@ -248,12 +237,10 @@ POSE_SUFFIXES = ("_talk", "_action", "_face")
 # Un visitante es una pose animada: `_talk` (todos) o `_action` (los npc).
 VISITOR_ID = re.compile(r"(npc_[a-z0-9]+_(talk|action)|sp_[a-z0-9]+(_[a-z0-9]+)*_talk)")
 
-# Un personaje es el assetKey del puesto o del especial (`god`, `senior_doctor`,
-# `sp_lizard`). Un sufijo de version (`_v2`) es del master, nunca del juego.
-CHARACTER_ID = re.compile(r"[a-z0-9]+(_[a-z0-9]+)*")
-# Una pinta (skin) con video: `<tipo>__<pinta>`, la misma clave que los PNG del
-# generador. El id de pinta no es unico (`pijama` existe en cada tipo): el par manda.
-SKIN_ID = re.compile(r"([a-z0-9]+(?:_[a-z0-9]+)*)__([a-z0-9]+(?:_[a-z0-9]+)*)")
+# Un personaje con video es un especial (`sp_lizard`); los personajes base van
+# con su imagen estatica (E14 C22). Un sufijo de version (`_v2`) es del master,
+# nunca del juego.
+CHARACTER_ID = re.compile(r"sp_[a-z0-9]+(_[a-z0-9]+)*")
 VERSION_SUFFIX = re.compile(r".*_v[0-9]+")
 
 # La medicion del verde: un parche por esquina en el primer cuadro, el del medio
@@ -281,13 +268,6 @@ class MasterError(ValueError):
     """El master no sirve tal como vino: se avisa en vez de adivinar."""
 
 
-@functools.cache
-def skin_pairs() -> frozenset[tuple[str, str]]:
-    """Los pares `(characterType, id)` de `skins.json`: la pinta no se identifica sola."""
-    skins = json.loads((RESOURCES / "Config" / "skins.json").read_text(encoding="utf-8"))["skins"]
-    return frozenset((s["characterType"], s["id"]) for s in skins)
-
-
 def validate_id(kind: str, piece_id: str) -> None:
     if kind in FIXED_IDS:
         if piece_id not in FIXED_IDS[kind]:
@@ -301,15 +281,10 @@ def validate_id(kind: str, piece_id: str) -> None:
             "y el master corregido entra con --video"
         )
     if kind == "personaje":
-        skin = SKIN_ID.fullmatch(piece_id)
-        if skin:
-            if skin.groups() not in skin_pairs():
-                raise ValueError(
-                    f"pinta {piece_id!r} desconocida: el par (tipo, pinta) no esta en skins.json"
-                )
-            return
         if not CHARACTER_ID.fullmatch(piece_id):
-            raise ValueError(f"personaje invalido {piece_id!r}: es un assetKey en snake_case")
+            raise ValueError(
+                f"personaje invalido {piece_id!r}: solo los especiales (`sp_<id>`) tienen video"
+            )
         return
     if kind == "visitante":
         if not VISITOR_ID.fullmatch(piece_id):
@@ -611,32 +586,9 @@ def target(kind: str, piece_id: str) -> tuple[str, str]:
     return (spec["section"] if pose == "talk" else spec["actions_section"]), base
 
 
-@functools.cache
-def floor_of_character() -> dict[str, int]:
-    """El piso (1..10) de cada personaje de puesto, por `tiers.json` y `economy.json`."""
-    data = RESOURCES / "Data"
-    tiers = json.loads((data / "tiers.json").read_text(encoding="utf-8"))["types"]
-    floors = json.loads((data / "economy.json").read_text(encoding="utf-8"))["floors"]
-    return {
-        t["id"]: next(
-            n for n, f in enumerate(floors, start=1) if f["firstTier"] <= t["tier"] <= f["lastTier"]
-        )
-        for t in tiers
-    }
-
-
 def odr_tag(kind: str, piece_id: str) -> str | None:
     """El pack ODR de una pieza; `None` si va en el paquete base."""
-    if kind == "personaje":
-        # El clip de una pinta viaja en el pack de su tipo.
-        base = piece_id.split("__")[0]
-        if base.startswith("sp_"):
-            return ODR_SPECIALS
-        floor = floor_of_character().get(base)
-        if floor is None:
-            raise ValueError(f"personaje {piece_id!r} sin piso en tiers.json: no hay pack")
-        return f"anim-piso-{floor}"
-    return {"visitante": ODR_VISITORS, "evento": ODR_EVENTS, "icono": ODR_SHOP}.get(kind)
+    return {"personaje": ODR_SPECIALS, "visitante": ODR_VISITORS, "evento": ODR_EVENTS, "icono": ODR_SHOP}.get(kind)
 
 
 def piece_dir(kind: str, piece_id: str) -> Path:
@@ -744,7 +696,7 @@ def main() -> int:
             return 0
         spec = KINDS[args.command]
         master = args.video or (
-            MASTERS / spec["masters"] / f"{spec.get('master_prefix', '')}{args.id}.mp4"
+            MASTERS / spec["masters"] / f"{args.id}.mp4"
         )
         if not master.exists():
             print(f"[ERROR] no existe el master {master}", file=sys.stderr)

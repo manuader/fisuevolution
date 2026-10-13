@@ -95,36 +95,6 @@ targets:
       - path: FisuEvolution/Resources/AnimPacks/anim-eventos
         buildPhase: resources
         resourceTags: [anim-eventos]
-      - path: FisuEvolution/Resources/AnimPacks/anim-piso-1
-        buildPhase: resources
-        resourceTags: [anim-piso-1]
-      - path: FisuEvolution/Resources/AnimPacks/anim-piso-10
-        buildPhase: resources
-        resourceTags: [anim-piso-10]
-      - path: FisuEvolution/Resources/AnimPacks/anim-piso-2
-        buildPhase: resources
-        resourceTags: [anim-piso-2]
-      - path: FisuEvolution/Resources/AnimPacks/anim-piso-3
-        buildPhase: resources
-        resourceTags: [anim-piso-3]
-      - path: FisuEvolution/Resources/AnimPacks/anim-piso-4
-        buildPhase: resources
-        resourceTags: [anim-piso-4]
-      - path: FisuEvolution/Resources/AnimPacks/anim-piso-5
-        buildPhase: resources
-        resourceTags: [anim-piso-5]
-      - path: FisuEvolution/Resources/AnimPacks/anim-piso-6
-        buildPhase: resources
-        resourceTags: [anim-piso-6]
-      - path: FisuEvolution/Resources/AnimPacks/anim-piso-7
-        buildPhase: resources
-        resourceTags: [anim-piso-7]
-      - path: FisuEvolution/Resources/AnimPacks/anim-piso-8
-        buildPhase: resources
-        resourceTags: [anim-piso-8]
-      - path: FisuEvolution/Resources/AnimPacks/anim-piso-9
-        buildPhase: resources
-        resourceTags: [anim-piso-9]
       - path: FisuEvolution/Resources/AnimPacks/anim-tienda
         buildPhase: resources
         resourceTags: [anim-tienda]

@@ -104,6 +104,10 @@ struct QuickHireOffer: Equatable {
     let fits: Bool
     /// Es el personaje que el jugador fijó manteniendo apretado el atajo.
     let isPinned: Bool
+    /// El atajo está en «el primero del piso» y la oferta es el tier base del piso visible
+    /// (E14 C14). `false` aun en ese modo si el piso visible no tiene nada contratable
+    /// y el atajo cayó a la regla de siempre.
+    var followsFloor: Bool = false
     let tier: Int
     /// El precio sin los descuentos del momento, tachado arriba del que se cobra.
     /// `nil` sin descuento (un recargo no tacha nada).
@@ -237,9 +241,12 @@ extension GameState {
     func computeQuickHireOffer() -> QuickHireOffer? {
         guard let content, let player else { return nil }
         let candidates = quickHireCandidates(player: player, content: content)
-        let pinnedID = player.meta.quickHirePinnedTypeId
+        let mode = player.meta.effectiveQuickHireMode
+        let pinnedID = mode == .pinned ? player.meta.quickHirePinnedTypeId : nil
+        let floorBaseID = mode == .floorBase ? floorBaseTypeID(player: player) : nil
         // ⚠️ El orden es el contrato; cada paso sólo corre si el anterior no eligió.
         let pick = candidates.first { $0.type.id == pinnedID }              // 1. el pin
+            ?? candidates.first { $0.type.id == floorBaseID }               // 1b. el primero del piso (C14)
             ?? Self.best(candidates.filter { $0.fits && $0.affordable })    // 2. el mejor que alcanza y entra
             ?? Self.cheapest(candidates.filter(\.fits))                     // 3. la meta de ahorro
             ?? Self.best(candidates.filter(\.affordable))                   // 4. el mejor, con "Piso lleno"
@@ -253,9 +260,24 @@ extension GameState {
             affordable: pick.affordable,
             fits: pick.fits,
             isPinned: pick.type.id == pinnedID,
+            followsFloor: pick.type.id == floorBaseID,
             tier: pick.type.tier,
             listCostText: listCostText(typeId: pick.type.id, cost: pick.cost, player: player)
         )
+    }
+
+    /// El tier base del piso que se está mirando (`visibleFloorOrdinal`): quien se contrata ahí
+    /// sin elegir, respetando la carrera. `nil` si el piso no existe.
+    func floorBaseTypeID(player: PlayerState) -> String? {
+        currentQuote(player: player, floorOrdinal: visibleFloorOrdinal)?.type.id
+    }
+
+    /// La cara y el nombre del tier base del piso visible, para el botón de modo del selector.
+    /// `nil` si el piso visible no tiene tier base (no debería pasar).
+    var quickHireFloorBaseFace: (faceKey: String, displayName: String)? {
+        guard let content, let player, let id = floorBaseTypeID(player: player),
+              let type = content.tiers.type(id: id) else { return nil }
+        return ("\(id)_face", type.localizedName)
     }
 
     /// El precio de lista de un tipo: el mismo quote sin los descuentos temporales
@@ -321,7 +343,7 @@ extension GameState {
     /// Las caras del selector, el más alto primero.
     var quickHirePickerEntries: [QuickHirePickerEntry] {
         guard let content, let player else { return [] }
-        let pinned = player.meta.quickHirePinnedTypeId
+        let pinned = player.meta.effectiveQuickHireMode == .pinned ? player.meta.quickHirePinnedTypeId : nil
         return quickHireCandidates(player: player, content: content)
             .sorted { lhs, rhs in
                 lhs.type.tier != rhs.type.tier ? lhs.type.tier > rhs.type.tier : lhs.type.id < rhs.type.id
@@ -342,8 +364,18 @@ extension GameState {
     /// Fija (o con `nil` suelta) el personaje del atajo. Va al save
     /// (`meta.quickHirePinnedTypeId`).
     func pinQuickHire(typeId: String?) {
-        guard var player, player.meta.quickHirePinnedTypeId != typeId else { return }
-        player.meta.quickHirePinnedTypeId = typeId
+        setQuickHire(mode: typeId == nil ? .best : .pinned, typeId: typeId)
+    }
+
+    /// Elige el modo del atajo (E14 C14). `.pinned` pide el `typeId`; los otros dos sueltan el pin.
+    /// Va al save (`meta.quickHireMode` y `meta.quickHirePinnedTypeId`).
+    func setQuickHire(mode: QuickHireMode, typeId: String? = nil) {
+        guard var player else { return }
+        let pinned = mode == .pinned ? typeId : nil
+        guard mode != .pinned || pinned != nil else { return }
+        guard player.meta.effectiveQuickHireMode != mode || player.meta.quickHirePinnedTypeId != pinned else { return }
+        player.meta.quickHireMode = mode
+        player.meta.quickHirePinnedTypeId = pinned
         self.player = player
         scheduleSave()
         refreshProjections()

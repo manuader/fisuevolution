@@ -381,6 +381,10 @@ public struct MetaState: Codable, Sendable, Equatable {
     /// Tipo fijado en el atajo de contratación rápida. Se ignora, sin borrarse,
     /// si el tipo deja de ser válido.
     public var quickHirePinnedTypeId: String?
+    /// El modo del atajo (E14 C14). `nil` en un save anterior: se deriva de
+    /// `quickHirePinnedTypeId` (con id, ese personaje; sin id, el mejor), así que
+    /// nada de lo que hoy hay en disco cambia de significado. Ver `effectiveQuickHireMode`.
+    public var quickHireMode: QuickHireMode?
     /// Pestañas ya reveladas por la progresión (ids de pestaña).
     public var unlockedTabs: Set<String>
     /// Lo que suman las épicas de engagement.
@@ -425,6 +429,7 @@ public struct MetaState: Codable, Sendable, Equatable {
         purchasedOroReconstructed: Bool = true,
         lastRunMaxTier: Int = 0,
         quickHirePinnedTypeId: String? = nil,
+        quickHireMode: QuickHireMode? = nil,
         unlockedTabs: Set<String> = [],
         engagement: EngagementState = .initial,
         resetEpoch: Int = 0,
@@ -461,6 +466,7 @@ public struct MetaState: Codable, Sendable, Equatable {
         self.purchasedOroReconstructed = purchasedOroReconstructed
         self.lastRunMaxTier = lastRunMaxTier
         self.quickHirePinnedTypeId = quickHirePinnedTypeId
+        self.quickHireMode = quickHireMode
         self.unlockedTabs = unlockedTabs
         self.engagement = engagement
         self.resetEpoch = resetEpoch
@@ -533,6 +539,9 @@ public struct MetaState: Codable, Sendable, Equatable {
         }
         lastRunMaxTier = try container.decodeIfPresent(Int.self, forKey: .lastRunMaxTier) ?? 0
         quickHirePinnedTypeId = try container.decodeIfPresent(String.self, forKey: .quickHirePinnedTypeId)
+        // `try?`: un modo escrito por una versión futura que este build no conoce vale «sin modo»
+        // (se deriva del pin), no la partida entera.
+        quickHireMode = (try? container.decodeIfPresent(QuickHireMode.self, forKey: .quickHireMode)) ?? nil
         unlockedTabs = try container.decodeIfPresent(Set<String>.self, forKey: .unlockedTabs) ?? []
         engagement = try container.decodeIfPresent(EngagementState.self, forKey: .engagement) ?? .initial
         resetEpoch = try container.decodeIfPresent(Int.self, forKey: .resetEpoch) ?? 0
@@ -669,5 +678,22 @@ public struct PlayerState: Codable, Sendable, Equatable {
             run: .fresh(startTypeId: startTypeId, startFloorId: startFloorId),
             meta: .fresh(offlineEfficiencyBase: offlineEfficiencyBase, critChanceBase: critChanceBase, now: now)
         )
+    }
+}
+
+/// Cómo elige el atajo de contratar a quién ofrecer (E14 C14).
+public enum QuickHireMode: String, Codable, Sendable, Equatable, CaseIterable {
+    /// El tier más alto que alcanza y entra (el modo de siempre).
+    case best
+    /// El tier base del piso que se está mirando: Fisura en el Callejón, Mantero en la Ciudad.
+    case floorBase
+    /// Un personaje fijo (`quickHirePinnedTypeId`).
+    case pinned
+}
+
+extension MetaState {
+    /// El modo vigente: el guardado o, en un save anterior a C14, el que dice el pin.
+    public var effectiveQuickHireMode: QuickHireMode {
+        quickHireMode ?? (quickHirePinnedTypeId == nil ? .best : .pinned)
     }
 }

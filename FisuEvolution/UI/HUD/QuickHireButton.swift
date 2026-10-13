@@ -242,6 +242,9 @@ struct QuickHireButton: View {
         if offer.isPinned {
             label = label + Text(verbatim: ", ") + Text("quickhire.ax.pinned")
         }
+        if offer.followsFloor {
+            label = label + Text(verbatim: ", ") + Text("quickhire.ax.floor_base")
+        }
         return label
     }
 }

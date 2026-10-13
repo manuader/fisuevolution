@@ -326,6 +326,44 @@ struct SaveCompatibilityTests {
         #expect(decoded.meta.stats.oroSpentEver == 30)
     }
 
+    @Test("quickHireMode: round trip con y sin la clave, y el modo derivado de un save anterior")
+    func quickHireModeRoundTripAndLegacyDerivation() throws {
+        for mode in QuickHireMode.allCases {
+            var state = fxState()
+            state.meta.quickHireMode = mode
+            let decoded = try JSONDecoder().decode(PlayerState.self, from: JSONEncoder().encode(state))
+            #expect(decoded == state)
+            #expect(decoded.meta.quickHireMode == mode)
+        }
+
+        // Sin la clave (un save de antes de C14): el modo sale del pin y nada cambia de significado.
+        func blob(pin: String?) throws -> Data {
+            var state = fxState()
+            state.meta.quickHirePinnedTypeId = pin
+            var object = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(state)) as? [String: Any])
+            var meta = try #require(object["meta"] as? [String: Any])
+            meta.removeValue(forKey: "quickHireMode")
+            object["meta"] = meta
+            return try JSONSerialization.data(withJSONObject: object)
+        }
+        let legacyBest = try JSONDecoder().decode(PlayerState.self, from: blob(pin: nil))
+        #expect(legacyBest.meta.quickHireMode == nil)
+        #expect(legacyBest.meta.effectiveQuickHireMode == .best)
+        let legacyPinned = try JSONDecoder().decode(PlayerState.self, from: blob(pin: "b"))
+        #expect(legacyPinned.meta.quickHireMode == nil)
+        #expect(legacyPinned.meta.effectiveQuickHireMode == .pinned)
+        #expect(legacyPinned.meta.quickHirePinnedTypeId == "b")
+
+        // Un modo que este build no conoce no tira la partida.
+        var future = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(fxState())) as? [String: Any])
+        var meta = try #require(future["meta"] as? [String: Any])
+        meta["quickHireMode"] = "modo_del_futuro"
+        future["meta"] = meta
+        let decoded = try JSONDecoder().decode(PlayerState.self, from: JSONSerialization.data(withJSONObject: future))
+        #expect(decoded.meta.quickHireMode == nil)
+        #expect(decoded.meta.effectiveQuickHireMode == .best)
+    }
+
     @Test("los contadores de compra fraccionarios sobreviven encode → decode")
     func fractionalPurchaseCountersRoundTrip() throws {
         var state = fxState()

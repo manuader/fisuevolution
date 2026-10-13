@@ -122,7 +122,7 @@
 | E8b | 8 | 8 |  |  |  |  |  | 4 |
 | E8c | 10 | 10 |  |  |  |  |  |  |
 | E8d | 15 | 14 |  | 1 |  |  |  |  |
-| E8e | 15 | 8 |  |  |  | 6 | 1 |  |
+| E8e | 15 | 8 |  |  |  | 1 |  | 6 |
 | E9a | 10 | 9 |  |  |  | 1 |  |  |
 | E9b | 10 | 5 |  |  |  | 5 |  |  |
 | E2b | 15 | 11 |  |  |  | 4 |  |  |
@@ -130,6 +130,7 @@
 | E13 | 14 | 14 |  |  |  |  |  |  |
 | E13b | 11 | 11 |  |  |  |  |  |  |
 | E10 | 14 | 8 |  |  |  | 5 | 1 |  |
+| E14 | 29 | 2 |  |  | 5 | 21 | 1 |  |
 | **Total** | **283** | **251** |  | **1** | **1** | **27** | **3** | **5** |
 
 Fuera del conteo:
@@ -152,6 +153,8 @@ grep -E '^\| E2a-T[0-9]+ \|[^|]*\| ✅' tasks.md | grep -vc seguimiento         
 Progreso = integradas / (filas de tarea − salteadas). Hoy: 246 / (288 − 5) = 246 / 283. Las filas de E8e T10 llevan sufijo `a`–`f`: con `[a-f]?` en lugar de `[ab]?` el grep las cuenta todas (con `[ab]?` quedan 270 filas). Con el sufijo el grep levanta
 también `E1-T5b` y `E1-T9b`; por eso el `grep -v seguimiento`. Cualquier otro estado se cuenta igual, cambiando el ✅.
 La tabla por épica se recalculó en el relevo 33 (con un `awk` sobre las mismas filas que cuentan los `grep` de arriba, una columna por estado); antes, en el 32 (con un script sobre las filas de §5); antes, en el 31 (a mano); antes, en el 28 (con un script sobre las mismas filas); la columna ⏭️ cuenta las salteadas, que no entran en "Activas"; si discrepa, vale el `grep`.
+
+> **E14 (2026-10-12, sesión del dueño):** 29 tareas nuevas (T0–T28) que el total de arriba todavía no suma: el controlador que integre la rama `v2/e14-correcciones-dueno` sube el total a 283 + 29 y recuenta con el `grep` de siempre. Fila en §5 «E14».
 
 ## 3. Reglas de concurrencia (PLAN-v2 §0.1, operativas)
 
@@ -223,6 +226,24 @@ partirlo.
 | `GameState+TutorialTips.swift`, `TutorialAnchor.swift` | E3b T5, T9 · E4b T3, T4, T8 · E5b T5 · E6a T8, T12 · E7b-b T3, T5 |
 
 ## 4. Cola de despacho — lo próximo (relevo 37)
+
+### 4.0 E14 — PRIORIDAD ABSOLUTA (pedido del dueño, 2026-10-12)
+
+El dueño cerró la lista de correcciones antes de la App Store (C1–C31) y **aprobó todos los mockups (G1 ✅)**.
+E14 va **antes que cualquier otra fila de esta cola** (decisión D9; DUENO.md «E14»). Spec:
+`Docs/PLAN-v2-E14-correcciones.md`; plan por tareas, decisiones D1–D13, gates y olas:
+`Docs/superpowers/plans/2026-10-12-v2-e14-correcciones-dueno.md`; mockups aprobados:
+`Docs/correcciones-v2/mockups/fisu-e14.html` (D13: inspiración, nada pixel perfect, como las referencias de Cow
+Evolution y AdVenture Capitalist).
+
+| # | Qué | Nota |
+|---|---|---|
+| 1 | Integrar `v2/e14-correcciones-dueno` a `version-2` (sólo docs + mockups; ya trae `origin/version-2` mergeado) | merge normal; si `tasks.md` choca con la integración en curso, gana lo de la integración y se re-aplican las secciones de E14 (§2 nota, §4.0, §5 E14, §6 «Gates de E14», §7 «2026-10-12 (tarde)») |
+| 2 | **Ola 1: E14-T9 · E14-T4 · E14-T5** | T9 con opus y revisión opus (es la base de todas las pantallas); T4 y T5 sonnet/opus según el plan. Archivos disjuntos (ver «Dueño de» en §5 E14) |
+| 3 | Ola 2: E14-T6 · E14-T8 · E14-T10 (+ T7, sin compilar); E14-T28 (ATT antes de la intro) en la primera ola con lugar | T6 corre el simulador de pacing y compensa para Dios ~45 h (D11) |
+| 4 | Olas 3–9 en el orden del plan | cada pantalla con su captura SE/Pro Max al lado de su mockup |
+| 5 | E2b T14 y el resto de esta cola, **detrás** de E14 y sin pisar archivos de E14 | |
+
 
 ### 4.1 Al llegar
 
@@ -799,15 +820,14 @@ Olas: T1 ∥ T7 → T2 ∥ T3 ∥ T4 → T8 (ventana de `BoardScene`); T5 tras E
 | E8e-T6 | `.once` en `LoopingVideoNode`; la caja espera y se abre | ✅ | E5b-T3 | LoopingVideoNode; PickupNode, PackageOpeningPlayer (de E5b T3) | `3ce9728` + `382391b` + arreglos `b18d70f` (merge en `v2i/integ-r31`) | sonnet, **rev. opus** (AVFoundation en un componente compartido) · `LoopingVideoNode .once(onEnd:)` con fallbacks y watchdog de 1 s; `PackageOpeningPlayer` monta `paquete_abre`, burst a 1,5 s, tope 4 s, `opened` nunca depende del video; la caja abre a ~3 s (antes 1,05); RED por mutación · rev. opus **Approved con arreglos** (fantasma de la caja cerrada bajo el HEVC con alfa; las esperas sueltan el cupo con la escena desmontada, 2 líneas en `BoardScene` willMove/didMove; menores) hechos en `b18d70f`; tarea VERDE EK 847 · unit 50, PrizesUITests 2/2. **Carry → dueño:** captura SE con `--uitest-video` · **Relevo 31 ✅** (`completo` sobre `45bc9bf` VERDE con el rojo de Ranking declarado; `rapido` sobre `7dc2ec7` VERDE: EK 863 · unit 1581 · Release 0; `version-2` = `0152277`) |
 | E8e-T7 | El Álbum, con la tarjeta enfocada animada | ✅ | — | SpecialsAlbumView | | sonnet, capturas; `.character(sp_*)`, una sola tarjeta; el id `album.card.*` no cambia · **r30:** `8a879e6` (merge `360d5b2`); `AlbumFocus`; RED visto; unit 5 + SpecialsAlbumUITests 1/1; el movimiento real no se vio (🔒 dueño en device) · ✅ con el `rapido2` VERDE sobre `76de0ff` (EK 845 · unit 1435 · Release 0) |
 | E8e-T8 | Las pintas con video (ficha, revelación, pipeline) | ✅ | T1; ventana de BoardScene | CharacterSheetView; 🔥 BoardScene (dos líneas); video_assets.py | | sonnet, revisión ninguna; pinta sin clip = quieta, nunca la base; `odr_tag`/`validate_id` aceptan `<tipo>__<pinta>` + test Python; no ∥ E9a T7 (CharacterSheetView), ni E5b T3/E6b T5 (BoardScene) · **Relevo 31:** ⏳ (E6b T5 ✅ liberó la ventana de `BoardScene`); **todavía no hay clips de pintas** → sin clip la pinta queda quieta, nunca la base · **Relevo 32:** ✅ `74674598` + `5c5b9e61` + endurecido `b8defeef` (rapido2 VERDE): `CharacterPortrait` recibe clip, sólo la opción seleccionada y tuya con clip propio; el reveal monta sólo el clip de la pinta; RED por 3 mutaciones. Un test «sin clip queda quieto» puede ser vacuo si no prueba que hubo reveal |
-| E8e-T9 | Cierre de E8e (controlador) | ⛔ | T1–T8; E8d-T15 | `Docs/` | | `completo`; `AnimatedPlacesTests` con `pendingPlaces` vacío; gates en device del dueño 🔒: fps/memoria en el SE con el tope de 3, Reduce Motion, bajo consumo, ODR |
+| E8e-T9 | Cierre de E8e (controlador) | ⛔ | T1–T8; E8d-T15 (T10 ⏭️ por E14 C22) | `Docs/` | | `completo`; `AnimatedPlacesTests` con `pendingPlaces` vacío; gates en device del dueño 🔒: fps/memoria en el SE con el tope de 3, Reduce Motion, bajo consumo, ODR |
 | P-E8e-T10 | Plan de E8e T10: el tablero animado con los videos base | ✅ | — | — | f5dc07f | `2026-10-10-v2-e8e-t10-tablero-animado.md`; 6 tareas (10a–10f); 12 dudas con default; gate 🔒 en el SE antes de integrar |
-| E8e-T10a | Spike con medición: cuadros, tamaño, formato, ritmo | 🔒 | — | rama desechable `v2i/e8e-t10a-spike` (no se integra) | `c087421` (rama desechable `v2i/e8e-t10a-spike`, pusheada; no se integra) | **opus**; compila (cuenta para el tope de 3); reporte en `.superpowers/sdd/e8e/task-10a-report.md` con "Parámetros fijados"; **🔒 el dueño mide en su SE** (`--uitest-idle-bench[-still] --uitest-video`, sonda DEBUG): ≥ 59 fps, ≤ 1 % > 25 ms, animado − quieto ≤ 20 MB; si no entra, escalera 12 cuadros → 192 px → ASTC → N más cercanos → quieto < 3 GB · **Relevo 31 (hecho, opus, DONE_WITH_CONCERNS):** parámetros fijados 16 cuadros · 256 px · `png8-sheet` `idle_<tipo>.png` en `anim-piso-<n>` · índices `int(i*120/N+0,5)` · fps = N/5,0 s (3,2) · `maxAnimated` y `minPhysicalMemoryGB` `nil` PROVISORIOS · una `SKTexture(cgImage:)` por cuadro · fase `slot*5 mod N`; disco A16·256 6,34 MB (piso 3: 1,26 MB); **C (ASTC) descartada** (12,7–15,1 MB, HEVC con target iOS 18, 34 ms en el main, +30 MB transitorio); decode fuera del main 62–108 ms y armado 15 ms (T10c ≤ 1 hoja por frame); memoria NO medible en simulador → **🔒 el dueño en su SE** (instructivo en el reporte). Hallazgo: `StoreKitTest` carga `XCTest` y `VideoPlaybackPolicy` fuerza quieto (afecta `--uitest-anim-stress` y G1/G4) |
-| E8e-T10b | Pipeline: las hojas de cuadros y `idle_frames.json` | ⛔ | T10a 🔒 | nuevos; 43 PNG en `AnimPacks/anim-piso-*` | | sonnet, revisión ninguna; `idle_frames.py` importa `odr_tag` de `video_assets.py` (no lo edita: es de T8); sin `sp_` ni `__`; ≤ 10 MB ODR, base +0; sin `project.yml` |
-| E8e-T10c | El runtime sin `BoardScene`: `BoardIdleAnimator`, `CharacterNode.setIdleFrames`, `observePolicy` | ⛔ | T10b | CharacterNode, VideoPlayerPool | | sonnet, el controlador lee el diff; no ∥ E6b T5 (CharacterNode); decodifica fuera del main y aplica tras `preload`; el pool de nodos corta la animación del sprite |
-| E8e-T10d | El cableado: tres líneas de `BoardScene` + banco DEBUG | ⛔ | T10c; ventana de BoardScene | 🔥 BoardScene (3 líneas); +Debug, +Bootstrap (tibios) | | sonnet, controlador lee el diff + capturas; después de E5b T3, no ∥ E6b T5 ni E8e T8; sin ventana → `NEEDS_CONTEXT` y las aplica el controlador |
-| E8e-T10e | Cierre de T10 (controlador) | ⛔ | T10d | `Docs/` | | `completo`; **🔒 el dueño en su SE con la partida real** (piso 3, 10 min, Reduce Motion, bajo consumo, ODR, modo avión); docs y trampas |
-| E8e-T10f | La carta base de Personalización, animada (opcional) | ⛔ | E6b-T5; duda 11 | CustomizationView | | sonnet, capturas; una sola `AnimatedArtView` por grilla, la base |
-
+| E8e-T10a | Spike con medición: cuadros, tamaño, formato, ritmo | ⏭️ | — | rama desechable `v2i/e8e-t10a-spike` (no se integra) | `c087421` (rama desechable `v2i/e8e-t10a-spike`, pusheada; no se integra) | **opus**; compila (cuenta para el tope de 3); reporte en `.superpowers/sdd/e8e/task-10a-report.md` con "Parámetros fijados"; **🔒 el dueño mide en su SE** (`--uitest-idle-bench[-still] --uitest-video`, sonda DEBUG): ≥ 59 fps, ≤ 1 % > 25 ms, animado − quieto ≤ 20 MB; si no entra, escalera 12 cuadros → 192 px → ASTC → N más cercanos → quieto < 3 GB · **Relevo 31 (hecho, opus, DONE_WITH_CONCERNS):** parámetros fijados 16 cuadros · 256 px · `png8-sheet` `idle_<tipo>.png` en `anim-piso-<n>` · índices `int(i*120/N+0,5)` · fps = N/5,0 s (3,2) · `maxAnimated` y `minPhysicalMemoryGB` `nil` PROVISORIOS · una `SKTexture(cgImage:)` por cuadro · fase `slot*5 mod N`; disco A16·256 6,34 MB (piso 3: 1,26 MB); **C (ASTC) descartada** (12,7–15,1 MB, HEVC con target iOS 18, 34 ms en el main, +30 MB transitorio); decode fuera del main 62–108 ms y armado 15 ms (T10c ≤ 1 hoja por frame); memoria NO medible en simulador → **🔒 el dueño en su SE** (instructivo en el reporte). Hallazgo: `StoreKitTest` carga `XCTest` y `VideoPlaybackPolicy` fuerza quieto (afecta `--uitest-anim-stress` y G1/G4) · **⏭️ 2026-10-12 por E14 C22** (el dueño: personajes base sólo estáticos; el tablero no se anima) |
+| E8e-T10b | Pipeline: las hojas de cuadros y `idle_frames.json` | ⏭️ | T10a 🔒 | nuevos; 43 PNG en `AnimPacks/anim-piso-*` | | sonnet, revisión ninguna; `idle_frames.py` importa `odr_tag` de `video_assets.py` (no lo edita: es de T8); sin `sp_` ni `__`; ≤ 10 MB ODR, base +0; sin `project.yml` · **⏭️ 2026-10-12 por E14 C22** (el dueño: personajes base sólo estáticos; el tablero no se anima) |
+| E8e-T10c | El runtime sin `BoardScene`: `BoardIdleAnimator`, `CharacterNode.setIdleFrames`, `observePolicy` | ⏭️ | T10b | CharacterNode, VideoPlayerPool | | sonnet, el controlador lee el diff; no ∥ E6b T5 (CharacterNode); decodifica fuera del main y aplica tras `preload`; el pool de nodos corta la animación del sprite · **⏭️ 2026-10-12 por E14 C22** (el dueño: personajes base sólo estáticos; el tablero no se anima) |
+| E8e-T10d | El cableado: tres líneas de `BoardScene` + banco DEBUG | ⏭️ | T10c; ventana de BoardScene | 🔥 BoardScene (3 líneas); +Debug, +Bootstrap (tibios) | | sonnet, controlador lee el diff + capturas; después de E5b T3, no ∥ E6b T5 ni E8e T8; sin ventana → `NEEDS_CONTEXT` y las aplica el controlador · **⏭️ 2026-10-12 por E14 C22** (el dueño: personajes base sólo estáticos; el tablero no se anima) |
+| E8e-T10e | Cierre de T10 (controlador) | ⏭️ | T10d | `Docs/` | | `completo`; **🔒 el dueño en su SE con la partida real** (piso 3, 10 min, Reduce Motion, bajo consumo, ODR, modo avión); docs y trampas · **⏭️ 2026-10-12 por E14 C22** (el dueño: personajes base sólo estáticos; el tablero no se anima) |
+| E8e-T10f | La carta base de Personalización, animada (opcional) | ⏭️ | E6b-T5; duda 11 | CustomizationView | | sonnet, capturas; una sola `AnimatedArtView` por grilla, la base · **⏭️ 2026-10-12 por E14 C22** (el dueño: personajes base sólo estáticos; el tablero no se anima) |
 ### E9 — Tutorial v2 + Tour de novedades + Ajustes (`2026-10-07-v2-e9a-…` motor, `…-e9b-…` currículo y reset)
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
@@ -959,6 +979,46 @@ La parte de agente, partida en 14 tareas. **Nada sale de la máquina sin 🔒**:
 | E10-T14 | B22: `NSPrivacyTracking` en `true` con los dominios | ⏭ | 🔒 los dominios de AdMob/Unity/Meta (dueño) | `PrivacyInfo.xcprivacy`, `PrivacyManifestTests` | — | **Relevo 49: no hace falta.** Leídos los `PrivacyInfo.xcprivacy` de los SDK: Google Mobile Ads, UMP y Unity no declaran rastreo; Meta Audience Network declara `NSPrivacyTracking = true` con sus dominios (`ep1.facebook.com`, `ep6.facebook.com`) **en su propio manifiesto**, que Apple suma al de la app. El código de la app no rastrea: su manifiesto queda en `false` (sin rechazo ITMS-91064). Lo que sí queda del dueño: declarar «Data Used to Track You» (Meta) en App Privacy de App Store Connect (E10 T11) |
 | Parte humana | subir a ASC, TestFlight, App Privacy, edad, sitio, mediación SPM, enviar | 🔒 | — | — | — | §8 y «Lo que queda del dueño» del plan |
 
+### E14 — Correcciones del dueño antes de la App Store (plan `2026-10-12-v2-e14-correcciones-dueno.md`)
+
+**PRIORIDAD ABSOLUTA (§4.0).** Spec: `Docs/PLAN-v2-E14-correcciones.md` (C1–C31). Mockups aprobados (G1 ✅):
+`Docs/correcciones-v2/mockups/fisu-e14.html`; cada fila nombra su mockup (M…). Decisiones D1–D13 en el plan
+y en §7. Regla D13 (del dueño): los mockups son inspiración, **nada pixel perfect**, como las referencias de Cow Evolution y
+AdVenture Capitalist; la apariencia sale de la gramática v3 y el arte real (FisuJobs manda). Regla del dueño para toda la UI: cero SF Symbols / cápsulas planas, premios siempre
+ilustrados, popups centrados y contenidos (C19, C29), y **cero superposición** (D14).
+
+| ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
+|---|---|---|---|---|---|---|
+| E14-T0 | Mockups de alta fidelidad y aprobación | ✅ | — | — | `Docs/correcciones-v2/mockups/` | G1 cerrada: el dueño aprobó todos (2026-10-12); D4 = opción A |
+| E14-T1 | Generar las 27 imágenes (Gemini Flash) | ✅ | — | `automatic-image-generation/projects/fisu-v2-premios` |  | **aprobadas las 27 por el dueño (G2 ✅, 2026-10-12)**; `fisu-v2-premios/output/` |
+| E14-T2 | Generar los 11 videos (Higgsfield) | 🔒 | — | `fisu-v2-premios/video` | `ef16ceb` (a-i-g) | **10 de 11 aprobados (G3, 2026-10-12)**; `colchon_abre` se regenera con una explosión de dinero (billetes sin verde por el croma; prompt v2 `f5dc9c7`) y vuelve a revisión |
+| E14-T3 | Integrar el arte aprobado (pipeline, atlas, manifest) | ⏳ | G2 ✅, G3 (10/11) | `Tools/asset-pipeline`, `*.atlas`, `loops_manifest.json` |  | ya se puede: las 27 imágenes y 10 videos aprobados; `colchon_abre` entra cuando el dueño apruebe la v2. `video_assets.py` de a uno; recortar a 1 s los `_sacude` y a 2 s `ruleta_premio` |
+| E14-T4 | Fuera videos de fondos de piso y de los 43 personajes base | ⏳ | — | `FloorNode`, `BoardScene` (fondo/clip), `loops_manifest` (`floors`, `characters` base), `AnimPacks/`, `project.yml`, `video_assets.py` |  | C1, C22 · ola 1 |
+| E14-T5 | Fast Food ↔ Chofer de App + migración del save por posición | ⏳ | — | `tiers.json`, EK (migración), tests de save |  | C17 · opus · ola 1 |
+| E14-T6 | Visitantes: un solo carril, bolsa barajada, «No, gracias»; pacing compensado | ⛔ | ola 1 | `VisitorScheduler`, `VisitorsConfig`, `visitors.json`, save, simulador |  | C5 · opus · D11 · ola 2 |
+| E14-T7 | ORO → dólar blue (es/en «Blue Dollars»), ASC y docs de review | ⛔ | ola 1 | `claves-pendientes/e14-t7.json`, `Distribution/*`, `GameArt` (ícono) |  | C8 · D2 · ola 2 |
+| E14-T8 | Desbloqueo de piso insalteable | ⛔ | ola 1 | `CelebrationQueue`, `BoardScene.tapDuringCelebration`, `CinematicOverlay` |  | C21 · D6 · M2 · ola 2 |
+| E14-T9 | Componentes base: `GameButton`, `PopupContainer`, `RewardIllustration`, estados, `CornerSeal` | ⏳ | — (G1 ✅) | `GameArtComponents.swift`, `PanelFrames.swift`, componentes nuevos |  | C4, C15, C19, C29 · opus + revisión opus · ola 1 |
+| E14-T28 | El ATT antes de la intro: la intro espera al consentimiento (tope 10 s); el ATT nunca encima de una cinemática ni de una lección | ⏳ | — | `AdsCoordinator`, `AdsConsent`, `FisuEvolutionApp.startServices`, `GameState+Cinematics` |  | C31 · sonnet · entra en la primera ola con lugar · AdMob ya tiene activos RGPD, EE.UU. y la explicación del IDFA (el dueño, 2026-10-12): UMP dispara el ATT; el tope de 10 s no corre con un formulario en pantalla; suma la geografía de prueba de UMP en DEBUG (puntos 6–8 de C31) |
+| E14-T10 | Atajo de contratar: «el primero del piso» | ⛔ | ola 1 | `QuickHirePicker`, `GameState+Hiring`, save |  | C14 · M12 · ola 2 |
+| E14-T11 | Los 10 popups al `PopupContainer` | ⛔ | T9 | las 10 vistas con `presentationDetents` |  | C15 · M3, M7b · ola 3 |
+| E14-T12 | Barra a todo el ancho con leyendas + solapas Contratar/Reencarnar | ⛔ | T9 | `BottomMenuBar`, `GameTabBar`, `RootView.bottomBar`, `QuickHireButton`, `PrestigeButton` |  | C12, C18 · M1 · ola 3 |
+| E14-T13 | Esquinas: sellos de premios y especial › eventos › boosts | ⛔ | T9, T12 | `SideRailView`, `ActiveBonusBar`, `StageChips`, `HUDView` |  | C3, C9, C19 · D8 · M1 · ola 4 |
+| E14-T14 | Avisos arriba sin comer toques; botonera del ascensor encima | ⛔ | T13 | `TowerNoticeView`, toast de logros, `RootView` (overlay), `ElevatorRideOverlay` |  | C20, C30 · M1, M1b · ola 5 |
+| E14-T15 | Escenario de visitantes: horizonte, popup solo, anclado al piso, pedido con la cara, arrastrar, berretín | ⛔ | T6, T11, T13 | `StageLayout`, `StageController`, `VisitorNode`, `SpeechBubbleNode`, `VisitorPopupView`, `VendorCardsView` |  | C2, C6, C15, C16 · D4 (A) · M3, M3b, M4 · ola 5 |
+| E14-T16 | Caja y colchón +85 % y al horizonte | ⛔ | T12, T15 | `PickupLayout`, `PickupController`, `PickupNode` |  | C10 · M1 · ola 6 |
+| E14-T17 | Pantallas de premio en tres momentos: Ruleta, Colchón, cofre | ⛔ | T9, T11 | `WheelView`/`WheelCanvas`, `MattressPopupView`, `ChestOpeningView`/`ChestCinematicPlayer` |  | C4, C26, C27 · M6, M7 · ola 4 |
+| E14-T18 | El Paquete de la Aduana explicado | ⛔ | T13, T17 | `GameState+Packages`, `PackageOpeningPlayer`, `PrizeSheets`, lección |  | C28 · M5–M5c · ola 6 |
+| E14-T19 | Mejoras con 3 pestañas; Tienda sólo plata real; cosméticos a Pintas; «Tu meta» | ⛔ | T9 | `StoreView`, `OroShopView`, `UpgradesView`, hoja de Pintas |  | C11, C29 · D3 · M10 · ola 4 |
+| E14-T20 | Regalos ordenado por estado | ⛔ | T9, T18 | `GiftsView` |  | C29 · M9 · ola 7 |
+| E14-T21 | Menú deslizable de un solo marco, transparente afuera | ⛔ | T9 | `MenuPagerView`, `panelSheet` |  | C13 · M9, M11 · ola 3 |
+| E14-T22 | Ascensor: la torre por las ventanas | ⛔ | T4 | `ElevatorRideView`, `ElevatorCabin`, `BoardScene` (cámara del viaje) |  | C7 · M13 · ola 5 |
+| E14-T23 | Compartir: card de personaje nuevo y la imagen real | ⛔ | T11 | `ShareCardView`, `ShareMomentChip`, celebración de personaje nuevo |  | C23, C24 · D5 · M8, M8b · ola 6 |
+| E14-T24 | Eventos `openShop` y 4 eventos nuevos | ⛔ | T11, T19 | `events.json`, EK de eventos, `EventPopupView` |  | C25 · D7 · M14 · ola 7 |
+| E14-T25 | Barrido de SF Symbols y auditoría de UX | ⛔ | T11–T24 | lo que quede, una pantalla por commit |  | C19, C29 · ola 8 |
+| E14-T26 | Textos: catálogo, tutorial, Tour, lecciones | ⛔ | T7, T11–T24 | `Localizable.xcstrings`, `Tutorial*` |  | todas · ola 8 |
+| E14-T27 | Cierre de E14 (controlador) | ⛔ | todo | `Docs/` |  | `completo`, capturas SE/15/Pro Max/iPad, SESION, HANDOFF; después G4 🔒 |
+
 ### Inconsistencias y huecos entre planes (abiertas)
 
 1. **E8 y la parte de agente de E10 no tienen plan por tareas.** ~~Sin ellos no hay forma de contar
@@ -1060,6 +1120,15 @@ Las cinco nuevas de E7b-b (relevo 6), con su default:
 **2026-10-11 — del chat del relevo 33 (el dueño):**
 - **El «cofre bajo la hoja» (carry de la rev. opus de E6a T12) queda CERRADO como «no se reproduce»**: era una sospecha de lectura de código; dos UI tests (hoja de oferta por la cola y por el chip) dieron el cofre visible y tocable al cerrar. Se reabre sólo si el dueño lo ve en device.
 - **El vigilante del núcleo del tutorial NO saltea a un paso imposible (opción B):** si a los 180 s el jugador no cumplió el paso (p. ej. `core.tap`), el núcleo no avanza a `core.hire`/`core.merge` sin plata ni par: se queda en el mismo paso y lo vuelve a mostrar más insistente (reinicia el reloj). El núcleo sigue sin poder saltearse; nadie cae en un paso que no puede cumplir. Las lecciones (de un paso) siguen terminando por watchdog como hoy. Lo hace la próxima tarea de tutorial que toque `GameState+Tutorial` (E9a T7), con test que lo fije y RED por mutación.
+### Gates de E14 (2026-10-12)
+
+| Gate | Qué hace el dueño | Bloquea | Estado |
+|---|---|---|---|
+| G1 · Mockups | aprobar los mockups | la fase 2 de E14 | ✅ aprobados todos (2026-10-12) |
+| G2 · Imágenes de E14 | revisar las 27 de `fisu-v2-premios` (va / regenerar / obviar) | E14-T3 (las pantallas usan el fallback mientras tanto) | ✅ aprobadas las 27 (2026-10-12) |
+| G3 · Videos de E14 | revisar los 11 clips de `fisu-v2-premios/video/out/` | E14-T3 | 🔒 10 de 11 aprobados (2026-10-12); `colchon_abre` v2 (explosión de dinero) en regeneración |
+| G4 · iPhone real | pasada en SE y Pro Max con la lista del cierre de E14 | el lanzamiento | 🔒 al final |
+
 ## 7. Decisiones del dueño (no se vuelven a preguntar)
 
 ### Decisiones del dueño del relevo 6
@@ -1147,6 +1216,25 @@ El dueño contestó «hacé todo lo recomendado» a `Docs/PREGUNTAS-DUENO-v2.md`
 - **«Seguí con más tareas en paralelo; no esperes la build; verificar con tests y revisión, sincrónico con el resto» (00:57, 2026-10-11):** régimen de verificación barata (`tarea` con las clases propias al final; UI sólo en el oráculo de tanda del controlador; EK con `swift test`), escrito en `comun.md` «Tercera tanda». El tope real de la máquina quedó en ≤ 3 compilando (con 6+ builds la carga pasó de 900).
 - **«Cerrar todo para que sigan los relevos de la noche; revisar agentes/builds trabados y reiniciar sólo tras verificar» (02:35):** se cortó el despacho; `TaskStop` autorizado sobre agentes ya entregados con esperas colgadas (E8e T6).
 - **Decisión del controlador (no del dueño), E7b-b T2:** un «Fusionar todo» por video con TODOS sus eslabones descartados **compensa una vez** (un video nunca es en vano; sin farmeo porque el enfriamiento ya se marcó); reemplaza lo pineado en E7b-b T1 (`discardedMergeAllDoesNotCompensate`).
+
+### 2026-10-12 (tarde) — E14: las correcciones del dueño antes de la App Store (sesión del dueño)
+
+| Tema | Decisión | Consecuencia |
+|---|---|---|
+| Prioridad | E14 primero; el resto de la cola, detrás (D9) | §4.0 |
+| Mockups | G1 ✅: aprobados todos. Son **inspiración, no especificación**: nada pixel perfect; se usan como las referencias de Cow Evolution y AdVenture Capitalist (idea, disposición, jerarquía, flujo); la apariencia sale de la identidad del Fisu (D13) | cada pantalla toma su M… como guía y se construye con los componentes reales |
+| Fondos | 2048, sin reescalar a 4K (D1); fuera los videos de fondo y de los 43 personajes base (C1, C22) | E14-T4 |
+| Moneda premium | «dólar blue»; en inglés «Blue Dollars», abreviado «Blue» (D2); IDs internos intactos | E14-T7 |
+| Cosméticos con blue | a la hoja de Pintas (D3); la Tienda queda sólo para plata real (C11) | E14-T19 |
+| Pedido de empleado | opción A, en el horizonte al medio (D4); la B queda en el mockup por si el dueño la prefiere al verla | E14-T15 |
+| Compartir | la card de personaje nuevo con «¡Compartir!» en todos, también los del tutorial (D5) | E14-T23 |
+| Piso nuevo | insalteable; tras reencarnar, la primera vez de cada vida, versión corta (D6) | E14-T8 |
+| Eventos a la tienda | sin descuento; 1 por sesión; nunca en el arranque (D7) | E14-T24 |
+| Sellos de premios | los no disponibles no aparecen (D8) | E14-T13 |
+| Arte | se genera ya, con revisión del dueño (D10) | G2, G3 |
+| Pacing | si C5 lo mueve, se compensa para Dios ~45 h e informa (D11) | E14-T6 |
+| Tablero animado (E8e T10) | **⏭️ salteado**: contradice C22 (personajes base sólo estáticos). E8e T10a–T10f no se hacen y su medición en el SE ya no hace falta | E8e-T9 cierra sin T10 |
+| Superposición | **cero**: cada elemento en un único lugar, nada tapa a nada ni al tablero, sin amontonamiento, todo fácil de tocar; única excepción, la botonera del ascensor abierta sobre los boosts (D14) | chequeo de peor caso en SE y Pro Max en cada tarea de pantalla |
 
 ## 8. El camino hasta el final
 

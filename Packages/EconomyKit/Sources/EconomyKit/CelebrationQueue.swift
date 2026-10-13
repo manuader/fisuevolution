@@ -137,6 +137,11 @@ public struct CelebrationQueue: Sendable, Equatable {
     /// tutorial arriba, su hoja no se presentaba y la cola entera quedaba
     /// congelada.
     public private(set) var allowedKinds: Set<CelebrationKind>?
+    /// El ítem en pantalla no se puede saltear ESTA vez, aunque su tipo sí lo
+    /// permita: el desbloqueo de un piso nuevo viaja dentro de la celebración
+    /// del tablero, que el resto de las veces se corta con un toque. Vive lo que
+    /// vive el turno: al terminar (por el fin, el watchdog o la escena) se baja.
+    public private(set) var isSkipLocked = false
 
     private var pending: [CelebrationKind] = []
 
@@ -182,6 +187,7 @@ public struct CelebrationQueue: Sendable, Equatable {
         }
         current = nil
         elapsed = 0
+        isSkipLocked = false
         promoteIfIdle()
     }
 
@@ -193,11 +199,19 @@ public struct CelebrationQueue: Sendable, Equatable {
         elapsed = 0
     }
 
+    /// Marca el ítem en pantalla como insalteable por esta vez. Sólo vale para el
+    /// que ya tiene el turno; el watchdog y `finish` siguen mandando, así que un
+    /// ítem trabado se libera igual.
+    public mutating func lockSkip(_ kind: CelebrationKind) {
+        guard current == kind else { return }
+        isSkipLocked = true
+    }
+
     /// El jugador tocó la pantalla. Devuelve `true` si eso salteó algo, así el
     /// llamador no tiene que consultar el estado antes de pedirlo.
     @discardableResult
     public mutating func skip() -> Bool {
-        guard let current, current.isSkippable, elapsed >= Self.skipFloor else { return false }
+        guard let current, current.isSkippable, !isSkipLocked, elapsed >= Self.skipFloor else { return false }
         finish(current)
         return true
     }
@@ -233,5 +247,6 @@ public struct CelebrationQueue: Sendable, Equatable {
         guard let bestIndex else { return }
         current = pending.remove(at: bestIndex)
         elapsed = 0
+        isSkipLocked = false
     }
 }

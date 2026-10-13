@@ -173,6 +173,25 @@ extension GameState {
         return true
     }
 
+    /// El ítem en pantalla no se puede saltear: lo consulta la escena para comerse
+    /// el toque en vez de dejarlo agarrar un personaje.
+    var currentCelebrationIsUnskippable: Bool { celebrations.isSkipLocked }
+
+    /// Arranca la celebración de un piso recién abierto (E14 C21, D6): la anota
+    /// como vista en esta vida y, si le toca, deja el turno del tablero
+    /// insalteable hasta que termine. Devuelve cómo se presenta.
+    @discardableResult
+    func beginFloorUnlockCelebration(floorID: String) -> FloorUnlockPresentation {
+        guard var player else { return FloorUnlockPresentation(skippable: true, short: false) }
+        let life = player.meta.prestigeLevel
+        let presentation = player.meta.engagement.floorUnlockPresentation(floorID: floorID, life: life)
+        player.meta.engagement.recordFloorUnlock(floorID: floorID, life: life)
+        self.player = player
+        scheduleSave()
+        if !presentation.skippable { celebrations.lockSkip(.boardCelebration) }
+        return presentation
+    }
+
     /// Corre el watchdog. Lo llama el tick que ya existe por frame: sin `Timer`
     /// (regla 2 de concurrencia) y con tests que inyectan deltas en vez de
     /// esperar segundos reales.

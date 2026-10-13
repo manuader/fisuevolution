@@ -450,6 +450,9 @@ final class BoardScene: SKScene {
     /// fijos**: con Reduce Motion las duraciones colapsan y un offset calculado
     /// quedaría desalineado.
     private func runBoardCelebration(_ pending: PendingBoardCelebration) {
+        // El piso nuevo es obligatorio de punta a punta: se traba desde el vuelo,
+        // no sólo desde el cartel, para que un toque temprano no lo corte antes.
+        let floorPresentation = pending.unlockedFloorID.map { gameState.beginFloorUnlockCelebration(floorID: $0) }
         let finish: () -> Void = { [weak self] in
             // Si el jugador ya lo salteó, `boardCelebrationRunning` quedó en
             // false y este completion tardío no puede liberar el turno del ítem
@@ -467,6 +470,7 @@ final class BoardScene: SKScene {
             self.runFloorUnlockCelebration(
                 floorID: floorID,
                 destinationOrdinal: destination,
+                short: floorPresentation?.short ?? false,
                 completion: finish
             )
         }
@@ -539,13 +543,14 @@ final class BoardScene: SKScene {
     private func tapDuringCelebration() -> Bool {
         if playingChain != nil {
             if gameState.showing == .boardCelebration,
+               !gameState.currentCelebrationIsUnskippable,
                gameState.celebrations.elapsed >= CelebrationQueue.skipFloor {
                 hurryChain()
             }
             return true
         }
         if gameState.skipCurrentCelebration() { abortBoardCelebration() }
-        return playingBoardChange != nil
+        return playingBoardChange != nil || gameState.currentCelebrationIsUnskippable
     }
 
     /// La profundidad se recalcula con el personaje ya movido, no una sola vez
@@ -1866,8 +1871,10 @@ final class BoardScene: SKScene {
     private func runFloorUnlockCelebration(
         floorID: String,
         destinationOrdinal: Int,
+        short: Bool = false,
         completion: @escaping () -> Void = {}
     ) {
+        let hold = short ? 0.35 : 0.9
         let reduceMotion = Self.prefersReducedMotion
         let title = SKLabelNode(fontNamed: "AvenirNext-Heavy")
         title.text = String(localized: "tower.unlock.title")
@@ -1883,25 +1890,28 @@ final class BoardScene: SKScene {
             : .group([.fadeIn(withDuration: 0.15), .sequence([.scale(to: 1.12, duration: 0.18), .scale(to: 1, duration: 0.1)])])
         title.run(.sequence([
             titleEntrance,
-            .wait(forDuration: 0.9),
+            .wait(forDuration: hold),
             .fadeOut(withDuration: 0.22),
             .removeFromParent(),
         ]), completion: completion)
 
-        let hint = SKLabelNode(fontNamed: "AvenirNext-Bold")
-        hint.text = String(localized: "tower.unlock.hint")
-        hint.fontSize = 18 * layout.textScale
-        hint.fontColor = Palette.cream
-        hint.position = CGPoint(x: size.width / 2, y: size.height * 0.56)
-        hint.zPosition = 220
-        hint.alpha = 0
-        cameraOverlay.addChild(hint)
-        hint.run(.sequence([
-            .fadeIn(withDuration: reduceMotion ? 0.01 : 0.15),
-            .wait(forDuration: 0.9),
-            .fadeOut(withDuration: 0.22),
-            .removeFromParent(),
-        ]))
+        // La versión corta es sólo el cartel: la pista ya se la conoce.
+        if !short {
+            let hint = SKLabelNode(fontNamed: "AvenirNext-Bold")
+            hint.text = String(localized: "tower.unlock.hint")
+            hint.fontSize = 18 * layout.textScale
+            hint.fontColor = Palette.cream
+            hint.position = CGPoint(x: size.width / 2, y: size.height * 0.56)
+            hint.zPosition = 220
+            hint.alpha = 0
+            cameraOverlay.addChild(hint)
+            hint.run(.sequence([
+                .fadeIn(withDuration: reduceMotion ? 0.01 : 0.15),
+                .wait(forDuration: hold),
+                .fadeOut(withDuration: 0.22),
+                .removeFromParent(),
+            ]))
+        }
 
         gameState.playFloorUnlockFeedback()
         run(.sequence([

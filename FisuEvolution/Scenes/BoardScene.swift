@@ -1691,18 +1691,28 @@ final class BoardScene: SKScene {
             return
         }
         isSwipeDragging = false
+        // En el viaje en cabina el tramo manda la duración y la curva: la torre pasa por las
+        // ventanas al mismo ritmo que cuenta el visor.
+        let ridePace = RideCamera.flightDuration
         guard distance > 1, let totalFloors = gameState.floorTable?.floors.count else {
             scrollBegan()
+            let hop = SKAction.move(to: target, duration: ridePace ?? Self.floorHopDuration)
+            if ridePace != nil { hop.timingFunction = Self.rideTiming }
             cameraNode.run(
-                .sequence([.move(to: target, duration: Self.floorHopDuration), .run { [weak self] in self?.scrollSettled() }]),
+                .sequence([hop, .run { [weak self] in self?.scrollSettled() }]),
                 withKey: Self.floorCameraKey
             )
             return
         }
-        let flight = SKAction.move(to: target, duration: Self.flightDuration(floors: distance, totalFloors: totalFloors))
+        let flight = SKAction.move(
+            to: target, duration: ridePace ?? Self.flightDuration(floors: distance, totalFloors: totalFloors))
         // Arranca y frena suave: sin esto el vuelo largo parece un corte, que es
         // justo lo que el mapa vino a reemplazar.
-        flight.timingMode = .easeInEaseOut
+        if ridePace != nil {
+            flight.timingFunction = Self.rideTiming
+        } else {
+            flight.timingMode = .easeInEaseOut
+        }
         isFlying = true
         scrollBegan()
         preloadFlightBackgrounds(from: origin, to: destination)
@@ -1711,6 +1721,8 @@ final class BoardScene: SKScene {
             withKey: Self.floorCameraKey
         )
     }
+
+    private static let rideTiming: SKActionTimingFunction = { Float(RideCamera.eased(Double($0))) }
 
     /// Cuánto dura el vuelo entre dos pisos que no son vecinos.
     ///

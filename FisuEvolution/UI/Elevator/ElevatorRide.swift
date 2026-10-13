@@ -54,9 +54,25 @@ struct ElevatorRidePlan: Equatable {
     /// los pisos del medio pasan más rápido.
     func position(atTravelProgress progress: Double) -> Double {
         let t = min(max(progress, 0), 1)
-        let eased = t * t * (3 - 2 * t)
+        let eased = RideCamera.eased(t)
         return Double(origin) + Double(destination - origin) * eased
     }
+}
+
+extension Duration {
+    var seconds: Double {
+        Double(components.seconds) + Double(components.attoseconds) / 1e18
+    }
+}
+
+/// Lo que el viaje le pide a la cámara del tablero: que recorra la torre al ritmo del tramo de
+/// viaje, con la misma curva que mueve el visor (`ElevatorRidePlan.position`). `nil` fuera del viaje.
+@MainActor
+enum RideCamera {
+    static var flightDuration: TimeInterval?
+
+    /// La curva del tramo de viaje: arranca y frena suave, los pisos del medio pasan más rápido.
+    static func eased(_ t: Double) -> Double { t * t * (3 - 2 * t) }
 }
 
 /// El director del ascensor: la placa colgante y el viaje en cabina. Lo crea `FisuEvolutionApp`
@@ -184,6 +200,7 @@ final class ElevatorRide {
         await hooks.sleep(plan.close)
         guard !Task.isCancelled else { return }
         enter(.traveling)
+        RideCamera.flightDuration = plan.fades ? nil : plan.travel.seconds
         hooks.jump(plan.destination)
         jumped = true
         hooks.cue(.motorStart)
@@ -208,6 +225,7 @@ final class ElevatorRide {
         phase = .idle
         plan = nil
         rideTask = nil
+        RideCamera.flightDuration = nil
     }
 }
 

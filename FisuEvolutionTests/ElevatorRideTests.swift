@@ -55,6 +55,7 @@ struct ElevatorRideTests {
         var jumps: [Int] = []
         var cues: [ElevatorRide.Cue] = []
         var phasesAtJump: [ElevatorRide.Phase] = []
+        var cameraPaceAtJump: [TimeInterval?] = []
     }
 
     private func director(_ recorder: Recorder, instant: Bool = false,
@@ -63,7 +64,8 @@ struct ElevatorRideTests {
         ride.attach(ElevatorRide.Hooks(
             visibleOrdinal: { visible },
             isUnlocked: { unlocked.contains($0) },
-            jump: { [unowned ride] in recorder.jumps.append($0); recorder.phasesAtJump.append(ride.phase) },
+            jump: { [unowned ride] in recorder.jumps.append($0); recorder.phasesAtJump.append(ride.phase)
+                recorder.cameraPaceAtJump.append(RideCamera.flightDuration) },
             cue: { recorder.cues.append($0) },
             sleep: { _ in await Task.yield() },
             reduceMotion: { false },
@@ -85,6 +87,26 @@ struct ElevatorRideTests {
         #expect(recorder.phasesAtJump == [.traveling])
         #expect(recorder.cues == [.keypadOpen, .button, .doorsClose, .motorStart, .cable, .motorStop, .ding, .doorsOpen])
         #expect(ride.phase == .idle)
+    }
+
+    @Test("al saltar, la cámara del tablero ya sabe cuánto dura el tramo; al llegar, lo suelta")
+    func theCameraTravelsAtThePaceOfTheTravelLeg() async throws {
+        let recorder = Recorder()
+        let ride = director(recorder)
+        ride.select(ordinal: 9)
+        let plan = try #require(ride.plan)
+        await ride.waitUntilIdle()
+        #expect(recorder.cameraPaceAtJump == [seconds(plan.travel)])
+        #expect(RideCamera.flightDuration == nil)
+    }
+
+    @Test("la cámara y el visor comparten la curva: cada fracción del tramo cae en el mismo lugar")
+    func cameraAndGaugeShareTheCurve() throws {
+        let plan = try #require(ElevatorRidePlan(origin: 0, destination: 9, reduceMotion: false, instant: false))
+        for step in 0...10 {
+            let t = Double(step) / 10
+            #expect(plan.position(atTravelProgress: t) == 9 * RideCamera.eased(t))
+        }
     }
 
     @Test("un piso cerrado, el mismo piso o un viaje en curso no arrancan otro")

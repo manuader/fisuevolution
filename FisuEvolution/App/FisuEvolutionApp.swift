@@ -48,6 +48,7 @@ struct FisuEvolutionApp: App {
                     }
                     gameState.attachHaptics(haptics)
                     gameState.attachAudio(audio)
+                    gameState.attachConsentGate(ads.consentGate)
                     gameState.attachBackgroundTasks(UIKitBackgroundTasks())
                     attachElevator()
                     await gameState.bootstrap()
@@ -97,6 +98,7 @@ struct FisuEvolutionApp: App {
         // Configurar antes dejaría al comprador viendo un
         // interstitial hasta el próximo arranque.
         gameState.attachAds(ads)
+        ads.isCalmMoment = { [gameState] in gameState.isCalmMoment }
         if let content = gameState.content {
             let process = ProcessInfo.processInfo
             let mode = ForcedAdsSetup.mode(arguments: process.arguments, environment: process.environment)
@@ -104,11 +106,15 @@ struct FisuEvolutionApp: App {
             // va aparte, abajo, y no demora el arranque (E7a).
             let loader = AdsRemoteConfigLoader()
             let remote = loader.current()?.config
-            await ads.configure(
-                flags: content.flags,
-                remoteUnitIDs: mode == .production ? remote?.adUnitIDs : nil,
-                removedAds: gameState.player?.meta.removedAds ?? false
-            )
+            // Sin `await`: el consentimiento cede el paso a los momentos tranquilos y puede tardar
+            // todo el tutorial; el ranking y las notificaciones no esperan por él.
+            Task { [ads, gameState] in
+                await ads.configure(
+                    flags: content.flags,
+                    remoteUnitIDs: mode == .production ? remote?.adUnitIDs : nil,
+                    removedAds: gameState.player?.meta.removedAds ?? false
+                )
+            }
             if let pacer = ForcedAdsSetup.makePacer(mode: mode, config: remote) {
                 ads.attachPacer(pacer)
                 if mode == .production {

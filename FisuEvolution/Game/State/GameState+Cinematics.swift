@@ -49,15 +49,42 @@ extension GameState {
     /// restricción del tutorial no desaloja al que ya tiene el turno, así que la intro se ve
     /// entera y el reveal del tablero (`.boardCelebration`) espera detrás, en `pending`, sin
     /// que ninguno bloquee al otro.
-    func reconcileIntro(isNewGame: Bool, manifest: LoopsManifest = .main) {
-        guard isCinematicDue(.intro, manifest: manifest) else { return }
-        if isNewGame {
-            playCinematicIfDue(.intro, manifest: manifest)
-        } else {
-            guard var player else { return }
+    ///
+    /// En una partida nueva con el consentimiento por delante (`consentGate`), la intro espera a
+    /// que termine —UMP, la explicación del IDFA y el cartel de Apple— para que ningún diálogo
+    /// caiga encima del video; mientras tanto la cola está quieta y el tutorial no arrancó.
+    /// Devuelve si quedó esperando.
+    @discardableResult
+    func reconcileIntro(isNewGame: Bool, manifest: LoopsManifest = .main) -> Bool {
+        guard isCinematicDue(.intro, manifest: manifest) else { return false }
+        guard isNewGame else {
+            guard var player else { return false }
             player.meta.engagement.recordCinematic(CinematicID.intro.rawValue)
             self.player = player
             scheduleSave()
+            return false
+        }
+        guard let gate = consentGate, !gate.isResolved, !gate.mustYieldToCalm else {
+            playCinematicIfDue(.intro, manifest: manifest)
+            return false
+        }
+        holdCelebrationsForAd()
+        introWait = Task { [weak self] in
+            _ = await gate.wait()
+            self?.releaseIntroAfterConsent(manifest: manifest)
+        }
+        return true
+    }
+
+    private func releaseIntroAfterConsent(manifest: LoopsManifest) {
+        introWait = nil
+        // La intro se encola con la cola todavía quieta y recién después se suelta: así gana el
+        // turno (prioridad 2) a lo que se juntó mientras tanto, como el reveal del tablero.
+        playCinematicIfDue(.intro, manifest: manifest)
+        releaseCelebrationsAfterAd()
+        if tutorialStartAfterIntro {
+            tutorialStartAfterIntro = false
+            startTutorialCoreIfPending()
         }
     }
 }

@@ -37,15 +37,46 @@ enum AdsConsent {
     /// Resuelve los dos permisos, en orden, y vuelve cuando se puede arrancar
     /// el SDK. Nunca lanza: un consentimiento que falla no puede impedir que el
     /// juego arranque.
-    static func resolve() async {
-        await requestUMPIfNeeded()
-        await requestATTWhenActive()
+    ///
+    /// `gate` avisa a la intro cuándo hay un diálogo en pantalla y cuándo terminó todo; `isCalm`
+    /// es el momento tranquilo al que se cede el paso si la intro ya no esperó.
+    static func resolve(gate: ConsentGate, isCalm: @MainActor () -> Bool) async {
+        defer { gate.resolve() }
+        #if DEBUG
+        applyDebugConsentArguments(ProcessInfo.processInfo.arguments)
+        #endif
+        await requestUMPIfNeeded(gate: gate, isCalm: isCalm)
+        await requestATTWhenActive(gate: gate, isCalm: isCalm)
+    }
+
+    /// Si hay que hacer esperar a la intro: quien ya respondió ATT y puede pedir anuncios no tiene
+    /// ningún diálogo por delante, así que la intro arranca sin demora.
+    static func introNeedsToWait(attStatus: ATTrackingManager.AuthorizationStatus, canRequestAds: Bool) -> Bool {
+        attStatus == .notDetermined || !canRequestAds
+    }
+
+    static var introNeedsToWait: Bool {
+        introNeedsToWait(
+            attStatus: ATTrackingManager.trackingAuthorizationStatus,
+            canRequestAds: ConsentInformation.shared.canRequestAds
+        )
+    }
+
+    /// Si UMP va a mostrar algo después de actualizar el estado: el formulario RGPD, el de los
+    /// estados de EE.UU. o la explicación del IDFA (que dispara el cartel de Apple).
+    nonisolated static func formIsLikely(
+        consentRequired: Bool, formAvailable: Bool, attUndetermined: Bool
+    ) -> Bool {
+        consentRequired || (formAvailable && attUndetermined)
     }
 
     // MARK: - UMP (GDPR)
 
-    private static func requestUMPIfNeeded() async {
+    private static func requestUMPIfNeeded(gate: ConsentGate, isCalm: @MainActor () -> Bool) async {
         let parameters = RequestParameters()
+        #if DEBUG
+        parameters.debugSettings = debugSettings(arguments: ProcessInfo.processInfo.arguments)
+        #endif
         // El juego no está dirigido a menores de edad de consentimiento: el
         // rating es 12+. Declararlo mal acá restringe el inventario sin motivo.
         parameters.isTaggedForUnderAgeOfConsent = false
@@ -59,6 +90,16 @@ enum AdsConsent {
             return
         }
 
+        let formLikely = formIsLikely(
+            consentRequired: info.consentStatus == .required,
+            formAvailable: info.formStatus == .available,
+            attUndetermined: ATTrackingManager.trackingAuthorizationStatus == .notDetermined
+        )
+        if formLikely {
+            await gate.waitForCalm(isCalm)
+            gate.dialogAppeared()
+        }
+        defer { gate.dialogDismissed() }
         // `loadAndPresentIfRequired` es un no-op cuando no hace falta (fuera de
         // la UE, o con el consentimiento ya dado): no hay que preguntar
         // `formStatus` a mano antes de llamarlo.
@@ -91,9 +132,12 @@ enum AdsConsent {
 
     // MARK: - ATT (Apple)
 
-    private static func requestATTWhenActive() async {
+    private static func requestATTWhenActive(gate: ConsentGate, isCalm: @MainActor () -> Bool) async {
         guard ATTrackingManager.trackingAuthorizationStatus == .notDetermined else { return }
+        await gate.waitForCalm(isCalm)
         await waitUntilActive()
+        gate.dialogAppeared()
+        defer { gate.dialogDismissed() }
         _ = await ATTrackingManager.requestTrackingAuthorization()
     }
 
@@ -114,4 +158,33 @@ enum AdsConsent {
             try? await Task.sleep(for: .milliseconds(100))
         }
     }
+
+    // MARK: - Geografía de prueba (DEBUG)
+
+    #if DEBUG
+    enum DebugConsentGeography: Equatable {
+        case eea
+        case regulatedUSState
+    }
+
+    nonisolated static func debugConsentGeography(arguments: [String]) -> DebugConsentGeography? {
+        if arguments.contains("--debug-consent-eea") { return .eea }
+        if arguments.contains("--debug-consent-us") { return .regulatedUSState }
+        return nil
+    }
+
+    /// Para ver los formularios de UMP desde el simulador: `--debug-consent-eea` o
+    /// `--debug-consent-us`. Un simulador ya cuenta como dispositivo de prueba.
+    static func debugSettings(arguments: [String]) -> DebugSettings? {
+        guard let geography = debugConsentGeography(arguments: arguments) else { return nil }
+        let settings = DebugSettings()
+        settings.geography = geography == .eea ? .EEA : .regulatedUSState
+        return settings
+    }
+
+    /// `--debug-consent-reset` borra lo guardado y vuelve a la instalación nueva.
+    static func applyDebugConsentArguments(_ arguments: [String]) {
+        if arguments.contains("--debug-consent-reset") { ConsentInformation.shared.reset() }
+    }
+    #endif
 }

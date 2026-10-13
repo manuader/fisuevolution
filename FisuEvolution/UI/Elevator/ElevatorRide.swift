@@ -72,7 +72,7 @@ enum RideCamera {
     static var flightDuration: TimeInterval?
 
     /// La curva del tramo de viaje: arranca y frena suave, los pisos del medio pasan más rápido.
-    static func eased(_ t: Double) -> Double { t * t * (3 - 2 * t) }
+    nonisolated static func eased(_ t: Double) -> Double { t * t * (3 - 2 * t) }
 }
 
 /// El director del ascensor: la placa colgante y el viaje en cabina. Lo crea `FisuEvolutionApp`

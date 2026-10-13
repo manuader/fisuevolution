@@ -180,12 +180,10 @@ struct GameButton: View {
                     .minimumScaleFactor(0.55)
             }
             .frame(maxWidth: fillsWidth ? .infinity : nil)
-            // El medallón no empuja el texto fuera del centro en el ancho completo.
-            .padding(.trailing, fillsWidth && medallionGlyph != nil ? size.medallionSide : 0)
         }
         .padding(.leading, medallionGlyph == nil ? Tokens.s16 : 6)
         .padding(.trailing, Tokens.s16)
-        .frame(minWidth: 96, maxWidth: fillsWidth ? .infinity : nil, minHeight: size.minHeight - GameButtonMetrics.lip)
+        .frame(minWidth: fillsWidth ? 0 : 96, maxWidth: fillsWidth ? .infinity : nil, minHeight: size.minHeight - GameButtonMetrics.lip)
         .background(
             PillBackground(
                 fill: bodyRole.fill,

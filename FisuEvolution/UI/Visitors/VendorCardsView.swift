@@ -3,7 +3,8 @@ import SwiftUI
 
 /// Las cartas del Vendedor Ambulante (PLAN-v2 E4, Anexo A): cada boost con su
 /// arte, su nombre, su efecto y su duración, y el video que lo regala. Una carta
-/// por visita: elegir una cierra el trato.
+/// por visita: elegir una cierra el trato. Las tres van en una sola fila (E14
+/// C15, M7b): chicas, con el botón sin medallón, para que entren en el SE.
 struct VendorCardsView: View {
     let script: VisitorsConfig.Script
     let offer: VisitOffer
@@ -23,12 +24,10 @@ struct VendorCardsView: View {
                             if let art = UIArt.image(card.iconKey) {
                                 art.resizable().scaledToFit()
                             } else {
-                                Image(systemName: "bolt.fill")
-                                    .font(.system(size: 28, weight: .heavy))
-                                    .foregroundStyle(Color("PaletteOrange"))
+                                IconCanvas { MarkDisc(mark: "★", fill: Color("PaletteOrange")) }
                             }
                         }
-                        .frame(width: 44, height: 44)
+                        .frame(width: 40, height: 40)
                         .accessibilityHidden(true)
                         Text(verbatim: VisitCopy.text(card.nameKey))
                             .font(Tokens.caption)
@@ -40,13 +39,17 @@ struct VendorCardsView: View {
                             Text(verbatim: "\(VisitCopy.effectText(effect, magnitude: magnitude)) · \(VisitCopy.durationText(seconds))")
                                 .font(Tokens.caption)
                                 .foregroundStyle(Color("PaletteInk").opacity(0.7))
-                                .lineLimit(1)
+                                .lineLimit(2)
+                                .multilineTextAlignment(.center)
                                 .minimumScaleFactor(0.6)
                         }
                         RewardedOfferButton(title: String(localized: "visit.vendor.take"),
-                                            identifier: "visit.option.card.\(card.id)", placement: .visitor) {
+                                            identifier: "visit.option.card.\(card.id)", placement: .visitor,
+                                            gameRole: .video, gameCompact: true) {
                             gameState.chooseVisitOption("card.\(card.id)")
                         }
+                        // Los tres botones reparten el ancho de su carta.
+                        .environment(\.gameButtonFillsWidth, true)
                     }
                     .frame(maxWidth: .infinity)
                 }

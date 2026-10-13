@@ -257,25 +257,30 @@ extension View {
     /// no como hoja desde abajo. Va en la vista que cubre la pantalla entera
     /// (la raíz del juego); el popup llena la zona segura y centra su tarjeta.
     /// `dismissOnVeilTap` cierra al tocar afuera (el default es no: las
-    /// decisiones se toman con los botones).
+    /// decisiones se toman con los botones). `onDismiss` corre cuando el popup
+    /// se va, sea cual sea la causa (como el de `.sheet`).
     func gamePopup<Popup: View>(
         isPresented: Binding<Bool>,
         dismissOnVeilTap: Bool = false,
+        onDismiss: (() -> Void)? = nil,
         @ViewBuilder popup: @escaping () -> Popup
     ) -> some View {
-        modifier(GamePopupPresenter(isPresented: isPresented, dismissOnVeilTap: dismissOnVeilTap, popup: popup))
+        modifier(GamePopupPresenter(isPresented: isPresented, dismissOnVeilTap: dismissOnVeilTap,
+                                    onDismiss: onDismiss, popup: popup))
     }
 
     func gamePopup<Item: Identifiable, Popup: View>(
         item: Binding<Item?>,
         dismissOnVeilTap: Bool = false,
+        onDismiss: (() -> Void)? = nil,
         @ViewBuilder popup: @escaping (Item) -> Popup
     ) -> some View {
         let shown = Binding(
             get: { item.wrappedValue != nil },
             set: { if !$0 { item.wrappedValue = nil } }
         )
-        return modifier(GamePopupPresenter(isPresented: shown, dismissOnVeilTap: dismissOnVeilTap) {
+        return modifier(GamePopupPresenter(isPresented: shown, dismissOnVeilTap: dismissOnVeilTap,
+                                           onDismiss: onDismiss) {
             if let value = item.wrappedValue { popup(value) }
         })
     }
@@ -284,6 +289,7 @@ extension View {
 private struct GamePopupPresenter<Popup: View>: ViewModifier {
     @Binding var isPresented: Bool
     let dismissOnVeilTap: Bool
+    let onDismiss: (() -> Void)?
     @ViewBuilder let popup: () -> Popup
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -303,6 +309,9 @@ private struct GamePopupPresenter<Popup: View>: ViewModifier {
                 }
             }
             .animation(reduceMotion ? .easeOut(duration: 0.15) : .snappy(duration: 0.24), value: isPresented)
+        }
+        .onChange(of: isPresented) { was, now in
+            if was, !now { onDismiss?() }
         }
     }
 }

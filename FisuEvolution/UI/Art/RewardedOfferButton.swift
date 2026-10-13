@@ -49,6 +49,13 @@ struct RewardedOfferButton: View {
     /// Lo que el padre necesite saber del botón ocupado (p. ej. no cerrar la
     /// hoja bajo el anuncio). Se actualiza solo; el padre sólo lo lee.
     var isBusy: Binding<Bool>?
+    /// El botón de la casa de E14 (C19) en vez de la cápsula: el popup que ya
+    /// migró pasa el rol (el video es `.video`) y todos los estados del botón
+    /// —cargando, sin conexión, en curso— hablan `GameButton`. Sin rol, la
+    /// cápsula de siempre, hasta que su pantalla migre.
+    var gameRole: GameButton.Role?
+    /// Chico y sin medallón, para la fila de cartas del Vendedor (tres en el SE).
+    var gameCompact = false
     let onRewarded: () -> Void
 
     @Environment(AdsCoordinator.self) private var ads
@@ -63,9 +70,19 @@ struct RewardedOfferButton: View {
     var body: some View {
         VStack(spacing: Tokens.s4) {
             if offer.phase == .busy {
-                busyPill
+                if let gameRole { gameStatus(String(localized: "ads.loading"), role: gameRole, suffix: "watching") } else { busyPill }
             } else if !inventoryReady && offer.phase != .unavailable {
-                if offline { offlineBadge } else { loadingBadge }
+                if gameRole != nil {
+                    if offline {
+                        gameStatus(String(localized: "ads.offline"), role: .neutral, suffix: "offline", action: retry)
+                    } else {
+                        gameStatus(String(localized: "ads.preparing"), role: .neutral, suffix: "loading")
+                    }
+                } else if offline { offlineBadge } else { loadingBadge }
+            } else if let gameRole {
+                GameButton(verbatim: title, role: gameRole, medallion: gameCompact ? .none : .automatic,
+                           size: gameCompact ? .compact : .regular, identifier: identifier,
+                           accessibilityLabel: accessibilityLabel, action: tap)
             } else {
                 ActionPill(
                     verbatim: title, systemImage: systemImage, tint: tint, identifier: identifier,
@@ -134,6 +151,15 @@ struct RewardedOfferButton: View {
             isBusy?.wrappedValue = false
             onRewarded()
         }
+    }
+
+    /// Los estados de espera con el botón de la casa: el reloj en el medallón,
+    /// sin SF Symbols. No son controles salvo el reintento (`action`).
+    private func gameStatus(
+        _ text: String, role: GameButton.Role, suffix: String, action: @escaping () -> Void = {}
+    ) -> some View {
+        GameButton(verbatim: text, role: role, medallion: role == .neutral && !gameCompact ? .glyph(.clock) : .none,
+                   size: gameCompact ? .compact : .regular, identifier: "\(identifier).\(suffix)", action: action)
     }
 
     /// Lo que se ve mientras el video no llegó: no es un control.

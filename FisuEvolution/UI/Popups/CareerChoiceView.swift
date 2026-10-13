@@ -10,6 +10,9 @@ import SwiftUI
 /// Se veía de otra app — y encima pedía la decisión MÁS definitiva del juego a
 /// ciegas, porque no mostraba a quién estabas eligiendo.
 ///
+/// Vive en el `PopupContainer` de la casa (E14 C15), sin X: la decisión se toma
+/// con una carrera y no se cierra de otra forma.
+///
 /// Ahora usa la anatomía de fila de FisuJobs, que es la referencia visual de
 /// todas las pantallas: retrato a la izquierda, datos al medio, y la tarjeta
 /// entera es el control. La cara importa acá más que en ningún otro lado: es lo
@@ -23,64 +26,38 @@ struct CareerChoiceView: View {
     @State private var watching = false
 
     var body: some View {
-        // `PanelCard` es el tablón de las hojas en escala de tarjeta: los
-        // insets son del componente, no medidos contra un PNG (pedido del
-        // dueño 2026-08-18: una sola familia visual para hojas y popups).
-        PanelCard {
-            VStack(spacing: Tokens.s16) {
-                header
-                // La recompensa se muestra ANTES de tocar (RF-15): una elección a
-                // ciegas entre cuatro botones idénticos no es una elección.
-                let rewards = gameState.careerRewards
-                VStack(spacing: Tokens.s12) {
-                    ForEach(prompt.options) { option in
-                        VStack(spacing: Tokens.s4) {
-                            optionRow(option, reward: rewards[option.id]?.previewText)
-                            // El ×2 va APARTE de la tarjeta (que es el control de
-                            // elegir): un video nunca es el mismo botón que la acción.
-                            if gameState.careerLumpMinutes(optionId: option.id) != nil {
-                                RewardedOfferButton(
-                                    title: String(localized: "career.double"),
-                                    identifier: "career.x2.\(option.id)",
-                                    placement: .daily,
-                                    systemImage: "play.rectangle.fill",
-                                    tint: Color("PaletteBlue"),
-                                    isBusy: $watching
-                                ) {
-                                    gameState.chooseCareerWithVideo(optionId: option.id)
-                                }
-                                .frame(maxWidth: .infinity, alignment: .trailing)
-                            }
-                        }
-                    }
-                }
-            }
-            // Un suspiro sobre los 28 del marco: que el título no nazca pegado
-            // a la banda (el aire que antes regalaba el ornamento del arte).
-            .padding(.top, Tokens.s4)
-        }
-        .padding(Tokens.s16)
-        .presentationDetents([.large])
-        .interactiveDismissDisabled()
-        .inlineLesson(.career)
-        // El tablón no llega a los bordes de la hoja: sin esto el fondo de
-        // sistema deja un rectángulo alrededor del panel. Transparente, el
-        // fork flota sobre el tablero que está por bifurcar (mismo criterio
-        // que la ficha y los popups de premio).
-        .fisuSheet()
-    }
-
-    private var header: some View {
-        VStack(spacing: Tokens.s4) {
-            Text("career.title")
-                .font(Tokens.title)
-                .foregroundStyle(Color("PaletteInk"))
-                .multilineTextAlignment(.center)
+        // Sin `onClose`: no hay X, la decisión no se cierra sin elegir.
+        PopupContainer("career.title") {
             Text("career.subtitle")
                 .font(Tokens.caption)
                 .foregroundStyle(Color("PaletteInk").opacity(0.7))
                 .multilineTextAlignment(.center)
+            // La recompensa se muestra ANTES de tocar (RF-15): una elección a
+            // ciegas entre cuatro botones idénticos no es una elección.
+            let rewards = gameState.careerRewards
+            VStack(spacing: Tokens.s12) {
+                ForEach(prompt.options) { option in
+                    VStack(spacing: Tokens.s4) {
+                        optionRow(option, reward: rewards[option.id]?.previewText)
+                        // El ×2 va APARTE de la tarjeta (que es el control de
+                        // elegir): un video nunca es el mismo botón que la acción.
+                        if gameState.careerLumpMinutes(optionId: option.id) != nil {
+                            RewardedOfferButton(
+                                title: String(localized: "career.double"),
+                                identifier: "career.x2.\(option.id)",
+                                placement: .daily,
+                                isBusy: $watching,
+                                gameRole: .video
+                            ) {
+                                gameState.chooseCareerWithVideo(optionId: option.id)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .trailing)
+                        }
+                    }
+                }
+            }
         }
+        .inlineLesson(.career)
     }
 
     /// Una carrera, con la misma anatomía que una fila de FisuJobs.
@@ -114,9 +91,11 @@ struct CareerChoiceView: View {
                     // El chevron es lo que dice "esto se toca": la tarjeta entera
                     // es el control, así que sin él se lee como una ficha
                     // informativa. Mismo rol que el `PricePill` en FisuJobs.
-                    Image(systemName: "chevron.right")
-                        .font(Tokens.body)
-                        .foregroundStyle(Color("PaletteInk").opacity(0.45))
+                    ChevronShape()
+                        .stroke(Color("PaletteInk").opacity(0.45),
+                                style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
+                        .frame(width: 9, height: 16)
+                        .accessibilityHidden(true)
                 }
             }
         }
@@ -165,11 +144,19 @@ private struct CareerPortrait: View {
         if let image = UIArt.image(faceKey) {
             image.resizable().scaledToFit()
         } else {
-            Image(systemName: "person.fill")
-                .resizable()
-                .scaledToFit()
-                .padding(12)
-                .foregroundStyle(Color("PaletteInk").opacity(0.35))
+            IconCanvas { MarkDisc(mark: "?", fill: Color("PaletteBrown").lifted(0.3)) }
+                .padding(10)
         }
+    }
+}
+
+/// El «>» que dice «esto se toca», dibujado: sin SF Symbols.
+private struct ChevronShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.midY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        return path
     }
 }

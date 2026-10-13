@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Las dos hojas de los premios (el colchón y la ruleta suelta), aparte de
-/// `RootView`: con una hoja más en su cadena el type-checker se rinde.
+/// La hoja de la ruleta suelta, aparte de `RootView`: con una hoja más en su
+/// cadena el type-checker se rinde. El colchón ya es un popup (`GamePopups`).
 struct PrizeSheets: ViewModifier {
     @Environment(GameState.self) private var gameState
     /// Re-publica `uiCoversBoard` cuando una de las dos se abre o se cierra
@@ -12,9 +12,6 @@ struct PrizeSheets: ViewModifier {
         content
             .onChange(of: gameState.mattressPopup) { syncCover() }
             .onChange(of: gameState.wheelSheet) { syncCover() }
-            .fisuSheet(item: mattressPopupBinding) { _ in
-                MattressPopupView()
-            }
             .fisuSheet(item: wheelSheetBinding) { _ in
                 NavigationStack {
                     WheelView(close: { gameState.closeWheel() })
@@ -22,13 +19,6 @@ struct PrizeSheets: ViewModifier {
                 .tint(Color("PaletteInk"))
                 .fisuSheet()
             }
-    }
-
-    private var mattressPopupBinding: Binding<MattressPopup?> {
-        Binding(
-            get: { gameState.mattressPopup },
-            set: { if $0 == nil { gameState.closeMattressPopup() } }
-        )
     }
 
     private var wheelSheetBinding: Binding<WheelSheet?> {

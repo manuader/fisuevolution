@@ -5,74 +5,38 @@ import UIKit
 /// Share card vertical (bible §8): "la sátira ES el marketing". Se renderiza con
 /// ImageRenderer y se comparte con UIActivityViewController — su completion
 /// dispara el bonus viral (`registerShareCompleted(_:)`), cosa que ShareLink no permite.
+///
+/// Vive en el `PopupContainer` de la casa (E14 C15): la card es la ilustración
+/// y abajo van compartir y la salida. La card misma es de T23.
 struct ShareCardSheet: View {
     @Environment(GameState.self) private var gameState
     let moment: ShareMoment
     @State private var showActivity = false
 
+    /// La vista previa a escala: la card entera cabe en el SE sin scrollear.
+    private static let previewScale: CGFloat = 0.72
+
     var body: some View {
-        VStack(spacing: Tokens.s16) {
+        PopupContainer("share.title", ribbonTint: Color("PaletteGreen"), onClose: { gameState.dismissShareCard() }) {
             ShareCardContent(moment: moment)
                 .frame(width: 270, height: 480)
                 .clipShape(RoundedRectangle(cornerRadius: CardMaterials.cornerRadius, style: .continuous))
                 // El contorno de tarjeta v3 va en la VISTA PREVIA y no dentro
                 // del contenido: la imagen exportada sale a sangre completa,
-                // así que este marco es chrome de la hoja, no del póster.
+                // así que este marco es chrome del popup, no del póster.
                 .overlay(
                     RoundedRectangle(cornerRadius: CardMaterials.cornerRadius, style: .continuous)
                         .strokeBorder(Color("PaletteBrown").opacity(0.55), lineWidth: 2)
                 )
                 .shadow(color: .black.opacity(0.18), radius: 8, y: 3)
-
-            ActionPill(
-                titleKey: "share.button",
-                systemImage: "square.and.arrow.up",
-                // Azul y no el verde de las acciones: compartir siempre fue
-                // azul en esta hoja y ese color es parte de su identidad; lo
-                // que se alinea al v3 es el material (cápsula caramelo con el
-                // borde del mismo tono hundido, vía `PillBackground`).
-                tint: Color("PaletteBlue"),
-                identifier: "share.button",
-                action: { showActivity = true }
-            )
-
-            // La salida silenciosa no compite con el CTA: texto tinta pelado,
-            // sin cápsula, conservando el ancho de toque completo que tenía el
-            // `.bordered` al que reemplaza.
-            Button {
-                gameState.dismissShareCard()
-            } label: {
-                Text("share.skip")
-                    .font(Tokens.body)
-                    .foregroundStyle(Color("PaletteInk").opacity(0.65))
-                    .padding(.vertical, Tokens.s8)
-                    .frame(maxWidth: .infinity)
-                    .contentShape(Rectangle())
+                .scaleEffect(Self.previewScale)
+                .frame(width: 270 * Self.previewScale, height: 480 * Self.previewScale)
+        } actions: {
+            GameButton("share.button", role: .free, medallion: .glyph(.gift), identifier: "share.button") {
+                showActivity = true
             }
-            .buttonStyle(.plain)
-            .accessibilityIdentifier("share.skip")
-        }
-        .padding(Tokens.s24)
-        .presentationDetents([.large])
-        .presentationSizing(.page)
-        // El interior pergamino-con-luz de `PanelBackground`, sin marco de
-        // arte: no hay un panel del atlas para esta hoja y los marcos traen
-        // ornamento arriba que pide insets medidos — acá el cuadro es la
-        // propia tarjeta. Va como fondo de presentación porque el contenido
-        // no llena la hoja: un `.background` común dejaría el pergamino
-        // recortado al tamaño del VStack.
-        .presentationBackground {
-            ZStack {
-                Color("PaletteParchment")
-                LinearGradient(
-                    colors: [
-                        Color.white.opacity(0.35),
-                        .clear,
-                        Color("PaletteBrown").opacity(0.10)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
+            GameButton("share.skip", role: .neutral, identifier: "share.skip") {
+                gameState.dismissShareCard()
             }
         }
         .sheet(isPresented: $showActivity) {

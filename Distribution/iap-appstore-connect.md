@@ -1,6 +1,6 @@
 # Los 14 productos, para cargar a mano en App Store Connect
 
-_Al día con la 2.0 (2026-10-06): los 11 de la v1 revisados, los packs de ORO
+_Al día con la 2.0 (2026-10-06): los 11 de la v1 revisados, los packs de dólares blue
 reescalados y las tres ofertas nuevas. El paso a paso completo del lanzamiento
 (ficha, notas a App Review, AdMob y mediación) está en
 `Distribution/setup-v2-asc-admob-mediacion.md`._
@@ -45,11 +45,11 @@ inglés aunque es-MX esté cargado: es la mitad del ítem 19.
 | Reference Name | Product ID | Precio USD |
 |---|---|---|
 | Coins S | `com.fisuevolution.iap.coins_small` | 0.99 |
-| ORO S | `com.fisuevolution.iap.oro_small` | 1.99 |
+| Blue S | `com.fisuevolution.iap.oro_small` | 1.99 |
 | Coins M | `com.fisuevolution.iap.coins_medium` | 4.99 |
-| ORO M | `com.fisuevolution.iap.oro_medium` | 4.99 |
+| Blue M | `com.fisuevolution.iap.oro_medium` | 4.99 |
 | Coins L | `com.fisuevolution.iap.coins_large` | 9.99 |
-| ORO L | `com.fisuevolution.iap.oro_large` | 9.99 |
+| Blue L | `com.fisuevolution.iap.oro_large` | 9.99 |
 | Offer Bienvenida | `com.fisuevolution.iap.offer_bienvenida` | 0.99 |
 | Offer Renacer | `com.fisuevolution.iap.offer_renacer` | 2.99 |
 | Offer Mudanza | `com.fisuevolution.iap.offer_mudanza` | 4.99 |
@@ -102,21 +102,21 @@ lo de "24 horas" lo maneja el juego (`offers.json`), no Apple.
 - EN · The whole duffel bag, no questions asked
 
 ### com.fisuevolution.iap.oro_small — Consumible — USD 1.99
-- ES · Puñado de ORO
+- ES · Puñado de dólares blue
 - ES · Para un boost o esa mejora que venís mirando
-- EN · Handful of ORO
+- EN · Handful of Blue Dollars
 - EN · For a boost or that upgrade you keep eyeing
 
 ### com.fisuevolution.iap.oro_medium — Consumible — USD 4.99
-- ES · Saco de ORO
+- ES · Saco de dólares blue
 - ES · Boosts, mejoras y skins, y todavía te sobra
-- EN · Sack of ORO
+- EN · Sack of Blue Dollars
 - EN · Boosts, upgrades and skins, with change left
 
 ### com.fisuevolution.iap.oro_large — Consumible — USD 9.99
-- ES · Bóveda de ORO
+- ES · Bóveda de dólares blue
 - ES · Para el que quiere todo, y lo quiere ahora
-- EN · Vault of ORO
+- EN · Vault of Blue Dollars
 - EN · For those who want it all, and want it now
 
 ### com.fisuevolution.iap.skin_mundialista — No consumible — USD 2.99
@@ -139,36 +139,36 @@ lo de "24 horas" lo maneja el juego (`offers.json`), no Apple.
 
 ### com.fisuevolution.iap.offer_bienvenida — Consumible — USD 0.99
 - ES · Pack de Bienvenida
-- ES · ORO, 2 h de ingresos y un cofre de pintas
+- ES · Blue, 2 h de ingresos y un cofre de pintas
 - EN · Welcome Pack
-- EN · ORO, 2 h of income and a skin chest
+- EN · Blue, 2 h of income and a skin chest
 
 ### com.fisuevolution.iap.offer_renacer — Consumible — USD 2.99
 - ES · Pack Renacer
-- ES · ORO, 4 h de ingresos y ×3 por 30 minutos
+- ES · Blue, 4 h de ingresos y ×3 por 30 minutos
 - EN · Rebirth Pack
-- EN · ORO, 4 h of income and ×3 for 30 minutes
+- EN · Blue, 4 h of income and ×3 for 30 minutes
 
 ### com.fisuevolution.iap.offer_mudanza — Consumible — USD 4.99
 - ES · Pack Mudanza
-- ES · ORO, 8 h de ingresos y 3 Paquetes
+- ES · Blue, 8 h de ingresos y 3 Paquetes
 - EN · Moving Day Pack
-- EN · ORO, 8 h of income and 3 Parcels
+- EN · Blue, 8 h of income and 3 Parcels
 
 ### Lo que cambió contra la v1, y por qué
 
-- **`oro_medium` deja de llamarse "Cofre de ORO"** (ahora "Saco de ORO" /
-  "Sack of ORO"). En la 2.0, "cofre" es sólo el de pintas (HANDOFF §5), y la
-  tienda de ORO vende un cofre de pintas con premio al azar. Un producto de
+- **`oro_medium` deja de llamarse "Cofre de ORO"** (ahora "Saco de dólares blue" /
+  "Sack of Blue Dollars"). En la 2.0, "cofre" es sólo el de pintas (HANDOFF §5), y la
+  tienda de dólares blue vende un cofre de pintas con premio al azar. Un producto de
   plata real llamado "Cofre" se lee como una caja sorpresa paga, que Apple
   trata distinto (guía 3.1.1).
 - **`remove_ads` y `starter_pack` ya no prometen "chau anuncios"**: sacan los
   tres formatos que aparecen solos (intersticial, pausa publicitaria y app
   open), y los videos con premio siguen. Una descripción que promete más de lo
   que entrega es motivo de rechazo y de reclamo.
-- **Las descripciones de ORO hablan de la tienda**: en la 2.0 el ORO compra
+- **Las descripciones del blue hablan de la tienda**: en la 2.0 el blue compra
   boosts, atajos y skins, no sólo mejoras.
-- **Las descripciones no llevan montos de ORO**: los montos se calibran con el
+- **Las descripciones no llevan montos de blue**: los montos se calibran con el
   simulador sin tocar el precio (PLAN-v2 §2), y un número en la descripción
   obligaría a re-enviar a revisión cada vez. Los montos viven en la tabla de
   abajo y en las notas a App Review.
@@ -180,7 +180,7 @@ lo de "24 horas" lo maneja el juego (`offers.json`), no Apple.
 La plata ya no es un factor sobre el costo del tier más alto: en la 2.0 se
 paga en **minutos de producción real** (E2a, `RewardScale`), como todos los
 premios del juego. Un monto fijo envejece mal en un idle exponencial; una
-cantidad de tiempo de producción no. El ORO sí es fijo, porque sus sinks
+cantidad de tiempo de producción no. El blue sí es fijo, porque sus sinks
 (`upgrades.json`, `oro_shop.json`) tienen costos fijos.
 
 | Product ID | Entrega en la 2.0 | En la v1 |
@@ -188,26 +188,25 @@ cantidad de tiempo de producción no. El ORO sí es fijo, porque sus sinks
 | `coins_small` | 1 h de producción | plata ×15 |
 | `coins_medium` | 6 h de producción | plata ×90 |
 | `coins_large` | 24 h de producción | plata ×220 |
-| `oro_small` | 160 de ORO | 250 |
-| `oro_medium` | 550 de ORO | 750 |
-| `oro_large` | 1.400 de ORO | 2000 |
+| `oro_small` | 160 blue | 250 |
+| `oro_medium` | 550 blue | 750 |
+| `oro_large` | 1.400 blue | 2000 |
 | `remove_ads` | saca los tres formatos forzados (intersticial, pausa publicitaria y app open), para siempre; los videos con premio siguen | saca el intersticial |
 | `skin_mundialista` | la skin `mundialista` | igual |
 | `skin_parrillero` | la skin `parrillero` | igual |
 | `skins_diamante` | las 43 skins de diamante | igual |
 | `starter_pack` | 4 h de producción + skin `mundialista` + lo mismo que `remove_ads` | plata ×40 + sin intersticial + skin |
-| `offer_bienvenida` | 120 de ORO + 2 h de producción + 1 cofre de pintas | — (nueva) |
-| `offer_renacer` | 300 de ORO + 4 h de producción + ingresos ×3 por 30 min | — (nueva) |
-| `offer_mudanza` | 500 de ORO + 8 h de producción + 3 Paquetes de la Aduana | — (nueva) |
+| `offer_bienvenida` | 120 blue + 2 h de producción + 1 cofre de pintas | — (nueva) |
+| `offer_renacer` | 300 blue + 4 h de producción + ingresos ×3 por 30 min | — (nueva) |
+| `offer_mudanza` | 500 blue + 8 h de producción + 3 Paquetes de la Aduana | — (nueva) |
 
-Los montos de ORO y las horas son los aprobados en PLAN-v2 §2; los montos de
-ORO se pueden mover con el simulador (E2b) sin tocar el precio. Si se mueven,
+Los montos de blue y las horas son los aprobados en PLAN-v2 §2; los montos de blue se pueden mover con el simulador (E2b) sin tocar el precio. Si se mueven,
 se corrige esta tabla, no las fichas.
 
 ⚠️ **La oferta de Bienvenida trae un cofre de pintas, que es un premio al
 azar pagado con plata real.** La hoja de la oferta tiene que mostrar las
 probabilidades del cofre **antes** de comprar (guía 3.1.1), con la misma
-`OddsDisclosureView` de la tienda de ORO.
+`OddsDisclosureView` de la tienda de dólares blue.
 
 ## Dos cosas que frenan el envío si faltan
 

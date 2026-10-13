@@ -121,8 +121,7 @@ es: "¡Llegó el Aguinaldo! Entrá a cobrarlo antes de que se lo lleve la inflac
   supported: ads still serve, non-personalized, and no game feature is withheld.
   In the EU/UK/CH, Google's UMP consent form is shown before any ad.
 - **IAPs (11), StoreKit 2, with Restore Purchases in the Store screen:** one
-  starter pack, remove-ads, three consumable cash packs, three consumable ORO
-  packs, and three cosmetic skin purchases. Consumables (cash/ORO) are not
+  starter pack, remove-ads, three consumable cash packs, three consumable Blue Dollar packs, and three cosmetic skin purchases. Consumables (cash/Blue Dollars) are not
   restored by design; remove-ads and skins are.
 - Quick test: tap the character to earn coins, buy a second one with the green
   button, drag one onto the other to merge.

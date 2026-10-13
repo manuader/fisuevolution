@@ -98,7 +98,7 @@ The app does not operate in a regulated industry and contains no protected
 third-party material. Specifically:
 
 - It is not a financial, gambling, health, or otherwise regulated product.
-  The in-game currencies ("plata" and "ORO") are game items with no monetary
+  The in-game currencies ("plata" and "dólar blue") are game items with no monetary
   value: they cannot be cashed out, transferred, or exchanged for anything
   outside the game, and the Terms of Service state this explicitly.
 - There is no real-money gambling and no loot box purchasable with real money.

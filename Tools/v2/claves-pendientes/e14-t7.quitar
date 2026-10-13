@@ -1,0 +1,46 @@
+ach.reward.oro %@
+character.skin.oro_shop
+cinematic.reencarnacion.a11y
+iap.com.fisuevolution.iap.offer_bienvenida.desc
+iap.com.fisuevolution.iap.offer_mudanza.desc
+iap.com.fisuevolution.iap.offer_renacer.desc
+iap.com.fisuevolution.iap.oro_large.desc
+iap.com.fisuevolution.iap.oro_large.name
+iap.com.fisuevolution.iap.oro_medium.desc
+iap.com.fisuevolution.iap.oro_medium.name
+iap.com.fisuevolution.iap.oro_small.desc
+iap.com.fisuevolution.iap.oro_small.name
+prestige.body %@
+prestige.keeps %@
+prestige.oro.gain %@
+prestige.oro.next %@
+price.ax.oro %@
+reset.summary.iap_skins %@
+reset.summary.oro %@ %@ %@ %@
+reset.summary.refund
+reward.title.oro
+stats.row.oro
+stats.row.oro_lifetime
+store.pack.oro %@
+store.section.oro
+store.segment.buy
+store.segment.spend
+store.subtitle
+store.subtitle.spend
+tutorial.cosmetics.open
+tutorial.cosmetics.spend
+tutorial.cosmetics.where
+tutorial.luck.spend
+tutorial.oro_shop.caps
+tutorial.oro_shop.open
+tutorial.oro_shop.spend
+tutorial.prestige.open
+tutorial.prestige.oro
+tutorial.tip.oro
+upgrade.effect.prestige %@
+upgrades.flavor.prestige
+upgrades.oro_balance %@
+visit.arbolito_blue.ask
+visit.arbolito_cambio.ask
+visit.arbolito_cambio.bubble
+visit.option.exchange

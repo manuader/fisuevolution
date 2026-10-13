@@ -60,19 +60,19 @@
         "since": "1.0",
         "localizations": {
           "es-MX": {
-            "name": "Puñado de ORO",
+            "name": "Puñado de dólares blue",
             "description": "Para un boost o esa mejora que venís mirando"
           },
           "es-ES": {
-            "name": "Puñado de ORO",
+            "name": "Puñado de dólares blue",
             "description": "Para un boost o esa mejora que venís mirando"
           },
           "en-US": {
-            "name": "Handful of ORO",
+            "name": "Handful of Blue Dollars",
             "description": "For a boost or that upgrade you keep eyeing"
           }
         },
-        "reviewNote": "Gives 160 ORO.",
+        "reviewNote": "Gives 160 Blue Dollars.",
         "reviewScreenshot": "store"
       },
       {
@@ -110,19 +110,19 @@
         "since": "1.0",
         "localizations": {
           "es-MX": {
-            "name": "Saco de ORO",
+            "name": "Saco de dólares blue",
             "description": "Boosts, mejoras y skins, y todavía te sobra"
           },
           "es-ES": {
-            "name": "Saco de ORO",
+            "name": "Saco de dólares blue",
             "description": "Boosts, mejoras y skins, y todavía te sobra"
           },
           "en-US": {
-            "name": "Sack of ORO",
+            "name": "Sack of Blue Dollars",
             "description": "Boosts, upgrades and skins, with change left"
           }
         },
-        "reviewNote": "Gives 550 ORO.",
+        "reviewNote": "Gives 550 Blue Dollars.",
         "reviewScreenshot": "store"
       },
       {
@@ -160,19 +160,19 @@
         "since": "1.0",
         "localizations": {
           "es-MX": {
-            "name": "Bóveda de ORO",
+            "name": "Bóveda de dólares blue",
             "description": "Para el que quiere todo, y lo quiere ahora"
           },
           "es-ES": {
-            "name": "Bóveda de ORO",
+            "name": "Bóveda de dólares blue",
             "description": "Para el que quiere todo, y lo quiere ahora"
           },
           "en-US": {
-            "name": "Vault of ORO",
+            "name": "Vault of Blue Dollars",
             "description": "For those who want it all, and want it now"
           }
         },
-        "reviewNote": "Gives 1,400 ORO.",
+        "reviewNote": "Gives 1,400 Blue Dollars.",
         "reviewScreenshot": "store"
       },
       {
@@ -186,15 +186,15 @@
         "localizations": {
           "es-MX": {
             "name": "Pack de Bienvenida",
-            "description": "ORO, 2 h de ingresos y un cofre de pintas"
+            "description": "Blue, 2 h de ingresos y un cofre de pintas"
           },
           "es-ES": {
             "name": "Pack de Bienvenida",
-            "description": "ORO, 2 h de ingresos y un cofre de pintas"
+            "description": "Blue, 2 h de ingresos y un cofre de pintas"
           },
           "en-US": {
             "name": "Welcome Pack",
-            "description": "ORO, 2 h of income and a skin chest"
+            "description": "Blue, 2 h of income and a skin chest"
           }
         },
         "reviewNote": "Offered once for 24 hours on the player's 2nd calendar day. Contains a skin chest; its odds are shown before purchase. See the app review notes.",
@@ -211,15 +211,15 @@
         "localizations": {
           "es-MX": {
             "name": "Pack Renacer",
-            "description": "ORO, 4 h de ingresos y ×3 por 30 minutos"
+            "description": "Blue, 4 h de ingresos y ×3 por 30 minutos"
           },
           "es-ES": {
             "name": "Pack Renacer",
-            "description": "ORO, 4 h de ingresos y ×3 por 30 minutos"
+            "description": "Blue, 4 h de ingresos y ×3 por 30 minutos"
           },
           "en-US": {
             "name": "Rebirth Pack",
-            "description": "ORO, 4 h of income and ×3 for 30 minutes"
+            "description": "Blue, 4 h of income and ×3 for 30 minutes"
           }
         },
         "reviewNote": "Offered for 24 hours right after reincarnating. See the app review notes.",
@@ -236,15 +236,15 @@
         "localizations": {
           "es-MX": {
             "name": "Pack Mudanza",
-            "description": "ORO, 8 h de ingresos y 3 Paquetes"
+            "description": "Blue, 8 h de ingresos y 3 Paquetes"
           },
           "es-ES": {
             "name": "Pack Mudanza",
-            "description": "ORO, 8 h de ingresos y 3 Paquetes"
+            "description": "Blue, 8 h de ingresos y 3 Paquetes"
           },
           "en-US": {
             "name": "Moving Day Pack",
-            "description": "ORO, 8 h of income and 3 Parcels"
+            "description": "Blue, 8 h of income and 3 Parcels"
           }
         },
         "reviewNote": "Offered for 24 hours when a new floor opens. See the app review notes.",
@@ -491,7 +491,7 @@
         "promotionalText": "Tap, merge and evolve: from neighborhood hobo to God of the universe, with stops at the corner store, the delivery bike, the office and a university diploma",
         "marketingUrl": "https://adergames-site.vercel.app/",
         "supportUrl": "https://adergames-site.vercel.app/support",
-        "whatsNew": "Version 2.0 is here: the biggest overhaul since the Hobo left the alley.\n\n• Visitors: the Police Chief, the Union Boss, the Gringo Tourist and friends drop by with requests, trades and surprises.\n• New events like We Won the Cup!, Long Weekend, General Strike and Blackout, each with a way out by video.\n• Customs Parcels, the Mattress Stash and the TV Host's Prize Wheel.\n• ORO Shop: boosts, shortcuts, permanent upgrades and new outfits.\n• 15 spots per floor, an elevator panel, and fully staffed floors that boost your income.\n• The quick-hire button never disappears, and pressing and holding it lets you pin who you hire.\n• A music theme for every floor.\n• Now on iPad too.\n• A brand-new tutorial, plus a tour of what's new for 1.0 veterans.\n• Fixes: background earnings no longer freeze, and no evolution happens without you seeing it."
+        "whatsNew": "Version 2.0 is here: the biggest overhaul since the Hobo left the alley.\n\n• Visitors: the Police Chief, the Union Boss, the Gringo Tourist and friends drop by with requests, trades and surprises.\n• New events like We Won the Cup!, Long Weekend, General Strike and Blackout, each with a way out by video.\n• Customs Parcels, the Mattress Stash and the TV Host's Prize Wheel.\n• Blue Dollar Shop: boosts, shortcuts, permanent upgrades and new outfits.\n• 15 spots per floor, an elevator panel, and fully staffed floors that boost your income.\n• The quick-hire button never disappears, and pressing and holding it lets you pin who you hire.\n• A music theme for every floor.\n• Now on iPad too.\n• A brand-new tutorial, plus a tour of what's new for 1.0 veterans.\n• Fixes: background earnings no longer freeze, and no evolution happens without you seeing it."
       },
       "es-MX": {
         "name": "FisuEvolution",
@@ -502,7 +502,7 @@
         "promotionalText": "De fisura a dios del universo. Tocá para ganar monedas, fusioná personajes y subí niveles sin parar. ¿Hasta dónde llegás?",
         "marketingUrl": "https://adergames-site.vercel.app/",
         "supportUrl": "https://adergames-site.vercel.app/es/support",
-        "whatsNew": "¡Llegó la 2.0! La reforma más grande desde que el Fisura salió del callejón.\n\n• Visitantes: el Comisario, el Sindicalista, el Turista Gringo y compañía pasan por tu empresa con pedidos, trueques y sorpresas.\n• Eventos nuevos, como ¡Salimos campeones!, el Feriado Puente, el Paro General o el Apagón, con su escape por video.\n• El Paquete de la Aduana, El Colchón y la Ruleta del Conductor de TV.\n• Tienda de ORO: boosts, atajos, mejoras permanentes y pintas nuevas.\n• 15 lugares por piso, la botonera del ascensor y pisos en marcha que suben tus ingresos.\n• El atajo de contratar ya no desaparece, y manteniéndolo presionado elegís a quién fijar.\n• Un tema musical para cada piso.\n• Ahora también en iPad.\n• Tutorial nuevo y un recorrido por las novedades para los que vienen de la 1.0.\n• Arreglos: las ganancias en segundo plano ya no se congelan, y ninguna evolución pasa sin que la veas."
+        "whatsNew": "¡Llegó la 2.0! La reforma más grande desde que el Fisura salió del callejón.\n\n• Visitantes: el Comisario, el Sindicalista, el Turista Gringo y compañía pasan por tu empresa con pedidos, trueques y sorpresas.\n• Eventos nuevos, como ¡Salimos campeones!, el Feriado Puente, el Paro General o el Apagón, con su escape por video.\n• El Paquete de la Aduana, El Colchón y la Ruleta del Conductor de TV.\n• Tienda de dólares blue: boosts, atajos, mejoras permanentes y pintas nuevas.\n• 15 lugares por piso, la botonera del ascensor y pisos en marcha que suben tus ingresos.\n• El atajo de contratar ya no desaparece, y manteniéndolo presionado elegís a quién fijar.\n• Un tema musical para cada piso.\n• Ahora también en iPad.\n• Tutorial nuevo y un recorrido por las novedades para los que vienen de la 1.0.\n• Arreglos: las ganancias en segundo plano ya no se congelan, y ninguna evolución pasa sin que la veas."
       },
       "es-ES": {
         "name": "FisuEvolution",
@@ -513,10 +513,10 @@
         "promotionalText": "De fisura a dios del universo. Tocá para ganar monedas, fusioná personajes y subí niveles sin parar. ¿Hasta dónde llegás?",
         "marketingUrl": "https://adergames-site.vercel.app/",
         "supportUrl": "https://adergames-site.vercel.app/es/support",
-        "whatsNew": "¡Llegó la 2.0! La reforma más grande desde que el Fisura salió del callejón.\n\n• Visitantes: el Comisario, el Sindicalista, el Turista Gringo y compañía pasan por tu empresa con pedidos, trueques y sorpresas.\n• Eventos nuevos, como ¡Salimos campeones!, el Feriado Puente, el Paro General o el Apagón, con su escape por video.\n• El Paquete de la Aduana, El Colchón y la Ruleta del Conductor de TV.\n• Tienda de ORO: boosts, atajos, mejoras permanentes y pintas nuevas.\n• 15 lugares por piso, la botonera del ascensor y pisos en marcha que suben tus ingresos.\n• El atajo de contratar ya no desaparece, y manteniéndolo presionado elegís a quién fijar.\n• Un tema musical para cada piso.\n• Ahora también en iPad.\n• Tutorial nuevo y un recorrido por las novedades para los que vienen de la 1.0.\n• Arreglos: las ganancias en segundo plano ya no se congelan, y ninguna evolución pasa sin que la veas."
+        "whatsNew": "¡Llegó la 2.0! La reforma más grande desde que el Fisura salió del callejón.\n\n• Visitantes: el Comisario, el Sindicalista, el Turista Gringo y compañía pasan por tu empresa con pedidos, trueques y sorpresas.\n• Eventos nuevos, como ¡Salimos campeones!, el Feriado Puente, el Paro General o el Apagón, con su escape por video.\n• El Paquete de la Aduana, El Colchón y la Ruleta del Conductor de TV.\n• Tienda de dólares blue: boosts, atajos, mejoras permanentes y pintas nuevas.\n• 15 lugares por piso, la botonera del ascensor y pisos en marcha que suben tus ingresos.\n• El atajo de contratar ya no desaparece, y manteniéndolo presionado elegís a quién fijar.\n• Un tema musical para cada piso.\n• Ahora también en iPad.\n• Tutorial nuevo y un recorrido por las novedades para los que vienen de la 1.0.\n• Arreglos: las ganancias en segundo plano ya no se congelan, y ninguna evolución pasa sin que la veas."
       }
     },
-    "reviewNotes": "HoboEvolution 2.0 - notes for the reviewer\n\nSatirical single-player merge/idle game with Argentine humor. Brands are parodies and characters are archetypes, not real people. No accounts, no login: progress is stored on device. The only server of ours is the optional leaderboard (see LEADERBOARD). Game Center and iCloud are disabled.\n\nLEADERBOARD (Guideline 1.2)\nThe Ranking tab is in the bottom bar right after the tutorial: open it to see the board; long-press any row for Report. Entering a name is only offered after reaching the final stage (God), which takes hours, so it is not reachable in review. It is optional; the name (max 15 chars) is checked by rules, a word list and an automated classifier (Anthropic's Claude Haiku, which receives only the name), and hidden after 3 reports.\n\nHOW TO TEST\nTap the character to earn coins, tap Hire to buy another one, and drag one onto another to merge them. The tutorial cannot be skipped; it ends with a welcome chest. The bottom-bar tabs appear one by one as you play. The Store tab has every IAP and Restore Purchases.\n\nADS (Google AdMob; mediation partners: Unity Ads and Meta Audience Network)\n1. Opt-in rewarded videos, always started by an explicit tap on a button that says what you get; they never autoplay. Places: the Gifts list (4 prizes, and skipping a boost cooldown); the side column of the board (\"Merge all\" and parcel rain); doubling offline earnings; opening another skin chest; the prize wheel (spin and \"repeat prize\"); the Mattress Stash (open and \"another mattress\"); visitors (reward x2, forgiving a fine, the street vendor's boosts, the x2 challenge); escaping a negative event; daily and career rewards x2.\n2. Ads that appear on their own, only at natural breaks: at least 2 minutes apart, never during the tutorial, never over an open screen or a celebration, never two in the same break.\n- Interstitial and \"ad break\" (rewarded interstitial) alternate. Breaks: closing a menu screen back to the board, dismissing the offline-earnings popup, reincarnating, and the end of a chain of celebrations. The ad break always shows an intro with a 5-second countdown and a visible \"No, thanks\" button; declining has no penalty.\n- App open: only when returning after 3+ minutes away, at most once every 20 minutes, from the second session on, never on first launch or in the tutorial.\n\"Remove Ads\" (US$2.99) and the Starter Pack remove these three formats. Opt-in rewarded videos stay, because they are optional and pay out prizes; the purchase description says so.\nATT is requested on first launch; declining is fully supported. In the EEA, UK and Switzerland, Google's UMP consent form is shown before any ad, and Settings > Privacy options lets the player change it.\n\nRANDOMIZED ITEMS (Guideline 3.1.1)\nThe prize wheel, the skin chest bought with ORO, the Mattress Stash and the skin chest in the Welcome Pack give randomized items. The odds of every prize are shown on screen before spinning, buying or opening. ORO, the premium currency, can be bought with real money; it has no real-world value and cannot be cashed out or transferred. No real-money gambling or betting. Extra wheel spins and ORO chests are off in Belgium and Australia.\n\n24-HOUR OFFERS (consumable IAPs)\n- Welcome Pack (US$0.99): once, on the player's 2nd calendar day. To see it: play once, set the device date one day ahead and reopen the app.\n- Rebirth Pack (US$2.99): right after reincarnating.\n- Moving Day Pack (US$4.99): when a new floor opens outside the tutorial; early floors open within the first minutes.\nEach stays for 24 hours behind a chip at the top of the board, never during the tutorial.\n\nIAPs (14): starter pack, remove ads, three cash packs, three ORO packs, three skin purchases and the three offers above. Consumables are not restored by design; remove ads and skins are.",
+    "reviewNotes": "HoboEvolution 2.0 - notes for the reviewer\n\nSatirical single-player merge/idle game with Argentine humor. Brands are parodies and characters are archetypes, not real people. No accounts, no login: progress is stored on device. The only server of ours is the optional leaderboard (see LEADERBOARD). Game Center and iCloud are disabled.\n\nLEADERBOARD (Guideline 1.2)\nThe Ranking tab is in the bottom bar right after the tutorial: open it to see the board; long-press any row for Report. Entering a name is only offered after reaching the final stage (God), which takes hours, so it is not reachable in review. It is optional; the name (max 15 chars) is checked by rules, a word list and an automated classifier (Anthropic's Claude Haiku, which receives only the name), and hidden after 3 reports.\n\nHOW TO TEST\nTap the character to earn coins, tap Hire to buy another one, and drag one onto another to merge them. The tutorial cannot be skipped; it ends with a welcome chest. The bottom-bar tabs appear one by one as you play. The Store tab has every IAP and Restore Purchases.\n\nADS (Google AdMob; mediation partners: Unity Ads and Meta Audience Network)\n1. Opt-in rewarded videos, always started by an explicit tap on a button that says what you get; they never autoplay. Places: the Gifts list (4 prizes, and skipping a boost cooldown); the side column of the board (\"Merge all\" and parcel rain); doubling offline earnings; opening another skin chest; the prize wheel (spin and \"repeat prize\"); the Mattress Stash (open and \"another mattress\"); visitors (reward x2, forgiving a fine, the street vendor's boosts, the x2 challenge); escaping a negative event; daily and career rewards x2.\n2. Ads that appear on their own, only at natural breaks: at least 2 minutes apart, never during the tutorial, never over an open screen or a celebration, never two in the same break.\n- Interstitial and \"ad break\" (rewarded interstitial) alternate. Breaks: closing a menu screen back to the board, dismissing the offline-earnings popup, reincarnating, and the end of a chain of celebrations. The ad break always shows an intro with a 5-second countdown and a visible \"No, thanks\" button; declining has no penalty.\n- App open: only when returning after 3+ minutes away, at most once every 20 minutes, from the second session on, never on first launch or in the tutorial.\n\"Remove Ads\" (US$2.99) and the Starter Pack remove these three formats. Opt-in rewarded videos stay, because they are optional and pay out prizes; the purchase description says so.\nATT is requested on first launch; declining is fully supported. In the EEA, UK and Switzerland, Google's UMP consent form is shown before any ad, and Settings > Privacy options lets the player change it.\n\nRANDOMIZED ITEMS (Guideline 3.1.1)\nThe prize wheel, the skin chest bought with Blue Dollars, the Mattress Stash and the skin chest in the Welcome Pack give randomized items. The odds of every prize are shown on screen before spinning, buying or opening. Blue Dollars, the premium currency, can be bought with real money; it has no real-world value and cannot be cashed out or transferred. No real-money gambling or betting. Extra wheel spins and skin chests bought with Blue Dollars are off in Belgium and Australia.\n\n24-HOUR OFFERS (consumable IAPs)\n- Welcome Pack (US$0.99): once, on the player's 2nd calendar day. To see it: play once, set the device date one day ahead and reopen the app.\n- Rebirth Pack (US$2.99): right after reincarnating.\n- Moving Day Pack (US$4.99): when a new floor opens outside the tutorial; early floors open within the first minutes.\nEach stays for 24 hours behind a chip at the top of the board, never during the tutorial.\n\nIAPs (14): starter pack, remove ads, three cash packs, three Blue Dollar packs, three skin purchases and the three offers above. Consumables are not restored by design; remove ads and skins are.",
     "availability": {
       "appleSiliconMac": false,
       "visionPro": false,

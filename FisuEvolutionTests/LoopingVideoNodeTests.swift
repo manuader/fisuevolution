@@ -11,7 +11,7 @@ struct LoopingVideoNodeTests {
     @Test("sin entrada: sólo el póster, nunca un SKVideoNode")
     func noEntryOnlyPoster() {
         let pool = VideoPlayerPool(policy: .allowAll)
-        let node = LoopingVideoNode(clip: .floor("no_existe"), poster: SKTexture(), size: size,
+        let node = LoopingVideoNode(clip: .event("no_existe"), poster: SKTexture(), size: size,
                                     role: .background, manifest: .main, pool: pool)
         node.setVisible(true)
         #expect(node.videoNode == nil && pool.liveCount == 0)
@@ -20,8 +20,8 @@ struct LoopingVideoNodeTests {
     @Test("visible y vivo: hay video; invisible: lo suelta y el cupo vuelve")
     func visibilityDrivesTheLease() throws {
         let pool = VideoPlayerPool(policy: .allowAll)
-        let manifest = try LoopsManifestTests.fixture(floors: ["urban": "cine_arresto.mov"])
-        let node = LoopingVideoNode(clip: .floor("urban"), poster: SKTexture(), size: size,
+        let manifest = try LoopsManifestTests.fixture(events: ["urban": "cine_arresto.mov"])
+        let node = LoopingVideoNode(clip: .event("urban"), poster: SKTexture(), size: size,
                                     role: .background, manifest: manifest, pool: pool)
         #expect(node.videoNode == nil, "el init no decodifica")
         node.setVisible(true)
@@ -33,8 +33,8 @@ struct LoopingVideoNodeTests {
     @Test("con la política apagada, póster aunque esté visible")
     func stillPolicy() throws {
         let pool = VideoPlayerPool(policy: .allowAll.with(.lowPower))
-        let manifest = try LoopsManifestTests.fixture(floors: ["urban": "cine_arresto.mov"])
-        let node = LoopingVideoNode(clip: .floor("urban"), poster: SKTexture(), size: size,
+        let manifest = try LoopsManifestTests.fixture(events: ["urban": "cine_arresto.mov"])
+        let node = LoopingVideoNode(clip: .event("urban"), poster: SKTexture(), size: size,
                                     role: .background, manifest: manifest, pool: pool)
         node.setVisible(true)
         #expect(node.videoNode == nil)
@@ -43,8 +43,8 @@ struct LoopingVideoNodeTests {
     @Test("una suspensión del pool baja el video y al reanudar vuelve")
     func suspensionDropsTheVideo() throws {
         let pool = VideoPlayerPool(policy: .allowAll)
-        let manifest = try LoopsManifestTests.fixture(floors: ["urban": "cine_arresto.mov"])
-        let node = LoopingVideoNode(clip: .floor("urban"), poster: SKTexture(), size: size,
+        let manifest = try LoopsManifestTests.fixture(events: ["urban": "cine_arresto.mov"])
+        let node = LoopingVideoNode(clip: .event("urban"), poster: SKTexture(), size: size,
                                     role: .background, manifest: manifest, pool: pool)
         node.setVisible(true)
         let suspension = pool.suspend(.overlay)
@@ -59,22 +59,22 @@ struct LoopingVideoNodeTests {
         let source = FakeArtPackSource()
         let packs = ArtPacks(source: source)
         let pool = VideoPlayerPool(policy: .allowAll)
-        let manifest = try LoopsManifestTests.fixture(floors: ["urban": "cine_arresto.mov"], odrTag: "anim-piso-1")
-        let node = LoopingVideoNode(clip: .floor("urban"), poster: SKTexture(), size: size,
+        let manifest = try LoopsManifestTests.fixture(events: ["urban": "cine_arresto.mov"], odrTag: "anim-eventos")
+        let node = LoopingVideoNode(clip: .event("urban"), poster: SKTexture(), size: size,
                                     role: .background, manifest: manifest, pool: pool, packs: packs)
         node.setVisible(true)
-        #expect(node.videoNode == nil && packs.isRequested("anim-piso-1"))
+        #expect(node.videoNode == nil && packs.isRequested("anim-eventos"))
         for _ in 0..<5 { await Task.yield() }
         source.last?.complete()
         for _ in 0..<5 { await Task.yield() }
         #expect(node.videoNode != nil && pool.liveCount == 1)
         node.setVisible(false)
-        #expect(node.videoNode == nil && !packs.isReady("anim-piso-1"))
+        #expect(node.videoNode == nil && !packs.isReady("anim-eventos"))
     }
 
     private func podNode(packs: ArtPacks, pool: VideoPlayerPool) throws -> LoopingVideoNode {
-        let manifest = try LoopsManifestTests.fixture(floors: ["urban": "cine_arresto.mov"], odrTag: "anim-piso-1")
-        return LoopingVideoNode(clip: .floor("urban"), poster: SKTexture(), size: size,
+        let manifest = try LoopsManifestTests.fixture(events: ["urban": "cine_arresto.mov"], odrTag: "anim-eventos")
+        return LoopingVideoNode(clip: .event("urban"), poster: SKTexture(), size: size,
                                 role: .background, manifest: manifest, pool: pool, packs: packs)
     }
 
@@ -86,19 +86,19 @@ struct LoopingVideoNodeTests {
     func nodeRetainsAReadyPack() async throws {
         let source = FakeArtPackSource()
         let packs = ArtPacks(source: source)
-        packs.request("anim-piso-1")
+        packs.request("anim-eventos")
         await settle()
         source.last?.complete()
         await settle()
         let node = try podNode(packs: packs, pool: VideoPlayerPool(policy: .allowAll))
         node.setVisible(true)
         #expect(node.videoNode != nil)
-        packs.release("anim-piso-1")
-        #expect(packs.isReady("anim-piso-1"), "el nodo es usuario: el pack no se purga bajo el video")
+        packs.release("anim-eventos")
+        #expect(packs.isReady("anim-eventos"), "el nodo es usuario: el pack no se purga bajo el video")
         node.setVisible(false)
-        #expect(!packs.isReady("anim-piso-1"))
+        #expect(!packs.isReady("anim-eventos"))
         node.setVisible(true)
-        #expect(node.videoNode == nil && packs.isRequested("anim-piso-1") && source.made.count == 2)
+        #expect(node.videoNode == nil && packs.isRequested("anim-eventos") && source.made.count == 2)
         await settle()
         source.last?.complete()
         await settle()
@@ -128,7 +128,7 @@ struct LoopingVideoNodeTests {
         #expect(source.last?.ended == true)
         source.last?.complete()
         await settle()
-        #expect(node.videoNode == nil && !packs.isReady("anim-piso-1"))
+        #expect(node.videoNode == nil && !packs.isReady("anim-eventos"))
     }
 
     @Test("el deinit del nodo suelta el tag")
@@ -175,8 +175,8 @@ struct LoopingVideoNodeTests {
 
     @Test("control: un video opaco tapa el fondo rojo también en la esquina")
     func opaqueVideoCoversTheBackground() async throws {
-        let manifest = try LoopsManifestTests.fixture(floors: ["urban": "cine_arresto.mov"])
-        let result = try await render(clip: .floor("urban"), manifest: manifest)
+        let manifest = try LoopsManifestTests.fixture(events: ["urban": "cine_arresto.mov"])
+        let result = try await render(clip: .event("urban"), manifest: manifest)
         print("MEDICION_CONTROL corner=\(result.corner) center=\(result.center)")
         #expect(!result.corner.isRed && !result.center.isRed)
     }
@@ -184,8 +184,8 @@ struct LoopingVideoNodeTests {
     @Test("un archivo que no es video: tras el tope queda el póster y el cupo vuelve")
     func giveUpReleasesEverything() async throws {
         let pool = VideoPlayerPool(policy: .allowAll)
-        let manifest = try LoopsManifestTests.fixture(floors: ["urban": "loops_manifest.json"])
-        let node = LoopingVideoNode(clip: .floor("urban"), poster: SKTexture(), size: size,
+        let manifest = try LoopsManifestTests.fixture(events: ["urban": "loops_manifest.json"])
+        let node = LoopingVideoNode(clip: .event("urban"), poster: SKTexture(), size: size,
                                     role: .background, manifest: manifest, pool: pool)
         node.setVisible(true)
         for _ in 0..<80 where node.videoNode != nil { try await Task.sleep(for: .milliseconds(50)) }
@@ -233,13 +233,13 @@ struct LoopingVideoNodeTests {
     func onceWithoutPackEndsAtOnce() throws {
         let source = FakeArtPackSource()
         let packs = ArtPacks(source: source)
-        let manifest = try LoopsManifestTests.fixture(floors: ["urban": "cine_arresto.mov"], odrTag: "anim-piso-1")
+        let manifest = try LoopsManifestTests.fixture(events: ["urban": "cine_arresto.mov"], odrTag: "anim-eventos")
         let counter = EndCounter()
-        let node = LoopingVideoNode(clip: .floor("urban"), poster: SKTexture(), size: size, role: .popup,
+        let node = LoopingVideoNode(clip: .event("urban"), poster: SKTexture(), size: size, role: .popup,
                                     playback: .once { counter.count += 1 },
                                     manifest: manifest, pool: VideoPlayerPool(policy: .allowAll), packs: packs)
         node.setVisible(true)
-        #expect(counter.count == 1 && node.videoNode == nil && packs.isRequested("anim-piso-1"))
+        #expect(counter.count == 1 && node.videoNode == nil && packs.isRequested("anim-eventos"))
         node.stop()
     }
 
@@ -326,9 +326,9 @@ struct LoopingVideoNodeTests {
     @Test("un archivo que no es video: once termina cuando se da por vencido")
     func onceGiveUpEnds() async throws {
         let pool = VideoPlayerPool(policy: .allowAll)
-        let manifest = try LoopsManifestTests.fixture(floors: ["urban": "loops_manifest.json"])
+        let manifest = try LoopsManifestTests.fixture(events: ["urban": "loops_manifest.json"])
         let counter = EndCounter()
-        let node = onceNode(clip: .floor("urban"), manifest: manifest, pool: pool, counter: counter)
+        let node = onceNode(clip: .event("urban"), manifest: manifest, pool: pool, counter: counter)
         node.setVisible(true)
         try await waitFor(6) { counter.count > 0 }
         #expect(counter.count == 1 && node.videoNode == nil && pool.liveCount == 0)

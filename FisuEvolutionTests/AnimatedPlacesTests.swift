@@ -5,7 +5,7 @@ import Testing
 /// El barrido de lugares: toda sección llena de `loops_manifest.json` tiene que tener quien la
 /// pida. Un video en el bundle que ninguna vista reproduce pesa y no se ve.
 ///
-/// Cuenta como call site el texto del caso de `ArtClip` (`.portrait(`, `.floor(`…) o el helper de
+/// Cuenta como call site el texto del caso de `ArtClip` (`.portrait(`, `.shopIcon(`…) o el helper de
 /// `ArtClips` que lo arma, buscado en `FisuEvolution/` salvo las definiciones y el código DEBUG.
 /// El caso tiene que arrancar una expresión: `defaults.object(forKey:)` no es `.object(`.
 @Suite struct AnimatedPlacesTests {
@@ -20,7 +20,6 @@ import Testing
         "visitorActions": ["ArtClips.stageVisitor("],
         "events": ["ArtClips.event("],
         "shopIcons": [".shopIcon(", "ArtClips.shopIcon("],
-        "floors": [".floor("],
     ]
 
     /// Secciones llenas que todavía nadie pide, con la tarea que las cablea. Al cablearse, la tarea

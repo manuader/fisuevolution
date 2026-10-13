@@ -46,17 +46,17 @@ struct ArtPacksTests {
     func requestThenArrives() async throws {
         let source = FakeArtPackSource()
         let packs = ArtPacks(source: source)
-        let manifest = try LoopsManifestTests.fixture(floors: ["urban": "cine_arresto.mov"], odrTag: "anim-piso-1")
-        #expect(manifest.url(for: .floor("urban"), packs: packs) == nil)
-        packs.request("anim-piso-1")
-        #expect(packs.isRequested("anim-piso-1") && source.made.count == 1)
+        let manifest = try LoopsManifestTests.fixture(events: ["urban": "cine_arresto.mov"], odrTag: "anim-eventos")
+        #expect(manifest.url(for: .event("urban"), packs: packs) == nil)
+        packs.request("anim-eventos")
+        #expect(packs.isRequested("anim-eventos") && source.made.count == 1)
         var arrivals = 0
-        packs.whenAvailable("anim-piso-1") { arrivals += 1 }
+        packs.whenAvailable("anim-eventos") { arrivals += 1 }
         await settle()
         source.last?.complete()
         await settle()
-        #expect(manifest.url(for: .floor("urban"), packs: packs) != nil)
-        #expect(arrivals == 1 && !packs.isRequested("anim-piso-1"))
+        #expect(manifest.url(for: .event("urban"), packs: packs) != nil)
+        #expect(arrivals == 1 && !packs.isRequested("anim-eventos"))
     }
 
     @Test("dos pedidos del mismo tag comparten el request, y el pack se suelta con el último release")
@@ -79,24 +79,24 @@ struct ArtPacksTests {
     func failureDoesNotLoop() async throws {
         let source = FakeArtPackSource()
         let packs = ArtPacks(source: source)
-        let manifest = try LoopsManifestTests.fixture(floors: ["urban": "cine_arresto.mov"], odrTag: "anim-piso-1")
-        packs.request("anim-piso-1")
+        let manifest = try LoopsManifestTests.fixture(events: ["urban": "cine_arresto.mov"], odrTag: "anim-eventos")
+        packs.request("anim-eventos")
         await settle()
         source.last?.fail()
         await settle()
         #expect(source.made.count == 1, "no reintenta solo")
-        #expect(!packs.isRequested("anim-piso-1") && manifest.url(for: .floor("urban"), packs: packs) == nil)
-        packs.request("anim-piso-1")
-        #expect(source.made.count == 2 && packs.isRequested("anim-piso-1"))
+        #expect(!packs.isRequested("anim-eventos") && manifest.url(for: .event("urban"), packs: packs) == nil)
+        packs.request("anim-eventos")
+        #expect(source.made.count == 2 && packs.isRequested("anim-eventos"))
     }
 
     @Test("sin odrTag no pasa por ArtPacks")
     func baseBundleSkipsPacks() throws {
         let source = FakeArtPackSource()
         let packs = ArtPacks(source: source)
-        let manifest = try LoopsManifestTests.fixture(floors: ["urban": "cine_arresto.mov"])
-        #expect(manifest.odrTag(for: .floor("urban")) == nil)
-        #expect(manifest.url(for: .floor("urban"), packs: packs) != nil)
+        let manifest = try LoopsManifestTests.fixture(events: ["urban": "cine_arresto.mov"])
+        #expect(manifest.odrTag(for: .event("urban")) == nil)
+        #expect(manifest.url(for: .event("urban"), packs: packs) != nil)
         #expect(source.made.isEmpty)
     }
 
@@ -104,7 +104,7 @@ struct ArtPacksTests {
     func priorities() async {
         let source = FakeArtPackSource()
         let packs = ArtPacks(source: source)
-        packs.prefetch("anim-piso-2")
+        packs.prefetch("anim-especiales")
         packs.request("anim-tienda")
         await settle()
         #expect(source.made[0].request.urgent == false && source.made[1].request.urgent == true)
@@ -114,23 +114,23 @@ struct ArtPacksTests {
     func releaseWhilePending() async {
         let source = FakeArtPackSource()
         let packs = ArtPacks(source: source)
-        packs.request("anim-piso-1")
+        packs.request("anim-eventos")
         await settle()
-        packs.release("anim-piso-1")
+        packs.release("anim-eventos")
         #expect(source.last?.ended == true)
         source.last?.complete()
         await settle()
-        #expect(!packs.isReady("anim-piso-1"))
+        #expect(!packs.isReady("anim-eventos"))
     }
 
     @Test("un pedido urgente sobre un prefetch en vuelo sube la prioridad")
     func urgentRaisesPrefetch() async {
         let source = FakeArtPackSource()
         let packs = ArtPacks(source: source)
-        packs.prefetch("anim-piso-2")
+        packs.prefetch("anim-tienda")
         await settle()
         #expect(source.last?.raised == false)
-        packs.request("anim-piso-2")
+        packs.request("anim-tienda")
         #expect(source.made.count == 1 && source.last?.raised == true)
     }
 
@@ -138,10 +138,10 @@ struct ArtPacksTests {
     func cancelWait() async {
         let source = FakeArtPackSource()
         let packs = ArtPacks(source: source)
-        packs.request("anim-piso-1")
+        packs.request("anim-eventos")
         var arrivals = 0
-        let token = packs.whenAvailable("anim-piso-1") { arrivals += 1 }
-        packs.cancelWait("anim-piso-1", token: token)
+        let token = packs.whenAvailable("anim-eventos") { arrivals += 1 }
+        packs.cancelWait("anim-eventos", token: token)
         await settle()
         source.last?.complete()
         await settle()

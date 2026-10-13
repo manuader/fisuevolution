@@ -18,11 +18,6 @@ final class FloorNode: SKNode {
     /// el piso de abajo puede terminar pintando sobre el de arriba.
     private let background = SKCropNode()
     private var renderedSize: CGSize = .zero
-    private let loops: LoopsManifest
-    private let pool: VideoPlayerPool
-    private let packs: ArtPacks
-    private var backgroundVideo: LoopingVideoNode?
-    private var isBackgroundAnimating = false
 
     /// Orden determinístico entre pisos vivos: `renderLiveFloorNodes` los agrega
     /// iterando un Set, así que sin esto el orden de dibujo entre hermanos es
@@ -35,12 +30,8 @@ final class FloorNode: SKNode {
         CGFloat(ordinal) * 0.01
     }
 
-    init(ordinal: Int, definition: FloorDef, loops: LoopsManifest = .main,
-         pool: VideoPlayerPool = .shared, packs: ArtPacks = .shared) {
+    init(ordinal: Int, definition: FloorDef) {
         self.definition = definition
-        self.loops = loops
-        self.pool = pool
-        self.packs = packs
         super.init()
         zPosition = Self.backgroundZ(ordinal: ordinal)
         addChild(background)
@@ -51,19 +42,9 @@ final class FloorNode: SKNode {
         fatalError("FloorNode is never decoded")
     }
 
-    var hasBackgroundVideo: Bool { backgroundVideo?.videoNode != nil }
-
-    /// Sólo el piso visible y asentado anima su fondo; sin entrada en el manifest no hay nada que animar.
-    func setBackgroundAnimating(_ animating: Bool) {
-        isBackgroundAnimating = animating
-        backgroundVideo?.setVisible(animating)
-    }
-
     func render(content: GameContent, size: CGSize) {
         guard renderedSize != size || background.children.isEmpty else { return }
         renderedSize = size
-        backgroundVideo?.stop()
-        backgroundVideo = nil
         background.removeAllChildren()
 
         let mask = SKSpriteNode(color: .white, size: size)
@@ -84,17 +65,7 @@ final class FloorNode: SKNode {
             let offset = min(definition.backgroundOffset * size.height, slack)
             sprite.position = CGPoint(x: size.width / 2, y: -offset)
             sprite.zPosition = -100
-            if let texture = sprite.texture, loops.entry(for: .floor(definition.background)) != nil {
-                let video = LoopingVideoNode(clip: .floor(definition.background), poster: texture, size: sprite.size,
-                                             role: .background, manifest: loops, pool: pool, packs: packs)
-                video.position = CGPoint(x: sprite.position.x, y: sprite.position.y + sprite.size.height / 2)
-                video.zPosition = sprite.zPosition
-                background.addChild(video)
-                backgroundVideo = video
-                video.setVisible(isBackgroundAnimating)
-            } else {
-                background.addChild(sprite)
-            }
+            background.addChild(sprite)
             return
         }
 

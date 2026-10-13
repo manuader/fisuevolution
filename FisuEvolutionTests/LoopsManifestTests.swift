@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import UIKit
 @testable import FisuEvolution
 
 @Suite("loops_manifest.json: el contrato del lado del juego")
@@ -15,21 +16,21 @@ struct LoopsManifestTests {
     ]
     static let objects: Set<String> = ["paquete_abre", "paquete_espera", "colchon_abre", "colchon_espera"]
 
-    /// Un manifest en memoria que apunta pisos a `.mov` reales del bundle.
-    static func fixture(floors: [String: String]) throws -> LoopsManifest {
-        let entries = floors.map { id, file in
+    /// Un manifest en memoria que apunta eventos a `.mov` reales del bundle.
+    static func fixture(events: [String: String]) throws -> LoopsManifest {
+        let entries = events.map { id, file in
             #""\#(id)":{"file":"\#(file)","width":720,"height":1280,"fps":24,"frames":120,"alpha":false,"audio":false}"#
         }.joined(separator: ",")
-        let json = #"{"schemaVersion":1,"floors":{\#(entries)}}"#
+        let json = #"{"schemaVersion":1,"events":{\#(entries)}}"#
         return try JSONDecoder().decode(LoopsManifest.self, from: Data(json.utf8))
     }
 
-    /// Como `fixture`, pero cada piso lleva su `odrTag`.
-    static func fixture(floors: [String: String], odrTag: String) throws -> LoopsManifest {
-        let entries = floors.map { id, file in
+    /// Como `fixture`, pero cada evento lleva su `odrTag`.
+    static func fixture(events: [String: String], odrTag: String) throws -> LoopsManifest {
+        let entries = events.map { id, file in
             #""\#(id)":{"file":"\#(file)","width":720,"height":1280,"fps":24,"frames":120,"alpha":false,"audio":false,"odrTag":"\#(odrTag)"}"#
         }.joined(separator: ",")
-        let json = #"{"schemaVersion":1,"floors":{\#(entries)}}"#
+        let json = #"{"schemaVersion":1,"events":{\#(entries)}}"#
         return try JSONDecoder().decode(LoopsManifest.self, from: Data(json.utf8))
     }
 
@@ -90,48 +91,81 @@ struct LoopsManifestTests {
     @Test("las secciones de la segunda tanda decodifican: vacías si faltan, llenas si vienen")
     func secondBatchSections() throws {
         let empty = try JSONDecoder().decode(LoopsManifest.self, from: Data(#"{"schemaVersion":1}"#.utf8))
-        #expect(empty.characters.isEmpty && empty.floors.isEmpty && empty.shopIcons.isEmpty)
+        #expect(empty.characters.isEmpty && empty.events.isEmpty && empty.shopIcons.isEmpty)
         let json = #"""
         {"schemaVersion":1,"portraits":{},"objects":{},"cabin":{},"cinematics":{},
-         "floors":{"urban":{"file":"floor_urban.mov","width":1024,"height":1024,"fps":24,"frames":120,
+         "events":{"aguinaldo":{"file":"ev_aguinaldo.mov","width":1024,"height":1024,"fps":24,"frames":120,
                             "alpha":false,"audio":false,"matte":null,"keyColor":null}},
-         "characters":{"pasante":{"file":"char_pasante.mov","width":512,"height":512,"fps":24,"frames":121,
-                       "alpha":true,"audio":false,"matte":"blanco","keyColor":null,"odrTag":"anim-piso-1"}},
+         "characters":{"sp_lizard":{"file":"char_sp_lizard.mov","width":512,"height":512,"fps":24,"frames":121,
+                       "alpha":true,"audio":false,"matte":"blanco","keyColor":null,"odrTag":"anim-especiales"}},
+         "floors":{"urban":{"file":"bgloop_urban.mov","width":1024,"height":1024}},
          "algoNuevo":{}}
         """#
         let manifest = try JSONDecoder().decode(LoopsManifest.self, from: Data(json.utf8))
-        #expect(manifest.entry(for: .floor("urban"))?.alpha == false)
-        #expect(manifest.entry(for: .character("pasante"))?.odrTag == "anim-piso-1")
-        #expect(manifest.url(for: .floor("urban")) == nil, "en el manifest pero sin archivo: póster")
+        #expect(manifest.entry(for: .event("aguinaldo"))?.alpha == false)
+        #expect(manifest.entry(for: .character("sp_lizard"))?.odrTag == "anim-especiales")
+        #expect(manifest.url(for: .event("aguinaldo")) == nil, "en el manifest pero sin archivo: póster")
     }
 
     /// Los packs ODR de la segunda tanda, uno por familia; el pin de Python tiene el mismo cuadro.
-    static let packs: Set<String> =
-        Set((1...10).map { "anim-piso-\($0)" }).union(["anim-especiales", "anim-visitantes", "anim-eventos", "anim-tienda"])
+    static let packs: Set<String> = ["anim-especiales", "anim-visitantes", "anim-eventos", "anim-tienda"]
 
     private func sections(of manifest: LoopsManifest) -> [(name: String, entries: [String: LoopsManifest.Entry])] {
         [("portraits", manifest.portraits), ("objects", manifest.objects), ("cabin", manifest.cabin),
          ("cinematics", manifest.cinematics), ("characters", manifest.characters),
          ("talking", manifest.talking), ("visitorActions", manifest.visitorActions),
-         ("events", manifest.events), ("shopIcons", manifest.shopIcons), ("floors", manifest.floors)]
+         ("events", manifest.events), ("shopIcons", manifest.shopIcons)]
     }
 
-    @Test("la segunda tanda: 53 personajes, 18 charlas, 8 pedidos, 8 eventos, 10 íconos, 10 fondos")
+    @Test("la segunda tanda: 10 especiales, 18 charlas, 8 pedidos, 8 eventos, 10 íconos")
     func secondBatchCounts() throws {
         let manifest = try LoopsManifest.load(from: .main)
-        #expect(manifest.characters.count == 53)
+        #expect(manifest.characters.count == 10)
         #expect(Set(manifest.talking.keys) == Self.portraits)
         #expect(Set(manifest.visitorActions.keys) == Set(Self.portraits.filter { $0.hasPrefix("npc_") }))
-        #expect(manifest.events.count == 8 && manifest.shopIcons.count == 10 && manifest.floors.count == 10)
-        for entry in manifest.floors.values {
-            #expect(entry.width == 1024 && entry.height == 1024 && !entry.alpha && entry.odrTag == nil)
+        #expect(manifest.events.count == 8 && manifest.shopIcons.count == 10)
+    }
+
+    @Test("E14 C22: ningún personaje base tiene clip; los especiales sí")
+    func baseCharactersHaveNoClip() async throws {
+        let manifest = try LoopsManifest.load(from: .main)
+        let content = try GameContentLoader.load(from: .main)
+        #expect(manifest.characters.keys.allSatisfy { $0.hasPrefix("sp_") })
+        for type in content.tiers.types {
+            #expect(manifest.characters[type.id] == nil, "\(type.id): un base con video")
+            #expect(ArtClips.character(type: type.id, skin: nil, in: manifest) == nil, "\(type.id)")
+            for skin in content.skins.skins where skin.characterType == type.id {
+                #expect(ArtClips.character(type: type.id, skin: skin.id, in: manifest) == nil, "\(type.id)__\(skin.id)")
+            }
+        }
+        #expect(!content.specials.specials.isEmpty)
+        for special in content.specials.specials {
+            #expect(ArtClips.character(type: special.id, skin: nil, in: manifest) == .character(special.id), "\(special.id)")
+            #expect(manifest.entry(for: .character(special.id)) != nil, "\(special.id): el especial sigue animado")
+        }
+    }
+
+    @Test("E14 C1: los fondos de piso son sólo la foto; no hay bgloop en el bundle")
+    func floorsHaveNoVideo() throws {
+        let raw = try Data(contentsOf: #require(Bundle.main.url(forResource: "loops_manifest", withExtension: "json")))
+        let json = try #require(JSONSerialization.jsonObject(with: raw) as? [String: Any])
+        #expect(json["floors"] == nil)
+        let onDisk = try #require(Bundle.main.resourceURL)
+        let names = (FileManager.default.enumerator(at: onDisk, includingPropertiesForKeys: nil)?.allObjects as? [URL] ?? [])
+            .map(\.lastPathComponent)
+        #expect(names.filter { $0.hasPrefix("bgloop_") }.isEmpty)
+        #expect(names.filter { $0.hasPrefix("char_") && !$0.hasPrefix("char_sp_") }.isEmpty)
+        let content = try GameContentLoader.load(from: .main)
+        for floor in content.floorTable.floors {
+            let photo = try #require(content.manifest.backgrounds[floor.background], "\(floor.background)")
+            #expect(UIImage(named: photo) != nil, "\(floor.background): la foto tiene que estar")
         }
     }
 
     @Test("el odrTag es de la familia: lo pesado viaja en packs y lo base no lleva tag")
     func odrTagsByFamily() throws {
         let manifest = try LoopsManifest.load(from: .main)
-        for name in ["portraits", "objects", "cabin", "cinematics", "floors"] {
+        for name in ["portraits", "objects", "cabin", "cinematics"] {
             let entries = sections(of: manifest).first { $0.name == name }!.entries
             #expect(entries.values.allSatisfy { $0.odrTag == nil }, "\(name) va en el paquete base")
         }
@@ -142,11 +176,8 @@ struct LoopsManifestTests {
             #expect(entries.values.allSatisfy { $0.odrTag == tag }, "\(name)")
         }
         for (id, entry) in manifest.characters {
-            let tag = try #require(entry.odrTag, "\(id)")
-            #expect(id.hasPrefix("sp_") ? tag == "anim-especiales" : tag.hasPrefix("anim-piso-"), "\(id)")
+            #expect(entry.odrTag == "anim-especiales", "\(id)")
         }
-        let used = Set(manifest.characters.values.compactMap(\.odrTag))
-        #expect(used.isSuperset(of: Self.packs.subtracting(["anim-visitantes", "anim-eventos", "anim-tienda"])))
     }
 
     @Test("cada file del manifest está en el bundle (o en su pack) y cada .mov del bundle está en el manifest")

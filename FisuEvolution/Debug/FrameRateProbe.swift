@@ -109,21 +109,19 @@ private final class DisplayLinkTarget: NSObject {
 extension LoopsManifest {
     static let animStressIconID = "stress"
 
-    /// El peor caso de la spec (fondo + popup + ícono) con los videos que ya viajan en el paquete base:
-    /// todos los fondos al `.mov` de pantalla completa; el especial y el ícono, al loop con alfa.
+    /// El peor caso de la spec (popup + ícono) con los videos que ya viajan en el paquete base:
+    /// el especial y el ícono, al loop con alfa.
     static func animStress(over base: LoopsManifest, content: GameContent) -> LoopsManifest {
         func entry(_ file: String, width: Int, height: Int, alpha: Bool) -> Entry {
             Entry(file: file, width: width, height: height, fps: 24, frames: 121, alpha: alpha, audio: false, odrTag: nil)
         }
-        let backdrop = entry("cine_reencarnacion.mov", width: 720, height: 1280, alpha: false)
         let loop = entry("loop_npc_vecina.mov", width: 512, height: 512, alpha: true)
         return LoopsManifest(
             schemaVersion: base.schemaVersion, portraits: base.portraits, objects: base.objects,
             cabin: base.cabin, cinematics: base.cinematics,
             characters: Dictionary(content.specials.specials.map { ($0.id, loop) }, uniquingKeysWith: { first, _ in first }),
             talking: base.talking, visitorActions: base.visitorActions, events: base.events,
-            shopIcons: [animStressIconID: loop],
-            floors: Dictionary(content.floorTable.floors.map { ($0.background, backdrop) }, uniquingKeysWith: { first, _ in first }))
+            shopIcons: [animStressIconID: loop])
     }
 }
 #endif

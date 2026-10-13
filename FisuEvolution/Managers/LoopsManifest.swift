@@ -27,7 +27,6 @@ enum ArtClip: Hashable, Sendable {
     case visitorAction(String)
     case event(String)
     case shopIcon(String)
-    case floor(String)
     case cinematic(CinematicID)
 }
 
@@ -55,18 +54,17 @@ struct LoopsManifest: Decodable, Sendable, Equatable {
     let visitorActions: [String: Entry]
     let events: [String: Entry]
     let shopIcons: [String: Entry]
-    let floors: [String: Entry]
 
     private enum CodingKeys: String, CodingKey {
         case schemaVersion, portraits, objects, cabin, cinematics
-        case characters, talking, visitorActions, events, shopIcons, floors
+        case characters, talking, visitorActions, events, shopIcons
     }
 
     init(schemaVersion: Int = 1, portraits: [String: Entry] = [:], objects: [String: Entry] = [:],
          cabin: [String: Entry] = [:], cinematics: [String: Entry] = [:],
          characters: [String: Entry] = [:], talking: [String: Entry] = [:],
          visitorActions: [String: Entry] = [:], events: [String: Entry] = [:],
-         shopIcons: [String: Entry] = [:], floors: [String: Entry] = [:]) {
+         shopIcons: [String: Entry] = [:]) {
         self.schemaVersion = schemaVersion
         self.portraits = portraits
         self.objects = objects
@@ -77,7 +75,6 @@ struct LoopsManifest: Decodable, Sendable, Equatable {
         self.visitorActions = visitorActions
         self.events = events
         self.shopIcons = shopIcons
-        self.floors = floors
     }
 
     init(from decoder: Decoder) throws {
@@ -91,7 +88,7 @@ struct LoopsManifest: Decodable, Sendable, Equatable {
             cabin: try section(.cabin), cinematics: try section(.cinematics),
             characters: try section(.characters), talking: try section(.talking),
             visitorActions: try section(.visitorActions), events: try section(.events),
-            shopIcons: try section(.shopIcons), floors: try section(.floors))
+            shopIcons: try section(.shopIcons))
     }
 
     static let empty = LoopsManifest()
@@ -129,7 +126,6 @@ struct LoopsManifest: Decodable, Sendable, Equatable {
         case .visitorAction(let id): visitorActions[id]
         case .event(let id): events[id]
         case .shopIcon(let id): shopIcons[id]
-        case .floor(let id): floors[id]
         case .cinematic(let id): cinematics[id.rawValue]
         }
     }

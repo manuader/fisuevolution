@@ -585,4 +585,111 @@ struct QuickHireOfferTests {
         gameState.refreshProjections()
         #expect(moved.published, "si el precio se movió, la vista tiene que enterarse")
     }
+
+    // MARK: «El primero del piso» (E14 C14)
+
+    /// Dos pisos abiertos, todo visto y plata de sobra: el escenario donde «el mejor» y «el
+    /// primero del piso» difieren.
+    private func twoFloorsScenario() async throws -> GameState {
+        let gameState = await makeGameState()
+        gameState.debugUnlockFloors(throughTier: 13)
+        gameState.debugMarkTypesSeen(throughTier: 12)
+        gameState.debugSetMaxTier(18)
+        try giveCoins(2_500_000_000_000, to: gameState)
+        gameState.refreshProjections()
+        return gameState
+    }
+
+    @Test("el primero del piso: ofrece el tier base del piso visible y lo sigue al cambiar de piso")
+    func floorBaseFollowsTheVisibleFloor() async throws {
+        let gameState = try await twoFloorsScenario()
+        #expect(gameState.quickHireOffer?.typeId == "senior_architect", "escenario: «el mejor» es otro")
+
+        gameState.setQuickHire(mode: .floorBase)
+        #expect(gameState.player?.meta.quickHireMode == .floorBase)
+        #expect(gameState.player?.meta.quickHirePinnedTypeId == nil)
+        var offer = try #require(gameState.quickHireOffer)
+        #expect(offer.typeId == "homeless", "en el Callejón, el Fisura")
+        #expect(offer.followsFloor)
+        #expect(!offer.isPinned)
+
+        gameState.setVisibleFloor(1)
+        let player = try #require(gameState.player)
+        let secondBase = try #require(gameState.currentQuote(player: player, floorOrdinal: 1)).type.id
+        #expect(secondBase != "homeless", "escenario: el segundo piso vende otro")
+        offer = try #require(gameState.quickHireOffer)
+        #expect(offer.typeId == secondBase, "al subir de piso la oferta cambia sola, sin tocar el selector")
+        #expect(offer.followsFloor)
+
+        gameState.setVisibleFloor(0)
+        #expect(gameState.quickHireOffer?.typeId == "homeless", "y vuelve al bajar")
+    }
+
+    @Test("el primero del piso: sin plata o con el piso lleno se comporta como los otros modos")
+    func floorBaseKeepsTheUsualBlockers() async throws {
+        let gameState = try await twoFloorsScenario()
+        gameState.setQuickHire(mode: .floorBase)
+        gameState.setVisibleFloor(1)
+        let player = try #require(gameState.player)
+        let secondBase = try #require(gameState.currentQuote(player: player, floorOrdinal: 1)).type.id
+
+        try giveCoins(0, to: gameState)
+        gameState.refreshProjections()
+        var offer = try #require(gameState.quickHireOffer)
+        #expect(offer.typeId == secondBase, "sin plata no cae a otro en silencio")
+        #expect(offer.blocker == .cantAfford)
+
+        let capacity = gameState.floorOccupancy(ordinal: 1).capacity
+        for _ in gameState.floorOccupancy(ordinal: 1).occupied..<capacity {
+            try giveCoins(2_500_000_000_000, to: gameState)
+            gameState.hireCharacter(typeId: secondBase)
+        }
+        #expect(gameState.floorOccupancy(ordinal: 1).occupied == capacity, "escenario: el piso quedó lleno")
+        try giveCoins(2_500_000_000_000, to: gameState)
+        gameState.refreshProjections()
+        offer = try #require(gameState.quickHireOffer)
+        #expect(offer.typeId == secondBase)
+        #expect(offer.blocker == .floorFull, "piso lleno, contra ese tier y ese piso")
+    }
+
+    @Test("el primero del piso en un piso que todavía no se puede contratar cae a la regla de siempre")
+    func floorBaseOnALockedFloorFallsBackToTheBest() async throws {
+        let gameState = await makeGameState()
+        gameState.debugGrantCoins()
+        gameState.setQuickHire(mode: .floorBase)
+        gameState.setVisibleFloor(1)   // asomarse al piso cerrado
+        gameState.refreshProjections()
+        let offer = try #require(gameState.quickHireOffer, "el atajo nunca queda sin oferta por este modo")
+        #expect(offer.typeId == "homeless")
+        #expect(!offer.followsFloor)
+    }
+
+    @Test("los modos de siempre no cambian: el mejor y el fijo ignoran el piso visible")
+    func theOldModesIgnoreTheVisibleFloor() async throws {
+        let gameState = try await twoFloorsScenario()
+        gameState.setVisibleFloor(1)
+        #expect(gameState.quickHireOffer?.typeId == "senior_architect")
+        #expect(gameState.quickHireOffer?.followsFloor == false)
+
+        gameState.pinQuickHire(typeId: "oficinista")
+        #expect(gameState.player?.meta.quickHireMode == .pinned)
+        #expect(gameState.quickHireOffer?.typeId == "oficinista")
+        #expect(gameState.quickHireOffer?.isPinned == true)
+        #expect(gameState.quickHireOffer?.followsFloor == false)
+
+        gameState.setQuickHire(mode: .floorBase)
+        #expect(gameState.player?.meta.quickHirePinnedTypeId == nil, "el modo piso suelta el pin")
+        gameState.pinQuickHire(typeId: nil)
+        #expect(gameState.player?.meta.quickHireMode == .best)
+        #expect(gameState.quickHireOffer?.typeId == "senior_architect")
+    }
+
+    @Test("el selector sólo marca el fijado en el modo fijo")
+    func pickerMarksThePinOnlyInPinnedMode() async throws {
+        let gameState = try await twoFloorsScenario()
+        gameState.pinQuickHire(typeId: "oficinista")
+        #expect(gameState.quickHirePickerEntries.filter(\.isPinned).map(\.id) == ["oficinista"])
+        gameState.setQuickHire(mode: .floorBase)
+        #expect(gameState.quickHirePickerEntries.allSatisfy { !$0.isPinned })
+    }
 }

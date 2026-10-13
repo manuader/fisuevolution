@@ -58,7 +58,11 @@ struct QuickHirePicker: View {
                 Text("quickhire.picker.title")
                     .font(Tokens.title)
                     .foregroundStyle(Color("PaletteInk"))
-                bestButton(isActive: !entries.contains(where: \.isPinned))
+                let mode = gameState.player?.meta.effectiveQuickHireMode ?? .best
+                HStack(spacing: Tokens.s8) {
+                    bestButton(isActive: mode == .best)
+                    floorButton(isActive: mode == .floorBase)
+                }
                 ScrollView {
                     // `Grid` y no `LazyVGrid`: la perezosa pierde identifiers.
                     Grid(horizontalSpacing: Tokens.s8, verticalSpacing: Tokens.s8) {
@@ -90,31 +94,54 @@ struct QuickHirePicker: View {
     }
 
     private func bestButton(isActive: Bool) -> some View {
-        Button {
-            gameState.pinQuickHire(typeId: nil)
+        modeButton(isActive: isActive, identifier: "quickhire.picker.best") {
+            gameState.setQuickHire(mode: .best)
             close()
         } label: {
-            HStack(spacing: 6) {
-                Image(systemName: isActive ? "checkmark.circle.fill" : "sparkles")
-                    .font(.system(size: 14, weight: .black))
-                Text("quickhire.picker.best")
-                    .font(Tokens.body)
+            Text("quickhire.picker.best")
+        }
+    }
+
+    /// «El primero del piso» (E14 C14): con la cara del tier base del piso que se está mirando.
+    private func floorButton(isActive: Bool) -> some View {
+        let face = gameState.quickHireFloorBaseFace
+        return modeButton(isActive: isActive, identifier: "quickhire.picker.floor") {
+            gameState.setQuickHire(mode: .floorBase)
+            close()
+        } label: {
+            HStack(spacing: 4) {
+                if let face { GameIcon(artKey: face.faceKey, size: 28) { EmptyView() } }
+                Text("quickhire.picker.floor")
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.7)
             }
-            .foregroundStyle(isActive ? .white : Color("PaletteInk"))
-            .shadow(color: .black.opacity(isActive ? 0.45 : 0), radius: 1, y: 1)
-            .padding(.horizontal, Tokens.s12)
-            .padding(.vertical, Tokens.s8)
-            .frame(maxWidth: .infinity)
-            .background(
-                PillBackground(
-                    fill: isActive ? Color("PaletteGreen") : Color("PaletteCream"),
-                    border: isActive ? nil : Color("PaletteBrown").opacity(0.6)
+        }
+    }
+
+    private func modeButton<Label: View>(
+        isActive: Bool,
+        identifier: String,
+        action: @escaping () -> Void,
+        @ViewBuilder label: () -> Label
+    ) -> some View {
+        Button(action: action) {
+            label()
+                .font(Tokens.body)
+                .foregroundStyle(isActive ? .white : Color("PaletteInk"))
+                .shadow(color: .black.opacity(isActive ? 0.45 : 0), radius: 1, y: 1)
+                .padding(.horizontal, Tokens.s8)
+                .padding(.vertical, Tokens.s8)
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .background(
+                    PillBackground(
+                        fill: isActive ? Color("PaletteGreen") : Color("PaletteCream"),
+                        border: isActive ? nil : Color("PaletteBrown").opacity(0.6)
+                    )
                 )
-            )
-            .contentShape(Capsule())
+                .contentShape(Capsule())
         }
         .buttonStyle(.plain)
-        .accessibilityIdentifier("quickhire.picker.best")
+        .accessibilityIdentifier(identifier)
         .accessibilityAddTraits(isActive ? .isSelected : [])
     }
 

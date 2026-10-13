@@ -1,0 +1,186 @@
+{
+  "ach.reward.oro %@": {
+    "es": "%@ blue",
+    "en": "%@ Blue"
+  },
+  "character.skin.oro_shop": {
+    "es": "Se compra con blue, acá o en la Tienda",
+    "en": "Bought with Blue, here or in the Store"
+  },
+  "cinematic.reencarnacion.a11y": {
+    "es": "Reencarnación: el Fisura sube entre una lluvia de dólares blue.",
+    "en": "Reincarnation: the Hobo rises through a storm of Blue Dollars."
+  },
+  "iap.com.fisuevolution.iap.offer_bienvenida.desc": {
+    "es": "Blue, 2 h de ingresos y un cofre de pintas",
+    "en": "Blue, 2 h of income and a skin chest"
+  },
+  "iap.com.fisuevolution.iap.offer_mudanza.desc": {
+    "es": "Blue, 8 h de ingresos y 3 Paquetes",
+    "en": "Blue, 8 h of income and 3 Parcels"
+  },
+  "iap.com.fisuevolution.iap.offer_renacer.desc": {
+    "es": "Blue, 4 h de ingresos y ×3 por 30 minutos",
+    "en": "Blue, 4 h of income and ×3 for 30 minutes"
+  },
+  "iap.com.fisuevolution.iap.oro_large.desc": {
+    "es": "%@ blue para el que quiere todo, y lo quiere ahora",
+    "en": "%@ Blue for those who want it all, and want it now"
+  },
+  "iap.com.fisuevolution.iap.oro_large.name": {
+    "es": "Bóveda de dólares blue",
+    "en": "Vault of Blue Dollars"
+  },
+  "iap.com.fisuevolution.iap.oro_medium.desc": {
+    "es": "%@ blue: boosts, mejoras y skins, y todavía te sobra",
+    "en": "%@ Blue: boosts, upgrades and skins, with change left over"
+  },
+  "iap.com.fisuevolution.iap.oro_medium.name": {
+    "es": "Saco de dólares blue",
+    "en": "Sack of Blue Dollars"
+  },
+  "iap.com.fisuevolution.iap.oro_small.desc": {
+    "es": "%@ blue para un boost o esa mejora que venís mirando",
+    "en": "%@ Blue for a boost or that upgrade you keep eyeing"
+  },
+  "iap.com.fisuevolution.iap.oro_small.name": {
+    "es": "Puñado de dólares blue",
+    "en": "Handful of Blue Dollars"
+  },
+  "prestige.body %@": {
+    "es": "Cada blue que ganás suma %@ al multiplicador global, para siempre. Cada vida arranca más rápido.",
+    "en": "Every Blue you earn adds %@ to your global multiplier, forever. Every life starts faster."
+  },
+  "prestige.keeps %@": {
+    "es": "Conservás: tus blue, el multiplicador ×%@, las mejoras permanentes y las skins",
+    "en": "You keep: your Blue, the ×%@ multiplier, permanent upgrades and skins"
+  },
+  "prestige.oro.gain %@": {
+    "es": "+%@ blue",
+    "en": "+%@ Blue"
+  },
+  "prestige.oro.next %@": {
+    "es": "Te falta juntar %@ para tu próximo blue",
+    "en": "Earn %@ more for your next Blue"
+  },
+  "price.ax.oro %@": {
+    "es": "%@ blue",
+    "en": "%@ Blue"
+  },
+  "reset.summary.iap_skins %@": {
+    "es": "Pintas compradas (con plata o con blue): %@",
+    "en": "Purchased outfits (money or Blue): %@"
+  },
+  "reset.summary.oro %@ %@ %@ %@": {
+    "es": "Blue: tenés %1$@ (comprados %2$@, ganados %3$@) → conservás %4$@",
+    "en": "Blue: you have %1$@ (bought %2$@, earned %3$@) → you keep %4$@"
+  },
+  "reset.summary.refund": {
+    "es": "Si después te reembolsan una compra de blue, se descuentan sólo esos blue.",
+    "en": "If a purchase of Blue is refunded later, only that Blue is deducted."
+  },
+  "reward.title.oro": {
+    "es": "%1$@ blue",
+    "en": "%1$@ Blue"
+  },
+  "stats.row.oro": {
+    "es": "Blue en la billetera",
+    "en": "Blue in the wallet"
+  },
+  "stats.row.oro_lifetime": {
+    "es": "Blue ganados en total",
+    "en": "Blue earned overall"
+  },
+  "store.pack.oro %@": {
+    "es": "Te da %@ blue para las mejoras permanentes",
+    "en": "Gives you %@ Blue to spend on permanent upgrades"
+  },
+  "store.section.oro": {
+    "es": "Blue",
+    "en": "Blue"
+  },
+  "store.segment.buy": {
+    "es": "Comprar blue",
+    "en": "Buy Blue"
+  },
+  "store.segment.spend": {
+    "es": "Gastar blue",
+    "en": "Spend Blue"
+  },
+  "store.subtitle": {
+    "es": "Atajos, blue y pintas, con plata de verdad",
+    "en": "Shortcuts, Blue and outfits, with real money"
+  },
+  "store.subtitle.spend": {
+    "es": "Gastá tus blue en boosts, atajos y suerte",
+    "en": "Spend your Blue on boosts, shortcuts and luck"
+  },
+  "tutorial.cosmetics.open": {
+    "es": "Hay pintas que podés pagar con blue. Abrí la Tienda con el +.",
+    "en": "There are outfits you can pay for with Blue. Open the Store with the +."
+  },
+  "tutorial.cosmetics.spend": {
+    "es": "Tocá «Gastar blue».",
+    "en": "Tap “Spend Blue”."
+  },
+  "tutorial.cosmetics.where": {
+    "es": "Las pintas se compran con blue acá y se ponen en Pintas.",
+    "en": "Outfits are bought with Blue here and worn in Outfits."
+  },
+  "tutorial.luck.spend": {
+    "es": "Tocá «Gastar blue».",
+    "en": "Tap “Spend Blue”."
+  },
+  "tutorial.oro_shop.caps": {
+    "es": "Algunos tienen tope por día. Tu saldo de blue se ve arriba de todo.",
+    "en": "Some have a daily cap. Your Blue balance is at the very top."
+  },
+  "tutorial.oro_shop.open": {
+    "es": "Tenés blue para gastar. Abrí la Tienda con el +.",
+    "en": "You have Blue to spend. Open the Store with the +."
+  },
+  "tutorial.oro_shop.spend": {
+    "es": "Tocá «Gastar blue»: boosts, atajos y mejoras permanentes.",
+    "en": "Tap “Spend Blue”: boosts, shortcuts and permanent upgrades."
+  },
+  "tutorial.prestige.open": {
+    "es": "Tocá acá para ver cuántos blue te llevás.",
+    "en": "Tap here to see how much Blue you’d get."
+  },
+  "tutorial.prestige.oro": {
+    "es": "¡Ya podés reencarnar! Empezás de cero, pero con blue que multiplican todo para siempre.",
+    "en": "You can reincarnate! You start over, but with Blue that multiplies everything forever."
+  },
+  "tutorial.tip.oro": {
+    "es": "¡Tu primer blue! Canjealo en Mejoras por una mejora permanente",
+    "en": "Your first Blue! Trade it in Upgrades for a permanent boost"
+  },
+  "upgrade.effect.prestige %@": {
+    "es": "Cada blue suma %@ a tu multiplicador",
+    "en": "Each Blue adds %@ to your multiplier"
+  },
+  "upgrades.flavor.prestige": {
+    "es": "Cada blue que ganaste rinde un poco más en la próxima vida.",
+    "en": "Every Blue you ever earned pulls a little harder next life."
+  },
+  "upgrades.oro_balance %@": {
+    "es": "Blue: %@",
+    "en": "Blue: %@"
+  },
+  "visit.arbolito_blue.ask": {
+    "es": "Mientras dure el cepo, blue más barato y sin tope.",
+    "en": "While the clamp lasts, cheaper Blue with no limit."
+  },
+  "visit.arbolito_cambio.ask": {
+    "es": "Te vende blue a cambio de plata. Hasta %1$@ por día.",
+    "en": "Sells you Blue for cash. Up to %1$@ a day."
+  },
+  "visit.arbolito_cambio.bubble": {
+    "es": "¡Cambio, cambio, cambiooo! Plata por blue, buen precio, sin preguntar.",
+    "en": "Exchange, exchange, exchaaange! Cash for Blue, good rate, no questions asked."
+  },
+  "visit.option.exchange": {
+    "es": "Cambiar %1$@ por %2$@ blue",
+    "en": "Swap %1$@ for %2$@ Blue"
+  }
+}

@@ -38,7 +38,7 @@ no te transfiere ninguna propiedad.
 
 ## 3. Compras dentro de la app
 
-El Juego es gratis y ofrece compras opcionales: paquetes de plata y de ORO
+El Juego es gratis y ofrece compras opcionales: paquetes de plata y de dólares blue
 (consumibles, se gastan al usarlos), el pack inicial, la opción "Sin
 anuncios" y skins (no consumibles, se compran una sola vez).
 
@@ -49,7 +49,7 @@ anuncios" y skins (no consumibles, se compran una sola vez).
   uno, se hace desde reportaproblem.apple.com — nosotros no podemos emitir
   reembolsos ni revertir un cobro. Si algo falló del lado del Juego,
   escribinos igual y vemos qué podemos hacer.
-- **Los objetos virtuales no valen plata real.** La plata, el ORO, las skins,
+- **Los objetos virtuales no valen plata real.** La plata, el blue, las skins,
   los personajes y cualquier otro objeto del Juego son una licencia limitada
   de uso dentro del Juego. No son moneda, no son un activo, no tienen valor
   monetario, no se cambian por dinero ni por bienes fuera del Juego, y no se
@@ -67,7 +67,7 @@ anuncios" y skins (no consumibles, se compran una sola vez).
   el progreso —incluidos objetos comprados que ya se consumieron— puede
   perderse y no podemos recuperarlo.
 - **Reencarnar reinicia cosas a propósito.** Reencarnar (prestigio) borra
-  parte de tu progreso a cambio de ORO y multiplicadores permanentes. Es una
+  parte de tu progreso a cambio de dólares blue y multiplicadores permanentes. Es una
   mecánica del juego, está avisada en pantalla antes de confirmar, y no da
   derecho a reembolso.
 - **Precios y catálogo pueden cambiar.** Podemos agregar, sacar o cambiar el
@@ -214,7 +214,7 @@ ownership to you.
 
 ## 3. In-app purchases
 
-The Game is free and offers optional purchases: coin and ORO packs
+The Game is free and offers optional purchases: coin and Blue Dollar packs
 (consumables, spent when used), the starter pack, the "No ads" option and
 skins (non-consumables, bought once).
 
@@ -225,7 +225,7 @@ skins (non-consumables, bought once).
   reportaproblem.apple.com. We cannot issue refunds or reverse a charge. If
   something went wrong on the Game's side, write to us anyway and we'll see
   what we can do.
-- **Virtual items have no real-world value.** Coins, ORO, skins, characters
+- **Virtual items have no real-world value.** Coins, Blue Dollars, skins, characters
   and any other in-game item are a limited licence to use them inside the
   Game. They are not currency, not an asset, have no monetary value, cannot
   be exchanged for money or goods outside the Game, and cannot be sold,
@@ -242,7 +242,7 @@ skins (non-consumables, bought once).
   your progress — including already-consumed purchased items — may be lost
   and we cannot recover it.
 - **Reincarnating resets things on purpose.** Reincarnating (prestige) wipes
-  part of your progress in exchange for ORO and permanent multipliers. It's a
+  part of your progress in exchange for Blue Dollars and permanent multipliers. It's a
   game mechanic, it is shown on screen before you confirm, and it does not
   entitle you to a refund.
 - **Prices and catalogue may change.** We may add, remove or reprice

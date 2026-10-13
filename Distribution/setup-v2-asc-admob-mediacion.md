@@ -64,7 +64,7 @@ de ahí.
 • Visitantes: el Comisario, el Sindicalista, el Turista Gringo y compañía pasan por tu empresa con pedidos, trueques y sorpresas.
 • Eventos nuevos, como ¡Salimos campeones!, el Feriado Puente, el Paro General o el Apagón, con su escape por video.
 • El Paquete de la Aduana, El Colchón y la Ruleta del Conductor de TV.
-• Tienda de ORO: boosts, atajos, mejoras permanentes y pintas nuevas.
+• Tienda de dólares blue: boosts, atajos, mejoras permanentes y pintas nuevas.
 • 15 lugares por piso, la botonera del ascensor y pisos en marcha que suben tus ingresos.
 • El atajo de contratar ya no desaparece, y manteniéndolo presionado elegís a quién fijar.
 • Un tema musical para cada piso.
@@ -81,7 +81,7 @@ Version 2.0 is here: the biggest overhaul since the Hobo left the alley.
 • Visitors: the Police Chief, the Union Boss, the Gringo Tourist and friends drop by with requests, trades and surprises.
 • New events like We Won the Cup!, Long Weekend, General Strike and Blackout, each with a way out by video.
 • Customs Parcels, the Mattress Stash and the TV Host's Prize Wheel.
-• ORO Shop: boosts, shortcuts, permanent upgrades and new outfits.
+• Blue Dollar Shop: boosts, shortcuts, permanent upgrades and new outfits.
 • 15 spots per floor, an elevator panel, and fully staffed floors that boost your income.
 • The quick-hire button never disappears, and pressing and holding it lets you pin who you hire.
 • A music theme for every floor.
@@ -158,9 +158,9 @@ editar después de guardarlo ni reusar aunque se borre el producto.
 | `coins_small` | Consumible | 0.99 | Sumar es-ES | — |
 | `coins_medium` | Consumible | 4.99 | Sumar es-ES | — |
 | `coins_large` | Consumible | 9.99 | Sumar es-ES | — |
-| `oro_small` | Consumible | 1.99 | Descripción nueva + es-ES | "Gives 160 ORO." |
-| `oro_medium` | Consumible | 4.99 | **Nombre** y descripción nuevos + es-ES | "Gives 550 ORO." |
-| `oro_large` | Consumible | 9.99 | es-ES (la descripción no cambia) | "Gives 1,400 ORO." |
+| `oro_small` | Consumible | 1.99 | Descripción nueva + es-ES | "Gives 160 Blue Dollars." |
+| `oro_medium` | Consumible | 4.99 | **Nombre** y descripción nuevos + es-ES | "Gives 550 Blue Dollars." |
+| `oro_large` | Consumible | 9.99 | es-ES (la descripción no cambia) | "Gives 1,400 Blue Dollars." |
 | `remove_ads` | No consumible | 2.99 | Descripción nueva + es-ES | "Removes the interstitial, the ad break and the app open ad. Opt-in rewarded videos stay." |
 | `skin_mundialista` | No consumible | 2.99 | Sumar es-ES | — |
 | `skin_parrillero` | No consumible | 2.99 | Sumar es-ES | — |
@@ -191,15 +191,15 @@ de IAP: todos los caracteres son del plano básico de Unicode (incluidos `ñ`,
 | `coins_large` | es-MX | Bolso de Plata | 14 | El bolso entero, sin preguntar de dónde salió | 45 |
 | `coins_large` | es-ES | Bolso de Plata | 14 | El bolso entero, sin preguntar de dónde salió | 45 |
 | `coins_large` | en-US | Bag of Cash | 11 | The whole duffel bag, no questions asked | 40 |
-| `oro_small` | es-MX | Puñado de ORO | 13 | Para un boost o esa mejora que venís mirando | 44 |
-| `oro_small` | es-ES | Puñado de ORO | 13 | Para un boost o esa mejora que venís mirando | 44 |
-| `oro_small` | en-US | Handful of ORO | 14 | For a boost or that upgrade you keep eyeing | 43 |
-| `oro_medium` | es-MX | Saco de ORO | 11 | Boosts, mejoras y skins, y todavía te sobra | 43 |
-| `oro_medium` | es-ES | Saco de ORO | 11 | Boosts, mejoras y skins, y todavía te sobra | 43 |
-| `oro_medium` | en-US | Sack of ORO | 11 | Boosts, upgrades and skins, with change left | 44 |
-| `oro_large` | es-MX | Bóveda de ORO | 13 | Para el que quiere todo, y lo quiere ahora | 42 |
-| `oro_large` | es-ES | Bóveda de ORO | 13 | Para el que quiere todo, y lo quiere ahora | 42 |
-| `oro_large` | en-US | Vault of ORO | 12 | For those who want it all, and want it now | 42 |
+| `oro_small` | es-MX | Puñado de dólares blue | 13 | Para un boost o esa mejora que venís mirando | 44 |
+| `oro_small` | es-ES | Puñado de dólares blue | 13 | Para un boost o esa mejora que venís mirando | 44 |
+| `oro_small` | en-US | Handful of Blue Dollars | 14 | For a boost or that upgrade you keep eyeing | 43 |
+| `oro_medium` | es-MX | Saco de dólares blue | 11 | Boosts, mejoras y skins, y todavía te sobra | 43 |
+| `oro_medium` | es-ES | Saco de dólares blue | 11 | Boosts, mejoras y skins, y todavía te sobra | 43 |
+| `oro_medium` | en-US | Sack of Blue Dollars | 11 | Boosts, upgrades and skins, with change left | 44 |
+| `oro_large` | es-MX | Bóveda de dólares blue | 13 | Para el que quiere todo, y lo quiere ahora | 42 |
+| `oro_large` | es-ES | Bóveda de dólares blue | 13 | Para el que quiere todo, y lo quiere ahora | 42 |
+| `oro_large` | en-US | Vault of Blue Dollars | 12 | For those who want it all, and want it now | 42 |
 | `skin_mundialista` | es-MX | Skin Mundialista | 16 | La camiseta y una copa que no ganó él | 37 |
 | `skin_mundialista` | es-ES | Skin Mundialista | 16 | La camiseta y una copa que no ganó él | 37 |
 | `skin_mundialista` | en-US | Mundialista Skin | 16 | The jersey, and a cup he didn't win | 35 |
@@ -209,15 +209,15 @@ de IAP: todos los caracteres son del plano básico de Unicode (incluidos `ñ`,
 | `skins_diamante` | es-MX | Todas las skins de Diamante | 27 | Los 43 personajes tallados en diamante | 38 |
 | `skins_diamante` | es-ES | Todas las skins de Diamante | 27 | Los 43 personajes tallados en diamante | 38 |
 | `skins_diamante` | en-US | All Diamond Skins | 17 | All 43 characters carved in diamond, at once | 44 |
-| `offer_bienvenida` | es-MX | Pack de Bienvenida | 18 | ORO, 2 h de ingresos y un cofre de pintas | 41 |
-| `offer_bienvenida` | es-ES | Pack de Bienvenida | 18 | ORO, 2 h de ingresos y un cofre de pintas | 41 |
-| `offer_bienvenida` | en-US | Welcome Pack | 12 | ORO, 2 h of income and a skin chest | 35 |
-| `offer_renacer` | es-MX | Pack Renacer | 12 | ORO, 4 h de ingresos y ×3 por 30 minutos | 40 |
-| `offer_renacer` | es-ES | Pack Renacer | 12 | ORO, 4 h de ingresos y ×3 por 30 minutos | 40 |
-| `offer_renacer` | en-US | Rebirth Pack | 12 | ORO, 4 h of income and ×3 for 30 minutes | 40 |
-| `offer_mudanza` | es-MX | Pack Mudanza | 12 | ORO, 8 h de ingresos y 3 Paquetes | 33 |
-| `offer_mudanza` | es-ES | Pack Mudanza | 12 | ORO, 8 h de ingresos y 3 Paquetes | 33 |
-| `offer_mudanza` | en-US | Moving Day Pack | 15 | ORO, 8 h of income and 3 Parcels | 32 |
+| `offer_bienvenida` | es-MX | Pack de Bienvenida | 18 | Blue, 2 h de ingresos y un cofre de pintas | 41 |
+| `offer_bienvenida` | es-ES | Pack de Bienvenida | 18 | Blue, 2 h de ingresos y un cofre de pintas | 41 |
+| `offer_bienvenida` | en-US | Welcome Pack | 12 | Blue, 2 h of income and a skin chest | 35 |
+| `offer_renacer` | es-MX | Pack Renacer | 12 | Blue, 4 h de ingresos y ×3 por 30 minutos | 40 |
+| `offer_renacer` | es-ES | Pack Renacer | 12 | Blue, 4 h de ingresos y ×3 por 30 minutos | 40 |
+| `offer_renacer` | en-US | Rebirth Pack | 12 | Blue, 4 h of income and ×3 for 30 minutes | 40 |
+| `offer_mudanza` | es-MX | Pack Mudanza | 12 | Blue, 8 h de ingresos y 3 Paquetes | 33 |
+| `offer_mudanza` | es-ES | Pack Mudanza | 12 | Blue, 8 h de ingresos y 3 Paquetes | 33 |
+| `offer_mudanza` | en-US | Moving Day Pack | 15 | Blue, 8 h of income and 3 Parcels | 32 |
 
 Para cada producto:
 
@@ -263,9 +263,9 @@ Lo nuevo de la 2.0 es la sección de **actividades de azar**:
 
 | Pregunta | Respuesta | Por qué |
 |---|---|---|
-| **Loot Boxes** ("virtual containers that provide players with randomized virtual items for purchase") | **Sí** | La ruleta con giro extra pagado con ORO, el cofre de pintas por ORO y el cofre dentro del Pack de Bienvenida. El ORO se compra con plata real |
+| **Loot Boxes** ("virtual containers that provide players with randomized virtual items for purchase") | **Sí** | La ruleta con giro extra pagado con blue, el cofre de pintas por blue y el cofre dentro del Pack de Bienvenida. El blue se compra con plata real |
 | **Simulated Gambling** ("betting or wagering without using real money…") | **No** | No hay ninguna mecánica de apostar: nunca se arriesga algo para ganar más de lo mismo. El Crypto Bro no apuesta (PLAN-v2 §6) |
-| **Gambling** (con plata real o moneda canjeable) | **No** | El ORO no se canjea por nada fuera del juego (Términos §3) |
+| **Gambling** (con plata real o moneda canjeable) | **No** | El blue no se canjea por nada fuera del juego (Términos §3) |
 | **Contests** | **No** | Game Center sigue apagado: no hay rankings |
 | **Advertising** (capacidades) | **Sí** | AdMob y mediación |
 | Parental Controls / Age Assurance | No | No los hay |
@@ -276,7 +276,7 @@ Lo nuevo de la 2.0 es la sección de **actividades de azar**:
   tiene 12+: son 4+, 9+, 13+, 16+ y 18+ (misma página). Anotar lo que dé y
   corregir el "12+" de `store-metadata.md` y de la política.
 - ⚠️ En Australia, el azar pagado sube la clasificación local. Los giros
-  extra y los cofres por ORO **se apagan en Bélgica y Australia** por la
+  extra y los cofres por blue **se apagan en Bélgica y Australia** por la
   config remota (`restrictedStorefronts`, decisión del dueño), pero el
   cuestionario se responde por lo que el binario **puede** hacer: igual es
   **Sí**.
@@ -383,7 +383,7 @@ ADS (Google AdMob; mediation partners: Unity Ads and Meta Audience Network)
 ATT is requested on first launch; declining is fully supported. In the EEA, UK and Switzerland, Google's UMP consent form is shown before any ad, and Settings > Privacy options lets the player change it.
 
 RANDOMIZED ITEMS (Guideline 3.1.1)
-The prize wheel, the skin chest bought with ORO, the Mattress Stash and the skin chest in the Welcome Pack give randomized items. The odds of every prize are shown on screen before spinning, buying or opening. ORO, the premium currency, can be bought with real money; it has no real-world value and cannot be cashed out or transferred. No real-money gambling or betting. Extra wheel spins and ORO chests are off in Belgium and Australia.
+The prize wheel, the skin chest bought with Blue Dollars, the Mattress Stash and the skin chest in the Welcome Pack give randomized items. The odds of every prize are shown on screen before spinning, buying or opening. Blue Dollars, the premium currency, can be bought with real money; it has no real-world value and cannot be cashed out or transferred. No real-money gambling or betting. Extra wheel spins and skin chests bought with Blue Dollars are off in Belgium and Australia.
 
 24-HOUR OFFERS (consumable IAPs)
 - Welcome Pack (US$0.99): once, on the player's 2nd calendar day. To see it: play once, set the device date one day ahead and reopen the app.
@@ -391,7 +391,7 @@ The prize wheel, the skin chest bought with ORO, the Mattress Stash and the skin
 - Moving Day Pack (US$4.99): when a new floor opens outside the tutorial; early floors open within the first minutes.
 Each stays for 24 hours behind a chip at the top of the board, never during the tutorial.
 
-IAPs (14): starter pack, remove ads, three cash packs, three ORO packs, three skin purchases and the three offers above. Consumables are not restored by design; remove ads and skins are.
+IAPs (14): starter pack, remove ads, three cash packs, three Blue Dollar packs, three skin purchases and the three offers above. Consumables are not restored by design; remove ads and skins are.
 ```
 
 ### 1.9 Disponibilidad en Mac y en Apple Vision Pro

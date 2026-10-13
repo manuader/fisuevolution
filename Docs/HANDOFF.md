@@ -20,6 +20,8 @@
 > mockups aprobados (`Docs/correcciones-v2/mockups/`), 30 tareas en `tasks.md` §5 «E14» y §4.0. Va antes que
 > todo lo demás de la cola. Detalle: `Docs/SESION-2026-10-12-v2-e14-correcciones-dueno.md`.
 >
+> 📍 **Estado al cierre del relevo 50 (2026-10-13; manda sobre los párrafos de abajo):** `version-2` = la punta de `v2i/integ-r50` (pusheada). **Progreso: 278 de 306 (90,8 %).** Entraron de **E14: T4 (fuera los videos de fondos y de los 43 personajes base), T6 (visitantes en un carril con bolsa barajada y «No, gracias»; Dios sigue en 45,40 h) y T28 (la intro espera al consentimiento)**. La cola del 51 está en `tasks.md` §4.0 fila 0 (T8 · T10 · T3). Detalle: `Docs/SESION-2026-10-13-v2-relevo-50.md`.
+>
 > 📍 **Estado al cierre del relevo 49 (2026-10-13, en vivo con el dueño; manda sobre los párrafos de abajo):** `version-2` = la punta de `v2i/integ-r49` (pusheada). **Progreso: 275 de 306 (89,9 %)**, con E14 sumada. Entraron la **calibración de 45 h** (E2b T12–T15: Dios 45,40 h · 6 reenc., 4 asserts provisorios como preguntas al dueño), E12 T12, la **mediación Unity + Meta** (E7b cerrada), B22 resuelto sin dominios, y de **E14: T29 (crítico: el boost por video), T9 (componentes base), T5 (tiers 7↔8, save v7) y T7 (dólar blue en textos)**. La cola del 50 está en `tasks.md` §4.0 fila 1b. Detalle: `Docs/SESION-2026-10-13-v2-relevo-49.md`.
 >
 > 📍 **Estado al cierre del relevo 38 (la ola AJ, 2026-10-12; manda sobre los párrafos de abajo):** `version-2` = código `efd25858` + docs del 38 (pusheado). **Progreso: 259 de 283 (91,5 %)**, sin cambios: entró un carry sin fila (los eventos de 25 s dicen «En curso»; fuera `tutorial.tip.wheel`). `rapido` de `efd25858` VERDE (EK 875 · unit 1763 · Release 0). Detalle: `Docs/SESION-2026-10-12-v2-relevo-38-ola-aj.md`. Todo lo que falta espera al dueño (ver `tasks.md` §4.2, «Relevo 39»).
@@ -377,6 +379,10 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-10-13 (relevo 50) — La segunda ola de E14: T4, T6, T28
+
+Relevo automático con la máquina cargada por otra sesión: fuera los videos de fondos de piso y de personajes base (C1, C22; −14,9 MiB), visitantes en un solo carril con bolsa barajada por visitante y «No, gracias» (C5; save v7 sin bump; Dios 45,40 h igual, `coinsSecondsScale` 0,26), y la intro que espera al consentimiento (C31, `ConsentGate`). `Docs/SESION-2026-10-13-v2-relevo-50.md`.
 
 ### Sesión del 2026-10-12/13 (relevo 49) — La calibración de 45 h, la mediación y la primera ola de E14
 
@@ -5009,6 +5015,13 @@ Siguen vigentes y no estaban en ningún otro lado:
 - **El repaso se retira si el núcleo volvió a vivir** y no arranca con el núcleo sin hacer: no hay que "arreglarlo" para que arranque igual, pisaría la fase.
 - **El reset del ORO es `min(saldo, comprado)`:** devolver el comprado entero regala ORO gastado; devolver el saldo entero regala el ORO ganado jugando. Cualquier cambio a `ResetPlan` o a `resolveAcrossReset` se prueba con `ResetEpochTests`.
 
+### Del relevo 50 (2026-10-13)
+
+- **Con la máquina sobre ~400 de carga (otra sesión pesada), una tarea chica tarda 5–7 h** y el `build-for-testing` solo, ~70 min: dos tareas a la vez es el techo práctico.
+- **En un `Bash` de fondo, `cd X && a; b` puede correr `b` fuera de `X`:** rutas absolutas siempre en los comandos de fondo (el primer `rapido` del 50 murió con «no such file»).
+- **El `Package.resolved` de las tareas sale de la integración resuelta una vez** (`xcodebuild -resolvePackageDependencies`, 6 pines con la mediación), no del de `.claude/worktrees/version-2` (sin los pines de mediación).
+- **La bolsa de visitantes (E14 T6) reemplaza al carril del vendedor y al `antiRepeat`:** no hay `lane`, `vendorIntervalSeconds` ni `recentScripts`; quien toque visitantes lee `VisitorScheduler.pickNext(state:)` (inout) y `markVisited`.
+
 ### Del relevo 49 (2026-10-13)
 
 - **Un fixture de debug con `Int.max` como frontera cuelga todo cálculo que itere por tier** (la escalada por bandas recorre `2...frontier`): los fixtures recortan al `maxTier` del contenido.
@@ -5592,6 +5605,7 @@ Anotado por si algún día importa, con su medición:
 - **`Docs/SESION-2026-10-12-v2-e7b-a-cierre.md`**: el cierre de E7b-a y, con él, de E7b entera (la tabla T1–T7 con su commit, lo que entró en la mediación, qué cubren los tests, el porqué de cada default de «Para el dueño», los escenarios 🔒 con pasos y los carries: Meta sin onboarding, app open sólo AdMob, los grupos de AdMob, «Data Used to Track You»). Plan cerrado: `Docs/superpowers/plans/2026-10-07-v2-e7b-a-forzados-mediacion.md`.
 - **`Docs/SESION-2026-10-12-v2-relevo-38-ola-aj.md`**: el relevo 38 (los eventos de 25 s dicen «En curso»; fuera `tutorial.tip.wheel`).
 - **`Docs/SESION-2026-10-12-v2-relevo-37-ola-ai.md`**: el relevo 37 (el UI test del otro colchón `extraOnly`; el pager asienta con el scroll quieto).
+- **`Docs/SESION-2026-10-13-v2-relevo-50.md`**: el relevo 50 (E14 T4, T6, T28; la carga de la máquina).
 - **`Docs/SESION-2026-10-13-v2-relevo-49.md`**: el relevo 49 en vivo (la calibración de 45 h, la mediación, E14 T29/T9/T5/T7, los dos arreglos de arranque).
 - **`Docs/SESION-2026-10-12-v2-relevo-36-ola-ah.md`**: el relevo 36 (E9b T3–T5 y T10, E9a T10, E6b T10; E9 y E6b cerradas; el fixture `--uitest-lessons-done`).
 - **`Docs/SESION-2026-10-11-v2-relevo-35-ola-ag.md`**: el relevo 35 (el spike del tinte de pintas, hecho y rechazado por el dueño; las ocho pintas de la v1 a ORO con sus precios; las doce lecciones de la economía y el hueco `skinEffects` declarado; los eventos de 0 s a 25 s con `eventPresence`; el otro colchón guardado con su guard y `LossyModifier`; el reset que conserva las pintas de ORO; el `completo` de `c21d9e47` con su único rojo de test de cofres y el `rapido` de `0dc356dc`; las cuatro revisiones opus; el sitio publicado en `3f03716` y `e059c84`).

@@ -4,6 +4,8 @@ lee los plists del bundle y los compara con el fuente y con `release.json`."""
 from __future__ import annotations
 
 import plistlib
+import subprocess
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -99,4 +101,55 @@ def verify(app: Path, source_info: Path, source_privacy: Path, config: dict) -> 
     build = str(info.get("CFBundleVersion", ""))
     checks.append(Check("CFBundleVersion", build.isdigit() and int(build) >= MIN_BUILD,
                         f"esperaba un entero >= {MIN_BUILD}, hay {build!r}"))
+    checks.append(embedded_frameworks(app, info))
     return checks
+
+
+def otool_load_commands(binary: Path) -> str:
+    return subprocess.run(["xcrun", "otool", "-l", str(binary)],
+                          check=True, capture_output=True, text=True).stdout
+
+
+def parse_load_commands(text: str) -> tuple[list[str], list[str]]:
+    """De `otool -l`: las dependencias fuertes (LC_LOAD_DYLIB) y los rpaths (LC_RPATH)."""
+    dylibs: list[str] = []
+    rpaths: list[str] = []
+    command = None
+    for line in text.splitlines():
+        words = line.split()
+        if len(words) < 2:
+            continue
+        if words[0] == "cmd":
+            command = words[1]
+        elif command == "LC_LOAD_DYLIB" and words[0] == "name":
+            dylibs.append(words[1])
+        elif command == "LC_RPATH" and words[0] == "path":
+            rpaths.append(words[1])
+    return dylibs, rpaths
+
+
+def embedded_frameworks(app: Path, info: dict,
+                        load_commands: Callable[[Path], str] = otool_load_commands) -> Check:
+    """Cada `@rpath/…` fuerte del ejecutable (y de su `.debug.dylib`) tiene que resolverse ADENTRO
+    del `.app` por un rpath relativo. Si no, dyld aborta al abrir desde el ícono: Xcode lo tapa
+    inyectando `DYLD_FRAMEWORK_PATH` al correr o testear, así que sólo se ve fuera de Xcode.
+    Las débiles (StoreKitTest en Debug) quedan afuera: dyld tolera que falten."""
+    executable = info.get("CFBundleExecutable", "")
+    binaries = [app / executable, app / f"{executable}.debug.dylib"]
+    problems = []
+    resolved = 0
+    for binary in (b for b in binaries if executable and b.is_file()):
+        dylibs, rpaths = parse_load_commands(load_commands(binary))
+        bases = [Path(str(r).replace("@executable_path", str(app)).replace("@loader_path", str(binary.parent)))
+                 for r in rpaths if r.startswith(("@executable_path", "@loader_path"))]
+        for dylib in (d for d in dylibs if d.startswith("@rpath/")):
+            relative = dylib.removeprefix("@rpath/")
+            if any((base / relative).exists() for base in bases):
+                resolved += 1
+            else:
+                problems.append(f"{binary.name} → {relative}")
+    if not executable or not (app / executable).is_file():
+        return Check("Frameworks embebidos", False, f"no está el ejecutable {executable!r}")
+    return Check("Frameworks embebidos", not problems,
+                 "no se resuelven dentro del .app: " + ", ".join(problems) if problems
+                 else f"{resolved} dependencias @rpath, todas dentro del .app")

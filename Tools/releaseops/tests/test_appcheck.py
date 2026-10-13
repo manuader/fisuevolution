@@ -35,7 +35,9 @@ class AppCheckTests(unittest.TestCase):
         (self.app / "Info.plist").write_bytes(plistlib.dumps(self.info))
         if with_privacy:
             (self.app / "PrivacyInfo.xcprivacy").write_bytes(plistlib.dumps(self.privacy))
-        return appcheck.verify(self.app, self.source_info, self.source_privacy, self.config)
+        checks = appcheck.verify(self.app, self.source_info, self.source_privacy, self.config)
+        # Los binarios de fixture no son Mach-O: el chequeo de frameworks tiene sus propios tests.
+        return [c for c in checks if c.name != "Frameworks embebidos"]
 
     def failed(self, checks):
         return {c.name: c for c in checks if not c.ok}
@@ -109,6 +111,74 @@ class AppCheckTests(unittest.TestCase):
         (archive / "Products" / "Applications").mkdir(parents=True)
         with self.assertRaises(FileNotFoundError):
             appcheck.locate_app(archive)
+
+
+def load_commands(dylibs=(), rpaths=(), weak=()):
+    """Un `otool -l` mínimo: sólo los comandos que el chequeo lee."""
+    lines = ["Load command 0", "          cmd LC_ID_DYLIB", "         name @rpath/Self.dylib (offset 24)"]
+    lines += [f"          cmd LC_LOAD_DYLIB\n         name {d} (offset 24)" for d in dylibs]
+    lines += [f"          cmd LC_LOAD_WEAK_DYLIB\n         name {d} (offset 24)" for d in weak]
+    lines += [f"          cmd LC_RPATH\n         path {r} (offset 12)" for r in rpaths]
+    return "\n".join(lines)
+
+
+class EmbeddedFrameworksTests(unittest.TestCase):
+    """Un `@rpath` fuerte que no se resuelve dentro del `.app` es un crash al abrir desde el ícono."""
+
+    FBAN = "@rpath/FBAudienceNetwork.framework/FBAudienceNetwork"
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+        self.app = self.tmp / "FisuEvolution.app"
+        (self.app / "Frameworks" / "FBAudienceNetwork.framework").mkdir(parents=True)
+        (self.app / "Frameworks" / "FBAudienceNetwork.framework" / "FBAudienceNetwork").touch()
+        (self.app / "FisuEvolution").touch()
+        (self.app / "FisuEvolution.debug.dylib").touch()
+        self.info = {"CFBundleExecutable": "FisuEvolution"}
+        self.commands = {
+            "FisuEvolution": load_commands(["@rpath/FisuEvolution.debug.dylib"], ["@executable_path"]),
+            "FisuEvolution.debug.dylib": load_commands(
+                [self.FBAN], ["/usr/lib/swift", "@executable_path/Frameworks", "/abs/PackageFrameworks"],
+                weak=["@rpath/StoreKitTest.framework/StoreKitTest"]),
+        }
+
+    def check(self):
+        return appcheck.embedded_frameworks(self.app, self.info, lambda b: self.commands[b.name])
+
+    def test_green_counts_what_it_resolved(self):
+        check = self.check()
+        self.assertTrue(check.ok, check.detail)
+        self.assertIn("2 dependencias", check.detail)
+
+    def test_debug_dylib_without_frameworks_rpath(self):
+        # El bug de r49: el override de Debug pisó el `@executable_path/Frameworks` del preset.
+        self.commands["FisuEvolution.debug.dylib"] = load_commands(
+            [self.FBAN], ["/usr/lib/swift", "/abs/PackageFrameworks"])
+        check = self.check()
+        self.assertFalse(check.ok)
+        self.assertIn("FisuEvolution.debug.dylib → FBAudienceNetwork.framework", check.detail)
+
+    def test_framework_not_embedded(self):
+        shutil.rmtree(self.app / "Frameworks")
+        check = self.check()
+        self.assertFalse(check.ok)
+        self.assertIn("FBAudienceNetwork", check.detail)
+
+    def test_release_binary_without_debug_dylib(self):
+        (self.app / "FisuEvolution.debug.dylib").unlink()
+        self.commands["FisuEvolution"] = load_commands([self.FBAN], ["@executable_path/Frameworks"])
+        check = self.check()
+        self.assertTrue(check.ok, check.detail)
+        self.assertIn("1 dependencias", check.detail)
+
+    def test_weak_dependency_may_be_missing(self):
+        self.assertTrue(self.check().ok)
+        self.assertFalse((self.app / "Frameworks" / "StoreKitTest.framework").exists())
+
+    def test_missing_executable(self):
+        (self.app / "FisuEvolution").unlink()
+        self.assertFalse(self.check().ok)
 
 
 if __name__ == "__main__":

@@ -52,6 +52,13 @@ final class AdsCoordinator: AdsProvider {
 
     @ObservationIgnored private(set) var isConfigured = false
 
+    /// La señal para la intro de una partida nueva: avisa cuándo terminó el consentimiento.
+    /// `GameState` la espera; los caminos sin permisos la resuelven en `configure`.
+    @ObservationIgnored let consentGate: ConsentGate
+    /// El momento tranquilo al que cede el paso el consentimiento que la intro no esperó: lo pone
+    /// la app (`GameState.isCalmMoment`).
+    @ObservationIgnored var isCalmMoment: @MainActor () -> Bool = { true }
+
     /// Si hay un anuncio de pantalla completa en pantalla, de cualquier formato.
     ///
     /// ⚠️ No es informativo: es lo que impide **dos anuncios encimados**. El
@@ -97,8 +104,10 @@ final class AdsCoordinator: AdsProvider {
     /// pasan uno guionado para controlar cuándo se cierra un anuncio.
     init(
         now: @escaping @Sendable () -> Date = Date.init,
-        provider: any AdsProvider = StubAdsProvider()
+        provider: any AdsProvider = StubAdsProvider(),
+        consentGate: ConsentGate = ConsentGate()
     ) {
+        self.consentGate = consentGate
         self.now = now
         self.active = provider
     }
@@ -139,11 +148,13 @@ final class AdsCoordinator: AdsProvider {
             // Rama sin ads reales: queda el stub. Sirve para desarrollar, y el
             // test de contenido es el que impide que un build de tienda salga
             // así.
+            consentGate.resolve()
             active.prepare()
             return
         }
 
-        await AdsConsent.resolve()
+        if !AdsConsent.introNeedsToWait { consentGate.skipWaiting() }
+        await AdsConsent.resolve(gate: consentGate, isCalm: isCalmMoment)
         let provider = AdMobAdsProvider(unitIDs: flags.effectiveAdUnitIDs(remote: remoteUnitIDs), now: now)
         active = provider
         provider.prepare()

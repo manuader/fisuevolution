@@ -407,6 +407,11 @@ final class GameState {
     /// Los anuncios. `@ObservationIgnored` como los otros servicios: el estado
     /// del inventario de anuncios no dibuja nada.
     @ObservationIgnored var ads: AdsCoordinator?
+    /// La señal del consentimiento que la intro de una partida nueva espera (`+Cinematics`).
+    @ObservationIgnored var consentGate: ConsentGate?
+    @ObservationIgnored var introWait: Task<Void, Never>?
+    /// El tutorial de una partida nueva arranca después de la intro, que espera al consentimiento.
+    @ObservationIgnored var tutorialStartAfterIntro = false
     /// Si un forzado tiene la cola de celebraciones retenida, y qué restricción
     /// había antes (`+Ads`).
     @ObservationIgnored var celebrationHold = CelebrationHold.released

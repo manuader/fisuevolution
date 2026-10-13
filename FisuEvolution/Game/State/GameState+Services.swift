@@ -17,6 +17,11 @@ extension GameState {
         ads = coordinator
     }
 
+    /// El consentimiento que la intro de una partida nueva espera. Va ANTES del bootstrap.
+    func attachConsentGate(_ gate: ConsentGate) {
+        consentGate = gate
+    }
+
     func attachAudio(_ manager: AudioManager) {
         audio = manager
     }

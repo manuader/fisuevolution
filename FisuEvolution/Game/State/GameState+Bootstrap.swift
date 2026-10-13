@@ -258,7 +258,7 @@ extension GameState {
         #endif
         // La intro de una cuenta nueva toma el turno antes que el tutorial: no se estorban
         // (ver `reconcileIntro`).
-        reconcileIntro(isNewGame: isFreshInstall)
+        let introWaitsForConsent = reconcileIntro(isNewGame: isFreshInstall)
         // El tutorial entra a la cola ANTES de que nadie encole nada: el
         // offline, el daily del día 2 y los logros de un save viejo pasan
         // todos por `syncCelebrations`, y el gate tiene que estar puesto
@@ -272,7 +272,11 @@ extension GameState {
         // `StoreManager` con su `SKTestSession`).
         applyTutorialMigration(hasSave: !isFreshInstall)
         if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil {
-            startTutorialCoreIfPending()
+            if introWaitsForConsent {
+                tutorialStartAfterIntro = true
+            } else {
+                startTutorialCoreIfPending()
+            }
         }
         // Después de la restricción del tutorial: con la fase activa la cinemática queda
         // esperando en `pending`, no se pierde.

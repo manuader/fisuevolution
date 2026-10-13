@@ -41,6 +41,7 @@
 | C28 | El Paquete de la Aduana se entiende: qué trae, dónde está y cómo se abre | `GameState+Packages`, `PackageRoller`, sello de C9, pantalla de premio de C4, lección del tutorial | **sí: `rw_package_employee`** | anotada |
 | C29 | Jerarquía y recorrido: Regalos y la tienda de blue guían al jugador; auditoría de UX de todas las pantallas | `GiftsView`, Mejoras › Permanentes/Boosts (C11), todas las hojas | no | anotada |
 | C30 | La botonera del ascensor, siempre en la capa de arriba de la columna derecha | `ElevatorRideOverlay`/`ElevatorKeypadLayer`, columna derecha de C9 | no | anotada |
+| C32 | **CRÍTICO:** el boost por video se puede repetir sin fin y se acumula multiplicando | `GameState+AdOffers.activateBoostFromAd`, `BoostManager.activate` (`ContentSystems.swift`), `GiftsView.BoostCard`, save | no | anotada |
 | C31 | El permiso de seguimiento (ATT) no tapa el video de presentación: se pide antes y la intro espera | `AdsCoordinator`/`AdsConsent`, `FisuEvolutionApp.startServices`, `GameState+Cinematics.reconcileIntro` | no | anotada |
 
 ---
@@ -1282,3 +1283,43 @@ de Google que explica el seguimiento antes del cartel de Apple). Consecuencias p
 
 **Listo cuando:** en una instalación nueva, el cartel de Apple aparece primero (sobre el telón quieto) y la
 intro corre entera después, sin ningún diálogo encima.
+
+## C32 — CRÍTICO: el boost por video se repite sin fin y se acumula
+
+**Lo que dijo el dueño:** en la página de boosts, al consumir un boost aparece el botón de ver un anuncio para
+tenerlo dos veces. Pero después de la segunda vez, en lugar del reloj con el cooldown, vuelve a aparecer el
+video. Un jugador puede usar el ingreso ×3 y ver el video una y otra vez hasta tener ganancias exponenciales y
+ganar el juego muy rápido. Una vez visto el anuncio tiene que aparecer el cooldown real, sustancial, y la mecánica
+no se tiene que poder abusar.
+
+**Causa (verificada):**
+
+1. `GameState+AdOffers.activateBoostFromAd` borra la última activación del boost, lo activa y, en un `defer`,
+   **restaura la activación anterior** («el cooldown que ya corría sigue corriendo»). La tarjeta queda en el
+   mismo estado de antes (cooldown + «ver video») y el video se puede repetir sin límite.
+2. `BoostManager.activate` (`Managers/ContentSystems.swift`) **agrega** un `ActiveModifier` nuevo en cada
+   activación, y `ModifierMath.factor` multiplica todos los activos del mismo efecto. Repetir el mismo boost
+   **multiplica**: el Turbo ×3 tres veces da ×27, y diez veces ×59.049.
+
+**Qué hacer (antes que cualquier otra tarea de E14):**
+
+1. **Un video por ciclo:** el video de un boost en cooldown se puede usar **una sola vez por ciclo**. Al usarlo,
+   el boost entra en un **cooldown completo desde ese momento** (no se restaura el anterior) y la oferta de video
+   desaparece hasta la próxima activación gratis. En el save, un campo opcional nuevo
+   (`meta.boostAdUsedAt[id]` o equivalente), con migración sin pérdida.
+2. **El mismo boost no se apila:** activar un boost cuyo efecto todavía está activo **renueva** su duración (se
+   queda con el vencimiento más tardío), no agrega otro multiplicador. Vale para todas las vías: gratis, video,
+   visitantes, eventos y Tienda. Los boosts **distintos** se siguen multiplicando entre sí (B2), y eso no cambia.
+3. La tarjeta muestra el reloj real del cooldown después del video, con el arte de C19, y en ningún estado
+   ofrece un segundo video en el mismo ciclo.
+4. Tests (EK y unit):
+   - activar → video → video otra vez: el segundo se rechaza;
+   - el factor del mismo boost nunca pasa su magnitud, aunque se active N veces;
+   - después del video, el cooldown restante es el completo;
+   - un save viejo carga bien.
+   RED por mutación: sacar el arreglo tiene que dar rojo.
+5. Pacing: correr el simulador después del arreglo. Si cambia el ritmo hasta Dios (~45 h), se informa: el
+   simulador no explotaba esto, así que no debería moverse.
+
+**Listo cuando:** con el Turbo, activar gratis → ver el video una vez → la tarjeta queda en cooldown completo sin
+botón de video; y el ingreso nunca supera el ×3 de ese boost.

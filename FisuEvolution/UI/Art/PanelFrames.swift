@@ -182,10 +182,63 @@ private struct PanelSheetLayout<Header: View, Ornament: View>: ViewModifier {
     let ornament: Ornament
 
     @Environment(\.menuPager) private var pager
+    @State private var headerHeight: CGFloat = 0
 
-    func body(content: Content) -> some View {
+    @ViewBuilder func body(content: Content) -> some View {
+        if let pager {
+            pagedBody(content, pager: pager)
+        } else {
+            framedBody(content)
+        }
+    }
+
+    /// La hoja suelta: el marco es suyo.
+    private func framedBody(_ content: Content) -> some View {
+        layout(content, header: header)
+            .background {
+                ZStack(alignment: .top) {
+                    WoodPanelBackground(material: material, awning: awning)
+                    ornament
+                }
+                // La sombra del panel flotando sobre el juego: sin el material del
+                // sheet del sistema, la profundidad la pone el propio panel.
+                .shadow(color: .black.opacity(0.30), radius: 16, y: 6)
+            }
+            // Arriba el panel llega al borde del sheet (la barra de navegación
+            // flota transparente sobre la banda); abajo NO: respeta la safe area,
+            // que es lo que deja la banda inferior a la vista.
+            .ignoresSafeArea(edges: .top)
+            .frame(maxWidth: SheetColumn.maxWidth)
+    }
+
+    /// Una página del menú deslizable: el marco, la X, las flechas y los puntos
+    /// son del paginador y no se mueven. Acá queda sólo el título y el cuerpo,
+    /// que deslizan juntos por adentro del pergamino; el paginador recibe por
+    /// preferencia lo que cambia de una pestaña a otra (toldo, material, moño).
+    private func pagedBody(_ content: Content, pager: MenuPagerContext) -> some View {
+        layout(content, header: slottedHeader(pager))
+            .ignoresSafeArea(edges: .top)
+            .toolbar(.hidden, for: .navigationBar)
+            .containerBackground(.clear, for: .navigation)
+            .preference(key: MenuPageChromeKey.self, value: [pager.index: MenuPageChrome(
+                awning: awning,
+                material: material,
+                headerHeight: headerHeight,
+                ornament: AnyView(ornament)
+            )])
+    }
+
+    /// El título entre los dos huecos donde el paginador pone las flechas.
+    private func slottedHeader(_ pager: MenuPagerContext) -> some View {
+        header
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, pager.count > 1 ? MenuPagerView.chevronSlot : 0)
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { headerHeight = $0 }
+    }
+
+    private func layout(_ content: Content, header: some View) -> some View {
         VStack(spacing: 0) {
-            pagedHeader
+            header
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, WoodPanelBackground.columnInset)
                 .padding(.top, WoodPanelBackground.headerTopInset(awning: awning))
@@ -194,47 +247,6 @@ private struct PanelSheetLayout<Header: View, Ornament: View>: ViewModifier {
                 .mask { edgeFade }
         }
         .padding(.bottom, WoodPanelBackground.contentInset)
-        .background {
-            ZStack(alignment: .top) {
-                WoodPanelBackground(material: material, awning: awning)
-                ornament
-            }
-            .overlay(alignment: .bottom) {
-                if let pager {
-                    PagerDots(index: pager.index, count: pager.count)
-                        .padding(.bottom, PagerDots.bandInset)
-                }
-            }
-            // La sombra del panel flotando sobre el juego: sin el material del
-            // sheet del sistema, la profundidad la pone el propio panel.
-            .shadow(color: .black.opacity(0.30), radius: 16, y: 6)
-        }
-        // Arriba el panel llega al borde del sheet (la barra de navegación
-        // flota transparente sobre la banda); abajo NO: respeta la safe area,
-        // que es lo que deja la banda inferior a la vista.
-        .ignoresSafeArea(edges: .top)
-        .frame(maxWidth: SheetColumn.maxWidth)
-    }
-
-    /// Con un paginador en el entorno, las flechas ‹ › van en el renglón del
-    /// título; sin él, la cabecera de siempre.
-    @ViewBuilder private var pagedHeader: some View {
-        if let pager {
-            HStack(spacing: Tokens.s8) {
-                PagerChevronButton(direction: .previous, identifier: "menu.pager.previous") {
-                    pager.go(pager.index - 1)
-                }
-                .disabled(pager.index == 0)
-                header
-                    .frame(maxWidth: .infinity)
-                PagerChevronButton(direction: .next, identifier: "menu.pager.next") {
-                    pager.go(pager.index + 1)
-                }
-                .disabled(pager.index >= pager.count - 1)
-            }
-        } else {
-            header
-        }
     }
 
     /// El fundido que hace que las tarjetas SALGAN de adentro del panel en vez
@@ -399,8 +411,12 @@ private struct FisuSheetFlagPresenter<Sheet: View>: ViewModifier {
 /// legales— eran las únicas de la app que no flotaban.
 extension View {
     /// Aplicar sobre el CONTENIDO de un `navigationDestination`.
+    ///
+    /// Una vista empujada tampoco es una página del paginador: se enmarca ella
+    /// misma, así que se le quita el contexto del menú deslizable.
     func clearNavigationBackdrop() -> some View {
         containerBackground(.clear, for: .navigation)
+            .environment(\.menuPager, nil)
     }
 }
 

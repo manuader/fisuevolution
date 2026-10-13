@@ -102,3 +102,22 @@ Están en el plan y en `tasks.md` §7. Las que costó cerrar:
 - **El arte de los mockups no es el arte final:** lo que lleva la etiqueta «arte nuevo» se ve con
   reemplazos. Los PNG de los mockups (`Docs/correcciones-v2/mockups/a/`) son copias achicadas del juego y
   no se usan como assets.
+
+## Después, en la misma sesión: el arte, el boost y Supabase
+
+- **Arte de E14 aprobado:**
+  - las 27 imágenes y 10 de los 11 videos;
+  - `colchon_abre` se regeneró con una explosión de dinero, con billetes sin verde por el croma (4,5 créditos);
+  - en total se gastaron 99 créditos de Higgsfield.
+- **C32, el exploit del boost por video (E14-T29, va primero).** `activateBoostFromAd` restauraba el cooldown
+  viejo en un `defer`, así que el video se repetía sin fin. Y `BoostManager.activate` agrega un modifier en cada
+  activación, que `ModifierMath.factor` multiplica: el Turbo ×3 con tres videos daba ×27.
+- **E8e T10a–T10f salteadas** por C22: los personajes base quedan estáticos.
+- **E12 T16, Supabase desplegado con el MCP.** El detalle está en `supabase/README.md`, «El despliegue real».
+  Dos cosas que costaron:
+  - el secreto del cron se generó dentro de la base y la función lo lee del Vault, porque cargar un secreto a
+    mano en el panel era el único paso que pedía al dueño;
+  - las versiones de las migraciones se renombraron a las de los archivos para que la CLI no las reaplique.
+
+  La clave publicable `sb_publishable_…` pasa `verify_jwt = true` (medido con curl). La prueba de humo contra el
+  proyecto real quedó verde y el oráculo `tarea` también (EK 879 · unit 37).

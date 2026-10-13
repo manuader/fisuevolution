@@ -126,11 +126,11 @@
 | E9a | 10 | 9 |  |  |  | 1 |  |  |
 | E9b | 10 | 5 |  |  |  | 5 |  |  |
 | E2b | 15 | 11 |  |  |  | 4 |  |  |
-| E12 | 19 | 15 |  |  |  | 3 | 1 |  |
+| E12 | 19 | 16 |  |  |  | 3 |  |  |
 | E13 | 14 | 14 |  |  |  |  |  |  |
 | E13b | 11 | 11 |  |  |  |  |  |  |
 | E10 | 14 | 8 |  |  |  | 5 | 1 |  |
-| E14 | 30 | 2 |  |  | 6 | 21 | 1 |  |
+| E14 | 30 | 3 |  |  | 6 | 21 |  |  |
 | **Total** | **283** | **251** |  | **1** | **1** | **27** | **3** | **5** |
 
 Fuera del conteo:
@@ -908,7 +908,7 @@ antes de E2b (fija el piso `minRealSecondsToGod`) y E10 (App Privacy, Términos,
 | E12-T13 | La 7.ª pestaña montada | ✅ | T9b, T11; E3b-T4, E3a-T11 | 🔥 RootView, catálogo; GameArtComponents, BottomMenuBar, MenuPagerView, TabUnlocks, tabs.json, +Tabs | | sonnet; captura SE (plan B: tarjeta en la Oficina); **destrabada (r20):** E3b T4 🟢 y E3a T11 ✅; dueña de `RootView` (no ∥ E3b T8, E7b-a T2) |
 | E12-T14 | La tarjeta de Dios montada | ✅ | T9a, T11, T13 | 🔥 RootView, catálogo | | sonnet; de a una con T13 |
 | E12-T15 | Privacidad, Términos y notas a App Review | ✅ | T11 | PrivacyInfo.xcprivacy, Legal | `700c02a`+`a223c0b` (en `v2i/integ-r22`) | sonnet; insumo de E10 ; **carry a E10 y al dueño:** `NSPrivacyTracking` sigue en `false` (de antes) aunque AdMob/ATT; la nota no da atajo al revisor para ver el ranking; la privacidad no nombra al proveedor de la IA que modera |
-| E12-T16 | Despliegue real y humo | 🔒 | T5, T14 | — | | Supabase (URL + anon), `ANTHROPIC_API_KEY`, lista aprobada |
+| E12-T16 | Despliegue real y humo | ✅ | T5, T14 | — | (rama `v2/e14-correcciones-dueno`) | **2026-10-12, sesión del dueño (MCP de Supabase):** 5 migraciones + 137 palabras, 5 funciones, Vault (URL y secreto del cron generado en la base), cron cada 15 min → 200. `remoderate` lee el secreto del Vault si falta `REMODERATE_SECRET`. `ranking.json` con la URL y la **clave publicable** (pasa `verify_jwt`). Humo real: nombre → `ok` por Haiku (la `ANTHROPIC_API_KEY` anda), lista → `rejected`, inválido → 400, top, reporte, 401/405. Oráculo `tarea` VERDE (EK 879 · unit 37). El `ranking.json` remoto está **publicado** (sitio `4c5283f`, OK del dueño 2026-10-13; `https://adergames-site.vercel.app/config/ranking.json` → 200). Falta 🔒: que el dueño pruebe `admin.sql` desde el panel. Detalle: `supabase/README.md` «El despliegue real» |
 | E12-T17 | El piso calibrado | ⛔ | T16; E2b-T14 | — | | controlador; no frena el cierre |
 | E12-T18 | Cierre de E12 (controlador) | ⛔ | T1–T16 | `Docs/` | | |
 
@@ -992,8 +992,8 @@ ilustrados, popups centrados y contenidos (C19, C29), y **cero superposición** 
 |---|---|---|---|---|---|---|
 | E14-T0 | Mockups de alta fidelidad y aprobación | ✅ | — | — | `Docs/correcciones-v2/mockups/` | G1 cerrada: el dueño aprobó todos (2026-10-12); D4 = opción A |
 | E14-T1 | Generar las 27 imágenes (Gemini Flash) | ✅ | — | `automatic-image-generation/projects/fisu-v2-premios` |  | **aprobadas las 27 por el dueño (G2 ✅, 2026-10-12)**; `fisu-v2-premios/output/` |
-| E14-T2 | Generar los 11 videos (Higgsfield) | 🔒 | — | `fisu-v2-premios/video` | `ef16ceb` (a-i-g) | **10 de 11 aprobados (G3, 2026-10-12)**; `colchon_abre` se regenera con una explosión de dinero (billetes sin verde por el croma; prompt v2 `f5dc9c7`) y vuelve a revisión |
-| E14-T3 | Integrar el arte aprobado (pipeline, atlas, manifest) | ⏳ | G2 ✅, G3 (10/11) | `Tools/asset-pipeline`, `*.atlas`, `loops_manifest.json` |  | ya se puede: las 27 imágenes y 10 videos aprobados; `colchon_abre` entra cuando el dueño apruebe la v2. `video_assets.py` de a uno; recortar a 1 s los `_sacude` y a 2 s `ruleta_premio` |
+| E14-T2 | Generar los 11 videos (Higgsfield) | ✅ | — | `fisu-v2-premios/video` | `ef16ceb` (a-i-g) | **los 11 aprobados por el dueño (G3 ✅, 2026-10-13)**; `colchon_abre` es la v3: billetes verdes sobre **fondo blanco** (matte `blanco`, no verde), aprobada con el borde cortado por la explosión; 108 créditos en total. `fisu-v2-premios/video/out/` |
+| E14-T3 | Integrar el arte aprobado (pipeline, atlas, manifest) | ⏳ | G2 ✅, G3 (10/11) | `Tools/asset-pipeline`, `*.atlas`, `loops_manifest.json` |  | todo el arte aprobado (G2 ✅, G3 ✅). `video_assets.py` de a uno; recortar a 1 s los `_sacude` y a 2 s `ruleta_premio`; **`colchon_abre` va con matte `blanco`** (los demás `_abre` y `ruleta_premio`, `verde`) |
 | E14-T4 | Fuera videos de fondos de piso y de los 43 personajes base | ⏳ | — | `FloorNode`, `BoardScene` (fondo/clip), `loops_manifest` (`floors`, `characters` base), `AnimPacks/`, `project.yml`, `video_assets.py` |  | C1, C22 · ola 1 |
 | E14-T5 | Fast Food ↔ Chofer de App + migración del save por posición | ⏳ | — | `tiers.json`, EK (migración), tests de save |  | C17 · opus · ola 1 |
 | E14-T6 | Visitantes: un solo carril, bolsa barajada, «No, gracias»; pacing compensado | ⛔ | ola 1 | `VisitorScheduler`, `VisitorsConfig`, `visitors.json`, save, simulador |  | C5 · opus · D11 · ola 2 |
@@ -1128,7 +1128,7 @@ Las cinco nuevas de E7b-b (relevo 6), con su default:
 |---|---|---|---|
 | G1 · Mockups | aprobar los mockups | la fase 2 de E14 | ✅ aprobados todos (2026-10-12) |
 | G2 · Imágenes de E14 | revisar las 27 de `fisu-v2-premios` (va / regenerar / obviar) | E14-T3 (las pantallas usan el fallback mientras tanto) | ✅ aprobadas las 27 (2026-10-12) |
-| G3 · Videos de E14 | revisar los 11 clips de `fisu-v2-premios/video/out/` | E14-T3 | 🔒 10 de 11 aprobados (2026-10-12); `colchon_abre` v2 (explosión de dinero) en regeneración |
+| G3 · Videos de E14 | revisar los 11 clips de `fisu-v2-premios/video/out/` | E14-T3 | ✅ los 11 aprobados (2026-10-13; `colchon_abre` v3, billetes verdes sobre blanco) |
 | G4 · iPhone real | pasada en SE y Pro Max con la lista del cierre de E14 | el lanzamiento | 🔒 al final |
 
 ## 7. Decisiones del dueño (no se vuelven a preguntar)

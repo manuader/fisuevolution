@@ -26,7 +26,7 @@ export interface Deps {
   now: () => Date;
   settings: () => Promise<Settings>;
   /** El secreto del cron; sin él la función `remoderate` rechaza todo. */
-  remoderateSecret?: string;
+  remoderateSecret?: () => Promise<string | undefined>;
 }
 
 export const REMODERATE_BATCH = 50;
@@ -159,7 +159,7 @@ export function makeHandlers(deps: Deps) {
 
   /** Comparación en tiempo constante del header del cron contra el secreto. */
   async function authorized(req: Request): Promise<boolean> {
-    const secret = deps.remoderateSecret;
+    const secret = await deps.remoderateSecret?.();
     if (!secret) return false;
     const [given, expected] = await Promise.all([
       sha256Hex(req.headers.get("authorization") ?? ""),

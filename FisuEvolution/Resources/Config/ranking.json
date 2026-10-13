@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
   "enabled": true,
-  "baseURL": null,
-  "anonKey": null
+  "baseURL": "https://oejmjpwfxpwzzakdjxwp.supabase.co",
+  "anonKey": "sb_publishable_f8DqKYFlQARPrgWxRER5NA_OEfwbSPa"
 }

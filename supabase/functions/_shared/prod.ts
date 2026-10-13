@@ -12,7 +12,8 @@ const unavailable: Classifier = () => Promise.resolve("unavailable");
 export function prodDeps(): Deps {
   const url = Deno.env.get("SUPABASE_DB_URL");
   if (!url) throw new Error("falta SUPABASE_DB_URL");
-  const repo = pgRepo(postgres(url, { prepare: false, max: 3 }));
+  const sql = postgres(url, { prepare: false, max: 3 });
+  const repo = pgRepo(sql);
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
   const classify = apiKey ? haikuClassifier(apiKey) : unavailable;
 
@@ -23,12 +24,28 @@ export function prodDeps(): Deps {
     return terms.list;
   }
 
+  // El secreto del cron: el de las funciones si está cargado; si no, el mismo valor del Vault que
+  // usa pg_cron, así no hay un segundo lugar donde copiarlo a mano.
+  const envSecret = Deno.env.get("REMODERATE_SECRET");
+  let vaultSecret: Promise<string | undefined> | null = null;
+  function remoderateSecret(): Promise<string | undefined> {
+    if (envSecret) return Promise.resolve(envSecret);
+    vaultSecret ??= sql`select decrypted_secret from vault.decrypted_secrets
+                        where name = 'ranking_remoderate_secret'`
+      .then(([row]) => (row?.decrypted_secret as string | undefined) ?? undefined)
+      .catch(() => {
+        vaultSecret = null;
+        return undefined;
+      });
+    return vaultSecret;
+  }
+
   const now = () => new Date();
   return {
     repo,
     now,
     settings: () => repo.settings(),
-    remoderateSecret: Deno.env.get("REMODERATE_SECRET"),
+    remoderateSecret,
     moderate: async (name) => moderate(name, { terms: await blocklist(now()), classify }),
   };
 }

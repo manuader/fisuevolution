@@ -387,6 +387,12 @@ generándose con Gemini (G2). Hallazgos que cambian el diseño: el vendedor ten�
 20/día); la imagen que se comparte es un SF Symbol; hay 124 SF Symbols en `UI/`; el video del fondo (1024²) tapa
 la foto (2048²). `Docs/SESION-2026-10-12-v2-e14-correcciones-dueno.md`.
 
+Más tarde, en la misma sesión:
+- se aprobó el arte;
+- entró C32 (CRÍTICO: el boost por video se repetía y se multiplicaba; E14-T29 va primero);
+- se saltearon E8e T10a–T10f por C22;
+- **E12 T16 ✅**: el ranking quedó desplegado en Supabase (proyecto `oejmjpwfxpwzzakdjxwp`) y la app apunta a él. Ver `supabase/README.md`, «El despliegue real`.
+
 ### Cierre de E2b (2026-10-12, relevo 49) — La calibración de 45 h
 
 E2b queda hecha salvo lo 🔒 (el `completo` del controlador y el recorrido a mano). El dueño pidió Dios en ~45 h (antes ~31) porque los videos, los anuncios y las ventajas nuevas acortaban el juego; la búsqueda de T13 eligió g 1,11 · r 1 · K 12 con siete bandas de escalada y el divisor del ORO en 8e11, y T14 las declaró y prendió el contrato (`PacingContractTests`, Dios 2.724 min · 6 reencarnaciones · 1ª en 1,67 h). **Cuatro asserts quedan provisorios** (el «antes» del 5, el 6, la isla y la luna del 7, el 8): la búsqueda no los alcanza con precios y son preguntas al dueño con sus números. Detalle, tabla T1–T15 con su commit, perillas, semáforo y preguntas en **`Docs/SESION-2026-10-12-v2-e2b.md`**; los números en `Docs/balance-log.md` («2.0 — la calibración declarada»).
@@ -5007,6 +5013,7 @@ Siguen vigentes y no estaban en ningún otro lado:
   docs/...` no agrega nada (el índice lo tiene como `Docs/...`). Siempre `Docs/`.
 - **El batch de Gemini no corre con `--launch`:** eso sólo abre el Chrome aislado. El batch es
   `open projects/<p>/correr-batch-gemini.command` (supervisor), y el modelo se elige a mano en ese Chrome.
+- **La clave publicable de Supabase (`sb_publishable_…`) sirve con `verify_jwt = true`** en las Edge Functions (medido): no hace falta la JWT `anon` legada. Y aplicar migraciones con el MCP registra versiones con la fecha del día: hay que renombrarlas a las de los archivos o `supabase db push` las vuelve a aplicar.
 - **Kling (Higgsfield) no hace clips de menos de 3 s:** lo de 1–2 s se recorta al integrar. Y Higgsfield frena el
   envío ofreciendo presets: hay que rechazarlos.
 

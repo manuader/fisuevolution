@@ -40,7 +40,7 @@ async function withBackend(
       moderate,
       now: () => clock,
       settings: () => repo.settings(),
-      remoderateSecret: CRON_SECRET,
+      remoderateSecret: () => Promise.resolve(CRON_SECRET),
     });
     const call = async (name: keyof typeof handlers, payload: unknown, method = "POST") => {
       const init: RequestInit = { method };

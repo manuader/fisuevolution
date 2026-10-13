@@ -60,7 +60,7 @@ final class AscentRenderingUITests: XCTestCase {
         // filas se reparten ese alto — el ancla de cada una queda a medio
         // deambular de su extremo.
         //
-        // Espejo de `BoardScene.bottomInset` (98; subió de 114 a 116 el
+        // Espejo de `BoardScene.bottomInset` (108; subió de 98 a 108 en E14 T12, cuando la barra estrenó las leyendas; subió de 114 a 116 el
         // 2026-08-17, cuando la barra inferior se fundió con el borde y estrenó
         // los labels, de 116 a 118 el mismo día, cuando los platos de los tabs
         // crecieron a 62, y bajó de 118 a 98 en E3a —Task 10—, cuando la barra
@@ -69,10 +69,10 @@ final class AscentRenderingUITests: XCTestCase {
         // el 2026-08-10, cuando los diez fondos se regeneraron con más piso).
         //
         // ⚠️ Allá el número ya **no** es un literal: es `GameTabBar.panelHeight`
-        // (64) + 34 de safe area. Acá sigue siendo copia a mano porque un test
+        // (74) + 34 de safe area. Acá sigue siendo copia a mano porque un test
         // de UI corre fuera de proceso y no puede importar la app — este espejo
         // es el último que queda, y por eso es el que hay que mirar.
-        let bottomInset: CGFloat = 98
+        let bottomInset: CGFloat = 108
         let crowdTopRatio: CGFloat = 0.44
         let rows: CGFloat = 2
         let floorY = cell * 0.55

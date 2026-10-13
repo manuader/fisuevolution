@@ -57,7 +57,7 @@ struct GameArtComponentsTests {
         let items = GameScreen.barOrder.map { screen in
             GameTabItem(
                 screen: screen,
-                icon: AnyView(EmptyView()),
+                icon: { _ in AnyView(EmptyView()) },
                 labelKey: "hud.\(screen.rawValue).label",
                 identifier: screen.identifier,
                 prominent: screen == GameScreen.centerTab
@@ -69,34 +69,49 @@ struct GameArtComponentsTests {
         #expect(items.filter(\.prominent).map(\.screen) == [.jobs])
     }
 
-    @Test("la barra no cambia de alto: el panel mide 64 y Contratar sobresale 20")
+    @Test("la geometría de la barra: panel de 74, Contratar sobresale 22 y las solapas 38")
     func barGeometry() {
-        #expect(GameTabBar.plateSide == 52)
-        #expect(GameTabBar.centerPlateSide == 72)
-        #expect(GameTabBar.panelHeight == 64)
-        #expect(GameTabBar.centerRise == GameTabBar.centerPlateSide - GameTabBar.plateSide)
-        #expect(GameTabBar.barHeight == 84, "la pila de arriba (atajo, prestigio, toasts) no se mueve")
+        #expect(GameTabBar.tabPlateSide == 48)
+        #expect(GameTabBar.centerPlateSide == 70)
+        #expect(GameTabBar.panelHeight == 74)
+        #expect(GameTabBar.centerRise == GameTabBar.centerPlateSide - GameTabBar.tabPlateSide)
+        #expect(GameTabBar.flapRise == GameTabBar.flapHeight - GameTabBar.flapOverlap)
+        #expect(GameTabBar.flapHeight >= 44, "la solapa entera es el objetivo de toque")
+        #expect(GameTabBar.riseHeight == GameTabBar.flapRise)
+        #expect(GameTabBar.barHeight == GameTabBar.panelHeight + GameTabBar.riseHeight)
     }
 
-    @Test("tres pestañas por lado entran en el SE (375 pt)")
-    func threeTabsPerSideFitTheSE() {
-        #expect(GameTabBar.minimumWidth(tabsPerSide: GameTabBar.slotsPerSide) <= 375)
+    @Test("el reparto llena el ancho útil con 3 a 7 pestañas, y Contratar pesa 1,4")
+    func widthsFillTheBar() {
+        for count in 3...7 {
+            let prominent = (0..<count).map { $0 == count / 2 }
+            let widths = GameTabBar.cellWidths(prominent: prominent, available: 351)
+            #expect(widths.count == count)
+            #expect(abs(widths.reduce(0, +) - 351) < 0.001, "\(count) pestañas: sin huecos")
+            let common = widths[(count / 2 + 1) % count]
+            #expect(abs(widths[count / 2] / common - GameTabBar.prominentWeight) < 0.001)
+            #expect(Set(widths.enumerated().filter { $0.offset != count / 2 }.map { Int($0.element * 1000) }).count == 1,
+                    "las comunes miden lo mismo")
+        }
     }
 
-    @Test("cada lado se llena desde Contratar hacia afuera")
-    func sidesFillTowardTheCenter() {
-        let up = item(.upgrades), sk = item(.skins), gi = item(.gifts), me = item(.menu)
-        #expect(GameTabBar.slots([up], towardCenterFrom: .leading).map { $0?.screen } == [nil, nil, .upgrades])
-        #expect(GameTabBar.slots([up, sk], towardCenterFrom: .leading).map { $0?.screen } == [nil, .upgrades, .skins])
-        #expect(GameTabBar.slots([gi], towardCenterFrom: .trailing).map { $0?.screen } == [.gifts, nil, nil])
-        #expect(GameTabBar.slots([gi, me], towardCenterFrom: .trailing).map { $0?.screen } == [.gifts, .menu, nil])
-        #expect(GameTabBar.slots([], towardCenterFrom: .trailing).map { $0?.screen } == [nil, nil, nil])
+    @Test("el ícono se dimensiona contra su celda y tiene tope en iPad")
+    func plateScalesWithTheCell() {
+        // SE: seis pestañas en 351 pt útiles.
+        let se = GameTabBar.cellWidths(prominent: [false, false, false, true, false, false], available: 351)
+        #expect(GameTabBar.plateSide(cellWidth: se[0], prominent: false) < GameTabBar.tabPlateSide)
+        #expect(GameTabBar.plateSide(cellWidth: se[0], prominent: false) * GameTabBar.iconRatio / se[0] > 0.68,
+                "el ícono ocupa ~70 % de la celda")
+        // iPad: la celda crece pero el plato no pasa del tope.
+        #expect(GameTabBar.plateSide(cellWidth: 200, prominent: false) == GameTabBar.tabPlateSide)
+        #expect(GameTabBar.plateSide(cellWidth: 300, prominent: true) == GameTabBar.centerPlateSide)
+        #expect(GameTabBar.cellWidths(prominent: [], available: 351).isEmpty)
     }
 
     private func item(_ screen: GameScreen) -> GameTabItem {
         GameTabItem(
             screen: screen,
-            icon: AnyView(EmptyView()),
+            icon: { _ in AnyView(EmptyView()) },
             labelKey: "hud.\(screen.rawValue).label",
             identifier: screen.identifier
         )
@@ -106,7 +121,7 @@ struct GameArtComponentsTests {
     func prominentDefaultsToFalse() {
         let item = GameTabItem(
             screen: .store,
-            icon: AnyView(EmptyView()),
+            icon: { _ in AnyView(EmptyView()) },
             labelKey: "hud.store.label",
             identifier: GameScreen.store.identifier
         )

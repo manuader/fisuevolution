@@ -10,10 +10,9 @@ struct ShareMomentChip: View {
 
     static let lifetime: Duration = .seconds(10)
 
-    /// Arriba de los dos toasts de `RootView` (el de logros llega a 264 pt de
-    /// la safe area con su aire), para que los tres se lean apilados.
+    /// Arriba de los dos toasts de `RootView`, para que los tres se lean apilados.
     @MainActor static var bottomPadding: CGFloat {
-        GameTabBar.barHeight + 8 + QuickHireButton.capsuleHeight + 8 + 45 + 63 + 63 + GameTabBar.bottomFloor
+        GameTabBar.barHeight + 8 + 63 + 63 + GameTabBar.bottomFloor
     }
 
     var body: some View {

@@ -142,7 +142,7 @@ def embedded_frameworks(app: Path, info: dict,
         dylibs, rpaths = parse_load_commands(load_commands(binary))
         bases = [Path(str(r).replace("@executable_path", str(app)).replace("@loader_path", str(binary.parent)))
                  for r in rpaths if r.startswith(("@executable_path", "@loader_path"))]
-        for dylib in (d for d in dylibs if d.startswith("@rpath/")):
+        for dylib in sorted({d for d in dylibs if d.startswith("@rpath/")}):  # fat: un juego por arquitectura
             relative = dylib.removeprefix("@rpath/")
             if any((base / relative).exists() for base in bases):
                 resolved += 1

@@ -70,7 +70,7 @@ struct PrestigeView: View {
                     GameButton(verbatim: goal, role: .blue, medallion: .glyph(.lock), available: false,
                                identifier: "prestige.wall") {}
                 } else {
-                    GameButton("prestige.confirm", role: .blue, identifier: "prestige.confirm") {
+                    GameButton("prestige.confirm", role: .blue, medallion: .none, identifier: "prestige.confirm") {
                         gameState.confirmPrestige()
                         onClose()
                     }

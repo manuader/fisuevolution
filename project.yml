@@ -240,7 +240,16 @@ targets:
           # corre la suite. Rutas absolutas de esta máquina horneadas en el
           # binario de DEBUG: en otra máquina con Xcode en otro lado, el weak
           # link de arriba degrada limpio (app viva, tienda sin catálogo).
-          LD_RUNPATH_SEARCH_PATHS: $(inherited) $(PLATFORM_DIR)/Developer/Library/Frameworks $(PLATFORM_DIR)/Developer/Library/PrivateFrameworks
+          #
+          # ⚠️ `@executable_path/Frameworks` va escrito A MANO: el preset de
+          # XcodeGen lo pone en la config del target, y esta clave lo PISA en el
+          # mismo nivel — `$(inherited)` ya no lo trae. Sin él, los frameworks
+          # dinámicos de la mediación (FBAudienceNetwork) se embeben pero el
+          # `.debug.dylib` no los encuentra: dyld aborta al abrir la app desde
+          # el ícono o con `simctl launch` (medido 2026-10-12). Xcode lo tapa al
+          # correr/testear inyectando `DYLD_FRAMEWORK_PATH`. Lo vigila
+          # `releaseops app verify` («Frameworks embebidos»).
+          LD_RUNPATH_SEARCH_PATHS: $(inherited) @executable_path/Frameworks $(PLATFORM_DIR)/Developer/Library/Frameworks $(PLATFORM_DIR)/Developer/Library/PrivateFrameworks
     # Entitlements futuros (F6, detrás de feature flags — NO habilitar antes):
     #   com.apple.developer.game-center, iCloud/CloudKit container
   FisuEvolutionTests:

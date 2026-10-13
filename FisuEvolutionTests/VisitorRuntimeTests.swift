@@ -27,15 +27,18 @@ struct VisitorRuntimeTests {
 
     private func coins(_ gameState: GameState) -> Double { gameState.player?.run.coins ?? 0 }
 
-    @Test("el carril listo pone a alguien en escena y anota la visita")
-    func aReadyLaneBringsSomeone() async throws {
+    @Test("el reloj listo pone en escena al próximo de la bolsa y lo saca de ella")
+    func aReadyClockBringsSomeone() async throws {
         let gameState = await world()
         gameState.player?.meta.engagement.visitors.secondsUntilVisit = 1
-        gameState.player?.meta.engagement.visitors.secondsUntilVendor = 999
         gameState.advanceVisitors(delta: 2)
         let visit = try #require(gameState.stageVisit)
         guard case .visitor(let scriptId) = visit.role else { Issue.record("no es un visitante"); return }
-        #expect(gameState.player?.meta.engagement.visitors.recentScripts.last == scriptId)
+        let visitors = try #require(gameState.player?.meta.engagement.visitors)
+        #expect(visitors.lastVisitor == visit.actorId)
+        #expect(visitors.lastScriptByVisitor[visit.actorId] == scriptId)
+        #expect(!visitors.visitorBag.isEmpty, "la vuelta quedó barajada en el save")
+        #expect(!visitors.visitorBag.contains(visit.actorId), "el que entró ya no está en la vuelta")
         #expect(gameState.player?.meta.engagement.visitors.visitsToday[scriptId] == 1)
         #expect((gameState.player?.meta.engagement.visitors.secondsUntilVisit ?? 0) >= 240, "el próximo, a 4–6 min")
     }
@@ -82,6 +85,33 @@ struct VisitorRuntimeTests {
         #expect(abs(coins(gameState) - (before + option.coins)) < 0.01)
         #expect(gameState.stageVisit?.offer == nil, "sin oferta, el chip se va")
         #expect(gameState.stageVisit?.bubble == VisitCopy.text("visit.thanks"))
+        gameState.advanceStage(delta: GameState.shortStaySeconds + 0.1)
+        #expect(gameState.stageVisit?.phase == .leaving)
+    }
+
+    @Test("«No, gracias» a cualquiera, el vendedor incluido: se va sin cobrar ni dar, y la visita cuenta", arguments: [
+        "turista_propina", "vendedor_ofertas", "comisario_arresto", "comisario_multa",
+    ])
+    func decliningLeavesForFree(scriptId: String) async throws {
+        let gameState = await world()
+        let before = try #require(gameState.player)
+        let beforeTower = gameState.tower
+        try arrive(gameState, scriptId)
+        let visit = try #require(gameState.stageVisit)
+        #expect(visit.offer != nil)
+        gameState.openVisitorPopup()
+        gameState.declineVisit()
+        #expect(gameState.visitorPopup == nil)
+        #expect(gameState.stageVisit?.offer == nil, "sin oferta, el chip se va")
+        #expect(gameState.stageVisit?.bubble == VisitCopy.text("visit.declined"))
+        let after = try #require(gameState.player)
+        #expect(after.run.coins == before.run.coins, "no cobra ni paga")
+        #expect(after.run.activeModifiers == before.run.activeModifiers, "no da nada")
+        #expect(after.meta.oro == before.meta.oro)
+        #expect(gameState.tower == beforeTower, "no se lleva a nadie ni deja paquetes")
+        #expect(after.meta.engagement.visitors.visitsToday[scriptId] == 1, "la visita cuenta como hecha")
+        #expect(after.meta.engagement.visitors.lastVisitor == visit.actorId)
+        #expect(gameState.stageChallenge == nil)
         gameState.advanceStage(delta: GameState.shortStaySeconds + 0.1)
         #expect(gameState.stageVisit?.phase == .leaving)
     }

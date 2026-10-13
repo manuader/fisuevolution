@@ -124,19 +124,22 @@ struct EngagementBudgetTests {
         }
     }
 
+    /// La bolsa es por visitante (E14 C5): cada uno viene igual de seguido, y
+    /// adentro de cada uno sus guiones se alternan.
     private func giftMinutesPerVisit() -> Double {
         let visitors = content.visitors
-        let main = visitors.scripts.filter { $0.lane == .main && !$0.eventOnly }
-        let weights = main.reduce(0.0) { $0 + Double($1.weight) }
-        guard weights > 0 else { return 0 }
-        let gifts = main.filter { isGift($0.mechanic) }.reduce(0.0) { sum, script in
-            let seconds = script.mechanic.rewards.reduce(0.0) { total, reward in
-                if case .coinsSeconds(let s) = reward { return total + s }
-                return total
-            }
-            return sum + Double(script.weight) * seconds
+        let rotation = Dictionary(grouping: visitors.scripts.filter { !$0.eventOnly }, by: \.visitor)
+        guard !rotation.isEmpty else { return 0 }
+        let perVisitor = rotation.values.map { scripts in
+            scripts.reduce(0.0) { sum, script in
+                guard isGift(script.mechanic) else { return sum }
+                return sum + script.mechanic.rewards.reduce(0.0) { total, reward in
+                    if case .coinsSeconds(let s) = reward { return total + s }
+                    return total
+                }
+            } / Double(scripts.count)
         }
-        return gifts / weights * visitors.coinsSecondsScale / 60
+        return perVisitor.reduce(0, +) / Double(perVisitor.count) * visitors.coinsSecondsScale / 60
     }
 
     private func giftMinutesPerEvent() -> Double {

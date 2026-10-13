@@ -73,15 +73,15 @@ struct VisitorsContentTests {
             return
         }
         #expect(cards.map(\.id) == ["mate", "cafe", "turbo"])
-        #expect(content.visitors.script(id: "vendedor_ofertas")?.lane == .vendor)
+        #expect(content.visitors.script(id: "vendedor_ofertas")?.dailyCap == 2, "el vendedor, uno más (E14 C5)")
     }
 
-    @Test("los relojes de PLAN-v2: primera a los 600 s, después cada 240–360, el vendedor cada ~180, paciencia de 30")
+    @Test("un solo reloj (E14 C5): primera a los 600 s, después cada 240–360 para todos, paciencia de 30")
     func theClocks() {
         let visitors = content.visitors
         #expect(visitors.firstVisitAfterSeconds == 600)
         #expect(visitors.intervalMinSeconds == 240 && visitors.intervalMaxSeconds == 360)
-        #expect(visitors.vendorIntervalSeconds == 180)
+        #expect(visitors.scripts.allSatisfy { $0.dailyCap <= 3 }, "nadie con tope propio de carril")
         #expect(visitors.patienceSeconds == 30)
         #expect(visitors.coinsSecondsScale > 0 && visitors.coinsSecondsScale <= 1, "E2b la baja con el presupuesto (EngagementBudgetTests)")
     }

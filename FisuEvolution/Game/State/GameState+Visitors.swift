@@ -48,27 +48,28 @@ extension GameState {
         }
         guard engagementAutorun, !tutorialPhaseActive, let content, var player else { return }
         VisitorScheduler.rollDay(&player.meta.engagement.visitors, today: today)
-        let lane = VisitorScheduler.advance(&player.meta.engagement.visitors, delta: delta,
-                                            config: content.visitors, rng: &rng)
+        let due = VisitorScheduler.advance(&player.meta.engagement.visitors, delta: delta, config: content.visitors)
         self.player = player
-        guard let lane, canPresentOnStage, stageRuntime.pendingEvent == nil else { return }
-        presentNextVisitor(lane: lane)
+        guard due, canPresentOnStage, stageRuntime.pendingEvent == nil else { return }
+        presentNextVisitor()
     }
 
-    func presentNextVisitor(lane: VisitorsConfig.Lane) {
+    /// El próximo de la bolsa (E14 C5). La bolsa reordenada se guarda aunque
+    /// nadie pueda venir: el que esperaba sigue primero.
+    func presentNextVisitor() {
         guard let content, var player, let context = visitContext else { return }
         // Lo ofrecible se resuelve ANTES: el sorteo no puede leer `self` mientras
         // `rng` está prestado como `inout` (la misma regla que `fireDueEvent`).
         let offerable = Set(content.visitors.scripts.filter { visitOffer(for: $0) != nil }.map(\.id))
-        guard let script = VisitorScheduler.pickNext(
-            lane: lane, config: content.visitors, state: player.meta.engagement.visitors,
+        let script = VisitorScheduler.pickNext(
+            config: content.visitors, state: &player.meta.engagement.visitors,
             context: context, isOfferable: { offerable.contains($0.id) }, rng: &rng
-        ) else {
-            VisitorScheduler.retrySoon(lane: lane, state: &player.meta.engagement.visitors, config: content.visitors)
-            self.player = player
-            return
+        )
+        if script == nil {
+            VisitorScheduler.retrySoon(state: &player.meta.engagement.visitors, config: content.visitors)
         }
-        presentVisitor(script)
+        self.player = player
+        if let script { presentVisitor(script) }
     }
 
     /// Pone en escena un guion ya elegido: el sorteo, el llamado de un evento o
@@ -121,6 +122,14 @@ extension GameState {
     /// Cerrar sin elegir no lo echa: sigue esperando con su paciencia.
     func closeVisitorPopup() {
         visitorPopup = nil
+    }
+
+    /// «No, gracias» (E14 C5): a cualquiera, el vendedor incluido. Se va sin
+    /// cobrar ni dar nada, y la visita cuenta como hecha (la bolsa ya lo sacó al
+    /// entrar).
+    func declineVisit() {
+        guard let visit = stageVisit, visit.phase == .waiting, visit.offer != nil, stageChallenge == nil else { return }
+        finishVisit(saying: "visit.declined")
     }
 
     /// Lo que se paga se puede pagar: alcanza la plata y no hay corralito.

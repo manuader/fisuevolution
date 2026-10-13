@@ -39,6 +39,11 @@ struct VisitorPopupView: View {
                             }
                         }
                     }
+                    // E14 C5: a cualquiera se le puede decir que no. T11/T15 lo rediseñan.
+                    GameButton("visit.option.decline", role: .neutral, medallion: .none, size: .compact,
+                               identifier: "visit.option.decline") {
+                        gameState.declineVisit()
+                    }
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.top, Tokens.s8)

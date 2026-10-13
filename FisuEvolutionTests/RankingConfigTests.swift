@@ -37,13 +37,13 @@ struct RankingConfigTests {
         }
     }
 
-    @Test("el JSON que se embarca es válido, nace sin URL ni clave y no es usable")
-    func shippedBundleIsValidAndInert() throws {
+    @Test("el JSON que se embarca apunta al proyecto real de Supabase con la clave publicable")
+    func shippedBundlePointsAtTheRealProject() throws {
         let url = try #require(Bundle.main.url(forResource: "ranking", withExtension: "json"))
         let config = try RankingConfig.decodeValidated(Data(contentsOf: url))
-        #expect(config.baseURL == nil)
-        #expect(config.anonKey == nil)
-        #expect(!config.isUsable)
+        #expect(config.baseURL == URL(string: "https://oejmjpwfxpwzzakdjxwp.supabase.co"))
+        #expect(config.anonKey?.hasPrefix("sb_publishable_") == true)
+        #expect(config.isUsable)
     }
 
     @Test("isUsable pide enabled, https y clave")

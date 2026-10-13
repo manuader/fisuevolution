@@ -126,7 +126,7 @@
 | E9a | 10 | 9 |  |  |  | 1 |  |  |
 | E9b | 10 | 5 |  |  |  | 5 |  |  |
 | E2b | 15 | 11 |  |  |  | 4 |  |  |
-| E12 | 19 | 15 |  |  |  | 3 | 1 |  |
+| E12 | 19 | 16 |  |  |  | 3 |  |  |
 | E13 | 14 | 14 |  |  |  |  |  |  |
 | E13b | 11 | 11 |  |  |  |  |  |  |
 | E10 | 14 | 8 |  |  |  | 5 | 1 |  |
@@ -908,7 +908,7 @@ antes de E2b (fija el piso `minRealSecondsToGod`) y E10 (App Privacy, Términos,
 | E12-T13 | La 7.ª pestaña montada | ✅ | T9b, T11; E3b-T4, E3a-T11 | 🔥 RootView, catálogo; GameArtComponents, BottomMenuBar, MenuPagerView, TabUnlocks, tabs.json, +Tabs | | sonnet; captura SE (plan B: tarjeta en la Oficina); **destrabada (r20):** E3b T4 🟢 y E3a T11 ✅; dueña de `RootView` (no ∥ E3b T8, E7b-a T2) |
 | E12-T14 | La tarjeta de Dios montada | ✅ | T9a, T11, T13 | 🔥 RootView, catálogo | | sonnet; de a una con T13 |
 | E12-T15 | Privacidad, Términos y notas a App Review | ✅ | T11 | PrivacyInfo.xcprivacy, Legal | `700c02a`+`a223c0b` (en `v2i/integ-r22`) | sonnet; insumo de E10 ; **carry a E10 y al dueño:** `NSPrivacyTracking` sigue en `false` (de antes) aunque AdMob/ATT; la nota no da atajo al revisor para ver el ranking; la privacidad no nombra al proveedor de la IA que modera |
-| E12-T16 | Despliegue real y humo | 🔒 | T5, T14 | — | | Supabase (URL + anon), `ANTHROPIC_API_KEY`, lista aprobada |
+| E12-T16 | Despliegue real y humo | ✅ | T5, T14 | — | (rama `v2/e14-correcciones-dueno`) | **2026-10-12, sesión del dueño (MCP de Supabase):** 5 migraciones + 137 palabras, 5 funciones, Vault (URL y secreto del cron generado en la base), cron cada 15 min → 200. `remoderate` lee el secreto del Vault si falta `REMODERATE_SECRET`. `ranking.json` con la URL y la **clave publicable** (pasa `verify_jwt`). Humo real: nombre → `ok` por Haiku (la `ANTHROPIC_API_KEY` anda), lista → `rejected`, inválido → 400, top, reporte, 401/405. Oráculo `tarea` VERDE (EK 879 · unit 37). Falta 🔒: publicar el `ranking.json` remoto (commit `4c5283f` en la rama `fisu-v2-release` del sitio, sin push) y que el dueño pruebe `admin.sql` desde el panel. Detalle: `supabase/README.md` «El despliegue real» |
 | E12-T17 | El piso calibrado | ⛔ | T16; E2b-T14 | — | | controlador; no frena el cierre |
 | E12-T18 | Cierre de E12 (controlador) | ⛔ | T1–T16 | `Docs/` | | |
 

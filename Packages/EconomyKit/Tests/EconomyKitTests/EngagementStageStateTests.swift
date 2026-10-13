@@ -58,9 +58,10 @@ struct EngagementStageStateTests {
         #expect(state.visitorBag.isEmpty, "la bolsa se baraja en la próxima visita")
         #expect(state.lastVisitor == nil)
         #expect(state.lastScriptByVisitor.isEmpty)
-        let reencoded = try JSONSerialization.jsonObject(with: JSONEncoder().encode(state)) as? [String: Any]
-        #expect(reencoded?["secondsUntilVendor"] == nil, "el reloj del carril viejo no se vuelve a escribir")
-        #expect(reencoded?["recentScripts"] == nil)
+        let reencoded = try #require(try JSONSerialization.jsonObject(with: JSONEncoder().encode(state)) as? [String: Any])
+        #expect(reencoded["secondsUntilVisit"] != nil)
+        #expect(reencoded["secondsUntilVendor"] == nil, "el reloj del carril viejo no se vuelve a escribir")
+        #expect(reencoded["recentScripts"] == nil)
     }
 
     @Test("al resolver un conflicto, el cupo del mismo día no se duplica")

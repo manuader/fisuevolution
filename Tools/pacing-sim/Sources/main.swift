@@ -263,10 +263,11 @@ do {
         throw SimToolError(description: "--prestige-discount pide prestige_unlocks.json y no se pudo leer")
     }
 
+    let human = PacingSimulator.HumanModel(reincarnation: arguments.reincarnation)
     let simulator = try PacingSimulator(
         config: config,
         tiers: tiers,
-        human: .init(reincarnation: arguments.reincarnation),
+        human: human,
         upgrades: upgradeLines,
         prestigeUnlocks: arguments.prestigeDiscount ? loaded.prestigeUnlocks : nil,
         profile: arguments.profile,
@@ -361,6 +362,16 @@ do {
         .joined(separator: " · ")
     print("  reencarnar paga (ahorro al volver a tu pared): \(pago.isEmpty ? "—" : pago)")
     print("     (contrato del dueño: ≥65 %, o sea volver cuesta cerca de un tercio)")
+
+    if let visitorsURL = arguments.sourcesURL?.appendingPathComponent("visitors.json"),
+       let data = try? Data(contentsOf: visitorsURL) {
+        // Un visitors.json roto no se lleva puesto el contrato: avisa y sigue.
+        if let visitors = try? JSONDecoder().decode(VisitorsConfig.self, from: data) {
+            VisitorRotation.run(config: visitors, report: report, human: human, seed: 1).print()
+        } else {
+            print("\n  ⚠️ visitors.json no se pudo leer: sin la rotación de visitantes")
+        }
+    }
 
     if arguments.contract {
         printContract(report: report, floorTable: floorTable)

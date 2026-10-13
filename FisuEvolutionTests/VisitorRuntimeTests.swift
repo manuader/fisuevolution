@@ -95,6 +95,7 @@ struct VisitorRuntimeTests {
     func decliningLeavesForFree(scriptId: String) async throws {
         let gameState = await world()
         let before = try #require(gameState.player)
+        let beforeTower = gameState.tower
         try arrive(gameState, scriptId)
         let visit = try #require(gameState.stageVisit)
         #expect(visit.offer != nil)
@@ -106,6 +107,8 @@ struct VisitorRuntimeTests {
         let after = try #require(gameState.player)
         #expect(after.run.coins == before.run.coins, "no cobra ni paga")
         #expect(after.run.activeModifiers == before.run.activeModifiers, "no da nada")
+        #expect(after.meta.oro == before.meta.oro)
+        #expect(gameState.tower == beforeTower, "no se lleva a nadie ni deja paquetes")
         #expect(after.meta.engagement.visitors.visitsToday[scriptId] == 1, "la visita cuenta como hecha")
         #expect(after.meta.engagement.visitors.lastVisitor == visit.actorId)
         #expect(gameState.stageChallenge == nil)

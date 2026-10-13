@@ -25,7 +25,7 @@ struct EngagementStageStateTests {
         let json = #"{"visitors": {"secondsUntilVisit": 42}, "events": {"clock": 900}}"#
         let state = try JSONDecoder().decode(EngagementState.self, from: Data(json.utf8))
         #expect(state.visitors.secondsUntilVisit == 42)
-        #expect(state.visitors.recentScripts.isEmpty)
+        #expect(state.visitors.visitorBag.isEmpty)
         #expect(state.events.clock == 900)
         #expect(state.events.lastFiredAt.isEmpty)
     }
@@ -34,14 +34,33 @@ struct EngagementStageStateTests {
     func roundTripInsideTheSave() throws {
         var player = fxState()
         player.meta.engagement.visitors = VisitorsState(
-            secondsUntilVisit: 120, secondsUntilVendor: 30, recentScripts: ["turista_propina"],
-            day: "2026-10-07", visitsToday: ["turista_propina": 1], oroExchangedToday: 2
+            secondsUntilVisit: 120, visitorBag: ["npc_vecina", "npc_vendedor"], lastVisitor: "npc_turista",
+            lastScriptByVisitor: ["npc_turista": "turista_propina"], day: "2026-10-07", visitsToday: ["turista_propina": 1], oroExchangedToday: 2
         )
         player.meta.engagement.events = EventsState(
             clock: 1234, secondsUntilNext: 600, lastFiredAt: ["devaluacion": 1000], upcomingId: "apagon"
         )
         let decoded = try JSONDecoder().decode(PlayerState.self, from: JSONEncoder().encode(player))
         #expect(decoded.meta.engagement == player.meta.engagement)
+    }
+
+    @Test("un save de antes de la bolsa (el carril del vendedor) se lee sin perder nada de lo que sigue valiendo")
+    func migratesTheVendorLaneSave() throws {
+        let json = #"""
+        {"visitors": {"secondsUntilVisit": 42, "secondsUntilVendor": 17, "recentScripts": ["turista_propina", "vendedor_ofertas"],
+                      "day": "2026-10-12", "visitsToday": {"vendedor_ofertas": 9, "turista_propina": 1}, "oroExchangedToday": 2}}
+        """#
+        let state = try JSONDecoder().decode(EngagementState.self, from: Data(json.utf8)).visitors
+        #expect(state.secondsUntilVisit == 42, "el reloj sigue: no vuelve a esperar la primera visita")
+        #expect(state.day == "2026-10-12")
+        #expect(state.visitsToday == ["vendedor_ofertas": 9, "turista_propina": 1])
+        #expect(state.oroExchangedToday == 2)
+        #expect(state.visitorBag.isEmpty, "la bolsa se baraja en la próxima visita")
+        #expect(state.lastVisitor == nil)
+        #expect(state.lastScriptByVisitor.isEmpty)
+        let reencoded = try JSONSerialization.jsonObject(with: JSONEncoder().encode(state)) as? [String: Any]
+        #expect(reencoded?["secondsUntilVendor"] == nil, "el reloj del carril viejo no se vuelve a escribir")
+        #expect(reencoded?["recentScripts"] == nil)
     }
 
     @Test("al resolver un conflicto, el cupo del mismo día no se duplica")

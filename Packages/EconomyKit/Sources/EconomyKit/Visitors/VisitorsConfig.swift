@@ -26,10 +26,6 @@ public struct VisitorsConfig: Codable, Sendable, Equatable {
         }
     }
 
-    public enum Lane: String, Codable, Sendable {
-        case main, vendor
-    }
-
     /// A quién elige un guion que se lleva, compra o arresta gente. Siempre un
     /// DUPLICADO: nunca el último de su tipo.
     public enum UnitPick: String, Codable, Sendable {
@@ -94,7 +90,8 @@ public struct VisitorsConfig: Codable, Sendable, Equatable {
     public struct Script: Codable, Sendable, Equatable, Identifiable {
         public let id: String
         public let visitor: String
-        public let lane: Lane
+        /// Ya no decide quién viene (la bolsa es por visitante): sólo elige entre
+        /// los guiones de un mismo visitante.
         public let weight: Int
         public let minTier: Int
         public let dailyCap: Int
@@ -103,12 +100,11 @@ public struct VisitorsConfig: Codable, Sendable, Equatable {
         public let mechanic: Mechanic
 
         public init(
-            id: String, visitor: String, lane: Lane, weight: Int, minTier: Int,
+            id: String, visitor: String, weight: Int, minTier: Int,
             dailyCap: Int, eventOnly: Bool, mechanic: Mechanic
         ) {
             self.id = id
             self.visitor = visitor
-            self.lane = lane
             self.weight = weight
             self.minTier = minTier
             self.dailyCap = dailyCap
@@ -120,7 +116,6 @@ public struct VisitorsConfig: Codable, Sendable, Equatable {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             id = try container.decode(String.self, forKey: .id)
             visitor = try container.decode(String.self, forKey: .visitor)
-            lane = try container.decodeIfPresent(Lane.self, forKey: .lane) ?? .main
             weight = try container.decode(Int.self, forKey: .weight)
             minTier = try container.decode(Int.self, forKey: .minTier)
             dailyCap = try container.decode(Int.self, forKey: .dailyCap)
@@ -137,15 +132,11 @@ public struct VisitorsConfig: Codable, Sendable, Equatable {
     public let firstVisitAfterSeconds: Double
     public let intervalMinSeconds: Double
     public let intervalMaxSeconds: Double
-    public let vendorIntervalSeconds: Double
-    public let vendorJitterSeconds: Double
     public let retryWhenNoneSeconds: Double
     /// Lo que espera alguien en escena, contado sólo en un momento calmo.
     public let patienceSeconds: Double
     /// Lo que se queda el presentador de un evento hablando antes de irse.
     public let presenterTalkSeconds: Double
-    /// Cuántos guiones recientes no vuelven si hay otro para mandar.
-    public let antiRepeat: Int
     /// Escala de todos los `coinsSeconds` de los guiones: la palanca de E2b.
     public let coinsSecondsScale: Double
     public let visitors: [Visitor]
@@ -153,20 +144,16 @@ public struct VisitorsConfig: Codable, Sendable, Equatable {
 
     public init(
         schemaVersion: Int, firstVisitAfterSeconds: Double, intervalMinSeconds: Double,
-        intervalMaxSeconds: Double, vendorIntervalSeconds: Double, vendorJitterSeconds: Double,
-        retryWhenNoneSeconds: Double, patienceSeconds: Double, presenterTalkSeconds: Double,
-        antiRepeat: Int, coinsSecondsScale: Double, visitors: [Visitor], scripts: [Script]
+        intervalMaxSeconds: Double, retryWhenNoneSeconds: Double, patienceSeconds: Double,
+        presenterTalkSeconds: Double, coinsSecondsScale: Double, visitors: [Visitor], scripts: [Script]
     ) {
         self.schemaVersion = schemaVersion
         self.firstVisitAfterSeconds = firstVisitAfterSeconds
         self.intervalMinSeconds = intervalMinSeconds
         self.intervalMaxSeconds = intervalMaxSeconds
-        self.vendorIntervalSeconds = vendorIntervalSeconds
-        self.vendorJitterSeconds = vendorJitterSeconds
         self.retryWhenNoneSeconds = retryWhenNoneSeconds
         self.patienceSeconds = patienceSeconds
         self.presenterTalkSeconds = presenterTalkSeconds
-        self.antiRepeat = antiRepeat
         self.coinsSecondsScale = coinsSecondsScale
         self.visitors = visitors
         self.scripts = scripts
@@ -189,8 +176,7 @@ public struct VisitorsConfig: Codable, Sendable, Equatable {
     public func validate() throws {
         guard schemaVersion == 1 else { throw ValidationError.unsupportedSchema(schemaVersion) }
         guard firstVisitAfterSeconds >= 0, intervalMinSeconds > 0, intervalMaxSeconds >= intervalMinSeconds,
-              vendorJitterSeconds >= 0, vendorIntervalSeconds > vendorJitterSeconds, retryWhenNoneSeconds > 0,
-              patienceSeconds > 0, presenterTalkSeconds > 0, antiRepeat >= 0, coinsSecondsScale > 0
+              retryWhenNoneSeconds > 0, patienceSeconds > 0, presenterTalkSeconds > 0, coinsSecondsScale > 0
         else { throw ValidationError.invalid(id: "config", reason: "relojes y escalas tienen que ser positivos") }
 
         var visitorIDs: Set<String> = []
@@ -211,8 +197,6 @@ public struct VisitorsConfig: Codable, Sendable, Equatable {
             guard scriptIDs.insert(script.id).inserted else { throw ValidationError.duplicateId(script.id) }
             guard visitorIDs.contains(script.visitor) else { throw fail("visitante desconocido") }
             guard script.weight > 0, script.minTier >= 1, script.dailyCap > 0 else { throw fail("peso, tier o tope") }
-            let isVendor: Bool = if case .vendor = script.mechanic { true } else { false }
-            guard isVendor == (script.lane == .vendor) else { throw fail("el vendedor, y sólo él, va por su carril") }
             for reward in script.mechanic.rewards {
                 do { try reward.validate() } catch { throw fail("premio inválido: \(error)") }
             }

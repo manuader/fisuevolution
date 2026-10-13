@@ -1,9 +1,11 @@
 import EconomyKit
 import SwiftUI
 
-/// Los contadores de los bonus temporales que están corriendo: abajo del HUD y
-/// pegados a la izquierda, uno por bonus. Los chips de evento llevan la cara de
-/// quien lo anunció y son botones: abren el popup del evento.
+/// Los contadores de los bonus temporales que están corriendo: en la columna de
+/// la derecha, debajo del especial, uno por fila: primero los relojes de
+/// eventos y después los boosts y multiplicadores. Pasadas las cuatro filas, el
+/// resto se agrupa en un chip «+N» que lo despliega. Los chips de evento llevan
+/// la cara de quien lo anunció y son botones: abren el popup del evento.
 ///
 /// El tiempo lo cuenta **esta vista** y no la proyección. `ActiveBonus` lleva
 /// `expiresAt` y `totalDuration`, que no cambian mientras el bonus vive, así que
@@ -19,15 +21,37 @@ struct ActiveBonusBar: View {
     @Environment(GameState.self) private var gameState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var now = Date()
+    @State private var showsAll = false
 
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     /// Alto del ícono con su aro. El resto de la cápsula se acomoda alrededor.
     private static let iconSide: CGFloat = 30
+    /// Filas a la vista antes de agrupar el resto en «+N».
+    static let maxRows = 4
+
+    /// Los relojes de eventos primero, los boosts después; cada grupo conserva
+    /// su orden (el que vence primero).
+    static func ordered(_ bonuses: [ActiveBonus]) -> [ActiveBonus] {
+        bonuses.filter { $0.eventId != nil } + bonuses.filter { $0.eventId == nil }
+    }
+
+    /// Las filas a la vista: hasta `maxRows`, o todas si el «+N» está abierto.
+    static func visibleRows(_ bonuses: [ActiveBonus], showsAll: Bool) -> [ActiveBonus] {
+        let all = ordered(bonuses)
+        return showsAll ? all : Array(all.prefix(maxRows))
+    }
+
+    /// Cuántas filas agrupa el «+N».
+    static func hiddenCount(_ bonuses: [ActiveBonus]) -> Int { max(0, bonuses.count - maxRows) }
+
+    private var rows: [ActiveBonus] { Self.visibleRows(bonuses, showsAll: showsAll) }
+
+    private var hiddenCount: Int { Self.hiddenCount(bonuses) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            ForEach(bonuses) { bonus in
+        VStack(alignment: .trailing, spacing: 6) {
+            ForEach(rows) { bonus in
                 Group {
                     if let eventId = bonus.eventId {
                         Button { onEventTap(eventId) } label: { chip(bonus) }
@@ -45,10 +69,11 @@ struct ActiveBonusBar: View {
                             .accessibilityLabel(Text("hud.bonus.active.label"))
                     }
                 }
-                .transition(.scale(scale: 0.7).combined(with: .opacity))
+                .transition(.scale(scale: 0.7, anchor: .trailing).combined(with: .opacity))
             }
+            if hiddenCount > 0 { moreChip }
         }
-        .animation(reduceMotion ? nil : .spring(duration: 0.32), value: bonuses.map(\.id))
+        .animation(reduceMotion ? nil : .spring(duration: 0.32), value: rows.map(\.id))
         .onReceive(timer) { now = $0 }
         // ⚠️ Sin identificador en el contenedor. Un `accessibilityIdentifier`
         // sobre un `VStack` que no es elemento de accesibilidad **se propaga y
@@ -56,6 +81,22 @@ struct ActiveBonusBar: View {
         // elemento llamado `hud.bonuses` y los chips desaparecían del test
         // aunque en pantalla se vieran perfectos. Es la trampa 9a del HANDOFF
         // con otra cara: nunca es el control, siempre es el contenedor.
+    }
+
+    /// «+N» (o «−» abierto): el resto de las filas.
+    private var moreChip: some View {
+        Button { showsAll.toggle() } label: {
+            Text(verbatim: showsAll ? "−" : "+\(hiddenCount)")
+                .font(.system(size: 15, design: .rounded).weight(.heavy))
+                .foregroundStyle(Color("PaletteInk"))
+                .frame(minWidth: 44, minHeight: 32)
+                .background(PillBackground(fill: Color("PaletteCream"), border: Color("PaletteBrown").opacity(0.7), lip: 2))
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("hud.bonus.more")
+        .accessibilityLabel(Text("hud.bonus.more.ax \(hiddenCount)"))
     }
 
     private func eventTitle(_ id: String) -> String {
@@ -71,9 +112,10 @@ struct ActiveBonusBar: View {
             // El número y el tiempo van SIEMPRE, no sólo el color: un evento
             // suma además su flecha (sube, baja, las dos).
             if let polarity = bonus.polarity {
-                Image(systemName: Self.symbol(polarity))
-                    .font(.system(size: 13, weight: .heavy))
-                    .foregroundStyle(tint)
+                PolarityMark(polarity: polarity)
+                    .fill(tint)
+                    .frame(width: 12, height: 14)
+                    .accessibilityHidden(true)
             }
             Text(verbatim: bonus.effectText)
                 .font(.system(size: 15, design: .rounded).weight(.heavy))
@@ -87,8 +129,7 @@ struct ActiveBonusBar: View {
         .padding(.trailing, 11)
         .padding(.vertical, 5)
         .background(
-            Capsule().fill(Color("PaletteCream"))
-                .overlay(Capsule().strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
+            PillBackground(fill: Color("PaletteCream"), border: Color("PaletteBrown").opacity(0.7), lip: 2)
                 .shadow(color: .black.opacity(0.18), radius: 4, y: 2)
         )
         .contentShape(Capsule())
@@ -119,19 +160,19 @@ struct ActiveBonusBar: View {
             } else {
                 // Un boost sin su arte en el atlas sigue mostrando su contador:
                 // el manifest cae a placeholder, no a nada.
-                symbol("bolt.fill", tint: tint)
+                bolt(tint: tint)
             }
-        case .symbol(let name):
-            symbol(name, tint: tint)
+        case .symbol:
+            bolt(tint: tint)
         case .face(let visitorId):
             VisitorFace(visitorId: visitorId, side: Self.iconSide - 6)
         }
     }
 
-    private func symbol(_ name: String, tint: Color) -> some View {
-        Image(systemName: name)
-            .font(.system(size: 13, weight: .heavy))
-            .foregroundStyle(tint)
+    private func bolt(tint: Color) -> some View {
+        BoltShape()
+            .fill(tint)
+            .frame(width: 12, height: 16)
     }
 
     /// El color de un evento dice hacia dónde va (y la flecha lo repite).
@@ -140,14 +181,6 @@ struct ActiveBonusBar: View {
         case .positive: Color("PaletteGreen")
         case .negative: Color("PalettePink")
         case .mixed: Color("PaletteOrange")
-        }
-    }
-
-    static func symbol(_ polarity: EventCatalog.Polarity) -> String {
-        switch polarity {
-        case .positive: "arrow.up.circle.fill"
-        case .negative: "arrow.down.circle.fill"
-        case .mixed: "arrow.up.arrow.down.circle.fill"
         }
     }
 
@@ -180,5 +213,46 @@ struct ActiveBonusBar: View {
         case .freeHire: Color("PaletteBlue")
         case .eventPresence: Color("PaletteGreen")
         }
+    }
+}
+
+/// La flecha del evento, dibujada: sube, baja o las dos.
+struct PolarityMark: Shape {
+    let polarity: EventCatalog.Polarity
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let half = rect.height / 2 - 1
+        func arrow(up: Bool, in band: CGRect) {
+            let tipY = up ? band.minY : band.maxY
+            let baseY = up ? band.maxY : band.minY
+            path.move(to: CGPoint(x: band.midX, y: tipY))
+            path.addLine(to: CGPoint(x: band.maxX, y: baseY))
+            path.addLine(to: CGPoint(x: band.minX, y: baseY))
+            path.closeSubpath()
+        }
+        switch polarity {
+        case .positive: arrow(up: true, in: rect)
+        case .negative: arrow(up: false, in: rect)
+        case .mixed:
+            arrow(up: true, in: CGRect(x: rect.minX, y: rect.minY, width: rect.width, height: half))
+            arrow(up: false, in: CGRect(x: rect.minX, y: rect.maxY - half, width: rect.width, height: half))
+        }
+        return path
+    }
+}
+
+/// El rayo de un boost sin arte propio.
+struct BoltShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.maxX * 0.62, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY * 0.58))
+        path.addLine(to: CGPoint(x: rect.maxX * 0.46, y: rect.maxY * 0.58))
+        path.addLine(to: CGPoint(x: rect.maxX * 0.34, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY * 0.38))
+        path.addLine(to: CGPoint(x: rect.maxX * 0.54, y: rect.maxY * 0.38))
+        path.closeSubpath()
+        return path
     }
 }

@@ -455,30 +455,12 @@ struct GameBoardView: View {
                 onStoreTap: { open(.store) },
                 onMapOpen: { gameState.tutorialTipCompleted(.elevator) }
             )
-            // Los contadores de bonus (y los chips de evento, con la cara de
-            // quien los anunció) van pegados al HUD y a la izquierda. Se monta
-            // sólo cuando hay algo que contar: así el timer de 1 Hz de la barra
-            // no existe durante una partida sin boosts.
-            if !gameState.activeBonuses.isEmpty {
-                ActiveBonusBar(bonuses: gameState.activeBonuses) { gameState.openEventPopup(id: $0) }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.leading, 12)
-                    .playColumn()
+            // Las esquinas: sellos de premios a la izquierda; el especial, los
+            // eventos y los boosts a la derecha (C9).
+            CornersView(railOffer: $railOffer) {
+                gameState.markOfferPresented(id: $0)
+                offerSelection = OfferPresentation(id: $0)
             }
-            if !gameState.visibleOffers().isEmpty {
-                OfferChip {
-                    gameState.markOfferPresented(id: $0)
-                    offerSelection = OfferPresentation(id: $0)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.leading, 12)
-                .playColumn()
-            }
-            // Quien está en escena se toca desde acá: la cara, el nombre y su "!".
-            StageChips()
-                .frame(maxWidth: .infinity, alignment: .trailing)
-                .padding(.trailing, 12)
-                .playColumn()
             Spacer()
             bottomBar
         }
@@ -536,7 +518,6 @@ struct GameBoardView: View {
                 )
             }
         .tutorialAnchor(.bottomBar)
-        .modifier(SideRailMount(offer: $railOffer))
     }
 
     #if DEBUG

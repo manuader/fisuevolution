@@ -65,11 +65,13 @@ let culturalTable: [CulturalEntry] = [
     CulturalEntry("trapito", 2, .earth, "El Trapito", "hand.raised.fill", mergesInto: "limpiavidrios"),
     CulturalEntry("limpiavidrios", 3, .earth, "Limpiavidrios", "drop.fill", mergesInto: "cartonero"),
     CulturalEntry("cartonero", 4, .earth, "Cartonero", "cart.fill", mergesInto: "mantero"),
-    // Piso 2 — urban (T5–T8): una manta → una moto → un auto → un uniforme.
+    // Piso 2 — urban (T5–T8): una manta → una moto → un uniforme → un auto.
+    // E14 C17: el Fast Food y el Chofer cambiaron de lugar; un save anterior se
+    // remapea por posición en `SaveMigrator.migrateV6toV7`.
     CulturalEntry("mantero", 5, .earth, "El Mantero", "bag.fill", mergesInto: "repartidor"),
-    CulturalEntry("repartidor", 6, .earth, "Repartidor", "bicycle", mergesInto: "chofer_app"),
-    CulturalEntry("chofer_app", 7, .earth, "Chofer de App", "car.fill", mergesInto: "fast_food"),
-    CulturalEntry("fast_food", 8, .earth, "Empleado de Fast Food", "takeoutbag.and.cup.and.straw.fill", mergesInto: "oficinista"),
+    CulturalEntry("repartidor", 6, .earth, "Repartidor", "bicycle", mergesInto: "fast_food"),
+    CulturalEntry("fast_food", 7, .earth, "Empleado de Fast Food", "takeoutbag.and.cup.and.straw.fill", mergesInto: "chofer_app"),
+    CulturalEntry("chofer_app", 8, .earth, "Chofer de App", "car.fill", mergesInto: "oficinista"),
     // Piso 3 — corporate (T9–T12): T11/T12 son la bifurcación de carrera (elección UBA).
     CulturalEntry("oficinista", 9, .earth, "Oficinista", "laptopcomputer", mergesInto: "administrativo"),
     CulturalEntry("administrativo", 10, .earth, "Administrativo", "doc.on.doc.fill", mergesInto: "junior"),

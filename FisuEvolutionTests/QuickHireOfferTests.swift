@@ -144,22 +144,22 @@ struct QuickHireOfferTests {
     @Test("con el urbano al tope la oferta sube a su tier más alto, no a su base")
     func unlockedFloorsRaiseTheOfferUpToTheGate() async throws {
         let gameState = await makeGameState()
-        // Frontera 14: el Fast Food (T8) pide 14 y el Oficinista (T9) pide 15,
+        // Frontera 14: el Chofer de App (T8) pide 14 y el Oficinista (T9) pide 15,
         // así que lo contratable termina JUSTO en el tope del urbano.
         gameState.debugUnlockFloors(throughTier: 13)
         gameState.debugSetMaxTier(14)
         // Hasta 9 y no hasta 8: el Oficinista tiene que estar VISTO para que su
         // fila diga `gated` y no `unseen`, que gana sobre todo lo demás.
         gameState.debugMarkTypesSeen(throughTier: 9)
-        // El saldo tiene que cubrir al Fast Food para que el test pueda decir
+        // El saldo tiene que cubrir al Chofer de App para que el test pueda decir
         // que lo que decide es la regla y no la plata.
-        // Con la frontera en 14 el Fast Food cotiza 1.945 millones (2.0).
+        // Con la frontera en 14 el Chofer de App cotiza 1.945 millones (2.0).
         try giveCoins(2_500_000_000, to: gameState)
         gameState.refreshProjections()
 
         let best = try #require(gameState.quickHireOffer)
         #expect(best.tier == 8, "el tope del urbano que la compuerta habilita")
-        #expect(best.typeId == "fast_food")
+        #expect(best.typeId == "chofer_app")
         #expect(best.affordable)
 
         // Y el Mantero, el tier base del mismo piso, sigue contratable: lo que
@@ -205,7 +205,7 @@ struct QuickHireOfferTests {
 
         let best = try #require(gameState.quickHireOffer)
         #expect(best.tier == 8, "un tier abajo del techo, no un piso entero")
-        #expect(best.typeId == "fast_food")
+        #expect(best.typeId == "chofer_app")
         #expect(best.affordable)
 
         // Y el Oficinista estaba contratable: lo único que lo frenó fue el precio.

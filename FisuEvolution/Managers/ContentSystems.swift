@@ -142,6 +142,25 @@ enum BoostManager {
         return max(0, boost.cooldownSeconds - (now - last))
     }
 
+    /// Dónde queda anotado el video de un boost: en `rewardedActivations`, el
+    /// mapa de videos cobrados que el save ya trae, sin campo nuevo.
+    static func adUsageKey(_ boostId: String) -> String { "boost_ad.\(boostId)" }
+
+    /// Si el video de este boost ya se usó en el ciclo actual. El ciclo lo
+    /// abre la última activación: el video la reescribe con su mismo instante,
+    /// y sólo una activación posterior lo vuelve a habilitar (C32).
+    static func adUsedThisCycle(boostId: String, state: PlayerState) -> Bool {
+        guard let activation = state.meta.boostActivations[boostId],
+              let ad = state.meta.rewardedActivations[adUsageKey(boostId)]
+        else { return false }
+        return ad >= activation
+    }
+
+    /// El boost está en cooldown y su video todavía no se usó en este ciclo.
+    static func canOfferAd(of boost: BoostsConfig.Boost, state: PlayerState, now: TimeInterval) -> Bool {
+        cooldownRemaining(of: boost, state: state, now: now) > 0 && !adUsedThisCycle(boostId: boost.id, state: state)
+    }
+
     /// Activa un boost gratuito respetando su cooldown. Devuelve las coins de la
     /// picada si fue el Asado (para el popup).
     @discardableResult
@@ -172,12 +191,14 @@ enum BoostManager {
             case .tapMultiplier: .tapMultiplier
             default: .spawnCostMultiplier
             }
-            state.run.activeModifiers.append(ActiveModifier(
+            // El mismo boost no se apila consigo mismo: renueva (C32). Sin esto,
+            // tres activaciones del Turbo ×5 daban ×125.
+            ModifierMath.renew(ActiveModifier(
                 effect: effect,
                 magnitude: boost.magnitude,
                 expiresAt: now + boost.durationSeconds,
                 sourceKey: "boost.\(boost.id)"
-            ))
+            ), in: &state.run.activeModifiers)
             return nil
         case .offlineEfficiencyPermanent:
             // Milanesa: mejora permanente, acumulable, capeada en la derivación.

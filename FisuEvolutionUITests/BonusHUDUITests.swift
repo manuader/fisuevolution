@@ -43,6 +43,34 @@ final class BonusHUDUITests: XCTestCase {
                       "y cuánto le queda, dijo '\(value)'")
     }
 
+    /// C32: el video de un boost en cooldown se usa una vez por ciclo. Después
+    /// del video la tarjeta muestra el reloj, no otro video.
+    @MainActor
+    func testElVideoDelBoostDejaElRelojSinOtroVideo() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial"]
+        app.launch()
+
+        XCTAssertTrue(app.buttons["hud.bonus"].waitForExistence(timeout: 15))
+        app.buttons["hud.bonus"].tap()
+        let activate = app.buttons["bonus.activate.mate"]
+        XCTAssertTrue(activate.waitForExistence(timeout: 6))
+        activate.tap()
+
+        let video = app.buttons["bonus.ad.mate"]
+        XCTAssertTrue(video.waitForExistence(timeout: 10), "en cooldown, el primer video se ofrece")
+        video.tap()
+
+        let clock = app.descendants(matching: .any)["bonus.cooldown.mate"]
+        let settled = clock.waitForExistence(timeout: 15)
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = "boost después del video"
+        shot.lifetime = .keepAlways
+        add(shot)
+        XCTAssertTrue(settled, "después del video, la tarjeta muestra el reloj")
+        XCTAssertFalse(video.waitForExistence(timeout: 4), "y no vuelve a ofrecer el video en el mismo ciclo")
+    }
+
     /// Dos bonus corriendo son dos contadores, y de dos orígenes distintos: el
     /// mate es un boost y el ×2 viene de un video. Además fija el orden — primero
     /// el que vence, que es el que urge.

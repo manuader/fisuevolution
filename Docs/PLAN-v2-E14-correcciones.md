@@ -1263,5 +1263,22 @@ tutorial.)
    el tope vencido, empieza y el ATT se difiere. UI test en el simulador de una partida nueva: no hay alerta del
    sistema durante la intro.
 
+**Lo que el dueño ya configuró en AdMob (2026-10-12, «Privacidad y mensajes», los tres activos):**
+reglamentos europeos (RGPD), reglamentaciones estatales de EE.UU. y la **explicación del IDFA** (la pantalla
+de Google que explica el seguimiento antes del cartel de Apple). Consecuencias para T28:
+
+6. Con la explicación del IDFA activa, **UMP muestra esa pantalla y después dispara él mismo el cartel de
+   ATT** dentro de `loadAndPresentIfRequired`. El `requestATTWhenActive` propio queda como red de seguridad
+   (su `guard .notDetermined` evita un segundo pedido). La secuencia que ve el jugador nuevo es: (UE: el
+   formulario RGPD) → la explicación del IDFA → el cartel de Apple → la intro.
+7. **El tope de 10 s del punto 3 corre sólo hasta que aparece un formulario.** Si UMP está mostrando algo
+   (RGPD, EE.UU. o la explicación), se espera la respuesta del jugador sin límite: el tope existe para la red
+   colgada, no para cortarle la lectura.
+8. **Probar el consentimiento sin estar en la UE:** sumar, sólo en DEBUG, la geografía de prueba de UMP
+   (`UMPDebugSettings.geography = .EEA` / `.regulatedUSState` + el id del dispositivo de prueba) detrás de un
+   argumento (`--debug-consent-eea`, `--debug-consent-us`) y un interruptor del panel de debug, más un botón de
+   «resetear consentimiento» (`ConsentInformation.shared.reset()`). Hoy no existe y sin eso el flujo europeo no
+   se puede ver desde Argentina.
+
 **Listo cuando:** en una instalación nueva, el cartel de Apple aparece primero (sobre el telón quieto) y la
 intro corre entera después, sin ningún diálogo encima.

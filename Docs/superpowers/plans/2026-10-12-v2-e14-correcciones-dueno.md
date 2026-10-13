@@ -81,7 +81,7 @@ G1 y T9). Modelo sugerido: opus para EK, migraciones y componentes base; sonnet 
 | T7 | ORO → dólar blue en textos (es/en), ASC y docs de review | C8 | — | `claves-pendientes/t7.json`, `Distribution/*`, `GameArt` (ícono, con fallback) |
 | T8 | Desbloqueo de piso insalteable (M2) | C21 | — | `CelebrationQueue`, `BoardScene.tapDuringCelebration`, `CinematicOverlay` |
 | T9 | **Componentes base**: `GameButton` (medallón, colores por función), `PopupContainer` (centrado, alto máximo, scroll interno), `RewardIllustration(kind:)` con rayos, estados (listo/en curso/bloqueado/hecho), `CornerSeal` | C4, C15, C19, C29 | — (G1 ✅) | `GameArtComponents.swift`, `PanelFrames.swift`, componentes nuevos |
-| T28 | El ATT antes de la intro: la intro espera al consentimiento (tope 10 s) y el ATT nunca sale encima de una cinemática ni de una lección | C31 | — | `AdsCoordinator`, `AdsConsent`, `FisuEvolutionApp.startServices`, `GameState+Cinematics` |
+| T28 | El ATT antes de la intro: la intro espera al consentimiento (tope 10 s sólo sin formulario en pantalla), el ATT nunca encima de una cinemática ni de una lección, y la geografía de prueba de UMP en DEBUG | C31 | — | `AdsCoordinator`, `AdsConsent`, `FisuEvolutionApp.startServices`, `GameState+Cinematics` |
 | T10 | Atajo de contratar: modo «el primero del piso» (M12) | C14 | — | `QuickHirePicker`, `GameState+Hiring`, save |
 
 ### Fase 2 — pantallas (mockups aprobados: cada una sigue el suyo y espera T9)

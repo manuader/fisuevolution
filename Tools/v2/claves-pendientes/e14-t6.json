@@ -1,0 +1,10 @@
+{
+  "visit.declined": {
+    "es": "¡Otra vez será!",
+    "en": "Maybe next time!"
+  },
+  "visit.option.decline": {
+    "es": "No, gracias",
+    "en": "No, thanks"
+  }
+}

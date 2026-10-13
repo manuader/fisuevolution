@@ -3,13 +3,10 @@
   "firstVisitAfterSeconds": 600,
   "intervalMinSeconds": 240,
   "intervalMaxSeconds": 360,
-  "vendorIntervalSeconds": 180,
-  "vendorJitterSeconds": 30,
   "retryWhenNoneSeconds": 30,
   "patienceSeconds": 30,
   "presenterTalkSeconds": 4,
-  "antiRepeat": 3,
-  "coinsSecondsScale": 0.31,
+  "coinsSecondsScale": 0.26,
   "visitors": [
     {"id": "npc_comisario", "kind": "npc", "nameKey": "visitor.npc_comisario.name", "fallbackSymbol": "figure.stand", "fallbackTint": "PaletteBlue"},
     {"id": "npc_sindicalista", "kind": "npc", "nameKey": "visitor.npc_sindicalista.name", "fallbackSymbol": "megaphone.fill", "fallbackTint": "PalettePink"},
@@ -68,7 +65,7 @@
     {"id": "vecina_favor", "visitor": "npc_vecina", "weight": 6, "minTier": 2, "dailyCap": 2,
      "mechanic": {"kind": "challenge", "taps": 15, "windowSeconds": 20, "videoDoubles": true,
                   "rewards": [{"kind": "package", "count": 1}]}},
-    {"id": "vendedor_ofertas", "visitor": "npc_vendedor", "lane": "vendor", "weight": 10, "minTier": 1, "dailyCap": 20,
+    {"id": "vendedor_ofertas", "visitor": "npc_vendedor", "weight": 10, "minTier": 1, "dailyCap": 2,
      "mechanic": {"kind": "vendor", "cards": [
        {"id": "mate", "nameKey": "boost.mate.name", "iconKey": "ui_boost_mate",
         "reward": {"kind": "modifier", "effect": "spawnCostMultiplier", "magnitude": 0.7, "seconds": 90}},

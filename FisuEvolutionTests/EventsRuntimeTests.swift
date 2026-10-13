@@ -219,7 +219,7 @@ struct EventsRuntimeTests {
         let gameState = try await game()
         gameState.startEvent(try event("devaluacion", in: gameState), now: 1000)
         gameState.player?.meta.engagement.events = EventsState(clock: 500, secondsUntilNext: 3, lastFiredAt: ["devaluacion": 400])
-        gameState.player?.meta.engagement.visitors = VisitorsState(secondsUntilVisit: 9, recentScripts: ["x"], visitsToday: ["x": 1])
+        gameState.player?.meta.engagement.visitors = VisitorsState(secondsUntilVisit: 9, visitorBag: ["x"], lastVisitor: "x", visitsToday: ["x": 1])
         gameState.debugResetSave()
         #expect(gameState.player?.meta.engagement.events == .initial)
         #expect(gameState.player?.meta.engagement.visitors == .initial)

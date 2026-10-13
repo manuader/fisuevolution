@@ -128,7 +128,7 @@ struct MenuPagerView: View {
             }
         }
         .onPreferenceChange(MenuPageChromeKey.self) { chromes.merge($0) { _, new in new } }
-        .presentationBackground(.clear)
+        .fisuSheet()
     }
 
     /// El marco quieto: madera, toldo y moño de la pestaña asentada (con fundido

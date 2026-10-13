@@ -14,7 +14,12 @@ struct LoopsManifestTests {
         "sp_contador_dios", "sp_cryptobro", "sp_demonio_arca", "sp_influencer",
         "sp_lizard", "sp_zombie_ceo",
     ]
-    static let objects: Set<String> = ["paquete_abre", "paquete_espera", "colchon_abre", "colchon_espera"]
+    static let objects: Set<String> = [
+        "paquete_abre", "paquete_espera", "paquete_sacude",
+        "colchon_abre", "colchon_espera", "colchon_sacude",
+        "cofre_abre", "cofre_espera", "cofre_sacude",
+        "ruleta_espera", "ruleta_premio",
+    ]
 
     /// Un manifest en memoria que apunta eventos a `.mov` reales del bundle.
     static func fixture(events: [String: String]) throws -> LoopsManifest {

@@ -85,22 +85,55 @@ struct PillBackground: View {
     /// Borde a medida (la pill crema de "no te alcanza" lo pide marrón); por
     /// defecto, el propio relleno hundido.
     var border: Color?
+    /// `nil` es la cápsula de siempre; con radio, el bloque redondeado de
+    /// `GameButton` (C19), que con un medallón adentro se lee mejor que una
+    /// cápsula.
+    var cornerRadius: CGFloat?
+    /// El labio oscuro de apoyo debajo del cuerpo (C19: "cara clara arriba,
+    /// labio oscuro abajo"). En 0 es la pill histórica, sin labio.
+    var lip: CGFloat = 0
+    /// La cara partida al medio: luz arriba y el tono abajo con corte neto, el
+    /// volumen de los botones de las referencias. Apagada, el degradé suave.
+    var splitFace = false
+    var borderWidth: CGFloat = 2.5
+
+    private var face: LinearGradient {
+        if splitFace {
+            LinearGradient(
+                stops: [
+                    .init(color: fill.lifted(0.3), location: 0),
+                    .init(color: fill.lifted(0.18), location: 0.5),
+                    .init(color: fill, location: 0.5),
+                    .init(color: fill, location: 1)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        } else {
+            LinearGradient(colors: [fill.lifted(), fill], startPoint: .top, endPoint: .bottom)
+        }
+    }
 
     var body: some View {
-        Capsule()
-            .fill(
-                LinearGradient(
-                    colors: [fill.lifted(), fill],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-            )
+        // Las dos formas son `InsettableShape`: `strokeBorder` deja el contorno
+        // concéntrico con el relleno también en el bloque redondeado.
+        if let cornerRadius {
+            body(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+        } else {
+            body(Capsule())
+        }
+    }
+
+    private func body<S: InsettableShape>(_ shape: S) -> some View {
+        let edge = border ?? fill.deepened()
+        return shape
+            .fill(face)
             .overlay {
                 // El labio de luz del borde superior — es lo que hace caramelo
                 // al botón. Se desvanece hacia abajo con la máscara.
-                Capsule()
+                shape
                     .strokeBorder(Color.white.opacity(0.45), lineWidth: 1.5)
-                    .padding(2.5)
+                    .padding(borderWidth)
                     .mask(
                         LinearGradient(
                             colors: [.white, .clear],
@@ -109,8 +142,14 @@ struct PillBackground: View {
                         )
                     )
             }
-            .overlay(Capsule().strokeBorder(border ?? fill.deepened(), lineWidth: 2.5))
-            .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
+            .overlay(shape.strokeBorder(edge, lineWidth: borderWidth))
+            .background {
+                if lip > 0 {
+                    shape.fill(edge).offset(y: lip)
+                }
+            }
+            .padding(.bottom, lip)
+            .shadow(color: .black.opacity(0.2), radius: 4, y: 2 + lip)
     }
 }
 

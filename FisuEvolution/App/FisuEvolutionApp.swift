@@ -25,6 +25,7 @@ struct FisuEvolutionApp: App {
         WindowGroup {
             RootView()
                 .overlay { ElevatorRideOverlay() }
+                .overlay { ComponentGalleryOverlay() }
                 .environment(elevatorRide)
                 .environment(gameState)
                 .environment(storeManager)

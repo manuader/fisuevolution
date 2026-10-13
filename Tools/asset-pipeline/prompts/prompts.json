@@ -4749,5 +4749,193 @@
     "atlas": "ui",
     "tanda": "e8e",
     "prompt": "Cuadro maestro del video del evento startup_comprada, tomado de video/eventos/frames/startup_comprada.png del generador (no se vuelve a generar)."
+  },
+  {
+    "assetKey": "rw_mystery_all",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "premios",
+    "prompt": "Match EXACTLY the art style, outline weight and color treatment of the attached reference icon - same game, same studio. The attached image is ONLY a style guide: do NOT draw its subject, draw only the new object described below.\n\nDraw a treasure pile prize illustration: a small open wooden treasure chest with gold trim in the center, overflowing with shiny gold coins, with a tied burlap sack of coins on the left, a thick bundle of light blue dollar bills tied with a paper band and a sealed cardboard package with brown tape on the right, a small mate gourd with a metal straw in front, and a few sparkles around. Everything grouped in one compact cheerful pile.\n\nFlat, simple illustration in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no numbers, no letters, no watermark, no cropping."
+  },
+  {
+    "assetKey": "rw_coins",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "premios",
+    "prompt": "Match EXACTLY the art style, outline weight and color treatment of the attached reference icon - same game, same studio. The attached image is ONLY a style guide: do NOT draw its subject, draw only the new object described below.\n\nDraw a coin prize illustration: a fat tied burlap money sack spilling a big heap of shiny gold coins onto the ground, a few coins flying with sparkles.\n\nFlat, simple illustration in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no numbers, no letters, no watermark, no cropping."
+  },
+  {
+    "assetKey": "rw_income_mult",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "premios",
+    "prompt": "Match EXACTLY the art style, outline weight and color treatment of the attached reference icon - same game, same studio. The attached image is ONLY a style guide: do NOT draw its subject, draw only the new object described below.\n\nDraw an income boost illustration: three stacks of gold coins of growing height, with a big thick bright green arrow rising diagonally up and to the right over them, and sparkles.\n\nFlat, simple illustration in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no numbers, no letters, no watermark, no cropping."
+  },
+  {
+    "assetKey": "rw_tap_mult",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "premios",
+    "prompt": "Match EXACTLY the art style, outline weight and color treatment of the attached reference icon - same game, same studio. The attached image is ONLY a style guide: do NOT draw its subject, draw only the new object described below.\n\nDraw a tap boost illustration: a cartoon hand with the index finger pressing down on a big gold coin, with a yellow impact burst and short motion lines around the fingertip.\n\nFlat, simple illustration in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no numbers, no letters, no watermark, no cropping."
+  },
+  {
+    "assetKey": "rw_hire_discount",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "premios",
+    "prompt": "Match EXACTLY the art style, outline weight and color treatment of the attached reference icon - same game, same studio. The attached image is ONLY a style guide: do NOT draw its subject, draw only the new object described below.\n\nDraw a discount illustration: a cream paper price tag on a string being cut in half by red scissors, with a few gold coins falling out of the cut.\n\nFlat, simple illustration in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no numbers, no letters, no watermark, no cropping."
+  },
+  {
+    "assetKey": "rw_boost_refresh",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "premios",
+    "prompt": "Match EXACTLY the art style, outline weight and color treatment of the attached reference icon - same game, same studio. The attached image is ONLY a style guide: do NOT draw its subject, draw only the new object described below.\n\nDraw a boost refresh illustration: a gourd of mate with a metal straw next to a small wooden hourglass, both encircled by two thick green circular refresh arrows.\n\nFlat, simple illustration in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no numbers, no letters, no watermark, no cropping."
+  },
+  {
+    "assetKey": "rw_evolve",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "premios",
+    "prompt": "Match EXACTLY the art style, outline weight and color treatment of the attached reference icon - same game, same studio. The attached image is ONLY a style guide: do NOT draw its subject, draw only the new object described below.\n\nDraw an evolution illustration: a worn knitted beanie on the bottom transforming into a shiny golden crown on top, connected by a thick glowing upward arrow, with sparkles.\n\nFlat, simple illustration in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no numbers, no letters, no watermark, no cropping."
+  },
+  {
+    "assetKey": "rw_free_unit",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "premios",
+    "prompt": "Match EXACTLY the art style, outline weight and color treatment of the attached reference icon - same game, same studio. The attached image is ONLY a style guide: do NOT draw its subject, draw only the new object described below.\n\nDraw a new hire illustration: a rolled parchment work contract with a red wax seal and a feather quill, with a small gold star and confetti around it.\n\nFlat, simple illustration in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no numbers, no letters, no watermark, no cropping."
+  },
+  {
+    "assetKey": "rw_exchange",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "premios",
+    "prompt": "Match EXACTLY the art style, outline weight and color treatment of the attached reference icon - same game, same studio. The attached image is ONLY a style guide: do NOT draw its subject, draw only the new object described below.\n\nDraw a currency exchange illustration: a fan of generic green banknotes on the left and a fan of generic light blue banknotes on the right, with two curved arrows between them forming a loop. The banknotes have no portraits, no symbols and no writing.\n\nFlat, simple illustration in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no numbers, no letters, no watermark, no cropping."
+  },
+  {
+    "assetKey": "rw_fine",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "premios",
+    "prompt": "Match EXACTLY the art style, outline weight and color treatment of the attached reference icon - same game, same studio. The attached image is ONLY a style guide: do NOT draw its subject, draw only the new object described below.\n\nDraw a fine illustration: a small police ticket booklet with a torn-off ticket held by a clip, a big red rubber stamp mark shape on it without letters, and a ballpoint pen.\n\nFlat, simple illustration in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no numbers, no letters, no watermark, no cropping."
+  },
+  {
+    "assetKey": "rw_arrest",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "premios",
+    "prompt": "Match EXACTLY the art style, outline weight and color treatment of the attached reference icon - same game, same studio. The attached image is ONLY a style guide: do NOT draw its subject, draw only the new object described below.\n\nDraw an arrest illustration: a pair of shiny steel handcuffs, open, with a small brass key next to them.\n\nFlat, simple illustration in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no numbers, no letters, no watermark, no cropping."
+  },
+  {
+    "assetKey": "rw_frozen",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "premios",
+    "prompt": "Match EXACTLY the art style, outline weight and color treatment of the attached reference icon - same game, same studio. The attached image is ONLY a style guide: do NOT draw its subject, draw only the new object described below.\n\nDraw a frozen savings illustration: a heavy round bank vault door shut with a big padlock, covered with ice and small icicles, with a few frosty sparkles.\n\nFlat, simple illustration in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no numbers, no letters, no watermark, no cropping."
+  },
+  {
+    "assetKey": "rw_mattress_treasure",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "premios",
+    "prompt": "Match EXACTLY the art style, outline weight and color treatment of the attached reference icon - same game, same studio. The attached image is ONLY a style guide: do NOT draw its subject, draw only the new object described below.\n\nDraw a hidden mattress treasure illustration: an old striped blue and white mattress with a torn seam, with generic green banknotes and gold coins spilling out of the tear, and sparkles.\n\nFlat, simple illustration in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no numbers, no letters, no watermark, no cropping."
+  },
+  {
+    "assetKey": "ui_dolar_blue",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "premios",
+    "prompt": "Match EXACTLY the art style, outline weight and color treatment of the attached reference icon - same game, same studio. The attached image is ONLY a style guide: do NOT draw its subject, draw only the new object described below.\n\nDraw a premium currency icon: a small fan of three crisp banknotes tinted in a bright light blue and turquoise, slightly tilted, with a big bold dollar sign symbol drawn on the front note and a couple of white sparkles. The notes are generic invented money: no portraits, no real banknote design, no words and no serial numbers. It must read clearly at very small sizes, like a game currency icon next to a number.\n\nFlat, simple icon in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no letters, no watermark, no cropping."
+  },
+  {
+    "assetKey": "ui_rail_wheel",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "premios",
+    "prompt": "Match EXACTLY the art style, outline weight and color treatment of the attached reference icon - same game, same studio. The attached image is ONLY a style guide: do NOT draw its subject, draw only the new object described below.\n\nDraw a round game button badge: a chunky scalloped starburst seal with twelve soft points, in warm caramel orange with a lighter cream inner disc and a thick black outline, like a sticker. Inside the disc, a small colorful prize wheel with six segments in red, yellow, green, blue, orange and purple, a gold hub and a red pointer on top. It must read clearly at 56 points on a phone.\n\nFlat, simple icon in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no letters, no watermark, no cropping."
+  },
+  {
+    "assetKey": "ui_rail_mattress",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "premios",
+    "prompt": "Match EXACTLY the art style, outline weight and color treatment of the attached reference icon - same game, same studio. The attached image is ONLY a style guide: do NOT draw its subject, draw only the new object described below.\n\nDraw a round game button badge: a chunky scalloped starburst seal with twelve soft points, in warm caramel orange with a lighter cream inner disc and a thick black outline, like a sticker. Inside the disc, a small old striped blue and white mattress folded in half with a few green banknotes peeking out of a torn seam. It must read clearly at 56 points on a phone.\n\nFlat, simple icon in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no letters, no watermark, no cropping."
+  },
+  {
+    "assetKey": "ui_rail_package",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "premios",
+    "prompt": "Match EXACTLY the art style, outline weight and color treatment of the attached reference icon - same game, same studio. The attached image is ONLY a style guide: do NOT draw its subject, draw only the new object described below.\n\nDraw a round game button badge: a chunky scalloped starburst seal with twelve soft points, in warm caramel orange with a lighter cream inner disc and a thick black outline, like a sticker. Inside the disc, a sealed cardboard package with brown tape and a small customs stamp shape without letters, with two sparkles. It must read clearly at 56 points on a phone.\n\nFlat, simple icon in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no letters, no watermark, no cropping."
+  },
+  {
+    "assetKey": "ui_rail_merge_all",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "premios",
+    "prompt": "Match EXACTLY the art style, outline weight and color treatment of the attached reference icon - same game, same studio. The attached image is ONLY a style guide: do NOT draw its subject, draw only the new object described below.\n\nDraw a round game button badge: a chunky scalloped starburst seal with twelve soft points, in warm caramel orange with a lighter cream inner disc and a thick black outline, like a sticker. Inside the disc, two small cartoon hands bumping fists with a yellow burst between them and two little plus-shaped sparkles. It must read clearly at 56 points on a phone.\n\nFlat, simple icon in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no letters, no watermark, no cropping."
+  },
+  {
+    "assetKey": "npc_vendedor_enojado",
+    "category": "npc",
+    "tanda": "premios",
+    "prompt": "Draw EXACTLY the same character as the attached image - same face, same cap, same green jacket, same backpack full of goods, same art style, outline weight and flat colors. Do not redesign him: only change the pose and the expression.\n\nThe street vendor is offended because nobody bought anything: he turns away with his nose up and his eyes shut in an exaggerated huff, arms crossed tightly over his chest, one foot stomping, a small cartoon steam puff above his head and a tiny angry vein mark on his forehead. Comic, petty and theatrical, not aggressive.\n\nFull body standing character, both feet visible, generous margins, centered on a plain pure white background, square image, no text, no watermark, no cropping."
+  },
+  {
+    "assetKey": "ui_offer_mudanza",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "premios",
+    "prompt": "Match EXACTLY the art style, outline weight and color treatment of the attached reference icon - same game, same studio. The attached image is ONLY a style guide: do NOT draw its subject, draw only the new object described below.\n\nDraw a moving-day offer icon: a small cartoon moving truck with an open cargo back overflowing with cardboard boxes, a rolled striped mattress and a potted plant, with two sparkles. It must read clearly at 24 to 40 points on a phone.\n\nFlat, simple icon in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no letters, no watermark, no cropping."
+  },
+  {
+    "assetKey": "ui_offer_bienvenida",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "premios",
+    "prompt": "Match EXACTLY the art style, outline weight and color treatment of the attached reference icon - same game, same studio. The attached image is ONLY a style guide: do NOT draw its subject, draw only the new object described below.\n\nDraw a welcome offer icon: a cardboard welcome box tied with a red ribbon bow, with a doormat-like woven mat under it and confetti around. It must read clearly at 24 to 40 points on a phone.\n\nFlat, simple icon in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no letters, no watermark, no cropping."
+  },
+  {
+    "assetKey": "ui_offer_renacer",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "premios",
+    "prompt": "Match EXACTLY the art style, outline weight and color treatment of the attached reference icon - same game, same studio. The attached image is ONLY a style guide: do NOT draw its subject, draw only the new object described below.\n\nDraw a rebirth offer icon: a small glowing phoenix-like bird made of gold coins rising from a little pile of coins, with an upward swirl of sparkles. It must read clearly at 24 to 40 points on a phone.\n\nFlat, simple icon in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no letters, no watermark, no cropping."
+  },
+  {
+    "assetKey": "ui_icon_video",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "premios",
+    "prompt": "Match EXACTLY the art style, outline weight and color treatment of the attached reference icon - same game, same studio. The attached image is ONLY a style guide: do NOT draw its subject, draw only the new object described below.\n\nDraw a watch-video icon: a chunky rounded red play button with a white triangle, inside a thick white ring, like a sticker medallion. It must read clearly at 24 to 40 points on a phone.\n\nFlat, simple icon in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no letters, no watermark, no cropping."
+  },
+  {
+    "assetKey": "ui_icon_clock",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "premios",
+    "prompt": "Match EXACTLY the art style, outline weight and color treatment of the attached reference icon - same game, same studio. The attached image is ONLY a style guide: do NOT draw its subject, draw only the new object described below.\n\nDraw a timer icon: a round cream alarm clock with two small brass bells on top, short legs and the hands pointing at ten past ten. It must read clearly at 24 to 40 points on a phone.\n\nFlat, simple icon in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no letters, no watermark, no cropping."
+  },
+  {
+    "assetKey": "ui_icon_lock",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "premios",
+    "prompt": "Match EXACTLY the art style, outline weight and color treatment of the attached reference icon - same game, same studio. The attached image is ONLY a style guide: do NOT draw its subject, draw only the new object described below.\n\nDraw a lock icon: a chunky brass padlock with a rounded shackle and a small dark keyhole, with a tiny shine. It must read clearly at 24 to 40 points on a phone.\n\nFlat, simple icon in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no letters, no watermark, no cropping."
+  },
+  {
+    "assetKey": "ui_icon_check",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "premios",
+    "prompt": "Match EXACTLY the art style, outline weight and color treatment of the attached reference icon - same game, same studio. The attached image is ONLY a style guide: do NOT draw its subject, draw only the new object described below.\n\nDraw a done icon: a big chunky green check mark inside a round cream medallion with a thick outline. It must read clearly at 24 to 40 points on a phone.\n\nFlat, simple icon in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no letters, no watermark, no cropping."
+  },
+  {
+    "assetKey": "rw_package_employee",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "premios",
+    "prompt": "Match EXACTLY the art style, outline weight and color treatment of the attached reference icon - same game, same studio. The attached image is ONLY a style guide: do NOT draw its subject, draw only the new object described below.\n\nDraw a surprise delivery illustration: a sealed-looking cardboard customs package with brown tape and a generic customs stamp shape without letters, with its top flaps just popped open, and a cheerful cartoon worker in a knitted beanie peeking out from inside up to the shoulders, waving one hand, with a big question-mark-free sparkle burst behind him. The worker is a generic invented character, simple and friendly, with exactly two arms and two hands.\n\nFlat, simple illustration in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no numbers, no letters, no watermark, no cropping."
   }
 ]

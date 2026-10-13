@@ -53,6 +53,66 @@ class AltaTests(unittest.TestCase):
         self.assertEqual(cubiertos - generados, set())
 
 
+PREMIOS = 27  # `fisu-v2-premios/output/`: 26 de `ui.atlas` y el Vendedor enojado
+
+
+def premios() -> list[dict]:
+    return [e for e in registro() if e.get("tanda") == "premios"]
+
+
+class PremiosTests(unittest.TestCase):
+    """El alta de los premios ilustrados de E14 (C4/C8/C15), aprobados por el dueño."""
+
+    def test_the_batch_has_its_27(self):
+        self.assertEqual(Counter(e["category"] for e in premios()), {"ui": 26, "npc": 1})
+        self.assertEqual(len(premios()), PREMIOS)
+
+    def test_every_entry_has_a_destination_and_a_prompt(self):
+        for entry in premios():
+            with self.subTest(entry["assetKey"]):
+                atlas, key, seccion = destination(entry)
+                self.assertEqual(key, entry["assetKey"])
+                self.assertEqual((atlas, seccion), ("npcs.atlas", "npcs") if entry["category"] == "npc"
+                                 else ("ui.atlas", "ui"))
+                self.assertGreater(len(entry["prompt"]), 100)
+
+    def test_the_reward_art_is_drawn_big_and_the_icons_small(self):
+        from process_dropbox import export_size
+        self.assertEqual(export_size("ui", "rw_coins"), (384, 512))
+        self.assertEqual(export_size("ui", "ui_offer_mudanza"), (384, 512))
+        self.assertEqual(export_size("ui", "ui_icon_lock"), (192, 256))
+
+    def test_every_png_is_integrated_in_the_game(self):
+        from process_dropbox import RESOURCES
+        manifest = json.loads((RESOURCES / "Data" / "assets_manifest.json").read_text())
+        for entry in premios():
+            with self.subTest(entry["assetKey"]):
+                atlas, key, seccion = destination(entry)
+                self.assertEqual(manifest[seccion][entry["assetKey"]], key)
+                for escala in ("@2x", "@3x"):
+                    self.assertTrue((RESOURCES / atlas / f"{key}{escala}.png").exists())
+                self.assertTrue((PIPELINE / "dropbox" / "procesadas" / f"{entry['assetKey']}.png").exists())
+
+    @unittest.skipUnless(traer_tanda.GENERADOR_PREMIOS.is_dir(), "sin el proyecto generador")
+    def test_every_png_of_the_generator_has_an_entry(self):
+        generados = {png.stem for png in traer_tanda.GENERADOR_PREMIOS.glob("*.png")}
+        self.assertEqual(generados, {e["assetKey"] for e in premios()})
+
+    def test_the_prizes_come_from_their_own_generator(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            generador, dropbox = Path(tmp) / "out", Path(tmp) / "dropbox"
+            generador.mkdir()
+            (generador / "rw_coins.png").write_bytes(b"png")
+            entradas = [{"assetKey": "rw_coins", "category": "ui", "tanda": "premios"}]
+            with mock.patch.object(traer_tanda, "GENERADOR_PREMIOS", generador), \
+                 mock.patch.object(traer_tanda, "entradas_premios", return_value=entradas):
+                self.assertEqual(traer_tanda.traer("premios", dropbox=dropbox), ["rw_coins"])
+            self.assertEqual((dropbox / "rw_coins.png").read_bytes(), b"png")
+
+    def test_the_v2_groups_do_not_bring_the_prizes(self):
+        self.assertTrue(all(e.get("tanda") == "v2" for e in traer_tanda.entradas_v2()))
+
+
 class TraerTests(unittest.TestCase):
     def test_brings_a_group_with_the_key_of_the_game(self):
         with tempfile.TemporaryDirectory() as tmp:

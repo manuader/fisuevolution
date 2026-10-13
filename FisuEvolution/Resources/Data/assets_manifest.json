@@ -615,7 +615,33 @@
     "ui_event_home_banking": "ui_event_home_banking",
     "ui_event_inversion_alienigena": "ui_event_inversion_alienigena",
     "ui_event_plan_platita": "ui_event_plan_platita",
-    "ui_event_startup_comprada": "ui_event_startup_comprada"
+    "ui_event_startup_comprada": "ui_event_startup_comprada",
+    "rw_arrest": "rw_arrest",
+    "rw_boost_refresh": "rw_boost_refresh",
+    "rw_coins": "rw_coins",
+    "rw_evolve": "rw_evolve",
+    "rw_exchange": "rw_exchange",
+    "rw_fine": "rw_fine",
+    "rw_free_unit": "rw_free_unit",
+    "rw_frozen": "rw_frozen",
+    "rw_hire_discount": "rw_hire_discount",
+    "rw_income_mult": "rw_income_mult",
+    "rw_mattress_treasure": "rw_mattress_treasure",
+    "rw_mystery_all": "rw_mystery_all",
+    "rw_package_employee": "rw_package_employee",
+    "rw_tap_mult": "rw_tap_mult",
+    "ui_dolar_blue": "ui_dolar_blue",
+    "ui_icon_check": "ui_icon_check",
+    "ui_icon_clock": "ui_icon_clock",
+    "ui_icon_lock": "ui_icon_lock",
+    "ui_icon_video": "ui_icon_video",
+    "ui_offer_bienvenida": "ui_offer_bienvenida",
+    "ui_offer_mudanza": "ui_offer_mudanza",
+    "ui_offer_renacer": "ui_offer_renacer",
+    "ui_rail_mattress": "ui_rail_mattress",
+    "ui_rail_merge_all": "ui_rail_merge_all",
+    "ui_rail_package": "ui_rail_package",
+    "ui_rail_wheel": "ui_rail_wheel"
   },
   "npcs": {
     "npc_comisario": "npc_comisario",
@@ -669,6 +695,7 @@
     "sp_lizard_face": "sp_lizard_face",
     "sp_lizard_talk": "sp_lizard_talk",
     "sp_zombie_ceo_face": "sp_zombie_ceo_face",
-    "sp_zombie_ceo_talk": "sp_zombie_ceo_talk"
+    "sp_zombie_ceo_talk": "sp_zombie_ceo_talk",
+    "npc_vendedor_enojado": "npc_vendedor_enojado"
   }
 }

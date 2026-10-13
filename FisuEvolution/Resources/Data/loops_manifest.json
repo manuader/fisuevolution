@@ -201,6 +201,39 @@
     }
   },
   "objects": {
+    "cofre_abre": {
+      "file": "obj_cofre_abre.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 73,
+      "alpha": true,
+      "audio": false,
+      "matte": "verde",
+      "keyColor": "0x06FA08"
+    },
+    "cofre_espera": {
+      "file": "obj_cofre_espera.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 97,
+      "alpha": true,
+      "audio": false,
+      "matte": "blanco",
+      "keyColor": null
+    },
+    "cofre_sacude": {
+      "file": "obj_cofre_sacude.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 24,
+      "alpha": true,
+      "audio": false,
+      "matte": "blanco",
+      "keyColor": null
+    },
     "colchon_abre": {
       "file": "obj_colchon_abre.mov",
       "width": 512,
@@ -217,7 +250,18 @@
       "width": 512,
       "height": 512,
       "fps": 24,
-      "frames": 73,
+      "frames": 97,
+      "alpha": true,
+      "audio": false,
+      "matte": "blanco",
+      "keyColor": null
+    },
+    "colchon_sacude": {
+      "file": "obj_colchon_sacude.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 24,
       "alpha": true,
       "audio": false,
       "matte": "blanco",
@@ -231,19 +275,52 @@
       "frames": 73,
       "alpha": true,
       "audio": false,
-      "matte": "blanco",
-      "keyColor": null
+      "matte": "verde",
+      "keyColor": "0x04FC06"
     },
     "paquete_espera": {
       "file": "obj_paquete_espera.mov",
       "width": 512,
       "height": 512,
       "fps": 24,
-      "frames": 73,
+      "frames": 97,
       "alpha": true,
       "audio": false,
       "matte": "blanco",
       "keyColor": null
+    },
+    "paquete_sacude": {
+      "file": "obj_paquete_sacude.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 24,
+      "alpha": true,
+      "audio": false,
+      "matte": "blanco",
+      "keyColor": null
+    },
+    "ruleta_espera": {
+      "file": "obj_ruleta_espera.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 97,
+      "alpha": true,
+      "audio": false,
+      "matte": "blanco",
+      "keyColor": null
+    },
+    "ruleta_premio": {
+      "file": "obj_ruleta_premio.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 48,
+      "alpha": true,
+      "audio": false,
+      "matte": "verde",
+      "keyColor": "0x04FA02"
     }
   },
   "cabin": {

@@ -2,23 +2,18 @@ import SwiftUI
 
 /// Popup del **premio del día** (ciclo de 7 días, spec §9).
 ///
-/// El premio ya está acreditado cuando esta hoja se abre —el daily se cobra solo
-/// en el bootstrap y al volver a foreground— así que acá no se decide nada: es la
+/// El premio ya está acreditado cuando se abre —el daily se cobra solo en el
+/// bootstrap y al volver a foreground— así que acá no se decide nada: es la
 /// celebración. Por eso el botón dice "Cobrar" pero lo único que hace es cerrar.
 ///
-/// Habla la gramática de la casa (T18): `PanelTitleBanner` como las seis hojas de
-/// la barra, `GameCard` destacada en amarillo para el premio —el mismo acento con
-/// el que la tira de `GiftsView` marca el día en juego—, `ActionPill` verde para
-/// la salida y `Tokens` para toda la tipografía. Antes eran `Text` con
-/// `.system(.title2)` sueltos y un `borderedProminent` de sistema: se leía como
-/// una alerta de iOS pegada adentro del moño.
-///
-/// El marco es `PanelCard` —el tablón de las hojas en escala de tarjeta— con el
-/// moño de Regalos asomando arriba: el popup y el calendario que lo explica
-/// siguen siendo parientes a la vista.
+/// Vive en el `PopupContainer` de la casa (E14 C15): el título en la cinta, el
+/// premio ilustrado al centro —el mismo acento amarillo con el que la tira de
+/// `GiftsView` marca el día en juego— y abajo los botones de `GameButton`.
 struct DailyRewardView: View {
     @Environment(GameState.self) private var gameState
     let claim: DailyRewardManager.Claim
+    /// Cierra el popup (lo pone quien lo presenta).
+    let onClose: () -> Void
 
     /// El ×2 se miró en esta hoja: el botón se va por estado local (el `player`
     /// no se observa acá), como en el popup offline.
@@ -70,67 +65,29 @@ struct DailyRewardView: View {
         return .coins
     }
 
-    /// El plato del glifo de premio: el mismo cuadrado redondeado con el que la
-    /// tira de Regalos encuadra su calendario y el fork sus caras.
-    private static let plateShape = RoundedRectangle(cornerRadius: 12, style: .continuous)
-
     var body: some View {
-        // `PanelCard` es el tablón de las hojas en escala de tarjeta: los
-        // insets son suyos, no medidos contra ningún arte (pedido del dueño,
-        // 2026-08-18: una sola familia visual). El moño asomando sobre el
-        // marco es la firma de la familia de premio: se abre como un regalo.
-        PanelCard {
-            VStack(spacing: Tokens.s16) {
-                PanelTitleBanner(titleKey: "daily.title")
-                prizeCard
-                if offersDouble || watching {
-                    RewardedOfferButton(
-                        title: String(localized: "daily.double"),
-                        identifier: "daily.double",
-                        placement: .daily,
-                        systemImage: "play.rectangle.fill",
-                        tint: Color("PaletteBlue"),
-                        isBusy: $watching
-                    ) {
-                        gameState.doubleDailyReward(claim)
-                        doubled = true
-                    }
+        PopupContainer("daily.title", ribbonTint: Color("PaletteGreen"), onClose: close) {
+            prizeCard
+        } actions: {
+            if offersDouble || watching {
+                RewardedOfferButton(
+                    title: String(localized: "daily.double"),
+                    identifier: "daily.double",
+                    placement: .daily,
+                    isBusy: $watching,
+                    gameRole: .video
+                ) {
+                    gameState.doubleDailyReward(claim)
+                    doubled = true
                 }
-                ActionPill(
-                    titleKey: "offline.collect",
-                    systemImage: "checkmark",
-                    tint: Color("PaletteGreen"),
-                    identifier: "daily.collect",
-                    // Con el anuncio en vuelo no cierra (como el offline).
-                    action: { if !watching { gameState.dismissDailyClaim() } }
-                )
             }
-            .frame(maxWidth: .infinity)
-            // El moño invade el tope del marco: este aire corre el banner
-            // para que no se pisen.
-            .padding(.top, Tokens.s8)
+            GameButton("offline.collect", role: .free, identifier: "daily.collect", action: close)
         }
-        .overlay(alignment: .top) {
-            GiftBowOrnament(width: 110)
-                .offset(y: -24)
-                .allowsHitTesting(false)
-        }
-        .overlay(alignment: .topTrailing) {
-            ArtCloseButton { gameState.dismissDailyClaim() }
-                .padding(10)
-        }
-        // Aire para la parte del moño que sobresale del marco: sin esto el
-        // borde de la hoja lo recorta.
-        .padding(.top, 26)
-        .padding(16)
-        // Medido en el SE: el botón del ×2 no puede recortar el de cobrar.
-        .presentationDetents([.fraction(offersDouble || watching ? 0.6 : 0.52)])
-        // El tablón no llega a los bordes de la hoja, así que el fondo de
-        // sistema dejaba un rectángulo BLANCO alrededor del panel —el único
-        // blanco puro de todo el juego, y justo en la pantalla que celebra la
-        // racha—. Transparente, el panel flota sobre el tablero, igual que la
-        // ficha del personaje (`CharacterSheetView`), que resolvió lo mismo.
-        .fisuSheet()
+    }
+
+    /// Con el anuncio en vuelo no cierra (como el offline).
+    private func close() {
+        if !watching { onClose() }
     }
 
     /// El premio: qué día es y qué te dio. Es **una** parada de VoiceOver
@@ -162,16 +119,12 @@ struct DailyRewardView: View {
     @ViewBuilder private var prize: some View {
         switch Self.prize(for: claim, specials: gameState.content?.specials) {
         case .special(let displayNameKey):
-            portrait(titleKey: displayNameKey) {
-                GameIcon(artKey: "ui_tab_gifts", size: 52) { VectorTabGiftsIcon() }
-            }
+            portrait(titleKey: displayNameKey, kind: .gift)
         case .chest:
-            portrait(titleKey: "daily.prize.chest") {
-                GameIcon(artKey: "ui_chest_closed", size: 52) { VectorTabGiftsIcon() }
-            }
+            portrait(titleKey: "daily.prize.chest", kind: .chest)
         case .coins:
-            HStack(spacing: Tokens.s8) {
-                CoinIcon(size: 34)
+            VStack(spacing: Tokens.s4) {
+                RewardIllustration(kind: .coins, size: 88)
                 Text(verbatim: amountText)
                     .font(Tokens.display)
                     .monospacedDigit()
@@ -182,19 +135,11 @@ struct DailyRewardView: View {
         }
     }
 
-    /// El glifo sobre su plato amarillo con el nombre debajo: el encuadre que
+    /// La ilustración del premio con el nombre debajo: el encuadre que
     /// comparten el special y el cofre.
-    ///
-    /// En los materiales v3 los retratos no flotan sueltos sobre la tarjeta —el
-    /// plato con su borde marrón es lo que los ancla—, mismo encuadre que
-    /// `DailyStrip` y que el personaje de `SpecialDropView`.
-    private func portrait(titleKey: String, @ViewBuilder glyph: () -> some View) -> some View {
+    private func portrait(titleKey: String, kind: RewardKind) -> some View {
         VStack(spacing: Tokens.s4) {
-            glyph()
-                .padding(Tokens.s8)
-                .background(Color("PaletteYellow").opacity(0.3))
-                .clipShape(Self.plateShape)
-                .overlay(Self.plateShape.strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
+            RewardIllustration(kind: kind, size: 88)
             Text(LocalizedStringKey(titleKey))
                 .font(Tokens.display)
                 .foregroundStyle(Color("PaletteInk"))

@@ -185,7 +185,7 @@ struct GameButton: View {
         }
         .padding(.leading, medallionGlyph == nil ? Tokens.s16 : 6)
         .padding(.trailing, Tokens.s16)
-        .frame(minWidth: 96, maxWidth: fillsWidth ? .infinity : nil, minHeight: size.minHeight - GameButtonMetrics.lip)
+        .frame(minWidth: fillsWidth ? 0 : 96, maxWidth: fillsWidth ? .infinity : nil, minHeight: size.minHeight - GameButtonMetrics.lip)
         .background(
             PillBackground(
                 fill: bodyRole.fill,

@@ -337,30 +337,13 @@ struct GameBoardView: View {
                 scene = BoardScene(gameState: gameState)
             }
         }
-        .fisuSheet(item: careerPromptBinding) { prompt in
-            CareerChoiceView(prompt: prompt)
-        }
         .fisuSheet(item: Binding(
             get: { tutorialDone ? gameState.characterSheet : nil },
             set: { gameState.characterSheet = $0 }
         )) { sheet in
             CharacterSheetView(sheet: sheet)
         }
-        .fisuSheet(item: skinAwardBinding, onDismiss: { gameState.celebrationFinished(.skinAward) }) { award in
-            SkinAwardView(award: award)
-        }
-        .fisuSheet(item: offlineRewardBinding, onDismiss: {
-            gameState.celebrationFinished(.offlineEarnings)
-            // El jugador acaba de cobrar lo de la noche y todavía no volvió al
-            // juego: un corte natural. El que duplicó con video tiene la gracia
-            // de 90 s de la política.
-            gameState.scheduleNaturalBreak(.offlinePopupDismissed)
-        }) { reward in
-            OfflineEarningsView(reward: reward)
-        }
-        .fisuSheet(isPresented: $showPrestige) {
-            PrestigeView()
-        }
+        .modifier(GamePopups(showPrestige: $showPrestige))
         // El menú deslizable: las pestañas desbloqueadas como páginas de UNA
         // hoja. Sólo la página quieta queda montada (con su `NavigationStack`,
         // su marco y su X; al deslizar se desmonta y pierde su estado); el
@@ -379,23 +362,8 @@ struct GameBoardView: View {
             }
             .id(session.start)
         }
-        .fisuSheet(item: specialDropBinding) { special in
-            SpecialDropView(special: special)
-        }
-        .fisuSheet(item: visitorPopupBinding, onDismiss: { gameState.visitorPopupDismissed() }) { _ in
-            VisitorPopupView()
-        }
-        .fisuSheet(item: eventPopupBinding) { popup in
-            EventPopupView(eventId: popup.eventId)
-        }
         .modifier(PrizeSheets(syncCover: { gameState.uiCoversBoard = boardIsCovered }))
         .modifier(OfferSheets(selection: $offerSelection, syncCover: { gameState.uiCoversBoard = boardIsCovered }))
-        .sheet(item: shareCardBinding) { moment in
-            ShareCardSheet(moment: moment)
-        }
-        .fisuSheet(item: dailyClaimBinding) { wrapped in
-            DailyRewardView(claim: wrapped.claim)
-        }
         #if DEBUG
         .sheet(isPresented: $showDebugPanel) {
             DebugPanelView()
@@ -474,65 +442,6 @@ struct GameBoardView: View {
     // obligatoria viva ninguno de estos kinds toma el turno
     // (`beginTutorialPhase`)—, y el doble gate era justamente lo que congelaba
     // la cola cuando un kind de sheet tomaba `current` con el tutorial arriba.
-
-    private var careerPromptBinding: Binding<GameState.CareerPrompt?> {
-        Binding(
-            get: { gameState.showing == .careerChoice ? gameState.careerPrompt : nil },
-            set: { gameState.careerPrompt = $0 }
-        )
-    }
-
-    private var skinAwardBinding: Binding<GameState.SkinAward?> {
-        Binding(
-            get: { gameState.showing == .skinAward ? gameState.skinAward : nil },
-            set: { gameState.skinAward = $0 }
-        )
-    }
-
-    private var offlineRewardBinding: Binding<GameState.OfflineReward?> {
-        Binding(
-            get: { gameState.showing == .offlineEarnings ? gameState.offlineReward : nil },
-            set: { gameState.offlineReward = $0 }
-        )
-    }
-
-    private var visitorPopupBinding: Binding<VisitorPopup?> {
-        Binding(
-            get: { gameState.visitorPopup },
-            set: { if $0 == nil { gameState.closeVisitorPopup() } }
-        )
-    }
-
-    private var eventPopupBinding: Binding<EventPopup?> {
-        Binding(
-            get: { gameState.eventPopup },
-            set: { if $0 == nil { gameState.closeEventPopup() } }
-        )
-    }
-
-    private var specialDropBinding: Binding<SpecialsConfig.Special?> {
-        Binding(
-            get: { gameState.showing == .specialDrop ? gameState.specialDrop : nil },
-            set: { if $0 == nil { gameState.dismissSpecialDrop() } }
-        )
-    }
-
-    private var shareCardBinding: Binding<ShareMoment?> {
-        Binding(
-            get: { gameState.shareCardMoment },
-            set: { if $0 == nil { gameState.dismissShareCard() } }
-        )
-    }
-
-    private var dailyClaimBinding: Binding<IdentifiedClaim?> {
-        Binding(
-            get: {
-                guard gameState.showing == .dailyReward, let claim = gameState.dailyClaim else { return nil }
-                return IdentifiedClaim(claim: claim)
-            },
-            set: { if $0 == nil { gameState.dismissDailyClaim() } }
-        )
-    }
 
     /// El HUD y todo lo que va encima del tablero.
     ///
@@ -656,12 +565,6 @@ struct GameBoardView: View {
         }
         .tutorialAnchor(.bottomBar)
         .modifier(SideRailMount(offer: $railOffer))
-    }
-
-        /// DailyRewardManager.Claim no es Identifiable; wrapper para .fisuSheet(item:).
-    private struct IdentifiedClaim: Identifiable {
-        let id = UUID()
-        let claim: DailyRewardManager.Claim
     }
 
     #if DEBUG

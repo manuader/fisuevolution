@@ -18,80 +18,85 @@ enum MattressStage: Equatable {
 /// El Colchón (PLAN-v2 E5): "tus empleados escondieron plata en el colchón".
 /// Se abre sólo con video, y lo que puede tocar está a la vista antes de
 /// mirarlo. Después: lo que salió y "otro colchón" con un segundo video.
+/// Vive en el `PopupContainer` de la casa (E14 C15); sus tres momentos los
+/// rediseña T17.
 struct MattressPopupView: View {
     @Environment(GameState.self) private var gameState
-    @Environment(\.dismiss) private var dismiss
-    /// Un video del colchón está en curso: la hoja no se cierra bajo el anuncio.
+    /// Cierra el popup (lo pone quien lo presenta).
+    let onClose: () -> Void
+    /// Un video del colchón está en curso: el popup no se cierra bajo el anuncio.
     @State private var watching = false
     /// El clip de apertura terminó (o la política lo dejó quieto): ya se ve lo que salió.
     @State private var revealed = false
 
+    private func close() {
+        if !watching { onClose() }
+    }
+
     var body: some View {
         let outcome = gameState.mattressPopup?.outcome
         let stage = MattressStage(hasOutcome: outcome != nil, revealed: revealed)
-        PanelCard {
-            VStack(spacing: Tokens.s12) {
-                PanelTitleBanner(titleKey: "mattress.title")
-                if stage == .opening {
-                    AnimatedArtView(clip: .object("colchon_abre"), role: .popup, playback: .once { revealed = true }) {
-                        GameIcon(artKey: "pickup_mattress", size: 160) { MattressGlyph() }
-                    }
-                } else if let outcome {
-                    result(outcome)
+        PopupContainer("mattress.title", ribbonTint: Color("PaletteOrange"), onClose: close) {
+            if stage == .opening {
+                AnimatedArtView(clip: .object("colchon_abre"), role: .popup, playback: .once { revealed = true }) {
+                    GameIcon(artKey: "pickup_mattress", size: 160) { MattressGlyph() }
+                }
+            } else if let outcome {
+                result(outcome)
+            } else if gameState.mattressPopup?.extraOnly == true {
+                AnimatedArtView(clip: .object("colchon_espera"), role: .popup) {
+                    GameIcon(artKey: "pickup_mattress", size: 160) { MattressGlyph() }
+                }
+            } else {
+                Text("mattress.pitch")
+                    .font(Tokens.body)
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(Color("PaletteInk"))
+                AnimatedArtView(clip: .object("colchon_espera"), role: .popup) {
+                    GameIcon(artKey: "pickup_mattress", size: 160) { MattressGlyph() }
+                }
+                OddsDisclosureView(titleKey: "mattress.odds.title", rows: oddsRows, identifier: "mattress.odds")
+            }
+        } actions: {
+            if stage != .opening {
+                if let outcome {
                     if outcome.extraOpensLeft > 0 {
                         RewardedOfferButton(title: String(localized: "mattress.extra"), identifier: "mattress.extra",
-                                            placement: .treasure, isBusy: $watching) { gameState.extraMattressVideoWatched() }
+                                            placement: .treasure, isBusy: $watching, gameRole: .video) {
+                            gameState.extraMattressVideoWatched()
+                        }
                     }
-                    ActionPill(titleKey: "mattress.collect", systemImage: "checkmark",
-                               identifier: "mattress.collect") { if !watching { dismiss() } }
+                    GameButton("mattress.collect", role: .free, identifier: "mattress.collect", action: close)
                 } else if gameState.mattressPopup?.extraOnly == true {
-                    AnimatedArtView(clip: .object("colchon_espera"), role: .popup) {
-                        GameIcon(artKey: "pickup_mattress", size: 160) { MattressGlyph() }
-                    }
                     RewardedOfferButton(title: String(localized: "mattress.extra"), identifier: "mattress.extra",
-                                        placement: .treasure, isBusy: $watching) { gameState.extraMattressVideoWatched() }
-                } else {
-                    Text("mattress.pitch")
-                        .font(Tokens.body)
-                        .multilineTextAlignment(.center)
-                        .foregroundStyle(Color("PaletteInk"))
-                    AnimatedArtView(clip: .object("colchon_espera"), role: .popup) {
-                        GameIcon(artKey: "pickup_mattress", size: 160) { MattressGlyph() }
+                                        placement: .treasure, isBusy: $watching, gameRole: .video) {
+                        gameState.extraMattressVideoWatched()
                     }
+                } else {
                     RewardedOfferButton(title: String(localized: "mattress.open"), identifier: "mattress.open",
-                                        placement: .treasure, isBusy: $watching) { gameState.mattressVideoWatched() }
-                    OddsDisclosureView(titleKey: "mattress.odds.title", rows: oddsRows, identifier: "mattress.odds")
+                                        placement: .treasure, isBusy: $watching, gameRole: .video) {
+                        gameState.mattressVideoWatched()
+                    }
                 }
             }
-            .frame(maxWidth: .infinity)
         }
-        .overlay(alignment: .topTrailing) {
-            ArtCloseButton { if !watching { dismiss() } }
-                .padding(10)
-        }
-        .padding(16)
-        .presentationDetents([.fraction(stage == .revealed ? 0.5 : 0.66)])
-        .interactiveDismissDisabled(watching)
-        .fisuSheet()
     }
 
     private func result(_ outcome: MattressOutcome) -> some View {
         let text = outcome.coins > 0
             ? "+\(CoinFormatter.string(from: outcome.coins))"
             : outcome.rewards.map(RewardCopy.title).joined(separator: " + ")
-        return GameCard(style: .highlighted(Color("PaletteYellow"))) {
-            HStack(spacing: Tokens.s8) {
-                Image(systemName: outcome.rewards.first.map(RewardCopy.symbol) ?? "gift.fill")
-                    .font(.system(size: 28, weight: .heavy))
-                Text(verbatim: text)
-                    .font(Tokens.title)
-                    .monospacedDigit()
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.6)
-                Spacer(minLength: 0)
-            }
-            .foregroundStyle(Color("PaletteInk"))
+        return VStack(spacing: Tokens.s8) {
+            RewardIllustration(kind: .mattressTreasure, size: 96)
+            Text(verbatim: text)
+                .font(Tokens.display)
+                .monospacedDigit()
+                .foregroundStyle(Color("PaletteInk"))
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.6)
         }
+        .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("mattress.result")
         .accessibilityValue(Text(verbatim: outcome.prizeId))

@@ -127,4 +127,34 @@ struct ActiveModifierTests {
         ))
         #expect(abs(combined.cost - 15 * 0.5 * 0.8) < 1e-9)
     }
+
+    // MARK: ModifierMath.renew (C32: el mismo boost no se apila)
+
+    @Test("renovar el mismo origen N veces no pasa su magnitud y se queda con el vencimiento más tardío")
+    func renovarElMismoOrigenNoMultiplica() {
+        var mods: [ActiveModifier] = []
+        for activation in 0..<10 {
+            let start = Double(activation) * 5
+            ModifierMath.renew(mod(.incomeMultiplier, magnitude: 5, expiresAt: start + 30, sourceKey: "boost.turbo"), in: &mods)
+        }
+        #expect(ModifierMath.factor(mods, effect: .incomeMultiplier, now: 46) == 5)
+        #expect(mods.count == 1)
+        #expect(mods.first?.expiresAt == 75)
+
+        // Una renovación que vence antes no acorta la que ya corría.
+        ModifierMath.renew(mod(.incomeMultiplier, magnitude: 5, expiresAt: 60, sourceKey: "boost.turbo"), in: &mods)
+        #expect(mods.first?.expiresAt == 75)
+    }
+
+    @Test("orígenes distintos se siguen multiplicando (B2)")
+    func renovarNoTocaOtrosOrigenes() {
+        var mods = [
+            mod(.incomeMultiplier, magnitude: 3, expiresAt: 100, sourceKey: "boost.fernet"),
+            mod(.tapMultiplier, magnitude: 2, expiresAt: 100, sourceKey: "boost.turbo"),
+        ]
+        ModifierMath.renew(mod(.incomeMultiplier, magnitude: 5, expiresAt: 100, sourceKey: "boost.turbo"), in: &mods)
+        #expect(ModifierMath.factor(mods, effect: .incomeMultiplier, now: 50) == 15)
+        #expect(ModifierMath.factor(mods, effect: .tapMultiplier, now: 50) == 2)
+        #expect(mods.count == 3)
+    }
 }

@@ -666,16 +666,15 @@ private struct BoostCard: View {
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("bonus.locked.\(row.id)")
             } else if row.cooldownRemaining > 0 {
-                // **El cooldown es la única fricción del juego que un video
-                // resuelve sin desbalancear nada**, y por eso es acá donde va la
-                // oferta: activarlo por anuncio adelanta ESTE uso y NO reinicia
-                // el reloj (ver `activateBoostFromAd`), así que el jugador no
-                // pierde nada por aceptar ni gana un boost infinito.
+                // Un video por ciclo (C32): activarlo por anuncio arranca un
+                // cooldown completo desde ese momento, y la tarjeta ya no
+                // ofrece otro video hasta la próxima activación gratis (ver
+                // `activateBoostFromAd`).
                 //
                 // El badge del reloj sigue estando cuando no hay anuncio: era el
                 // único lugar donde se dice "está en cooldown", y perderlo
                 // dejaría la fila sin explicar por qué no se puede.
-                if adReady {
+                if adReady && row.offersAd {
                     RewardedOfferButton(
                         title: String(localized: "ads.offer.boost.now"),
                         identifier: "bonus.ad.\(row.id)",

@@ -112,6 +112,20 @@ public enum ModifierMath {
         modifiers.contains { $0.effect == .eventImmunity && $0.isActive(at: now) }
     }
 
+    /// Suma `modifier` sin apilarlo consigo mismo: si ya hay uno del mismo
+    /// origen y efecto, lo reemplaza y se queda con el vencimiento más tardío.
+    /// Orígenes distintos se siguen multiplicando en `factor` (C32).
+    public static func renew(_ modifier: ActiveModifier, in modifiers: inout [ActiveModifier]) {
+        let same = { (other: ActiveModifier) in
+            other.sourceKey == modifier.sourceKey && other.effect == modifier.effect
+        }
+        let latest = modifiers.filter(same).map(\.expiresAt).reduce(modifier.expiresAt, max)
+        modifiers.removeAll(where: same)
+        modifiers.append(ActiveModifier(
+            id: modifier.id, effect: modifier.effect, magnitude: modifier.magnitude, expiresAt: latest, sourceKey: modifier.sourceKey
+        ))
+    }
+
     /// Drops expired modifiers. Returns true if anything was removed.
     @discardableResult
     public static func prune(_ state: inout PlayerState, now: TimeInterval) -> Bool {

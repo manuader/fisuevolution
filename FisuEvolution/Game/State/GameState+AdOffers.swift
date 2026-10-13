@@ -88,36 +88,29 @@ extension GameState {
 
     // MARK: - El boost en cooldown
 
-    /// Activa un boost **ignorando su cooldown y sin consumirlo**.
+    /// Activa por video un boost en cooldown: **una vez por ciclo**.
     ///
-    /// Es exactamente lo que ya hace el premio de carrera `freeBoost`, y a
-    /// propósito comparte el mecanismo: se borra la activación previa, se
-    /// activa por el camino normal, y se restaura. Así el jugador **no pierde
-    /// el cooldown que ya tenía corriendo** —mirar el video le adelanta ESTE
-    /// uso, no le reinicia el reloj— y los cinco efectos no se reimplementan.
+    /// El video reemplaza la activación anterior y el boost entra en un cooldown
+    /// **completo desde ahora**; la oferta no vuelve hasta la próxima activación
+    /// gratis (C32). Antes se restauraba el cooldown previo y la tarjeta seguía
+    /// ofreciendo el video: se podía repetir sin fin, y como el mismo boost se
+    /// apilaba, el Turbo se multiplicaba con cada video.
     ///
-    /// ⚠️ Restaurar la activación previa es lo que hace que la oferta sea un
-    /// regalo y no un castigo: sin eso, mirar un video a los 10 minutos de un
-    /// cooldown de 4 h te dejaba el reloj arrancando de cero.
+    /// La activación y la marca del video se escriben en el mismo `PlayerState`
+    /// y se guardan juntas: matar la app a mitad pierde las dos o ninguna.
     @discardableResult
-    func activateBoostFromAd(id: String) -> Double? {
+    func activateBoostFromAd(id: String, now: TimeInterval = Date().timeIntervalSince1970) -> Double? {
         guard let economy, let content, var player else { return nil }
         guard let boost = content.boosts.boosts.first(where: { $0.id == id }),
               isBoostUnlocked(boost) else {
             Log.economy.info("ad boost locked: \(id)")
             return nil
         }
-        let previous = player.meta.boostActivations[id]
-        player.meta.boostActivations[id] = nil
-        defer {
-            // El cooldown que ya corría sigue corriendo desde donde estaba.
-            var restored = self.player
-            restored?.meta.boostActivations[id] = previous
-            if let restored { self.player = restored }
-            effectsVersion += 1
-            refreshProjections()
-            scheduleSave()
+        guard !BoostManager.adUsedThisCycle(boostId: id, state: player) else {
+            Log.economy.info("ad boost already used this cycle: \(id)")
+            return nil
         }
+        player.meta.boostActivations[id] = nil
         do {
             let payout = try BoostManager.activate(
                 boostId: id,
@@ -129,12 +122,16 @@ extension GameState {
                 tiers: content.tiers,
                 floorTable: content.floorTable,
                 economy: economy,
-                now: Date().timeIntervalSince1970
+                now: now
             )
+            player.meta.rewardedActivations[BoostManager.adUsageKey(id)] = now
             player.meta.stats.boostsActivatedEver += 1
             self.player = player
+            effectsVersion += 1
             if payout != nil { audio?.play(.coin) }
             evaluateAchievements()
+            refreshProjections()
+            scheduleSave()
             Log.economy.info("boost activated by ad: \(id)")
             return payout
         } catch {

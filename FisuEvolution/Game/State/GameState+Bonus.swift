@@ -273,7 +273,8 @@ extension GameState {
                 isUnlocked: unlocked,
                 unlockFloorName: unlocked ? nil : TowerNaming.floorName(for: boost.unlockFloorId),
                 cooldownRemaining: BoostManager.cooldownRemaining(of: boost, state: player, now: now),
-                cooldownTotal: boost.cooldownSeconds
+                cooldownTotal: boost.cooldownSeconds,
+                offersAd: unlocked && BoostManager.canOfferAd(of: boost, state: player, now: now)
             )
         }
     }
@@ -534,6 +535,9 @@ extension GameState {
         /// va en `ActiveBonus`: el aro necesita las dos cosas —cuánto falta y
         /// sobre cuánto— y la vista no lee el config.
         let cooldownTotal: TimeInterval
+        /// En cooldown y con el video de este ciclo sin usar (C32): después del
+        /// video, la tarjeta muestra el reloj completo y no otro video.
+        let offersAd: Bool
     }
 
     /// Una recompensa por video con lo que falta para volver a ofrecerla.

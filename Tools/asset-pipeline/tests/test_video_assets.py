@@ -32,7 +32,6 @@ from video_assets import (  # noqa: E402
     CABIN_STILLS,
     CINEMATIC_IDS,
     EVENT_IDS,
-    FLOOR_IDS,
     ICON_IDS,
     KINDS,
     MANIFEST,
@@ -132,27 +131,27 @@ class Identificadores(unittest.TestCase):
             with self.subTest(kind=kind), self.assertRaises(ValueError):
                 validate_id(kind, invalido)
 
-    def test_un_personaje_es_un_asset_key_sin_version(self):
-        for valido in ("god", "senior_doctor", "sp_contador_dios", "sp_influencer"):
+    def test_un_personaje_con_video_es_un_especial_sin_version(self):
+        for valido in ("sp_contador_dios", "sp_influencer", "sp_lizard"):
             validate_id("personaje", valido)
-        for invalido in ("sp_influencer_v2", "God", "senior-doctor"):
+        for invalido in ("sp_influencer_v2", "SP_lizard", "sp-lizard"):
             with self.subTest(invalido=invalido), self.assertRaises(ValueError):
                 validate_id("personaje", invalido)
 
-    def test_el_clip_de_una_pinta_va_al_pack_del_piso_del_tipo(self):
-        self.assertEqual(odr_tag("personaje", "homeless__pijama"), "anim-piso-1")
-        self.assertEqual(odr_tag("personaje", "god__dinosaurio"), "anim-piso-10")
-        self.assertEqual(odr_tag("personaje", "sp_lizard__pijama"), "anim-especiales")
+    def test_los_personajes_base_ya_no_tienen_video(self):
+        """E14 C22: un puesto o una pinta base se ve con su imagen estatica."""
+        for base in ("homeless", "god", "senior_doctor", "homeless__pijama", "god__dinosaurio"):
+            with self.subTest(base=base), self.assertRaises(ValueError):
+                validate_id("personaje", base)
 
-    def test_valida_la_pinta_contra_skins_json(self):
-        validate_id("personaje", "homeless__pijama")
-        validate_id("personaje", "god__dinosaurio")
-        for invalida in ("homeless__no_existe", "no_tipo__pijama", "homeless__", "homeless___pijama"):
-            with self.subTest(invalida=invalida), self.assertRaises(ValueError):
-                validate_id("personaje", invalida)
+    def test_los_fondos_de_piso_ya_no_tienen_video(self):
+        """E14 C1: el piso muestra siempre la foto; la clase `fondo` no existe."""
+        self.assertNotIn("fondo", KINDS)
+        self.assertNotIn("floors", SECTIONS)
+        self.assertNotIn("fondo", video_assets.FIXED_IDS)
 
-    def test_registra_la_pinta_en_characters(self):
-        self.assertEqual(target("personaje", "homeless__pijama"), ("characters", "homeless__pijama"))
+    def test_registra_el_especial_en_characters(self):
+        self.assertEqual(target("personaje", "sp_lizard"), ("characters", "sp_lizard"))
 
     def test_un_visitante_es_una_pose(self):
         for valido in ("npc_vecina_talk", "npc_comisario_action", "sp_contador_dios_talk"):
@@ -167,34 +166,28 @@ class Identificadores(unittest.TestCase):
         self.assertEqual(target("visitante", "sp_zombie_ceo_talk"), ("talking", "sp_zombie_ceo"))
         self.assertEqual(target("icono", "ui_oro_autotap"), ("shopIcons", "ui_oro_autotap"))
 
-    def test_el_pack_odr_sale_de_la_clase_y_del_piso(self):
-        self.assertEqual(odr_tag("personaje", "homeless"), "anim-piso-1")
-        self.assertEqual(odr_tag("personaje", "god"), "anim-piso-10")
+    def test_el_pack_odr_sale_de_la_clase(self):
         self.assertEqual(odr_tag("personaje", "sp_lizard"), "anim-especiales")
         self.assertEqual(odr_tag("visitante", "npc_vecina_action"), "anim-visitantes")
         self.assertEqual(odr_tag("evento", "aguinaldo"), "anim-eventos")
         self.assertEqual(odr_tag("icono", "ui_oro_autotap"), "anim-tienda")
-        for kind in ("retrato", "objeto", "cabina", "cinematica", "fondo"):
+        for kind in ("retrato", "objeto", "cabina", "cinematica"):
             self.assertIsNone(odr_tag(kind, "x"), kind)
-        with self.assertRaises(ValueError):
-            odr_tag("personaje", "sin_piso")
 
-    def test_eventos_iconos_y_fondos_son_los_del_plan(self):
+    def test_eventos_e_iconos_son_los_del_plan(self):
         self.assertEqual(len(EVENT_IDS), 8)
         self.assertEqual(len(ICON_IDS), 10)
-        self.assertEqual(len(FLOOR_IDS), 10)
-        for kind, invalido in (("evento", "boda"), ("icono", "ui_oro_nada"),
-                               ("fondo", "bg_alley")):
+        for kind, invalido in (("evento", "boda"), ("icono", "ui_oro_nada")):
             with self.subTest(kind=kind), self.assertRaises(ValueError):
                 validate_id(kind, invalido)
 
     def test_cada_clase_tiene_su_alfa(self):
         """Regla del dueno: el arte va sobre blanco; el verde, solo en la cabina
-        (y en la cinematica, si alguna vez trae croma). El fondo es opaco."""
+        (y en la cinematica, si alguna vez trae croma)."""
         self.assertEqual({k: s["matte"] for k, s in KINDS.items()}, {
             "retrato": "blanco", "objeto": "blanco", "cabina": "verde", "cinematica": "verde",
             "personaje": "blanco", "visitante": "blanco", "evento": "blanco",
-            "icono": "blanco", "fondo": None,
+            "icono": "blanco",
         })
         self.assertEqual(KINDS["retrato"]["bordes"], BUSTO)
         for kind in ("objeto", "personaje", "visitante", "evento", "icono"):
@@ -290,7 +283,7 @@ class ManifestVersionado(unittest.TestCase):
         self.assertEqual(self.manifest["schemaVersion"], video_assets.SCHEMA_VERSION)
         self.assertEqual(set(self.manifest), {
             "schemaVersion", "portraits", "objects", "cabin", "cinematics",
-            "characters", "talking", "visitorActions", "events", "shopIcons", "floors",
+            "characters", "talking", "visitorActions", "events", "shopIcons",
         })
         self.assertEqual(list(self.manifest), ["schemaVersion", *SECTIONS])
 
@@ -318,11 +311,13 @@ class ManifestVersionado(unittest.TestCase):
     def test_las_piezas_del_plan_estan_todas(self):
         for kind, ids in (("objeto", OBJECT_IDS), ("cabina", CABIN_IDS),
                           ("cinematica", CINEMATIC_IDS), ("evento", EVENT_IDS),
-                          ("icono", ICON_IDS), ("fondo", FLOOR_IDS)):
+                          ("icono", ICON_IDS)):
             with self.subTest(kind=kind):
                 self.assertEqual(set(self.manifest[KINDS[kind]["section"]]), set(ids))
         self.assertEqual(len(self.manifest["portraits"]), 18)
-        self.assertEqual(len(self.manifest["characters"]), 53)
+        # E14 C22: sólo los 10 especiales; ningún personaje base tiene clip.
+        self.assertEqual(len(self.manifest["characters"]), 10)
+        self.assertTrue(all(key.startswith("sp_") for key in self.manifest["characters"]))
         self.assertEqual(len(self.manifest["talking"]), 18)
         self.assertEqual(len(self.manifest["visitorActions"]), 8)
         # Cada visitante de la 2.0 tiene su _talk, y los npc ademas su _action;
@@ -334,28 +329,22 @@ class ManifestVersionado(unittest.TestCase):
                                  retrato.startswith("npc_"))
 
     def test_cada_pieza_va_a_su_pack_y_lo_base_queda_en_el_paquete(self):
-        # La tabla de E8d: personajes por piso, especiales, poses, eventos y tienda
-        # viajan por ODR; retratos, objetos, cabina, cinematicas y fondos, no.
+        # La tabla de E8d: especiales, poses, eventos y tienda viajan por ODR;
+        # retratos, objetos, cabina y cinematicas, no.
         por_seccion = {
             "portraits": None, "objects": None, "cabin": None, "cinematics": None,
-            "floors": None, "talking": "anim-visitantes", "visitorActions": "anim-visitantes",
+            "talking": "anim-visitantes", "visitorActions": "anim-visitantes",
             "events": "anim-eventos", "shopIcons": "anim-tienda",
         }
         for seccion, tag in por_seccion.items():
             for piece_id, entry in self.manifest[seccion].items():
                 with self.subTest(seccion=seccion, id=piece_id):
                     self.assertEqual(entry.get("odrTag"), tag)
-        pisos = {}
         for piece_id, entry in self.manifest["characters"].items():
             with self.subTest(personaje=piece_id):
-                esperado = "anim-especiales" if piece_id.startswith("sp_") else entry["odrTag"]
-                self.assertEqual(entry["odrTag"], esperado)
-                self.assertRegex(entry["odrTag"], r"anim-especiales|anim-piso-([1-9]|10)")
-                pisos.setdefault(entry["odrTag"], []).append(piece_id)
-        self.assertEqual(len(pisos["anim-especiales"]), 10)
-        self.assertEqual(len(pisos) - 1, 10, "los diez pisos tienen su pack")
-        self.assertIn("homeless", pisos["anim-piso-1"])
-        self.assertIn("god", pisos["anim-piso-10"])
+                self.assertEqual(entry["odrTag"], "anim-especiales")
+        packs = {p.name for p in (RESOURCES / "AnimPacks").iterdir()}
+        self.assertEqual(packs, {"anim-especiales", "anim-visitantes", "anim-eventos", "anim-tienda"})
 
     def test_las_cinematicas_son_opacas_y_suenan(self):
         for piece_id, entry in self.manifest["cinematics"].items():
@@ -525,19 +514,6 @@ class DePuntaAPunta(unittest.TestCase):
         self.assertEqual((entry["width"], entry["height"], entry["matte"]), (256, 256, "blanco"))
         self.assertEqual(entry["odrTag"], "anim-tienda")
         self.assert_recortado(self.cuadro(mov))
-
-    def test_un_fondo_de_piso_sale_opaco_mudo_y_cuadrado(self):
-        master = self.master(720, 720, fondo=self.AMARILLO)
-        entry = video_assets.process("fondo", "alley", master)
-
-        mov = self.resources / "Backgrounds" / "Loops" / "bgloop_alley.mov"
-        self.assertEqual((entry["file"], entry["width"], entry["height"]),
-                         (mov.name, 1024, 1024))
-        self.assertEqual((entry["alpha"], entry["matte"], entry["audio"]), (False, None, False))
-        frame = self.cuadro(mov)
-        self.assertEqual(frame[..., 3].min(), 255)
-        manifest = json.loads((self.resources / "Data" / "loops_manifest.json").read_text())
-        self.assertEqual(manifest["floors"], {"alley": entry})
 
     def test_los_cuadros_fijos_de_la_cabina_salen_keyeados_y_sin_manifest(self):
         fuente = self.root / "ascensor"

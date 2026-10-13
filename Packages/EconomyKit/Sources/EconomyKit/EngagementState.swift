@@ -11,6 +11,13 @@ public struct EngagementState: Codable, Sendable, Equatable {
     /// toca. La app decide cuántas veces se muestra cada una.
     public var seenCinematics: [String: Int]
 
+    /// En qué vida (`prestigeLevel`) se celebró por última vez el desbloqueo de cada
+    /// piso, por su id (E14 C21). Es de la cuenta: reencarnar no la toca, y de ahí
+    /// sale que el desbloqueo sea corto —ya lo vio alguna vez— e insalteable la
+    /// primera vez de CADA vida. Un save anterior no la trae: arranca vacía, y el
+    /// piso se celebra completo una vez.
+    public var floorUnlocksSeen: [String: Int]
+
     /// Las claves de los momentos virales ya compartidos (`ShareMoment.key` en la
     /// app): cada uno paga su premio una sola vez (PLAN-v2 E3).
     public var sharedMoments: Set<String>
@@ -42,6 +49,7 @@ public struct EngagementState: Codable, Sendable, Equatable {
 
     public init(
         seenCinematics: [String: Int] = [:],
+        floorUnlocksSeen: [String: Int] = [:],
         sharedMoments: Set<String> = [],
         visitors: VisitorsState = .initial,
         events: EventsState = .initial,
@@ -53,6 +61,7 @@ public struct EngagementState: Codable, Sendable, Equatable {
         firstLaunchDay: String? = nil
     ) {
         self.seenCinematics = seenCinematics
+        self.floorUnlocksSeen = floorUnlocksSeen
         self.sharedMoments = sharedMoments
         self.visitors = visitors
         self.events = events
@@ -67,6 +76,7 @@ public struct EngagementState: Codable, Sendable, Equatable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         seenCinematics = try container.decodeIfPresent([String: Int].self, forKey: .seenCinematics) ?? [:]
+        floorUnlocksSeen = try container.decodeIfPresent([String: Int].self, forKey: .floorUnlocksSeen) ?? [:]
         sharedMoments = try container.decodeIfPresent(Set<String>.self, forKey: .sharedMoments) ?? []
         visitors = try container.decodeIfPresent(VisitorsState.self, forKey: .visitors) ?? .initial
         events = try container.decodeIfPresent(EventsState.self, forKey: .events) ?? .initial
@@ -82,11 +92,23 @@ public struct EngagementState: Codable, Sendable, Equatable {
         seenCinematics[id, default: 0] += 1
     }
 
+    /// Cómo se presenta el desbloqueo de `floorID` en la vida `life`: insalteable la
+    /// primera vez de cada vida, corto si la cuenta ya lo vio en alguna.
+    public func floorUnlockPresentation(floorID: String, life: Int) -> FloorUnlockPresentation {
+        let lastLife = floorUnlocksSeen[floorID]
+        return FloorUnlockPresentation(skippable: lastLife == life, short: lastLife != nil)
+    }
+
+    public mutating func recordFloorUnlock(floorID: String, life: Int) {
+        floorUnlocksSeen[floorID] = max(life, floorUnlocksSeen[floorID] ?? life)
+    }
+
     /// Lo visto no se des-ve: el máximo por id. Un `+` contaría dos veces la misma
     /// función en cada sync.
     public static func resolve(winner: EngagementState, loser: EngagementState) -> EngagementState {
         var resolved = winner
         resolved.seenCinematics.merge(loser.seenCinematics, uniquingKeysWith: max)
+        resolved.floorUnlocksSeen.merge(loser.floorUnlocksSeen, uniquingKeysWith: max)
         // Lo compartido se une: un momento cobrado en cualquier dispositivo no se cobra de nuevo.
         resolved.sharedMoments.formUnion(loser.sharedMoments)
         resolved.visitors = VisitorsState.resolve(winner: winner.visitors, loser: loser.visitors)
@@ -98,5 +120,18 @@ public struct EngagementState: Codable, Sendable, Equatable {
         resolved.offers = OffersState.resolve(winner: winner.offers, loser: loser.offers)
         resolved.firstLaunchDay = [winner.firstLaunchDay, loser.firstLaunchDay].compactMap { $0 }.min()
         return resolved
+    }
+}
+
+/// Cómo se muestra el desbloqueo de un piso (E14 C21, D6).
+public struct FloorUnlockPresentation: Equatable, Sendable {
+    /// Un toque lo corta. Sólo cuando ya se celebró en esta misma vida.
+    public let skippable: Bool
+    /// La versión corta: la cuenta ya vio el desbloqueo completo alguna vez.
+    public let short: Bool
+
+    public init(skippable: Bool, short: Bool) {
+        self.skippable = skippable
+        self.short = short
     }
 }

@@ -1,7 +1,7 @@
 import AVFoundation
 import SwiftUI
 
-/// Los fondos de los pisos que pasan por la ventana, achicados y sólo los del viaje.
+/// Los fondos de origen y destino del viaje con Reduce Motion (se funden), achicados.
 enum FloorBackdrops {
     private static let parallel = 2
 
@@ -47,7 +47,8 @@ enum FloorBackdrops {
 }
 
 /// El viaje visto desde adentro de la cabina: las puertas cierran con el juego detrás del hueco,
-/// los fondos de los pisos pasan por las ventanas y las puertas abren con el destino detrás.
+/// la torre real (la cámara del tablero) pasa por las ventanas, que quedan transparentes todo el
+/// viaje, y las puertas abren con el destino detrás. Con Reduce Motion, los fondos se funden.
 /// Tocar la pantalla saltea.
 struct ElevatorRideView: View {
     let ride: ElevatorRide
@@ -58,6 +59,8 @@ struct ElevatorRideView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.displayScale) private var displayScale
     @State private var backdrops: [Int: UIImage] = [:]
+    /// El cuadro de la cabina cerrada, con las ventanas en alfa 0: el clip tiene el gris opaco.
+    @State private var closedStill: UIImage?
 
     private let warmup = ElevatorCabinWarmup.shared
 
@@ -66,7 +69,7 @@ struct ElevatorRideView: View {
             TimelineView(.animation) { _ in
                 let moment = Moment(ride: ride, plan: plan)
                 ZStack {
-                    if moment.phase == .traveling { backdropLayer(moment, in: geo.size) }
+                    if moment.phase == .traveling, plan.fades { backdropLayer(moment, in: geo.size) }
                     cabin(moment, in: geo.size)
                         .offset(y: vibration(moment))
                     indicator(moment, in: geo.size)
@@ -78,10 +81,11 @@ struct ElevatorRideView: View {
                     .accessibilityLabel(Text("elevator.ride.skip.ax"))
                 }
             }
-            .task(id: plan) { await loadBackdrops(size: geo.size) }
+            .task(id: plan) { await loadAssets(size: geo.size) }
             .task(id: ride.phase) { advance(to: ride.phase) }
             .onDisappear {
                 backdrops = [:]
+                closedStill = nil
                 warmup.release()
             }
         }
@@ -133,17 +137,8 @@ struct ElevatorRideView: View {
     private func backdropLayer(_ moment: Moment, in size: CGSize) -> some View {
         ZStack {
             Color("PaletteInk")
-            if plan.fades {
-                backdrop(plan.origin)
-                backdrop(plan.destination).opacity(moment.position == Double(plan.origin) ? 0 : fadeProgress(moment))
-            } else {
-                ForEach(plan.passingOrdinals, id: \.self) { ordinal in
-                    let y = (moment.position - Double(ordinal)) * size.height
-                    if abs(y) < size.height {
-                        backdrop(ordinal).offset(y: y)
-                    }
-                }
-            }
+            backdrop(plan.origin)
+            backdrop(plan.destination).opacity(moment.position == Double(plan.origin) ? 0 : fadeProgress(moment))
         }
         .frame(width: size.width, height: size.height)
         .clipped()
@@ -163,13 +158,19 @@ struct ElevatorRideView: View {
         }
     }
 
-    private func loadBackdrops(size: CGSize) async {
-        guard let gameState, let content = gameState.content else { return }
-        let pixels = CGSize(width: size.width * displayScale, height: size.height * displayScale)
-        await FloorBackdrops.load(
-            ordinals: plan.fades ? [plan.origin, plan.destination] : plan.passingOrdinals, entries: gameState.floorMap,
-            backgrounds: content.manifest.backgrounds, pixelSize: pixels
-        ) { ordinal, image in backdrops[ordinal] = image }
+    /// Con Reduce Motion, los dos fondos que se funden; si no, el cuadro cerrado de la cabina para
+    /// el tramo de viaje (la torre la pone la cámara del tablero).
+    private func loadAssets(size: CGSize) async {
+        if plan.fades {
+            guard let gameState, let content = gameState.content else { return }
+            let pixels = CGSize(width: size.width * displayScale, height: size.height * displayScale)
+            await FloorBackdrops.load(
+                ordinals: [plan.origin, plan.destination], entries: gameState.floorMap,
+                backgrounds: content.manifest.backgrounds, pixelSize: pixels
+            ) { ordinal, image in backdrops[ordinal] = image }
+        } else if art.isVideo {
+            closedStill = await ElevatorCabinArt.closedStill()
+        }
     }
 
     // MARK: Cabina
@@ -218,8 +219,8 @@ struct ElevatorRideView: View {
         }
     }
 
-    /// Dos capas desde que arranca el viaje: la de "abre" (en su primer cuadro, igual al último de
-    /// "cierra") queda debajo y la de "cierra" se oculta al abrir, así el empalme no parpadea.
+    /// En el tramo de viaje las ventanas tienen que dejar ver la torre: el clip las trae opacas, así
+    /// que ahí va el cuadro cerrado (alfa 0 en las ventanas) o, sin él, la cabina vectorial.
     /// Sin player (no se creó, se soltó o falló) cae a la cabina vectorial.
     @ViewBuilder
     private func videoCabin(_ moment: Moment, close: URL, open: URL) -> some View {
@@ -229,10 +230,7 @@ struct ElevatorRideView: View {
         case .closing:
             if let closer { ChestCinematicView(player: closer.player) } else { VectorCabin(doors: moment.doors) }
         case .traveling:
-            ZStack {
-                if let opener { ChestCinematicView(player: opener.player) }
-                if let closer { ChestCinematicView(player: closer.player) } else { VectorCabin(doors: 1) }
-            }
+            if let closedStill { Image(uiImage: closedStill).resizable() } else { VectorCabin(doors: 1) }
         case .opening, .idle:
             if let opener { ChestCinematicView(player: opener.player) } else { VectorCabin(doors: moment.doors) }
         }
@@ -260,6 +258,7 @@ struct ElevatorRideView: View {
             warmup.cancelExpiry()
             Self.play(warmup.closingPlayer(url: close), over: plan.close)
         case .traveling:
+            warmup.releaseClosing()
             _ = warmup.openingPlayer(url: open)
         case .opening:
             Self.play(warmup.openingPlayer(url: open), over: plan.open)
@@ -274,12 +273,6 @@ struct ElevatorRideView: View {
         let clip = player.player.currentItem?.duration.seconds ?? 0
         let rate = clip.isFinite && clip > 0 && span > .zero ? clip / span.seconds : 1
         player.play(rate: Float(min(max(rate, 0.25), 5)), volume: 0)
-    }
-}
-
-private extension Duration {
-    var seconds: Double {
-        Double(components.seconds) + Double(components.attoseconds) / 1e18
     }
 }
 

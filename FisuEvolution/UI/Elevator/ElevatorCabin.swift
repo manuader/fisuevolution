@@ -33,6 +33,15 @@ enum ElevatorCabinArt: Equatable {
     }
 }
 
+extension ElevatorCabinArt {
+    /// La cabina cerrada con las ventanas transparentes, lista para dibujar: la del tramo de viaje.
+    static func closedStill() async -> UIImage? {
+        guard let url = Bundle.main.url(forResource: "cabina_cerrada", withExtension: "png"),
+              let image = UIImage(contentsOfFile: url.path) else { return nil }
+        return await image.byPreparingForDisplay() ?? image
+    }
+}
+
 /// Dónde cae la cabina (el cuadro es de 720 × 1280) dentro de la pantalla.
 enum CabinFrame {
     static let aspect: CGFloat = 720.0 / 1280.0
@@ -52,7 +61,7 @@ enum CabinFrame {
 /// (`prepare()`), nunca al elegir el piso: el arranque en frío del HEVC con alfa congela el primer cuadro.
 ///
 /// Memoria: el de "abre" se crea cuando arranca el tramo de viaje (hay ≥ 300 ms para calentarlo)
-/// y el de "cierra" se suelta al abrir las puertas, así que en `.traveling` conviven los dos. Si
+/// y el de "cierra" se suelta al arrancar el viaje (el tramo de viaje dibuja el cuadro cerrado). Si
 /// nadie usa el que se preparó, se suelta solo. Mientras haya un player vivo, el pool tiene un
 /// decodificador reservado.
 @MainActor

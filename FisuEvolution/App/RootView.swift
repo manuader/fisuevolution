@@ -370,7 +370,7 @@ struct GameBoardView: View {
         menuSession != nil || showPrestige || rankingCardUp
             || gameState.shareCardMoment != nil || gameState.visitorPopup != nil
             || gameState.eventPopup != nil || gameState.mattressPopup != nil || gameState.wheelSheet != nil
-            || gameState.adBreakOffer != nil || offerSelection != nil
+            || gameState.packagePopup != nil || gameState.adBreakOffer != nil || offerSelection != nil
     }
 
     private var boardLayoutMarker: some View {

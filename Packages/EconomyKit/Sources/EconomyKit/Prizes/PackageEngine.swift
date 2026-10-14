@@ -87,6 +87,20 @@ public enum PackageRoller {
         }
     }
 
+    /// La chance de cada tipo, la que se le muestra al jugador: el tier se
+    /// sortea con `odds` y sus tipos se la reparten parejo, igual que `roll`.
+    public struct TypeOdds: Sendable, Equatable {
+        public let typeId: String
+        public let tier: Int
+        public let probability: Double
+    }
+
+    public static func typeOdds(eligible: [CharacterType], windowTiers: Int, ratio: Double) -> [TypeOdds] {
+        odds(eligible: eligible, windowTiers: windowTiers, ratio: ratio).flatMap { tier in
+            tier.typeIds.map { TypeOdds(typeId: $0, tier: tier.tier, probability: tier.probability / Double(tier.typeIds.count)) }
+        }
+    }
+
     public static func roll<R: RandomNumberGenerator>(
         eligible: [CharacterType],
         windowTiers: Int,

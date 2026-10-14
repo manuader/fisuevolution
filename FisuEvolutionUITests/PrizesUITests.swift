@@ -30,6 +30,24 @@ final class PrizesUITests: XCTestCase {
         XCTAssertEqual(chip.value as? String, "ready:1")
         chip.tap()
 
+        // Antes: lo que trae y quiénes pueden salir, con su chance.
+        XCTAssertTrue(app.descendants(matching: .any)["package.odds"].waitForExistence(timeout: 5),
+                      "las caras posibles están a la vista antes de abrir")
+        snap(app, "paquete 1 antes")
+        app.buttons["package.open"].tap()
+
+        // Durante: tres toques a la caja (uno con Reduce Motion).
+        let box = app.buttons["package.tap"]
+        XCTAssertTrue(box.waitForExistence(timeout: 8), "la caja se abre tocándola")
+        snap(app, "paquete 2 durante")
+        for _ in 0..<3 where box.exists { box.tap() }
+
+        // Después: quién salió y a qué piso llega.
+        XCTAssertTrue(app.descendants(matching: .any)["package.result"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.staticTexts["package.result.floor"].exists, "dice a qué piso llega")
+        snap(app, "paquete 3 despues")
+        app.buttons["package.collect"].tap()
+
         expectation(for: NSPredicate(format: "value == %@", String(before + 1)), evaluatedWith: units)
         waitForExpectations(timeout: 10)
         XCTAssertTrue(chip.waitForExistence(timeout: 3))

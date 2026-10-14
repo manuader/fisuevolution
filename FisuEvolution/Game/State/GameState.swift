@@ -303,6 +303,10 @@ final class GameState {
     var mattressPopup: MattressPopup?
     /// La ruleta presentada sola (`+Prizes`).
     var wheelSheet: WheelSheet?
+    /// La pantalla del Paquete de la Aduana (`+Packages`).
+    var packagePopup: PackagePopup?
+    /// El último paquete ganado: la vista lo vuela al sello (`+Packages`).
+    var packageWin: PackageWin?
 
     // MARK: Celebraciones
 

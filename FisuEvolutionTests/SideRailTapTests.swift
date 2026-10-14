@@ -42,18 +42,18 @@ struct SideRailTapTests {
         #expect(gameState.mattressPopup != nil)
     }
 
-    @Test("los paquetes: con alguno esperando se abre uno; con el buzón vacío ofrece la lluvia")
+    @Test("los paquetes: con alguno esperando abre su pantalla; con el buzón vacío ofrece la lluvia")
     func packages() async {
         let gameState = await makeGameState()
         gameState.refreshProjections()
         #expect(gameState.sideRailTapped(.packages) == .offer)
         gameState.debugAddPackages(1)
         #expect(gameState.sideRailTapped(.packages) == .acted)
-        #expect(gameState.packagesWaiting == 0)
-        #expect(gameState.pendingBoardChanges.filter { $0.origin == .package }.count == 1)
+        #expect(gameState.packagePopup != nil)
+        #expect(gameState.packagesWaiting == 1, "abrir la pantalla no gasta el paquete")
     }
 
-    @Test("sin lugar para ninguno, el paquete se queda y el botón tiembla")
+    @Test("sin lugar para ninguno, la pantalla lo explica y el paquete se queda")
     func packagesFull() async throws {
         let gameState = await makeGameState()
         let base = try #require(gameState.content?.tiers.baseType.id)
@@ -62,7 +62,10 @@ struct SideRailTapTests {
         gameState.reconcileTower()
         gameState.debugAddPackages(1)
         #expect(gameState.packagesBlocked)
-        #expect(gameState.sideRailTapped(.packages) == .refused)
+        #expect(gameState.sideRailTapped(.packages) == .acted)
+        #expect(gameState.packagePopup != nil)
+        gameState.openPackageFromPopup()
+        #expect(gameState.packagePopup?.arrivals.isEmpty == true)
         #expect(gameState.packagesWaiting == 1)
     }
 

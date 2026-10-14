@@ -119,6 +119,7 @@ extension GameState {
         chestReward = nil
         wheelSheet = nil
         mattressPopup = nil
+        packagePopup = nil
         characterSheet = nil
         adBreakOffer = nil
         quickHireOffer = nil

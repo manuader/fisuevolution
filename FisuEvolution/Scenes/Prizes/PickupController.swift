@@ -66,7 +66,7 @@ final class PickupController {
             return true
         }
         guard boxes.contains(where: { $0.hitTest(point) }) else { return false }
-        if gameState.packageTapped() == .full { boxes.last?.shake() }
+        gameState.packageTapped()
         return true
     }
 

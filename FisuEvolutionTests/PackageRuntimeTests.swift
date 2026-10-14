@@ -70,7 +70,7 @@ struct PackageRuntimeTests {
         let gameState = await makeGameState()
         gameState.debugAddPackages(1)
         let candidates = Set(gameState.packageCandidates.map(\.id))
-        guard case .opened(let typeId) = gameState.openPackage() else {
+        guard case .opened(let typeId, _) = gameState.openPackage() else {
             Issue.record("el paquete no se abrió")
             return
         }

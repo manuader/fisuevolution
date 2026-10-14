@@ -1,0 +1,70 @@
+{
+  "package.title": {
+    "es": "Paquete de la Aduana",
+    "en": "Customs Package"
+  },
+  "package.subtitle": {
+    "es": "¡Adentro viene un empleado gratis!",
+    "en": "A free employee comes inside!"
+  },
+  "package.odds.title": {
+    "es": "Adentro puede venir:",
+    "en": "Inside could be:"
+  },
+  "package.open": {
+    "es": "¡Abrir!",
+    "en": "Open!"
+  },
+  "package.open_all": {
+    "es": "Abrir todos",
+    "en": "Open all"
+  },
+  "package.another": {
+    "es": "Abrir otro",
+    "en": "Open another"
+  },
+  "package.collect": {
+    "es": "¡Listo!",
+    "en": "Done!"
+  },
+  "package.tap": {
+    "es": "¡Tocá el paquete para abrirlo!",
+    "en": "Tap the package to open it!"
+  },
+  "package.arrives %@": {
+    "es": "¡Llega a tu piso %@!",
+    "en": "Arrives at your floor %@!"
+  },
+  "package.arrives.many %lld": {
+    "es": "¡Llegan %lld empleados!",
+    "en": "%lld employees arrive!"
+  },
+  "package.full": {
+    "es": "No hay lugar en tus pisos: fusioná o liberá un lugar y volvé.",
+    "en": "No room on your floors: merge or free a spot and come back."
+  },
+  "package.full.ok": {
+    "es": "Entendido",
+    "en": "Got it"
+  },
+  "tower.notice.package_won": {
+    "es": "¡Te llegó un paquete de la Aduana!",
+    "en": "A Customs Package just arrived!"
+  },
+  "tower.notice.packages_won %lld": {
+    "es": "¡Te llegaron %lld paquetes de la Aduana!",
+    "en": "%lld Customs Packages just arrived!"
+  },
+  "tutorial.tip.packages": {
+    "es": "¡Ganaste un Paquete de la Aduana! Es una caja con un empleado sorpresa adentro: tocá su sello y abrilo ahora.",
+    "en": "You won a Customs Package! It's a box with a surprise employee inside: tap its seal and open it now."
+  },
+  "tutorial.tour.side_rail": {
+    "es": "En «Premios» están la Ruleta, el Colchón, los Paquetes (cajas con un empleado sorpresa) y el boost por video.",
+    "en": "“Prizes” holds the Wheel, the Mattress, the Packages (boxes with a surprise employee) and the video boost."
+  },
+  "package.chance.ax %@ %@": {
+    "es": "%1$@: %2$@ de chance",
+    "en": "%1$@: %2$@ chance"
+  }
+}

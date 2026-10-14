@@ -79,6 +79,7 @@ extension GameState {
             ))
         case .package(let count):
             player.meta.engagement.packages.waiting += count
+            notePackagesWon(count)
         case .wheelSpin(let count):
             player.meta.engagement.wheel.bonusSpins += count
             if source.hasPrefix("visit."), visitorPopup != nil { wheelOpensAfterVisit = true }

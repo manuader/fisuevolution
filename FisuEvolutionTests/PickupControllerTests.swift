@@ -34,7 +34,7 @@ struct PickupControllerTests {
         #expect(controller.mattress == nil)
     }
 
-    @Test("tocar una caja abre un paquete, y la caja se va")
+    @Test("tocar una caja abre la pantalla del paquete, sin gastarlo")
     func tappingABox() async throws {
         let (gameState, controller) = await pickups()
         gameState.debugAddPackages(1)
@@ -42,9 +42,9 @@ struct PickupControllerTests {
         controller.update(delta: 1, reduceMotion: true)
         let box = try #require(controller.boxes.first)
         #expect(controller.handleTap(at: box.position))
-        #expect(gameState.pendingBoardChanges.last?.origin == .package)
-        controller.update(delta: 1.0 / 60, reduceMotion: true)
-        #expect(controller.boxes.isEmpty)
+        #expect(gameState.packagePopup != nil)
+        #expect(gameState.pendingBoardChanges.isEmpty)
+        #expect(gameState.packagesWaiting == 1)
     }
 
     @Test("sin lugar la de arriba dice LLENO, y tocarla no gasta el paquete")

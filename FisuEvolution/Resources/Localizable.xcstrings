@@ -7226,6 +7226,227 @@
         }
       }
     },
+    "package.another" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open another"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir otro"
+          }
+        }
+      }
+    },
+    "package.arrives %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrives at your floor %@!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Llega a tu piso %@!"
+          }
+        }
+      }
+    },
+    "package.arrives.many %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld employees arrive!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Llegan %lld empleados!"
+          }
+        }
+      }
+    },
+    "package.chance.ax %@ %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: %2$@ chance"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: %2$@ de chance"
+          }
+        }
+      }
+    },
+    "package.collect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Listo!"
+          }
+        }
+      }
+    },
+    "package.full" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No room on your floors: merge or free a spot and come back."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay lugar en tus pisos: fusioná o liberá un lugar y volvé."
+          }
+        }
+      }
+    },
+    "package.full.ok" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Got it"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entendido"
+          }
+        }
+      }
+    },
+    "package.odds.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inside could be:"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adentro puede venir:"
+          }
+        }
+      }
+    },
+    "package.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Abrir!"
+          }
+        }
+      }
+    },
+    "package.open_all" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open all"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir todos"
+          }
+        }
+      }
+    },
+    "package.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A free employee comes inside!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Adentro viene un empleado gratis!"
+          }
+        }
+      }
+    },
+    "package.tap" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap the package to open it!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Tocá el paquete para abrirlo!"
+          }
+        }
+      }
+    },
+    "package.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Customs Package"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paquete de la Aduana"
+          }
+        }
+      }
+    },
     "pager.next.ax" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14165,6 +14386,40 @@
         }
       }
     },
+    "tower.notice.package_won" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Customs Package just arrived!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Te llegó un paquete de la Aduana!"
+          }
+        }
+      }
+    },
+    "tower.notice.packages_won %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Customs Packages just arrived!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Te llegaron %lld paquetes de la Aduana!"
+          }
+        }
+      }
+    },
     "tower.notice.reward_compensated %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -15291,13 +15546,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A Customs Package arrived! Tap it: there's a worker inside."
+            "value" : "You won a Customs Package! It's a box with a surprise employee inside: tap its seal and open it now."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¡Llegó un Paquete de la Aduana! Tocalo: adentro viene un empleado."
+            "value" : "¡Ganaste un Paquete de la Aduana! Es una caja con un empleado sorpresa adentro: tocá su sello y abrilo ahora."
           }
         }
       }
@@ -15546,13 +15801,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“Prizes” holds the Wheel, the Mattress, the Packages and the video boost."
+            "value" : "“Prizes” holds the Wheel, the Mattress, the Packages (boxes with a surprise employee) and the video boost."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "En «Premios» están la Ruleta, el Colchón, los Paquetes y el boost por video."
+            "value" : "En «Premios» están la Ruleta, el Colchón, los Paquetes (cajas con un empleado sorpresa) y el boost por video."
           }
         }
       }

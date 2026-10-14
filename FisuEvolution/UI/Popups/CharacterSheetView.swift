@@ -224,17 +224,15 @@ struct CharacterSheetView: View {
             if isActive(selected) {
                 StateBadge(
                     text: String(localized: "skins.equipped"),
-                    systemImage: "checkmark.circle.fill",
+                    glyph: .check,
                     textAlignment: .center,
                     muted: true
                 )
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("character.skin.wearing")
             } else {
-                ActionPill(
-                    titleKey: "character.skin.equip",
-                    systemImage: "tshirt.fill",
-                    tint: Color("PaletteBlue"),
+                GameButton(
+                    "character.skin.equip", role: .free, medallion: .glyph(.shirt),
                     identifier: "character.skin.equip",
                     accessibilityLabel: Text("character.skin.equip.ax \(skinName(selected))")
                 ) {
@@ -247,9 +245,12 @@ struct CharacterSheetView: View {
     }
 
     @ViewBuilder private var lockedDetails: some View {
-        Label("character.skin.locked", systemImage: "lock.fill")
-            .font(.system(.body, design: .rounded))
-            .foregroundStyle(Color("PaletteInk"))
+        HStack(spacing: 6) {
+            GameGlyphView(glyph: .lock, size: 22)
+            Text("character.skin.locked")
+        }
+        .font(.system(.body, design: .rounded))
+        .foregroundStyle(Color("PaletteInk"))
         Text(unlockDescription)
             .font(.system(.footnote, design: .rounded))
             .foregroundStyle(Color("PaletteInk").opacity(0.75))
@@ -282,29 +283,12 @@ struct CharacterSheetView: View {
 
     @ViewBuilder private var dismissal: some View {
         if sheet.canDismiss {
-            // Destructivo pero subordinado: cápsula crema con la firma rosa, no
-            // la pill llena — despedir no compite con ponérsela.
-            Button { confirmingDismissal = true } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "person.fill.xmark")
-                        .font(.system(size: 14, weight: .black))
-                    Text("character.dismiss")
-                        .font(Tokens.body)
-                }
-                .foregroundStyle(Color("PalettePink").deepened(0.25))
-                .padding(.horizontal, Tokens.s12)
-                .padding(.vertical, Tokens.s8)
-                .frame(maxWidth: .infinity)
-                .background(
-                    PillBackground(
-                        fill: Color("PaletteCream"),
-                        border: Color("PalettePink").deepened(0.15).opacity(0.75)
-                    )
-                )
-                .contentShape(Capsule())
+            // Destructivo pero subordinado: el botón crema (secundario), no el
+            // verde — despedir no compite con ponérsela.
+            GameButton("character.dismiss", role: .neutral, medallion: .glyph(.close), size: .compact,
+                       fullWidth: true, identifier: "character.dismiss") {
+                confirmingDismissal = true
             }
-            .buttonStyle(.plain)
-            .accessibilityIdentifier("character.dismiss")
         }
     }
 
@@ -391,11 +375,9 @@ private struct CharacterPortrait: View {
                         .colorMultiply(tintColor ?? .white)
                 }
             } else {
-                Image(systemName: "person.fill")
-                    .resizable()
-                    .scaledToFit()
-                    .padding(20)
-                    .foregroundStyle(asSilhouette ? Color("PaletteInk") : (tintColor ?? Color("PaletteInk")))
+                GameGlyphView(glyph: .person, size: 80)
+                    .brightness(asSilhouette ? -1 : 0)
+                    .opacity(asSilhouette ? 1 : 0.6)
             }
         }
         .accessibilityHidden(true)

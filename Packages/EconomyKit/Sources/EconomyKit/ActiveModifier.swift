@@ -61,6 +61,10 @@ public enum ModifierMath {
     /// (magnitud 0) no es un descuento: sigue valiendo cero.
     public static let spawnCostStackFloor = 0.25
 
+    /// El ritmo de paquetes no pasa de ×10 por más fuentes que se junten: ninguna
+    /// da más que eso sola (tienda, video, evento), y apiladas llegaban a ×10⁵.
+    public static let packageRateStackCap = 10.0
+
     /// Product of the magnitudes of every live modifier with the given effect.
     /// The hiring cost has a floor (`spawnCostStackFloor`), except when it is free.
     public static func factor(_ modifiers: [ActiveModifier], effect: ActiveModifier.Effect, now: TimeInterval) -> Double {
@@ -68,8 +72,11 @@ public enum ModifierMath {
             .filter { $0.effect == effect && $0.isActive(at: now) }
             .map(\.magnitude)
             .reduce(1, *)
-        guard effect == .spawnCostMultiplier, product > 0 else { return product }
-        return max(product, spawnCostStackFloor)
+        switch effect {
+        case .spawnCostMultiplier where product > 0: return max(product, spawnCostStackFloor)
+        case .packageRateMultiplier: return min(product, packageRateStackCap)
+        default: return product
+        }
     }
 
     /// Promedio del factor de `effect` sobre `[from, to]` contando sólo los buffs

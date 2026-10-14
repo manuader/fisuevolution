@@ -25,7 +25,7 @@ struct OroShopContentTests {
 
     static let approvedDailyLimits: [String: Int] = [
         "income_x2": 3, "income_x3": 2, "package_rain": 5, "auto_tap": 3,
-        "time_jump_1h": 2, "time_jump_4h": 1, "daily_x3": 1, "merge_all": 5,
+        "time_jump_1h": 2, "time_jump_4h": 1, "daily_x3": 1, "skip_cooldowns": 3, "merge_all": 5,
     ]
 
     private func item(_ id: String) throws -> OroShopCatalog.Item {

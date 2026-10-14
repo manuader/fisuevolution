@@ -157,4 +157,30 @@ struct ActiveModifierTests {
         #expect(ModifierMath.factor(mods, effect: .tapMultiplier, now: 50) == 2)
         #expect(mods.count == 3)
     }
+
+    // MARK: Tope del ritmo de paquetes
+
+    @Test("la lluvia de paquetes de varias fuentes no pasa de ×10; con una sola fuente sigue siendo ×10")
+    func packageRateStackIsCapped() {
+        let sources = ["shop.package_rain", "ad.package_rain", "event.lluvia_paquetes", "shop.again", "x"]
+        let mods = sources.map { mod(.packageRateMultiplier, magnitude: 10, expiresAt: 100, sourceKey: $0) }
+        #expect(ModifierMath.factor(Array(mods.prefix(1)), effect: .packageRateMultiplier, now: 50) == 10)
+        #expect(ModifierMath.factor(mods, effect: .packageRateMultiplier, now: 50) == 10)
+        #expect(ModifierMath.factor(mods, effect: .packageRateMultiplier, now: 150) == 1, "vencidos no cuentan")
+    }
+
+    @Test("el piquete (×0) sigue frenando los paquetes aunque haya lluvia")
+    func strikeStillStopsPackages() {
+        let mods = [
+            mod(.packageRateMultiplier, magnitude: 10, expiresAt: 100, sourceKey: "shop.package_rain"),
+            mod(.packageRateMultiplier, magnitude: 0, expiresAt: 100, sourceKey: "event.piquete"),
+        ]
+        #expect(ModifierMath.factor(mods, effect: .packageRateMultiplier, now: 50) == 0)
+    }
+
+    @Test("otros efectos no tienen ese tope")
+    func otherEffectsAreNotCapped() {
+        let mods = (0..<3).map { mod(.incomeMultiplier, magnitude: 10, expiresAt: 100, sourceKey: "s\($0)") }
+        #expect(ModifierMath.factor(mods, effect: .incomeMultiplier, now: 50) == 1000)
+    }
 }

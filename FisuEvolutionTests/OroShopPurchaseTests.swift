@@ -148,6 +148,23 @@ struct OroShopPurchaseTests {
         #expect(gameState.buyOroShopItem(id: "skip_cooldowns", chanceAllowed: true) == .refused(.nothingToDo))
     }
 
+    @Test("Saltear cooldowns: tres por día, y el día nuevo vuelve a venderse")
+    func skipCooldownsDailyCap() async throws {
+        let gameState = await rich()
+        let boost = try #require(gameState.content?.boosts.boosts.first)
+        let coolDown = { (at: Date) in gameState.player?.meta.boostActivations[boost.id] = at.timeIntervalSince1970 }
+        for _ in 0..<3 {
+            coolDown(Date())
+            #expect(gameState.buyOroShopItem(id: "skip_cooldowns", chanceAllowed: true) == .bought)
+        }
+        coolDown(Date())
+        #expect(gameState.buyOroShopItem(id: "skip_cooldowns", chanceAllowed: true) == .refused(.dailyLimitReached))
+        #expect(gameState.player?.meta.boostActivations.isEmpty == false, "lo que no se vende no limpia nada")
+        let tomorrow = Date().addingTimeInterval(86_400 * 2)
+        coolDown(tomorrow)
+        #expect(gameState.buyOroShopItem(id: "skip_cooldowns", chanceAllowed: true, now: tomorrow) == .bought)
+    }
+
     @Test("mejor proveedor sube de a un nivel, para en el tercero, y el Paquete usa su r")
     func supplier() async throws {
         let gameState = await rich()

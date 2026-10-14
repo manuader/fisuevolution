@@ -28,7 +28,7 @@ revisión según el riesgo.
 | D7 | **Tarjeta de la skin en el cofre:** fondo liso del **mismo color para todas**. Según la rareza cambian **el color del brillo y el del sello** que dice la rareza. |
 | D8 | **Imágenes nuevas:** se generan con Automatic Image Generation y se **integran directo**, sin pasar por la aprobación del dueño. Si alguna no le gusta, la cambia después. |
 | D10 | **Visitantes entre un 20 y un 30 % más grandes**, a la escala de los demás personajes (B3 punto 6). |
-| D11 | **Ruleta: los giros con dólar blue gastan el cupo diario.** Si el día tiene 6 giros, comprar uno con blue descuenta uno de esos 6. Con el cupo agotado no se puede girar ni con video ni con blue: comprar mucho blue no permite girar sin fin (B15). |
+| D11 | **Ruleta: 6 giros por día en total, con video o con blue.** Los giros gratis de un evento o un premio no cuentan. Todos los demás sí, hasta 6. La mejora permanente que se compra con blue (`wheelDailySpins`) sube ese máximo. Con el cupo agotado no se gira ni con video ni con blue, aunque sobre blue (B15). Precisado por el dueño, 2026-10-14 ~12:40. |
 | D9 | **Todo pop-up lleva una imagen principal**, grande, vistosa y centrada. Las pantallas que dan recompensa llevan además la imagen de «todos los premios juntos» (tesoros con el mate, como en Cow Evolution), grande y arriba de la lista de posibilidades. |
 
 ---
@@ -173,10 +173,12 @@ revisión según el riesgo.
   `videoSpinsUsed` y `oroSpinsPerDay` → `oroSpinsUsed` (`.oro` es el dólar blue en el código). Los giros con blue
   no tocan el cupo de video. Quien compra mucho blue suma los dos cupos y gira de más, y acelera el juego.
 - **Qué cambia (EconomyKit, `WheelRoller`/`WheelConfig`):**
-  1. Hay **un solo cupo diario** de giros: `videoSpinsPerDay`, más lo que sume la mejora permanente
-     `wheelDailySpins`. Un giro con video **o** con blue descuenta de ese cupo.
-  2. `spinsLeft(.oro)` = el mínimo entre lo que queda del cupo diario y el tope propio de blue
-     (`oroSpinsPerDay`, si se mantiene), y además requiere tener el blue. Con el cupo en 0, ni video ni blue.
+  1. Hay **un solo cupo diario de 6 giros** (`videoSpinsPerDay` = 6, más lo que sume la mejora permanente
+     `wheelDailySpins`, que se compra con blue y sube el máximo). Un giro con video **o** con blue descuenta de
+     ese cupo.
+  2. El tope propio de blue (`oroSpinsPerDay`) deja de sumar giros aparte. Se mantiene sólo como interruptor
+     (0 = sin giro con blue en esa tienda). `spinsLeft(.oro)` = lo que queda del cupo único, con la condición de
+     tener el blue. Con el cupo en 0, ni video ni blue.
   3. Los **giros de premio** (`bonusSpins`, los que da un visitante, un evento, etc.) **no** gastan el cupo
      diario, como hoy. Si el relevo ve que eso abre otra puerta a girar sin fin con blue (por ejemplo, un premio
      comprable que da giros), lo anota y se lo consulta al dueño; no lo decide solo.

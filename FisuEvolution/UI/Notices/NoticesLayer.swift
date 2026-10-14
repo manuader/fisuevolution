@@ -49,6 +49,17 @@ enum NoticesLayout {
     /// El aire a cada lado: lo que ocupan las columnas de las esquinas (C9) más un respiro,
     /// para que el aviso quede entre las dos y no tape ni un sello ni un boost.
     static let sideInset: CGFloat = SideRailLayout.edgeInset + SideRailLayout.touchWidth + Tokens.s12
+
+    /// Lo que dura el aviso de la torre a la vista. `--uitest-notices-slow` lo estira ×4: con
+    /// la máquina cargada cada consulta de XCUITest tarda más de un segundo y los 2,4 s se
+    /// iban antes de la primera (relevo 56).
+    static var towerNoticeSeconds: Double {
+        #if DEBUG
+        ProcessInfo.processInfo.arguments.contains("--uitest-notices-slow") ? 9.6 : 2.4
+        #else
+        2.4
+        #endif
+    }
 }
 
 /// La placa de un aviso: tarjeta crema con contorno de la casa, un ícono propio y el texto.
@@ -149,7 +160,7 @@ struct TowerNoticeView: View {
             GameGlyphView(glyph: glyph, size: 30)
         }
         .task(id: notice.id) {
-            try? await Task.sleep(for: .seconds(2.4))
+            try? await Task.sleep(for: .seconds(NoticesLayout.towerNoticeSeconds))
             guard !Task.isCancelled else { return }
             dismiss()
         }

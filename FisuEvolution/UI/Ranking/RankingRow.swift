@@ -2,7 +2,7 @@ import EconomyKit
 import SwiftUI
 
 /// Una fila del ranking: puesto, nombre, tiempo real y tiempo jugado. La propia va resaltada; las
-/// ajenas se pueden reportar (menú contextual y acción de accesibilidad).
+/// ajenas se pueden reportar o dejar de ver (menú contextual y acciones de accesibilidad).
 struct RankingRow: View {
     enum Placement {
         case top
@@ -12,6 +12,7 @@ struct RankingRow: View {
     let row: LeaderboardRow
     var placement: Placement = .top
     let onReport: (LeaderboardRow) -> Void
+    var onBlock: (LeaderboardRow) -> Void = { _ in }
 
     private var identifier: String {
         if placement == .pinned { return "ranking.row.pinned" }
@@ -65,11 +66,13 @@ struct RankingRow: View {
         .contextMenu {
             if !row.isMe {
                 Button { onReport(row) } label: { Label("ranking.report", systemImage: "flag") }
+                Button { onBlock(row) } label: { Label("ranking.block", systemImage: "eye.slash") }
             }
         }
         .accessibilityActions {
             if !row.isMe {
                 Button("ranking.report") { onReport(row) }
+                Button("ranking.block") { onBlock(row) }
             }
         }
     }

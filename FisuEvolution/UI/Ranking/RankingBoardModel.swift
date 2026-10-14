@@ -31,7 +31,8 @@ struct RankingBoardModel: Equatable {
     ) {
         self.isEnabled = isEnabled
         let rows = board?.top ?? []
-        top = rows
+        let blocked = Set(state?.blockedRunIds ?? [])
+        top = rows.filter { !blocked.contains($0.runId) }
         pinned = board?.me.flatMap { me in rows.contains { $0.runId == me.runId } ? nil : me }
         isStale = board?.isStale ?? false
         fetchedAt = board?.fetchedAt
@@ -70,7 +71,7 @@ struct RankingBoardModel: Equatable {
             guard submission?.name == nil || submission?.nameStatus == .rejected else { return nil }
             return EntryPrompt(
                 realSeconds: submission?.realSeconds, underReview: submission?.underReview ?? false,
-                lastName: state.lastName)
+                lastName: state.lastName, termsAccepted: state.hasAcceptedTerms)
         }
     }
 }

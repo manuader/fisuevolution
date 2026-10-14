@@ -85,7 +85,7 @@ struct RankingView: View {
                 VStack(spacing: 0) {
                     ForEach(Array(model.top.enumerated()), id: \.element.runId) { offset, row in
                         if offset > 0 { RowDivider() }
-                        RankingRow(row: row) { reporting = $0 }
+                        RankingRow(row: row, onReport: { reporting = $0 }, onBlock: { store.block(runId: $0.runId) })
                     }
                 }
             }

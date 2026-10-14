@@ -194,6 +194,28 @@ struct LegalDocumentTests {
 
     // MARK: Los documentos de verdad
 
+    @Test("los Términos dicen, en los dos idiomas, tolerancia cero, que publicar es aceptar, el bloqueo y las 24 horas")
+    func termsCarryTheUserContentClauses() throws {
+        let blocks = try #require(LegalDocument.load(.terms))
+        let halves = LegalDocument.languageHalves(of: blocks)
+        #expect(halves.count == 2)
+        let required = [
+            ["Tolerancia cero", "aceptás estos Términos", "No ver más", "24 horas"],
+            ["Zero tolerance", "you accept these Terms", "Hide this name", "24 hours"],
+        ]
+        for (half, phrases) in zip(halves, required) {
+            let text = half.compactMap { block -> String? in
+                switch block {
+                case .paragraph(let text), .bullet(let text): text
+                default: nil
+                }
+            }.joined(separator: " ")
+            for phrase in phrases {
+                #expect(text.contains(phrase), "falta «\(phrase)»")
+            }
+        }
+    }
+
     @Test("los dos documentos viajan en el bundle y traen contenido", arguments: LegalDocument.Kind.allCases)
     func bothDocumentsShipInTheBundle(kind: LegalDocument.Kind) throws {
         let blocks = try #require(LegalDocument.load(kind),

@@ -25,6 +25,8 @@ struct EntryPrompt: Equatable, Sendable {
     var realSeconds: Int?
     var underReview: Bool
     var lastName: String?
+    /// Ya publicó un nombre antes: los Términos ya se aceptaron y no se vuelven a ofrecer.
+    var termsAccepted = false
 }
 
 /// Por qué el último nombre no pasó. Vive aparte de la tarjeta: la pestaña también lo muestra.
@@ -161,7 +163,11 @@ final class RankingStore {
             nameError = .invalid(rejection)
         case .success(let valid):
             var chosen = false
-            host?.updateRanking { chosen = $0.nameChosen(valid) }
+            let acceptedAt = now()
+            host?.updateRanking {
+                chosen = $0.nameChosen(valid)
+                if chosen { $0.termsAccepted(at: acceptedAt) }
+            }
             guard chosen else { return }
             nameError = nil
             isSubmitting = true
@@ -207,6 +213,11 @@ final class RankingStore {
             note(error)
             return false
         }
+    }
+
+    /// "No ver más este nombre": se oculta esa partida sólo para este jugador, sin red.
+    func block(runId: String) {
+        host?.updateRanking { $0.blocked(runId) }
     }
 
     // MARK: - Los pedidos pendientes
@@ -380,7 +391,7 @@ final class RankingStore {
     private func prompt(for state: RankingState) -> EntryPrompt {
         EntryPrompt(
             realSeconds: state.submission?.realSeconds, underReview: state.submission?.underReview ?? false,
-            lastName: state.lastName)
+            lastName: state.lastName, termsAccepted: state.hasAcceptedTerms)
     }
 
     /// Pone la tarjeta (si está abierta) al día con el estado: se cierra cuando el nombre ya salió o está

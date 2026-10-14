@@ -12,6 +12,7 @@ struct RankingEntryCard: View {
     let onLater: () -> Void
 
     @State private var name: String
+    @State private var showsTerms = false
 
     init(
         prompt: EntryPrompt, nameError: NameError? = nil, isSubmitting: Bool = false,
@@ -74,6 +75,7 @@ struct RankingEntryCard: View {
                             .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
                     }
+                    if !prompt.termsAccepted { termsNotice }
                     ActionPill(
                         titleKey: "ranking.entry.submit", systemImage: "trophy.fill",
                         identifier: "ranking.entry.submit") { onSubmit(name) }
@@ -96,6 +98,34 @@ struct RankingEntryCard: View {
             .accessibilityAddTraits(.isModal)
         }
         .transition(.opacity)
+        .fisuSheet(isPresented: $showsTerms) {
+            NavigationStack {
+                LegalView(document: .terms, close: { showsTerms = false })
+                    .clearNavigationBackdrop()
+            }
+        }
+    }
+
+    /// Publicar es aceptar: el aviso va pegado al botón, con la puerta a los Términos del juego.
+    private var termsNotice: some View {
+        VStack(spacing: Tokens.s4) {
+            Text("ranking.entry.terms")
+                .font(Tokens.caption)
+                .foregroundStyle(Color("PaletteInk").opacity(0.75))
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("ranking.entry.terms")
+            Button { showsTerms = true } label: {
+                Text("ranking.entry.terms.open")
+                    .font(Tokens.caption.weight(.bold))
+                    .underline()
+                    .foregroundStyle(Color("PaletteInk"))
+                    .padding(.vertical, Tokens.s4)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("ranking.entry.terms.open")
+        }
     }
 
     @ViewBuilder private var title: some View {

@@ -319,6 +319,40 @@ struct RankingStoreTests {
         #expect(f.store.entryPrompt == nil)
     }
 
+    @Test("publicar el nombre anota la aceptación de los Términos y la tarjeta siguiente ya no los ofrece")
+    func submitRecordsTheTermsOnce() async {
+        let f = make(state: runningState())
+        f.store.reachedGod()
+        await f.store.settled()
+        #expect(f.store.entryPrompt?.termsAccepted == false)
+        f.clock.value = 42
+
+        await f.store.submit(name: "Juan")
+        #expect(f.host.state?.termsAcceptedAt == 42)
+        f.clock.value = 90
+        await f.store.submit(name: "Juan")
+        #expect(f.host.state?.termsAcceptedAt == 42)
+    }
+
+    @Test("un nombre inválido no cuenta como aceptar los Términos")
+    func invalidNameDoesNotAcceptTheTerms() async {
+        let f = make(state: runningState())
+        f.store.reachedGod()
+        await f.store.settled()
+
+        await f.store.submit(name: "<b>")
+        #expect(f.host.state?.termsAcceptedAt == nil)
+    }
+
+    @Test("bloquear un nombre lo guarda en el save sin llamar a la red")
+    func blockStaysLocal() async {
+        let f = make(state: runningState())
+        let before = await f.simulated.calls.count
+        f.store.block(runId: "run-9")
+        #expect(f.host.state?.blockedRunIds == ["run-9"])
+        #expect(await f.simulated.calls.count == before)
+    }
+
     @Test("un nombre inválido no llama al cliente")
     func invalidNameStaysLocal() async {
         let f = make(state: runningState())

@@ -91,13 +91,20 @@ public struct RankingState: Codable, Sendable, Equatable {
     public var carriedSubmission: CarriedSubmission?
     /// El id que el cliente genera una vez por partida nueva o reset: reenviarlo hace idempotente al `start-run`.
     public var clientRunId: String?
+    /// Cuándo el jugador publicó un nombre aceptando los Términos (Apple 1.2). Sobrevive al reset: no se vuelve a pedir.
+    public var termsAcceptedAt: TimeInterval?
+    /// Las partidas del ranking que este jugador decidió no ver más. Local: no sale del dispositivo. Sobrevive al reset.
+    public var blockedRunIds: [String]
+
+    public static let maxBlocked = 200
 
     public static let legacy = RankingState(phase: .ineligible)
     public static let newGame = RankingState(phase: .awaitingStart)
 
     public init(phase: Phase, playedSeconds: Double = 0, activeSince: TimeInterval? = nil,
                 submission: Submission? = nil, lastName: String? = nil, cardOffered: Bool = false,
-                carriedSubmission: CarriedSubmission? = nil, clientRunId: String? = nil) {
+                carriedSubmission: CarriedSubmission? = nil, clientRunId: String? = nil,
+                termsAcceptedAt: TimeInterval? = nil, blockedRunIds: [String] = []) {
         self.phase = phase
         self.playedSeconds = playedSeconds
         self.activeSince = activeSince
@@ -106,6 +113,8 @@ public struct RankingState: Codable, Sendable, Equatable {
         self.cardOffered = cardOffered
         self.carriedSubmission = carriedSubmission
         self.clientRunId = clientRunId
+        self.termsAcceptedAt = termsAcceptedAt
+        self.blockedRunIds = blockedRunIds
     }
 
     /// Cada campo se lee por separado: uno ilegible (de una versión futura) no tira la partida entera,
@@ -120,6 +129,8 @@ public struct RankingState: Codable, Sendable, Equatable {
         cardOffered = (try? c.decodeIfPresent(Bool.self, forKey: .cardOffered)) ?? false
         carriedSubmission = try? c.decodeIfPresent(CarriedSubmission.self, forKey: .carriedSubmission)
         clientRunId = try? c.decodeIfPresent(String.self, forKey: .clientRunId)
+        termsAcceptedAt = try? c.decodeIfPresent(TimeInterval.self, forKey: .termsAcceptedAt)
+        blockedRunIds = (try? c.decodeIfPresent([String].self, forKey: .blockedRunIds)) ?? []
     }
 
     // MARK: - Transiciones (puras; devuelven si cambió algo las que pueden no hacer nada)
@@ -202,6 +213,20 @@ public struct RankingState: Codable, Sendable, Equatable {
         if status == .ok { lastName = name }
     }
 
+    /// Publicar un nombre es aceptar los Términos: queda anotado la primera vez.
+    public mutating func termsAccepted(at now: TimeInterval) {
+        if termsAcceptedAt == nil { termsAcceptedAt = now }
+    }
+
+    public var hasAcceptedTerms: Bool { termsAcceptedAt != nil }
+
+    /// "No ver más este nombre": se guarda la partida, no el nombre. Se conservan las más recientes.
+    public mutating func blocked(_ runId: String) {
+        guard !blockedRunIds.contains(runId) else { return }
+        blockedRunIds.append(runId)
+        if blockedRunIds.count > Self.maxBlocked { blockedRunIds.removeFirst(blockedRunIds.count - Self.maxBlocked) }
+    }
+
     /// "Ahora no": la tarjeta no vuelve a saltar; el nombre se completa desde la pestaña.
     public mutating func postponed() {
         cardOffered = true
@@ -238,6 +263,8 @@ public struct RankingState: Codable, Sendable, Equatable {
     public func forNewGame() -> RankingState {
         var fresh = RankingState.newGame
         fresh.lastName = lastName
+        fresh.termsAcceptedAt = termsAcceptedAt
+        fresh.blockedRunIds = blockedRunIds
         fresh.carriedSubmission = unsentArrival ?? carriedSubmission
         return fresh
     }
@@ -264,6 +291,7 @@ public struct RankingState: Codable, Sendable, Equatable {
             var merged = winner
             merged.lastName = winner.lastName ?? loser.lastName
             merged.carriedSubmission = winner.carriedSubmission ?? loser.unsentArrival ?? loser.carriedSubmission
+            merged.mergePreferences(of: loser)
             return merged
         }
         let (base, other) = loser.phase.stage > winner.phase.stage ? (loser, winner) : (winner, loser)
@@ -272,6 +300,7 @@ public struct RankingState: Codable, Sendable, Equatable {
         merged.carriedSubmission = base.carriedSubmission ?? other.carriedSubmission
         merged.playedSeconds = max(base.playedSeconds, other.playedSeconds)
         merged.cardOffered = base.cardOffered || other.cardOffered
+        merged.mergePreferences(of: other)
         if case .reachedGod(let runId, let startedAt, _) = base.phase,
            base.phase.isSealed || other.phase.isSealed {
             merged.phase = .reachedGod(runId: runId, serverStartedAt: startedAt, sealed: true)
@@ -291,7 +320,14 @@ public struct RankingState: Codable, Sendable, Equatable {
         var merged = newer
         merged.lastName = newer.lastName ?? older.lastName
         merged.carriedSubmission = newer.carriedSubmission ?? older.unsentArrival ?? older.carriedSubmission
+        merged.mergePreferences(of: older)
         return merged
+    }
+
+    /// Lo que el jugador decidió (términos aceptados, nombres bloqueados) no se pierde por un conflicto.
+    private mutating func mergePreferences(of other: RankingState) {
+        termsAcceptedAt = [termsAcceptedAt, other.termsAcceptedAt].compactMap { $0 }.min()
+        for runId in other.blockedRunIds { blocked(runId) }
     }
 
     private var countsPlayTime: Bool {

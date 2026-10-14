@@ -62,6 +62,19 @@ final class PrizesUITests: XCTestCase {
         for _ in 0..<3 where mattress.exists { mattress.tap() }
     }
 
+    /// Espera a que el colchón esté quieto en el tablero y lo toca donde está (E14b B6).
+    private func tapTheBoardMattress(_ app: XCUIApplication) {
+        let marker = app.otherElements["board.mattress"]
+        XCTAssertTrue(marker.waitForExistence(timeout: 10))
+        expectation(for: NSPredicate(format: "value CONTAINS ','"), evaluatedWith: marker)
+        waitForExpectations(timeout: 10)
+        let parts = (marker.value as? String ?? "").split(separator: ",").compactMap { Double($0) }
+        XCTAssertEqual(parts.count, 2, "el marcador trae x,y")
+        app.coordinate(withNormalizedOffset: CGVector(dx: parts[0], dy: parts[1])).tap()
+    }
+
+    /// El recorrido entero (E14b B6, D3): la columna pide el video, el colchón cae al tablero, ahí se
+    /// toca y se abre, y sale el pop-up del premio; después, «otro colchón».
     func testTheMattressOpensWithAVideo() {
         let app = XCUIApplication()
         app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-mattress"]
@@ -70,15 +83,22 @@ final class PrizesUITests: XCTestCase {
         let chip = app.buttons["siderail.mattress"]
         XCTAssertTrue(chip.waitForExistence(timeout: 15))
         XCTAssertEqual(chip.value as? String, "ready")
+        XCTAssertEqual(app.otherElements["board.mattress"].value as? String ?? "", "",
+                       "en la columna, sólo en la columna: el tablero no lo muestra")
         chip.tap()
 
-        XCTAssertTrue(app.descendants(matching: .any)["mattress.odds.coins"].waitForExistence(timeout: 5),
-                      "lo que puede tocar está a la vista antes del video")
+        let odds = app.descendants(matching: .any)["mattress.odds.coins"]
+        XCTAssertTrue(odds.waitForExistence(timeout: 5), "lo que puede tocar está a la vista antes del video")
         snap(app, "colchon 1 antes")
         app.buttons["mattress.open"].tap()
-        tapTheMattressOpen(app)
+        XCTAssertTrue(odds.waitForNonExistence(timeout: 10), "al terminar el video el popup se cierra")
+        XCTAssertFalse(app.descendants(matching: .any)["mattress.result"].exists, "pagar no abre: cae al tablero")
+
+        tapTheBoardMattress(app)
+        snap(app, "colchon 2 abriendose en el tablero")
         let result = app.descendants(matching: .any)["mattress.result"]
-        XCTAssertTrue(result.waitForExistence(timeout: 8))
+        XCTAssertTrue(result.waitForExistence(timeout: 10), "abierto en el tablero, sale el pop-up del premio")
+        XCTAssertFalse(app.buttons["mattress.tap"].exists, "la animación ya se vio en el tablero")
         snap(app, "colchon 3 despues")
         XCTAssertTrue(["coins", "package", "oro"].contains(result.value as? String ?? ""))
 
@@ -93,6 +113,27 @@ final class PrizesUITests: XCTestCase {
 
         app.buttons["mattress.collect"].tap()
         XCTAssertTrue(app.buttons["mattress.collect"].waitForNonExistence(timeout: 5), "Keep it! no cerró el colchón")
+        XCTAssertEqual(app.otherElements["board.mattress"].value as? String ?? "", "", "abierto, se fue del tablero")
+    }
+
+    /// El de regalo (D4) ya está en el tablero: la columna no lo ofrece y un toque lo abre sin video.
+    func testTheGiftedMattressOpensOnTheBoard() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-mattress-board"]
+        app.launch()
+
+        let units = app.otherElements["board.units"]
+        XCTAssertTrue(units.waitForExistence(timeout: 15))
+        let chip = app.buttons["siderail.mattress"]
+        XCTAssertFalse(chip.exists && chip.value as? String == "ready", "de regalo no pasa por la columna")
+
+        tapTheBoardMattress(app)
+        let result = app.descendants(matching: .any)["mattress.result"]
+        XCTAssertTrue(result.waitForExistence(timeout: 10), "el pop-up del premio sale siempre")
+        XCTAssertFalse(app.buttons["mattress.open"].exists, "sin video")
+        snap(app, "colchon de regalo abierto")
+        app.buttons["mattress.collect"].tap()
+        XCTAssertTrue(app.buttons["mattress.collect"].waitForNonExistence(timeout: 5))
     }
 
     func testTheSavedExtraMattressPaysWithOnlyTheVideo() {

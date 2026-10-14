@@ -59,6 +59,9 @@ extension GameState {
         if arguments.contains("--uitest-mattress-extra") {
             debugSpawnMattress(extraSaved: true)
         }
+        if arguments.contains("--uitest-mattress-board") {
+            debugSpawnMattress(onBoard: true)
+        }
     }
 
     /// El valor de un argumento `--uitest-algo=<valor>`.

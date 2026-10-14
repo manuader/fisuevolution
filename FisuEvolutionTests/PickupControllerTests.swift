@@ -44,7 +44,7 @@ struct PickupControllerTests {
     func oneNodePerPickup() async throws {
         let (gameState, controller) = await pickups()
         gameState.debugAddPackages(2)
-        gameState.debugSpawnMattress()
+        gameState.debugSpawnMattress(onBoard: true)
         gameState.refreshPrizeAccess()
         controller.update(delta: 1, reduceMotion: true)
         let mattress = try #require(controller.mattress)
@@ -100,15 +100,80 @@ struct PickupControllerTests {
         #expect(gameState.packagesWaiting == 2)
     }
 
-    @Test("el colchón aparece y tocarlo abre su popup")
+    @Test("el colchón de la columna no está en el tablero; pagado, cae, y tocarlo lo abre ahí y sale el premio (E14b B6)")
     func theMattress() async throws {
-        let (gameState, controller) = await pickups()
+        let pool = VideoPlayerPool(policy: .allowAll.with(.reduceMotion))
+        let (gameState, controller) = await pickupsWithVideo(pool: pool)
         gameState.debugSpawnMattress()
         gameState.refreshPrizeAccess()
         controller.update(delta: 1, reduceMotion: true)
+        #expect(controller.mattress == nil, "en la columna, sólo en la columna (D3)")
+        #expect(gameState.payMattress())
+        gameState.refreshPrizeAccess()
+        controller.update(delta: 1, reduceMotion: true)
         let mattress = try #require(controller.mattress)
+        #expect(gameState.mattressPopup == nil)
+        // Con la política quieta los clips de la sacudida y la apertura terminan en el acto.
         #expect(controller.handleTap(at: mattress.position))
-        #expect(gameState.mattressPopup != nil)
+        let outcome = try #require(gameState.mattressPopup?.outcome, "abierto en el tablero, el pop-up del premio sale siempre")
+        #expect(gameState.mattressPopup?.openedOnBoard == true)
+        #expect(!outcome.rewards.isEmpty)
+        #expect(controller.mattress == nil, "el colchón abierto se va del tablero")
+        #expect(!gameState.mattressInPlay)
+    }
+
+    @Test("con otro popup arriba, tocar el colchón del tablero no lo abre")
+    func theBoardMattressWaits() async throws {
+        let pool = VideoPlayerPool(policy: .allowAll.with(.reduceMotion))
+        let (gameState, controller) = await pickupsWithVideo(pool: pool)
+        gameState.debugSpawnMattress(onBoard: true)
+        gameState.refreshPrizeAccess()
+        controller.update(delta: 1, reduceMotion: true)
+        let mattress = try #require(controller.mattress)
+        gameState.openWheel()
+        #expect(controller.handleTap(at: mattress.position))
+        #expect(gameState.mattressPopup == nil)
+        #expect(gameState.mattressOnBoard)
+        #expect(!mattress.isOpening)
+    }
+
+    @Test("el pagado cae desde arriba hasta su lugar; el de regalo aparece ahí mismo")
+    func thePaidOneFalls() async throws {
+        let (gameState, controller) = await pickups()
+        gameState.debugSpawnMattress()
+        gameState.refreshPrizeAccess()
+        controller.update(delta: 0.016, reduceMotion: false)
+        gameState.payMattress()
+        gameState.refreshPrizeAccess()
+        controller.update(delta: 0.016, reduceMotion: false)
+        let falling = try #require(controller.mattress)
+        #expect(falling.isFalling && falling.fallOffset > 0)
+        #expect(gameState.boardMattressMarker.isEmpty, "mientras cae no se toca")
+        let airborne = falling.position.y
+        controller.update(delta: 1, reduceMotion: false)
+        #expect(!falling.isFalling && falling.fallOffset == 0)
+        #expect(falling.position.y < airborne, "cayó")
+        #expect(gameState.boardMattressMarker.contains(","))
+
+        let (giftState, giftController) = await pickups()
+        giftState.debugSpawnMattress(onBoard: true)
+        giftState.refreshPrizeAccess()
+        giftController.update(delta: 0.016, reduceMotion: false)
+        let gift = try #require(giftController.mattress)
+        #expect(!gift.isFalling && gift.fallOffset == 0)
+    }
+
+    @Test("con Reduce Motion el pagado no cae: aparece en su lugar")
+    func reduceMotionDoesNotFall() async throws {
+        let (gameState, controller) = await pickups()
+        gameState.debugSpawnMattress()
+        gameState.refreshPrizeAccess()
+        controller.update(delta: 0.016, reduceMotion: true)
+        gameState.payMattress()
+        gameState.refreshPrizeAccess()
+        controller.update(delta: 0.016, reduceMotion: true)
+        let mattress = try #require(controller.mattress)
+        #expect(!mattress.isFalling && mattress.fallOffset == 0)
     }
 
     @Test("un toque lejos no es suyo, y con la UI apagada no se ven")
@@ -186,11 +251,11 @@ struct PickupControllerTests {
     func theMattressHasVideo() async {
         let pool = VideoPlayerPool(policy: .allowAll)
         let (gameState, controller) = await pickupsWithVideo(pool: pool)
-        gameState.debugSpawnMattress()
+        gameState.debugSpawnMattress(onBoard: true)
         gameState.refreshPrizeAccess()
         controller.update(delta: 1, reduceMotion: false)
         #expect(controller.mattress?.isWaiting == true && pool.liveCount == 1)
-        gameState.player?.meta.engagement.treasures.waiting = false
+        gameState.player?.meta.engagement.treasures.phase = .none
         gameState.refreshPrizeAccess()
         controller.update(delta: 1, reduceMotion: false)
         #expect(controller.mattress == nil && pool.liveCount == 0)

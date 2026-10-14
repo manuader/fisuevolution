@@ -242,9 +242,12 @@ extension PacingSimulator {
         var seconds = 0.0
 
         if let treasures = ads.treasures, active >= clocks.nextMattressAt {
-            // Cada apertura es un video: la primera y los "otro colchón".
-            for _ in 0...max(0, treasures.extraOpensPerTreasure) {
-                seconds += watchVideo(ads, report: &report)
+            // Cada apertura es un video: la primera (salvo la parte que llega de regalo, E14b B6)
+            // y los "otro colchón".
+            for open in 0...max(0, treasures.extraOpensPerTreasure) {
+                let paidShare = open == 0 ? 1 - treasures.giftShare : 1
+                seconds += ads.videoSeconds * paidShare
+                report.sourceTotals["videos", default: 0] += paidShare
                 for (prize, odds) in zip(treasures.prizes, treasures.odds) {
                     for reward in prize.rewards {
                         apply(reward, probability: odds.probability, source: "mattress",

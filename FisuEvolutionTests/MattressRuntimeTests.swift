@@ -11,7 +11,7 @@ struct MattressRuntimeTests {
         let gameState = await makeGameState()
         gameState.player?.meta.engagement.treasures.secondsUntilNext = 0.5
         gameState.advanceEngagement(delta: 1)
-        #expect(!gameState.mattressWaiting)
+        #expect(!gameState.mattressInPlay)
     }
 
     @Test("con el juego andando, aparece cuando vence su reloj; durante el núcleo del tutorial, no")
@@ -21,27 +21,32 @@ struct MattressRuntimeTests {
         gameState.beginTutorialPhase()
         gameState.player?.meta.engagement.treasures.secondsUntilNext = 0.5
         gameState.advanceEngagement(delta: 1)
-        #expect(!gameState.mattressWaiting)
+        #expect(!gameState.mattressInPlay)
         gameState.finishTutorialCore()
         gameState.advanceEngagement(delta: 1)
-        #expect(gameState.mattressWaiting)
+        #expect(gameState.mattressInPlay, "en la columna o, de regalo, en el tablero")
     }
 
-    @Test("sin colchón esperando no se abre nada")
+    @Test("sin colchón en el tablero no se abre nada: el de la columna pide su video primero")
     func nothingToOpen() async {
         let gameState = await makeGameState()
         #expect(gameState.openMattress() == nil)
         #expect(gameState.openExtraMattress() == nil)
+        gameState.debugSpawnMattress()
+        let before = gameState.player
+        #expect(gameState.openMattress() == nil)
+        #expect(gameState.player == before)
+        #expect(gameState.mattressWaiting)
     }
 
-    @Test("abrirlo acredita su premio, deja de esperar y habilita uno más")
+    @Test("abrir el del tablero acredita su premio, lo saca del juego y habilita uno más")
     func openingGrantsAndArmsTheExtra() async throws {
         let gameState = await makeGameState()
-        gameState.debugSpawnMattress()
+        gameState.debugSpawnMattress(onBoard: true)
         let before = try #require(gameState.player)
         let outcome = try #require(gameState.openMattress())
         let after = try #require(gameState.player)
-        #expect(!gameState.mattressWaiting)
+        #expect(!gameState.mattressInPlay)
         #expect(outcome.extraOpensLeft == 1)
         #expect(after.meta.engagement.treasures.secondsUntilNext == gameState.content?.treasures.spawnIntervalSeconds)
         switch outcome.prizeId {
@@ -55,7 +60,7 @@ struct MattressRuntimeTests {
     @Test("«otro colchón» sortea de nuevo una sola vez")
     func theExtraIsOnce() async throws {
         let gameState = await makeGameState()
-        gameState.debugSpawnMattress()
+        gameState.debugSpawnMattress(onBoard: true)
         _ = try #require(gameState.openMattress())
         let extra = try #require(gameState.openExtraMattress())
         #expect(extra.extraOpensLeft == 0)
@@ -66,7 +71,7 @@ struct MattressRuntimeTests {
     func theCoinsAreTwentyMinutes() async throws {
         let gameState = await makeGameState()
         for _ in 0..<60 {
-            gameState.debugSpawnMattress()
+            gameState.debugSpawnMattress(onBoard: true)
             let player = try #require(gameState.player)
             let content = try #require(gameState.content)
             let economy = try #require(gameState.economy)
@@ -88,7 +93,7 @@ struct MattressRuntimeTests {
         #expect(gameState.player?.meta.engagement.treasures.secondsUntilNext == 10)
         gameState.advanceEngagement(delta: -5)
         #expect(gameState.player?.meta.engagement.treasures.secondsUntilNext == 10)
-        #expect(!gameState.mattressWaiting)
+        #expect(!gameState.mattressInPlay)
         gameState.advanceEngagement(delta: 1)
         #expect(gameState.player?.meta.engagement.treasures.secondsUntilNext == 9)
     }
@@ -99,18 +104,19 @@ struct MattressRuntimeTests {
         gameState.engagementAutorun = true
         gameState.player?.meta.engagement.treasures.secondsUntilNext = 1
         gameState.advanceEngagement(delta: 1)
-        #expect(gameState.mattressWaiting)
+        #expect(gameState.mattressInPlay)
+        let phase = gameState.player?.meta.engagement.treasures.phase
         let interval = try #require(gameState.content?.treasures.spawnIntervalSeconds)
         #expect(gameState.player?.meta.engagement.treasures.secondsUntilNext == interval)
         gameState.advanceEngagement(delta: 1_000_000)
         #expect(gameState.player?.meta.engagement.treasures.secondsUntilNext == interval)
-        #expect(gameState.mattressWaiting)
+        #expect(gameState.player?.meta.engagement.treasures.phase == phase)
     }
 
     @Test("un colchón se cobra una sola vez, aunque se toque dos veces")
     func paysOnce() async throws {
         let gameState = await makeGameState()
-        gameState.debugSpawnMattress()
+        gameState.debugSpawnMattress(onBoard: true)
         _ = try #require(gameState.openMattress())
         let after = try #require(gameState.player)
         #expect(gameState.openMattress() == nil)
@@ -121,12 +127,12 @@ struct MattressRuntimeTests {
     func theExtraDiesWithTheNextMattress() async throws {
         let gameState = await makeGameState()
         gameState.engagementAutorun = true
-        gameState.debugSpawnMattress()
+        gameState.debugSpawnMattress(onBoard: true)
         _ = try #require(gameState.openMattress())
         #expect(gameState.mattressExtraOpensLeft == 1)
         gameState.player?.meta.engagement.treasures.secondsUntilNext = 0.5
         gameState.advanceEngagement(delta: 1)
-        #expect(gameState.mattressWaiting)
+        #expect(gameState.mattressInPlay)
         #expect(gameState.mattressExtraOpensLeft == 0)
         #expect(gameState.openExtraMattress() == nil)
     }
@@ -134,13 +140,45 @@ struct MattressRuntimeTests {
     @Test("lo cobrado y el estado del colchón sobreviven a un guardado")
     func thePrizeAndTheStateArePersisted() async throws {
         let gameState = await makeGameState()
-        gameState.debugSpawnMattress()
+        gameState.debugSpawnMattress(onBoard: true)
         _ = try #require(gameState.openMattress())
         let player = try #require(gameState.player)
         let data = try JSONEncoder().encode(player.meta)
         let restored = try JSONDecoder().decode(MetaState.self, from: data)
         #expect(restored == player.meta)
-        #expect(!restored.engagement.treasures.waiting)
+        #expect(restored.engagement.treasures.phase == .none)
         #expect(restored.engagement.treasures.extraOpensLeft == 1)
+    }
+
+    @Test("un save anterior a B6 con un colchón esperando migra a la columna: pide su video, no se regala")
+    func theOldSaveMigrates() async throws {
+        let gameState = await makeGameState()
+        gameState.debugSpawnMattress()
+        var json = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(gameState.player)) as? [String: Any])
+        var meta = try #require(json["meta"] as? [String: Any])
+        var engagement = try #require(meta["engagement"] as? [String: Any])
+        engagement["treasures"] = ["secondsUntilNext": 120.0, "waiting": true, "extraOpensLeft": 0]
+        meta["engagement"] = engagement
+        json["meta"] = meta
+        let migrated = try SaveMigrator.migrate(JSONSerialization.data(withJSONObject: json))
+        #expect(migrated.meta.engagement.treasures == TreasuresState(secondsUntilNext: 120, phase: .waiting))
+        gameState.player = migrated
+        gameState.refreshPrizeAccess()
+        #expect(gameState.prizeAccess.mattressReady && !gameState.prizeAccess.mattressOnBoard)
+        #expect(gameState.openMattress() == nil, "migrado, todavía pide su video")
+    }
+
+    @Test("pagado y sin abrir, el colchón del tablero sobrevive a matar la app")
+    func theBoardMattressSurvivesARelaunch() async throws {
+        let gameState = await makeGameState()
+        gameState.debugSpawnMattress()
+        #expect(gameState.payMattress())
+        let data = try JSONEncoder().encode(try #require(gameState.player))
+        let restored = try SaveMigrator.migrate(data)
+        #expect(restored.meta.engagement.treasures.phase == .onBoard)
+        gameState.player = restored
+        #expect(gameState.mattressOnBoard)
+        #expect(!gameState.payMattress(), "no se paga dos veces")
+        #expect(gameState.openMattress() != nil)
     }
 }

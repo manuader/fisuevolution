@@ -16,9 +16,8 @@ struct MattressExtraSavedTests {
 
     private func openedFirst() async throws -> GameState {
         let gameState = await makeGameState()
-        gameState.debugSpawnMattress()
-        gameState.mattressTapped()
-        gameState.mattressVideoWatched()
+        gameState.debugSpawnMattress(onBoard: true)
+        _ = try #require(gameState.openMattressOnBoard())
         _ = try #require(gameState.mattressPopup?.outcome)
         return gameState
     }
@@ -71,10 +70,15 @@ struct MattressExtraSavedTests {
         gameState.engagementAutorun = true
         gameState.player?.meta.engagement.treasures.secondsUntilNext = 0.5
         gameState.advanceEngagement(delta: 1)
-        #expect(gameState.mattressWaiting)
+        #expect(gameState.mattressInPlay)
         #expect(!gameState.mattressExtraPending)
-        #expect(gameState.sideRailTapped(.mattress) == .acted)
-        #expect(gameState.mattressPopup?.extraOnly == false)
+        if gameState.mattressWaiting {
+            #expect(gameState.sideRailTapped(.mattress) == .acted)
+            #expect(gameState.mattressPopup?.extraOnly == false)
+        } else {
+            #expect(gameState.mattressOnBoard, "de regalo, directo al tablero")
+            #expect(gameState.sideRailTapped(.mattress) == .refused, "se abre en el tablero, no en la columna")
+        }
     }
 
     @Test("un save viejo sin el campo carga sin «otro colchón»; un reset lo borra")
@@ -101,16 +105,15 @@ struct MattressExtraClockTests {
     @Test("con el popup del «otro colchón» abierto, el próximo colchón no pisa el pago")
     func newMattressWaitsForThePopup() async throws {
         let gameState = await makeGameState()
-        gameState.debugSpawnMattress()
-        gameState.mattressTapped()
-        gameState.mattressVideoWatched()
+        gameState.debugSpawnMattress(onBoard: true)
+        gameState.openMattressOnBoard()
         gameState.closeMattressPopup()
         gameState.mattressTapped()
         #expect(gameState.mattressPopup?.extraOnly == true)
         gameState.engagementAutorun = true
         gameState.player?.meta.engagement.treasures.secondsUntilNext = 0.5
         gameState.advanceEngagement(delta: 1)
-        #expect(!gameState.mattressWaiting)
+        #expect(!gameState.mattressInPlay)
         gameState.extraMattressVideoWatched()
         let paid = try #require(gameState.mattressPopup?.outcome, "el video se vio y tiene que pagar")
         #expect(paid.extraOpensLeft == 0)

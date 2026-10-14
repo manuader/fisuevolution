@@ -15,6 +15,8 @@ final class PickupNode: SKNode {
     static let popSeconds: TimeInterval = 0.35
     static let shakeSeconds: TimeInterval = 0.4
     static let vanishSeconds: TimeInterval = 0.3
+    /// El colchón pagado cae desde arriba al tablero (E14b B6, D3).
+    static let fallSeconds: TimeInterval = 0.55
 
     /// Debajo del escenario y de los empleados (`BoardScene.fieldBaseZ`), arriba de los fondos.
     static let layerZ: CGFloat = 5
@@ -31,6 +33,10 @@ final class PickupNode: SKNode {
     /// Los clips de la apertura en el tablero (E14b B5): la sacudida y, encima, la apertura.
     private var openingClips: [LoopingVideoNode] = []
     private(set) var isOpening = false
+    /// La caída que queda: desde qué altura y cuánto tiempo le falta.
+    private var fall: (height: CGFloat, left: TimeInterval)?
+    /// Cuánto más arriba de su lugar está mientras cae (0 quieto). Lo suma quien lo ubica.
+    private(set) var fallOffset: CGFloat = 0
 
     init(kind: Kind, texture: SKTexture, side: CGFloat, waitingClip: ArtClip? = nil,
          manifest: LoopsManifest = .main, pool: VideoPlayerPool = .shared,
@@ -103,9 +109,17 @@ final class PickupNode: SKNode {
         removeFromParent()
     }
 
-    /// La caja se abre en el tablero (E14b B5, D2): `paquete_sacude` y después `paquete_abre`, una
-    /// pasada cada uno, y `onOpened` cuando terminó de abrirse. Sin video (política quieta, pack sin
-    /// bajar) los `.once` terminan en el acto: queda el temblor de siempre.
+    /// Los clips de la apertura en el tablero: la sacudida y la apertura de cada pieza.
+    private var openingClipIDs: (shake: String, open: String) {
+        switch kind {
+        case .package: (shake: "paquete_sacude", open: "paquete_abre")
+        case .mattress: (shake: "colchon_sacude", open: "colchon_abre")
+        }
+    }
+
+    /// La caja (E14b B5, D2) o el colchón (B6, D3) se abren en el tablero: la sacudida y después la
+    /// apertura, una pasada cada una, y `onOpened` cuando terminó de abrirse. Sin video (política
+    /// quieta, pack sin bajar) los `.once` terminan en el acto: queda el temblor de siempre.
     func playOpening(onOpened: @escaping @MainActor () -> Void) {
         guard !isOpening else { return }
         isOpening = true
@@ -113,8 +127,9 @@ final class PickupNode: SKNode {
         shake()
         // La sacudida va con el rol de ícono; la apertura, con el de popup: con el mismo rol el pool
         // bajaría la sacudida antes de que la apertura asome, y la caja quieta se vería un instante.
-        startOpeningClip("paquete_sacude", role: .icon) { [weak self] in
-            self?.startOpeningClip("paquete_abre", role: .popup) { onOpened() }
+        let clips = openingClipIDs
+        startOpeningClip(clips.shake, role: .icon) { [weak self] in
+            self?.startOpeningClip(clips.open, role: .popup) { onOpened() }
         }
     }
 
@@ -171,8 +186,33 @@ final class PickupNode: SKNode {
         shakeLeft = Self.shakeSeconds
     }
 
+    /// Cae desde `height` puntos más arriba de su lugar, ya a tamaño completo, y tiembla al llegar.
+    func drop(from height: CGFloat) {
+        guard height > 0 else { return }
+        age = max(age, Self.popSeconds)
+        fall = (height: height, left: Self.fallSeconds)
+        fallOffset = height
+    }
+
+    var isFalling: Bool { fall != nil }
+
+    private func advanceFall(delta: TimeInterval, reduceMotion: Bool) {
+        guard let current = fall else { return }
+        let left = current.left - delta
+        guard left > 0, !reduceMotion else {
+            fall = nil
+            fallOffset = 0
+            if !reduceMotion { shake() }
+            return
+        }
+        fall = (height: current.height, left: left)
+        let progress = 1 - left / Self.fallSeconds
+        fallOffset = current.height * CGFloat(1 - progress * progress)
+    }
+
     func update(delta: TimeInterval, reduceMotion: Bool) {
         syncArt(videoAlpha: isOpening ? settleOpeningClips() : waitingVideo?.videoAlpha ?? 0)
+        advanceFall(delta: delta, reduceMotion: reduceMotion)
         age += delta
         if reduceMotion {
             setScale(1)

@@ -192,7 +192,7 @@ struct RewardFlightSourcesTests {
     @Test("el colchón anuncia su premio")
     func mattressAnnouncesItsPrize() async throws {
         let gameState = await start()
-        gameState.debugSpawnMattress()
+        gameState.debugSpawnMattress(onBoard: true)
         let outcome = try #require(gameState.openMattress())
         let expected = RewardFlightPlan.items(for: outcome.rewards, coins: outcome.coins)
         #expect(!expected.isEmpty)

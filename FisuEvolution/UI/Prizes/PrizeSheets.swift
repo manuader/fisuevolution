@@ -12,6 +12,7 @@ struct PrizeSheets: ViewModifier {
     func body(content: Content) -> some View {
         content
             .background(boardPackageMarker)
+            .background(boardMattressMarker)
             .onChange(of: gameState.mattressPopup) { syncCover() }
             .onChange(of: gameState.wheelSheet) { syncCover() }
             .onChange(of: gameState.packagePopup) { syncCover() }
@@ -38,6 +39,14 @@ struct PrizeSheets: ViewModifier {
             .accessibilityElement()
             .accessibilityIdentifier("board.package")
             .accessibilityValue(Text(verbatim: gameState.boardPackageMarker))
+    }
+
+    /// Dónde tocar el colchón del tablero, para los UI tests (E14b B6).
+    private var boardMattressMarker: some View {
+        Color.clear
+            .accessibilityElement()
+            .accessibilityIdentifier("board.mattress")
+            .accessibilityValue(Text(verbatim: gameState.boardMattressMarker))
     }
 
     private var packagePopupBinding: Binding<PackagePopup?> {

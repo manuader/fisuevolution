@@ -307,6 +307,25 @@ struct PacingAdsSourcesTests {
         #expect(more.sourceTotals["videos"] == 2 * (single.sourceTotals["videos"] ?? 0))
     }
 
+    @Test("el colchón de regalo (1 de cada 4) no cuesta video pero paga lo mismo; el «otro colchón» sí cuesta")
+    func giftedMattressSkipsTheVideo() throws {
+        func treasures(extra: Int, giftOneIn: Int) -> TreasuresConfig {
+            TreasuresConfig(
+                schemaVersion: 1, spawnIntervalSeconds: 300, firstTreasureAfterSeconds: 300,
+                extraOpensPerTreasure: extra, giftOneIn: giftOneIn,
+                prizes: [.init(id: "plata", weight: 1, rewards: [.coinsSeconds(600)])]
+            )
+        }
+        let paid = try run(quiet { $0.treasures = treasures(extra: 0, giftOneIn: 0) })
+        let gifted = try run(quiet { $0.treasures = treasures(extra: 0, giftOneIn: 4) })
+        let giftedExtra = try run(quiet { $0.treasures = treasures(extra: 1, giftOneIn: 4) })
+        let paidVideos = try #require(paid.sourceTotals["videos"])
+        #expect(paidVideos > 0)
+        #expect(abs((gifted.sourceTotals["videos"] ?? 0) - 0.75 * paidVideos) < 1e-9)
+        #expect(abs((giftedExtra.sourceTotals["videos"] ?? 0) - 1.75 * paidVideos) < 1e-9)
+        #expect((gifted.sourceTotals["coins.mattress"] ?? 0) > 0)
+    }
+
     @Test("Fusionar todo: sólo con ficha, y sólo cuando la tanda hace dos fusiones o más")
     func mergeAllCostsAVideo() throws {
         let off = try run(quiet())

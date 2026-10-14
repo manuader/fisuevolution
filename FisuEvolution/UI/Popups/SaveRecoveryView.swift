@@ -41,23 +41,23 @@ struct SaveRecoveryView: View {
             ProgressView().tint(Color("PaletteInk"))
         } else if confirmingStartOver {
             HStack(spacing: Tokens.s12) {
-                ActionPill(titleKey: "recovery.confirm.no", systemImage: "arrow.uturn.backward",
-                           tint: Color("PaletteBrown"), identifier: "recovery.confirm.no") {
+                GameButton("recovery.confirm.no", role: .neutral, medallion: .glyph(.undo), fullWidth: true,
+                           identifier: "recovery.confirm.no") {
                     confirmingStartOver = false
                 }
-                ActionPill(titleKey: "recovery.confirm.yes", systemImage: "sparkles",
-                           tint: Color("PalettePink"), identifier: "recovery.confirm.yes") {
+                GameButton("recovery.confirm.yes", role: .coins, medallion: .glyph(.sparkle), fullWidth: true,
+                           identifier: "recovery.confirm.yes") {
                     perform { await gameState.startOverFromRecovery() }
                 }
             }
         } else {
             HStack(spacing: Tokens.s12) {
-                ActionPill(titleKey: "recovery.retry", systemImage: "arrow.clockwise",
+                GameButton("recovery.retry", role: .free, medallion: .glyph(.retry), fullWidth: true,
                            identifier: "recovery.retry") {
                     perform { await gameState.retryLoad() }
                 }
-                ActionPill(titleKey: "recovery.start_over", systemImage: "sparkles",
-                           tint: Color("PaletteOrange"), identifier: "recovery.start_over") {
+                GameButton("recovery.start_over", role: .coins, medallion: .glyph(.sparkle), fullWidth: true,
+                           identifier: "recovery.start_over") {
                     confirmingStartOver = true
                 }
             }

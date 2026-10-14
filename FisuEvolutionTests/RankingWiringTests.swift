@@ -199,7 +199,8 @@ struct RankingWiringTests {
         }
     }
 
-    /// Llega a Dios como en el juego: el reveal en la cola, la cinemática detrás y la tarjeta ofrecida.
+    /// Llega a Dios como en el juego: el reveal en la cola, la cinemática detrás, la card de Dios
+    /// (E14 C24) después y la tarjeta ofrecida.
     private func arriveAtGod(_ rig: Rig) async {
         rig.gameState.cinematicsAutorun = true
         await closeTutorialCore(rig)
@@ -223,6 +224,10 @@ struct RankingWiringTests {
         #expect(!rig.gameState.rankingCardDue(alreadyUp: false), "la cinemática es a pantalla completa")
 
         rig.gameState.celebrationFinished(.cinematic)
+        #expect(rig.gameState.showing == .newCharacter)
+        #expect(!rig.gameState.rankingCardDue(alreadyUp: false), "la card de Dios (E14 C24) bloquea el juego")
+
+        rig.gameState.finishNewCharacterCard(shared: false)
         #expect(rig.gameState.rankingCardDue(alreadyUp: false))
     }
 
@@ -232,6 +237,7 @@ struct RankingWiringTests {
         await arriveAtGod(rig)
         rig.gameState.celebrationFinished(.boardCelebration)
         rig.gameState.celebrationFinished(.cinematic)
+        rig.gameState.finishNewCharacterCard(shared: false)
 
         rig.gameState.uiCoversBoard = true
         #expect(!rig.gameState.rankingCardDue(alreadyUp: false))

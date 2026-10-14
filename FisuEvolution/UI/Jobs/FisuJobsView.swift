@@ -453,8 +453,7 @@ private struct JobCard: View {
     /// El piso destino, como el campo "ubicación" de un aviso.
     private var floorTag: some View {
         HStack(spacing: 3) {
-            Image(systemName: "mappin")
-                .font(.system(size: 9, weight: .bold))
+            GameGlyphView(glyph: .pin, size: 14)
             Text(verbatim: floorName)
                 .font(Tokens.caption)
                 .lineLimit(1)
@@ -504,7 +503,7 @@ private struct JobCard: View {
                 // Shop dibuja el mismo badge, y dos copias privadas se separan.
                 StateBadge(
                     text: stateText,
-                    systemImage: row.state == .floorFull ? nil : "lock.fill",
+                    glyph: row.state == .floorFull ? nil : .lock,
                     muted: row.state != .floorFull
                 )
                 .accessibilityHidden(true)
@@ -617,11 +616,9 @@ private struct JobPortrait: View {
                 image.resizable().scaledToFit()
             }
         } else {
-            Image(systemName: "person.fill")
-                .resizable()
-                .scaledToFit()
-                .padding(12)
-                .foregroundStyle(Color("PaletteInk").opacity(asSilhouette ? 1 : 0.35))
+            GameGlyphView(glyph: .person, size: 52)
+                .brightness(asSilhouette ? -1 : 0)
+                .opacity(asSilhouette ? 1 : 0.5)
         }
     }
 }

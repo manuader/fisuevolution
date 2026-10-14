@@ -47,6 +47,11 @@ public struct EngagementState: Codable, Sendable, Equatable {
     /// v1 es el día que actualizó: la oferta de Bienvenida es del 2º día (PLAN-v2 E6).
     public var firstLaunchDay: String?
 
+    /// Si la cuenta ya abrió un paquete desde su pantalla (E14b B5, D2). Hasta entonces la caja del
+    /// tablero abre la pantalla de C28; después se abre ahí mismo, con un toque y sin pop-up. Un save
+    /// anterior no la trae: arranca en `false`.
+    public var packageIntroSeen: Bool
+
     public init(
         seenCinematics: [String: Int] = [:],
         floorUnlocksSeen: [String: Int] = [:],
@@ -58,7 +63,8 @@ public struct EngagementState: Codable, Sendable, Equatable {
         wheel: WheelState = .initial,
         shop: ShopState = .initial,
         offers: OffersState = .initial,
-        firstLaunchDay: String? = nil
+        firstLaunchDay: String? = nil,
+        packageIntroSeen: Bool = false
     ) {
         self.seenCinematics = seenCinematics
         self.floorUnlocksSeen = floorUnlocksSeen
@@ -71,6 +77,7 @@ public struct EngagementState: Codable, Sendable, Equatable {
         self.shop = shop
         self.offers = offers
         self.firstLaunchDay = firstLaunchDay
+        self.packageIntroSeen = packageIntroSeen
     }
 
     public init(from decoder: Decoder) throws {
@@ -86,6 +93,7 @@ public struct EngagementState: Codable, Sendable, Equatable {
         shop = try container.decodeIfPresent(ShopState.self, forKey: .shop) ?? .initial
         offers = try container.decodeIfPresent(OffersState.self, forKey: .offers) ?? .initial
         firstLaunchDay = try container.decodeIfPresent(String.self, forKey: .firstLaunchDay)
+        packageIntroSeen = try container.decodeIfPresent(Bool.self, forKey: .packageIntroSeen) ?? false
     }
 
     public mutating func recordCinematic(_ id: String) {
@@ -119,6 +127,7 @@ public struct EngagementState: Codable, Sendable, Equatable {
         resolved.shop = ShopState.resolve(winner: winner.shop, loser: loser.shop)
         resolved.offers = OffersState.resolve(winner: winner.offers, loser: loser.offers)
         resolved.firstLaunchDay = [winner.firstLaunchDay, loser.firstLaunchDay].compactMap { $0 }.min()
+        resolved.packageIntroSeen = winner.packageIntroSeen || loser.packageIntroSeen
         return resolved
     }
 }

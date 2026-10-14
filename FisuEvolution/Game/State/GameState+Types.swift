@@ -106,6 +106,8 @@ extension GameState {
             case rewardGranted(text: String)
             /// Se ganó un paquete de la Aduana (C20, C28).
             case packagesWon(count: Int)
+            /// La caja del tablero no se abre: no entra nadie (E14b B5, C28 punto 4).
+            case packageFull
         }
 
         let id = UUID()

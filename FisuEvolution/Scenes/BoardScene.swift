@@ -131,6 +131,7 @@ final class BoardScene: SKScene {
     static let candidateZLift: CGFloat = 5
     static let candidateScale: CGFloat = 1.12
     private static let candidatePopDuration: TimeInterval = 0.1
+    private static let boxExitSeconds: TimeInterval = 0.5
     /// Ventana del doble toque. La de iOS, para que el gesto se sienta como el
     /// del sistema.
     static let doubleTapWindow: TimeInterval = 0.3
@@ -1271,6 +1272,27 @@ final class BoardScene: SKScene {
         presentResolution(
             resolution, at: node.position, sourceNode: node, withinTurn: true, soundsMerge: soundsMerge
         )
+        if case .arrival(let typeId) = change.kind, change.origin == .package,
+           let box = pickups.takeBoxExit(typeId: typeId), let arrived = characterNodes[cell] {
+            walkOutOfTheBox(arrived, from: fieldNode.convert(box, from: pickups.layer))
+        }
+    }
+
+    /// El empleado de un paquete abierto en el tablero sale de la caja y camina a su lugar (E14b B5).
+    private func walkOutOfTheBox(_ node: CharacterNode, from start: CGPoint) {
+        guard !Self.prefersReducedMotion else { return }
+        let target = position(ofCell: node.cellIndex)
+        node.position = start
+        let walk = SKAction.move(to: target, duration: Self.boxExitSeconds)
+        walk.timingMode = .easeOut
+        node.run(.sequence([
+            .run { [weak node] in node?.setFacing(left: target.x < start.x) },
+            walk,
+            .run { [weak self, weak node] in
+                guard let self, let node else { return }
+                self.startWander(node)
+            },
+        ]), withKey: "wander")
     }
 
     private func finishBoardChangeTurn() {

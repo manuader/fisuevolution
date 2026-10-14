@@ -12,11 +12,7 @@ struct RootView: View {
             case .loading:
                 SplashView()
             case .failed(let message):
-                ContentUnavailableView(
-                    String(localized: "error.content.title"),
-                    systemImage: "exclamationmark.triangle.fill",
-                    description: Text(verbatim: message)
-                )
+                ContentFailedView(message: message)
             case .recovery:
                 SaveRecoveryView()
             case .ready:

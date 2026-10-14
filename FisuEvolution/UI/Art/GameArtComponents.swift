@@ -75,7 +75,7 @@ extension Color {
 
 // MARK: - PillBackground
 
-/// La cápsula 3D del v3, compartida por `PricePill` y `ActionPill`: relleno
+/// La cápsula 3D del v3, compartida por `PricePill` y `GameButton`: relleno
 /// con la luz arriba, labio de brillo interior y borde hundido del MISMO tono
 /// (la referencia no bordea los botones con tinta: el verde lleva verde
 /// oscuro, el naranja ladrillo). Vive como componente para que los dos botones
@@ -634,10 +634,7 @@ struct PricePill: View {
                 case .coins: CoinIcon(size: 20)
                 case .oro: OroIcon(size: 20)
                 case .money:
-                    Image(systemName: "cart.fill")
-                        .font(.system(size: 15, weight: .black))
-                        .foregroundStyle(affordable ? .white : Color("PaletteInk"))
-                        .frame(width: 20, height: 20)
+                    GameGlyphView(glyph: .cart, size: 22)
                 }
                 VStack(spacing: -2) {
                     if let strikeText {
@@ -704,85 +701,6 @@ struct StrikePrice: View {
             .lineLimit(1)
             .minimumScaleFactor(0.6)
             .accessibilityHidden(true)
-    }
-}
-
-// MARK: - ActionPill
-
-/// El hermano de `PricePill` para las acciones que **no cuestan plata**
-/// ("Ponérsela"): misma cápsula, mismo alto, mismo contorno ink, con un glifo en
-/// vez de la moneda.
-///
-/// Existe como componente y no como una cápsula local porque es el tercer papel
-/// del mismo lenguaje y los tres tienen que verse hermanos: `PricePill` cobra,
-/// `ActionPill` hace, y `StateBadge` sólo informa (y por eso es el único que no
-/// es un botón). Sin él, cada pantalla nueva se dibuja su propio botón verde y a
-/// la tercera ya no son el mismo juego.
-///
-/// Como `PricePill`, **nunca** usa `.disabled`: una acción que no corresponde no
-/// se dibuja.
-struct ActionPill: View {
-    let title: Text
-    let systemImage: String
-    var tint: Color = Color("PaletteGreen")
-    let identifier: String
-    /// Etiqueta hablada. El título solo ("Ponérsela") no dice de QUÉ, y en una
-    /// grilla de tres tarjetas hay tres botones que dicen lo mismo.
-    var accessibilityLabel: Text?
-    let action: () -> Void
-
-    init(
-        titleKey: LocalizedStringKey, systemImage: String, tint: Color = Color("PaletteGreen"),
-        identifier: String, accessibilityLabel: Text? = nil, action: @escaping () -> Void
-    ) {
-        self.init(title: Text(titleKey), systemImage: systemImage, tint: tint, identifier: identifier,
-                  accessibilityLabel: accessibilityLabel, action: action)
-    }
-
-    /// Un título que ya viene resuelto: el nombre de un visitante, un monto
-    /// interpolado por `VisitCopy`.
-    init(
-        verbatim title: String, systemImage: String, tint: Color = Color("PaletteGreen"),
-        identifier: String, accessibilityLabel: Text? = nil, action: @escaping () -> Void
-    ) {
-        self.init(title: Text(verbatim: title), systemImage: systemImage, tint: tint, identifier: identifier,
-                  accessibilityLabel: accessibilityLabel, action: action)
-    }
-
-    private init(
-        title: Text, systemImage: String, tint: Color, identifier: String,
-        accessibilityLabel: Text?, action: @escaping () -> Void
-    ) {
-        self.title = title
-        self.systemImage = systemImage
-        self.tint = tint
-        self.identifier = identifier
-        self.accessibilityLabel = accessibilityLabel
-        self.action = action
-    }
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 6) {
-                Image(systemName: systemImage)
-                    .font(.system(size: 15, weight: .black))
-                    .foregroundStyle(.white)
-                title
-                    .font(Tokens.body)
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.5)
-            }
-            .shadow(color: .black.opacity(0.45), radius: 1, y: 1)
-            .padding(.horizontal, Tokens.s12)
-            .padding(.vertical, Tokens.s8)
-            .frame(minWidth: 92)
-            .background(PillBackground(fill: tint))
-            .contentShape(Capsule())
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier(identifier)
-        .accessibilityLabel(accessibilityLabel ?? title)
     }
 }
 
@@ -891,8 +809,8 @@ private struct PagerChevronLabel: View {
 /// árbol y nadie se entera hasta que alguien lo escucha.
 struct StateBadge: View {
     let text: String
-    /// Glifo a la izquierda (`lock.fill`, `checkmark.circle.fill`), o `nil`.
-    var systemImage: String?
+    /// Glifo de la casa a la izquierda (`.lock`, `.check`), o `nil`.
+    var glyph: GameGlyph?
     /// Cómo se parte un texto de dos renglones. Nació en el riel derecho de
     /// FisuJobs —donde `.trailing` es lo que alinea el badge con el borde de la
     /// tarjeta— y por eso ese es el default; adentro de una tarjeta centrada, el
@@ -902,9 +820,8 @@ struct StateBadge: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            if let systemImage {
-                Image(systemName: systemImage)
-                    .font(.system(size: 11, weight: .black))
+            if let glyph {
+                GameGlyphView(glyph: glyph, size: 16)
             }
             Text(verbatim: text)
                 .font(Tokens.caption)

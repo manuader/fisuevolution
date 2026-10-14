@@ -65,8 +65,8 @@ struct RankingRow: View {
         .accessibilityValue(Text(verbatim: "\(real), \(played)"))
         .contextMenu {
             if !row.isMe {
-                Button { onReport(row) } label: { Label("ranking.report", systemImage: "flag") }
-                Button { onBlock(row) } label: { Label("ranking.block", systemImage: "eye.slash") }
+                Button("ranking.report") { onReport(row) }
+                Button("ranking.block") { onBlock(row) }
             }
         }
         .accessibilityActions {

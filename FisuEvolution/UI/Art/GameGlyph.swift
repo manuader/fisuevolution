@@ -20,6 +20,33 @@ enum GameGlyph: Equatable, Sendable {
     case offerMoving
     case offerWelcome
     case offerRebirth
+    // Los de uso general que reemplazan a los SF Symbols (T25): dibujados,
+    // sin clave de atlas hasta que el arte los integre.
+    case close
+    case cart
+    case trophy
+    case pencil
+    case chevron
+    case person
+    case people
+    case shirt
+    case bell
+    case bolt
+    case question
+    case warning
+    case retry
+    case undo
+    case arrowRight
+    case arrowUp
+    case arrowDown
+    case crown
+    case pin
+    case offline
+    case noVideo
+    case photo
+    case document
+    case sparkle
+    case checkbox(checked: Bool)
     /// Cualquier otra clave del atlas, con la estrella de la casa de respaldo.
     case art(String)
 
@@ -40,6 +67,10 @@ enum GameGlyph: Equatable, Sendable {
         case .offerWelcome: ["ui_offer_bienvenida", "ui_gift_bow"]
         case .offerRebirth: ["ui_offer_renacer", "ui_gift_bow"]
         case .art(let key): [key]
+        case .close, .cart, .trophy, .pencil, .chevron, .person, .people, .shirt, .bell, .bolt, .question,
+             .warning, .retry, .undo, .arrowRight, .arrowUp, .arrowDown, .crown, .pin, .offline, .noVideo,
+             .photo, .document, .sparkle, .checkbox:
+            []
         }
     }
 
@@ -94,14 +125,16 @@ private struct GlyphVector: View {
             case .chest: MarkDisc(mark: "?", fill: Color("PaletteOrange"))
             case .wheel: MarkDisc(mark: "★", fill: Color("PalettePink"))
             case .package: MarkDisc(mark: "?", fill: Color("PaletteBrown").lifted(0.3))
-            case .art: StarVector()
+            case .sparkle, .art: StarVector()
+            case .noVideo: NoVideoVector()
+            default: ExtraGlyphVector(glyph: glyph)
             }
         }
     }
 }
 
 /// El play rojo de "mirá un video" (`ui_icon_video`).
-private struct VideoVector: View {
+struct VideoVector: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 22, style: .continuous)
@@ -188,7 +221,7 @@ private struct BlueNoteVector: View {
 }
 
 /// La estrella de la casa: el respaldo de una clave que todavía no existe.
-private struct StarVector: View {
+struct StarVector: View {
     var body: some View {
         SparkleShape().inked(Color("PaletteYellow")).frame(width: 86, height: 86)
     }

@@ -206,4 +206,25 @@ struct GameComponentsTests {
             #expect(!code.contains("systemImage:"), "\(file)")
         }
     }
+
+    /// El barrido de T25: ninguna vista del juego dibuja un SF Symbol. Se salvan
+    /// las manos del tutorial (T26 las rehace) y el botón de herramientas de DEBUG.
+    @Test("ninguna vista de UI usa SF Symbols, salvo las manos del tutorial")
+    func noViewDrawsSystemSymbols() throws {
+        let ui = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appending(path: "FisuEvolution/UI")
+        let allowed: Set<String> = ["TutorialHands.swift"]
+        let walker = try #require(FileManager.default.enumerator(at: ui, includingPropertiesForKeys: nil))
+        var checked = 0
+        for case let file as URL in walker where file.pathExtension == "swift" {
+            if allowed.contains(file.lastPathComponent) { continue }
+            let code = try String(contentsOf: file, encoding: .utf8)
+            checked += 1
+            #expect(!code.contains("Image(systemName:"), "\(file.lastPathComponent)")
+            #expect(!code.contains("systemImage:"), "\(file.lastPathComponent)")
+        }
+        #expect(checked > 50)
+    }
 }

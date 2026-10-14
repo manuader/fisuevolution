@@ -320,10 +320,7 @@ struct StoreView: View {
     private var unavailableCard: some View {
         GameCard(style: .normal) {
             VStack(spacing: Tokens.s8) {
-                Image(systemName: "wifi.exclamationmark")
-                    .font(.system(size: 30, weight: .black))
-                    .foregroundStyle(Color("PaletteOrange"))
-                    .accessibilityHidden(true)
+                GameGlyphView(glyph: .offline, size: 40)
                 Text("store.error.load")
                     .font(Tokens.body)
                     .foregroundStyle(Color("PaletteInk"))
@@ -351,10 +348,8 @@ struct StoreView: View {
     }
 
     private var retryPill: some View {
-        ActionPill(
-            titleKey: "store.retry",
-            systemImage: "arrow.clockwise",
-            tint: Color("PaletteOrange"),
+        GameButton(
+            "store.retry", role: .coins, medallion: .glyph(.retry),
             identifier: "store.retry"
         ) {
             Task { await store.loadProducts() }
@@ -384,10 +379,7 @@ struct StoreView: View {
     private func banner(_ message: String) -> some View {
         GameCard(style: .normal) {
             HStack(spacing: Tokens.s8) {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 16, weight: .black))
-                    .foregroundStyle(Color("PalettePink"))
-                    .accessibilityHidden(true)
+                GameGlyphView(glyph: .warning, size: 24)
                 Text(verbatim: message)
                     .font(Tokens.caption)
                     .foregroundStyle(Color("PaletteInk"))
@@ -597,20 +589,12 @@ private struct StoreProductCard: View {
             // El glifo del video tachado y no un cartel genérico: los anuncios
             // que el juego tiene HOY son los rewarded de Regalos, y la tienda no
             // promete más de lo que hay.
-            Image(systemName: "play.slash.fill")
-                .resizable()
-                .scaledToFit()
-                .padding(4)
-                .foregroundStyle(Color("PaletteInk").opacity(0.8))
+            GameGlyphView(glyph: .noVideo, size: plateSide)
         case .skin(let preview):
             if let preview {
                 preview.resizable().scaledToFit()
             } else {
-                Image(systemName: "tshirt.fill")
-                    .resizable()
-                    .scaledToFit()
-                    .padding(4)
-                    .foregroundStyle(Color("PaletteInk").opacity(0.35))
+                GameGlyphView(glyph: .shirt, size: plateSide).opacity(0.6)
             }
         }
     }
@@ -620,7 +604,7 @@ private struct StoreProductCard: View {
     private var info: some View {
         VStack(alignment: .leading, spacing: 3) {
             if let tagline {
-                StateBadge(text: tagline, systemImage: "star.fill", muted: false)
+                StateBadge(text: tagline, glyph: .sparkle, muted: false)
                     // Ya viaja en el valor de la tarjeta.
                     .accessibilityHidden(true)
             }
@@ -705,7 +689,7 @@ private struct StoreProductCard: View {
             VStack(alignment: .trailing, spacing: 4) {
                 StateBadge(
                     text: String(localized: "store.purchased"),
-                    systemImage: "checkmark.circle.fill",
+                    glyph: .check,
                     textAlignment: format == .featured ? .center : .trailing,
                     muted: false
                 )

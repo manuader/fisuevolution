@@ -33,11 +33,11 @@ struct RewardedInterstitialIntroView: View {
                     prizeCard
                     countdown
                     HStack(spacing: Tokens.s8) {
-                        ActionPill(titleKey: "adbreak.decline", systemImage: "xmark",
-                                   tint: Color("PaletteBlue"), identifier: "adbreak.decline") {
+                        GameButton("adbreak.decline", role: .neutral, medallion: .glyph(.close), fullWidth: true,
+                                   identifier: "adbreak.decline") {
                             gameState.adBreakDeclined()
                         }
-                        ActionPill(titleKey: "adbreak.watch", systemImage: "play.fill",
+                        GameButton("adbreak.watch", role: .video, fullWidth: true,
                                    identifier: "adbreak.watch") {
                             Task { await gameState.adBreakAccepted() }
                         }

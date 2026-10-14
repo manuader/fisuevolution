@@ -22,9 +22,7 @@ struct SideRailOfferCard: View {
                         .foregroundStyle(Color("PaletteInk"))
                     Spacer(minLength: Tokens.s8)
                     Button(action: close) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 13, weight: .black))
-                            .foregroundStyle(Color("PaletteInk").opacity(0.6))
+                        GameGlyphView(glyph: .close, size: 26)
                             .frame(width: 44, height: 44)
                             .contentShape(Rectangle())
                     }

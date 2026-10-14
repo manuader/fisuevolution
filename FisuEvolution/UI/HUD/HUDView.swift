@@ -318,14 +318,11 @@ struct HUDView: View {
     private var prestigeIndicator: some View {
         let preview = gameState.prestigePreview
         return HStack(spacing: 5) {
-            Image(systemName: "sparkles")
-                .font(.system(size: 11, weight: .heavy))
-                .foregroundStyle(Color("PalettePink"))
+            GameGlyphView(glyph: .sparkle, size: 16)
             Text(verbatim: "×\(preview.multiplierBeforeText)")
             if preview.isWorthIt {
-                Image(systemName: "arrow.right")
-                    .font(.system(size: 9, weight: .heavy))
-                    .foregroundStyle(Color("PaletteInk").opacity(0.45))
+                GameGlyphView(glyph: .arrowRight, size: 12)
+                    .opacity(0.6)
                 Text(verbatim: "×\(preview.multiplierAfterText)")
                     .foregroundStyle(Color("PalettePink"))
             }

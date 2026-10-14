@@ -75,9 +75,7 @@ struct MenuView: View {
                     // El Álbum: quinta tarjeta, sola y de ancho completo, para no
                     // tocar la grilla de las cuatro (PLAN-v2 E4).
                     card(.specials, "menu.card.specials", identifier: "menu.card.specials") {
-                        AnyView(Image(systemName: "rectangle.stack.badge.person.crop.fill")
-                            .font(.system(size: 60, weight: .bold))
-                            .foregroundStyle(Color("PaletteBrown")))
+                        AnyView(GameGlyphView(glyph: .people, size: 72))
                     }
                 }
                 .padding(.horizontal, Self.panelInset)

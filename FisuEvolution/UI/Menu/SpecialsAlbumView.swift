@@ -107,9 +107,8 @@ struct SpecialsAlbumView: View {
                 still
             }
         } else {
-            Image(systemName: entry.owned ? "star.circle.fill" : "questionmark.circle.fill")
-                .font(.system(size: 56))
-                .foregroundStyle(entry.owned ? Color("PaletteYellow") : Color("PaletteInk").opacity(0.3))
+            GameGlyphView(glyph: entry.owned ? .sparkle : .question, size: 56)
+                .opacity(entry.owned ? 1 : 0.4)
         }
     }
 }

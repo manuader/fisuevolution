@@ -239,18 +239,14 @@ private struct BossCard: View {
         .accessibilityValue(Text(verbatim: "×\(multiplierText)"))
     }
 
-    /// La corona. Es un SF Symbol y no un icono del atlas porque no hay ninguno
-    /// que diga "el jefe": el mismo criterio que el `mappin` del piso en
-    /// `FisuJobsView`. El plato es el de `JobPortrait` para que el jefe se lea
+    /// La corona. Es un glifo dibujado (`GameGlyph.crown`) y no un icono del
+    /// atlas porque no hay ninguno que diga "el jefe". El plato es el de `JobPortrait` para que el jefe se lea
     /// como un retrato más de la misma columna.
     private var crown: some View {
         Color.clear
             .frame(width: 56, height: 56)
             .overlay {
-                Image(systemName: "crown.fill")
-                    .font(.system(size: 26, weight: .black))
-                    .foregroundStyle(Color("PaletteYellow"))
-                    .shadow(color: Color("PaletteInk").opacity(0.9), radius: 0.5)
+                GameGlyphView(glyph: .crown, size: 38)
             }
             .background(Color("PaletteYellow").opacity(0.35))
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -433,11 +429,9 @@ private struct NodePortrait: View {
                 image.resizable().scaledToFit()
             }
         } else {
-            Image(systemName: "person.fill")
-                .resizable()
-                .scaledToFit()
-                .padding(side * 0.18)
-                .foregroundStyle(Color("PaletteInk").opacity(asSilhouette ? 1 : 0.35))
+            GameGlyphView(glyph: .person, size: side * 0.64)
+                .brightness(asSilhouette ? -1 : 0)
+                .opacity(asSilhouette ? 1 : 0.5)
         }
     }
 }

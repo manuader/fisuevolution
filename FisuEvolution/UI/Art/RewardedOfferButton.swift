@@ -42,18 +42,14 @@ struct RewardedOfferButton: View {
     let title: String
     let identifier: String
     let placement: RewardedPlacement
-    var systemImage = "play.fill"
-    var tint = Color("PaletteGreen")
     /// Etiqueta hablada, para las filas donde el título solo no dice de QUÉ.
     var accessibilityLabel: Text?
     /// Lo que el padre necesite saber del botón ocupado (p. ej. no cerrar la
     /// hoja bajo el anuncio). Se actualiza solo; el padre sólo lo lee.
     var isBusy: Binding<Bool>?
-    /// El botón de la casa de E14 (C19) en vez de la cápsula: el popup que ya
-    /// migró pasa el rol (el video es `.video`) y todos los estados del botón
-    /// —cargando, sin conexión, en curso— hablan `GameButton`. Sin rol, la
-    /// cápsula de siempre, hasta que su pantalla migre.
-    var gameRole: GameButton.Role?
+    /// El botón de la casa de E14 (C19): el video es `.video` y todos los
+    /// estados —cargando, sin conexión, en curso— hablan `GameButton`.
+    var gameRole: GameButton.Role = .video
     /// Chico y sin medallón, para la fila de cartas del Vendedor (tres en el SE).
     var gameCompact = false
     let onRewarded: () -> Void
@@ -70,24 +66,17 @@ struct RewardedOfferButton: View {
     var body: some View {
         VStack(spacing: Tokens.s4) {
             if offer.phase == .busy {
-                if let gameRole { gameStatus(String(localized: "ads.loading"), role: gameRole, suffix: "watching") } else { busyPill }
+                gameStatus(String(localized: "ads.loading"), role: gameRole, suffix: "watching")
             } else if !inventoryReady && offer.phase != .unavailable {
-                if gameRole != nil {
-                    if offline {
-                        gameStatus(String(localized: "ads.offline"), role: .neutral, suffix: "offline", action: retry)
-                    } else {
-                        gameStatus(String(localized: "ads.preparing"), role: .neutral, suffix: "loading")
-                    }
-                } else if offline { offlineBadge } else { loadingBadge }
-            } else if let gameRole {
+                if offline {
+                    gameStatus(String(localized: "ads.offline"), role: .neutral, suffix: "offline", action: retry)
+                } else {
+                    gameStatus(String(localized: "ads.preparing"), role: .neutral, suffix: "loading")
+                }
+            } else {
                 GameButton(verbatim: title, role: gameRole, medallion: gameCompact ? .none : .automatic,
                            size: gameCompact ? .compact : .regular, identifier: identifier,
                            accessibilityLabel: accessibilityLabel, action: tap)
-            } else {
-                ActionPill(
-                    verbatim: title, systemImage: systemImage, tint: tint, identifier: identifier,
-                    accessibilityLabel: accessibilityLabel, action: tap
-                )
             }
             if offer.phase == .unavailable {
                 Text("ads.unavailable.now")
@@ -162,48 +151,8 @@ struct RewardedOfferButton: View {
                    size: gameCompact ? .compact : .regular, identifier: "\(identifier).\(suffix)", action: action)
     }
 
-    /// Lo que se ve mientras el video no llegó: no es un control.
-    private var loadingBadge: some View {
-        StateBadge(text: String(localized: "ads.preparing"), systemImage: "hourglass", textAlignment: .center, muted: true)
-            .accessibilityElement(children: .combine)
-            .accessibilityIdentifier("\(identifier).loading")
-    }
-
-    /// Pasaron 10 s sin video: un toque reintenta (vuelve a "Cargando…" y
-    /// reinicia el reloj).
-    private var offlineBadge: some View {
-        Button(action: retry) {
-            StateBadge(text: String(localized: "ads.offline"), systemImage: "wifi.slash", textAlignment: .center, muted: true)
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier("\(identifier).offline")
-    }
-
     private func retry() {
         offline = false
         generation += 1
-    }
-
-    /// El botón mientras carga o corre el video: misma cápsula, ruedita y
-    /// "Cargando video…". No es un control (los toques se ignoran).
-    private var busyPill: some View {
-        HStack(spacing: 6) {
-            ProgressView()
-                .controlSize(.small)
-                .tint(.white)
-            Text("ads.loading")
-                .font(Tokens.body)
-                .foregroundStyle(.white)
-                .lineLimit(1)
-                .minimumScaleFactor(0.5)
-        }
-        .shadow(color: .black.opacity(0.45), radius: 1, y: 1)
-        .padding(.horizontal, Tokens.s12)
-        .padding(.vertical, Tokens.s8)
-        .frame(minWidth: 92)
-        .background(PillBackground(fill: tint))
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("ads.loading"))
-        .accessibilityIdentifier("\(identifier).watching")
     }
 }

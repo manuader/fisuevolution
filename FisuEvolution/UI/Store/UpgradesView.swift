@@ -232,8 +232,8 @@ struct UpgradesView: View {
                         .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .accessibilityHidden(true)
-                    ActionPill(
-                        titleKey: "upgrades.character.sheet", systemImage: "person.text.rectangle",
+                    GameButton(
+                        "upgrades.character.sheet", role: .free, medallion: .glyph(.person), size: .compact,
                         identifier: "upgrades.character.\(row.id).sheet",
                         accessibilityLabel: Text("upgrades.character.sheet.ax \(row.displayName)")
                     ) {
@@ -555,9 +555,7 @@ struct UpgradesView: View {
                     if let icon = UIArt.image(key) {
                         icon.resizable().scaledToFit()
                     } else {
-                        Image(systemName: "wand.and.stars")
-                            .resizable().scaledToFit()
-                            .foregroundStyle(Color("PaletteBlue"))
+                        GameGlyphView(glyph: .sparkle, size: 38)
                     }
                 }
                 .padding(5)

@@ -75,7 +75,7 @@ struct ResetGameFlowView: View {
             VStack(spacing: Tokens.s12) {
                 if let notice {
                     StateBadge(text: String(localized: String.LocalizationValue(notice.messageKey)),
-                               systemImage: "exclamationmark.triangle.fill", textAlignment: .center, muted: false)
+                               glyph: .warning, textAlignment: .center, muted: false)
                         .accessibilityIdentifier("reset.notice")
                 }
                 GameIcon(artKey: "ui_reset_demolicion", size: 128) {
@@ -103,7 +103,7 @@ struct ResetGameFlowView: View {
                     titleKey: "reset.leave.title",
                     message: Text("reset.leave.body"),
                     confirmTitleKey: "reset.leave.confirm",
-                    confirmSystemImage: "arrow.uturn.backward",
+                    confirmGlyph: .undo,
                     confirmTint: Color("PaletteBlue"),
                     cancelTitleKey: "reset.leave.stay",
                     onConfirm: requestLeave,
@@ -174,8 +174,7 @@ struct ResetGameFlowView: View {
     private var understandToggle: some View {
         Button { understood.toggle() } label: {
             HStack(spacing: Tokens.s8) {
-                Image(systemName: understood ? "checkmark.square.fill" : "square")
-                    .foregroundStyle(understood ? Color("PalettePink") : Color("PaletteInk").opacity(0.5))
+                GameGlyphView(glyph: .checkbox(checked: understood), size: 28)
                 Text("reset.understand").font(Tokens.body).foregroundStyle(Color("PaletteInk"))
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -280,7 +279,7 @@ struct ResetGameFlowView: View {
     // MARK: El botón que tiembla
 
     private func nextButton() -> some View {
-        ActionPill(titleKey: "reset.next", systemImage: "arrow.right", tint: Color("PalettePink"),
+        GameButton("reset.next", role: .coins, medallion: .glyph(.arrowRight), fullWidth: true,
                    identifier: "reset.next", action: advance)
             .modifier(Shake(trigger: shakes, reduceMotion: reduceMotion))
     }

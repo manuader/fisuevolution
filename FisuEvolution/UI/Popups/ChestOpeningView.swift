@@ -756,11 +756,7 @@ struct ChestOpeningView: View {
                 // Ponérsela desde acá: el premio se gana en medio del loop y
                 // mandarlo a buscar la ficha para usarlo es fricción de más
                 // (mismo criterio que `SkinAwardView`).
-                ActionPill(
-                    titleKey: "chest.equip",
-                    systemImage: "tshirt.fill",
-                    identifier: "chest.equip"
-                ) {
+                GameButton("chest.equip", role: .free, medallion: .none, identifier: "chest.equip") {
                     guard !extraChestBusy else { return }
                     gameState.equipSkin(id: id, forCharacterType: characterType)
                     gameState.dismissChestReward()
@@ -777,12 +773,7 @@ struct ChestOpeningView: View {
             // Conserva el identifier `chest.dismiss`: cerrar es siempre el mismo
             // control, cambie el premio que cambie.
             VStack(spacing: Tokens.s4) {
-                ActionPill(
-                    titleKey: "chest.coins.ok",
-                    systemImage: "checkmark",
-                    tint: Color("PaletteGreen"),
-                    identifier: "chest.dismiss"
-                ) {
+                GameButton("chest.coins.ok", role: .free, identifier: "chest.dismiss") {
                     guard !extraChestBusy else { return }
                     gameState.dismissChestReward()
                 }
@@ -806,9 +797,8 @@ struct ChestOpeningView: View {
                 title: String(localized: "ads.offer.chest.again"),
                 identifier: "chest.again.ad",
                 placement: .chestExtra,
-                systemImage: "play.rectangle.fill",
-                tint: Color("PaletteBlue"),
-                isBusy: $extraChestBusy
+                isBusy: $extraChestBusy,
+                gameRole: .video
             ) {
                 gameState.dismissChestReward()
                 gameState.grantExtraChestFromAd()

@@ -9,6 +9,14 @@ final class PrizesUITests: XCTestCase {
         continueAfterFailure = false
     }
 
+    /// La captura de un momento de la pantalla de premio (E14 T17), adjunta al resultado.
+    private func snap(_ app: XCUIApplication, _ name: String) {
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = name
+        shot.lifetime = .keepAlways
+        add(shot)
+    }
+
     func testAPackageBringsAWorker() {
         let app = XCUIApplication()
         app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-packages=1", "--uitest-rail-hold"]
@@ -34,6 +42,7 @@ final class PrizesUITests: XCTestCase {
     private func tapTheMattressOpen(_ app: XCUIApplication) {
         let mattress = app.buttons["mattress.tap"]
         XCTAssertTrue(mattress.waitForExistence(timeout: 8), "el colchón pagado se abre tocándolo")
+        snap(app, "colchon 2 durante")
         for _ in 0..<3 where mattress.exists { mattress.tap() }
     }
 
@@ -52,10 +61,12 @@ final class PrizesUITests: XCTestCase {
 
         XCTAssertTrue(app.descendants(matching: .any)["mattress.odds.coins"].waitForExistence(timeout: 5),
                       "lo que puede tocar está a la vista antes del video")
+        snap(app, "colchon 1 antes")
         app.buttons["mattress.open"].tap()
         tapTheMattressOpen(app)
         let result = app.descendants(matching: .any)["mattress.result"]
         XCTAssertTrue(result.waitForExistence(timeout: 8))
+        snap(app, "colchon 3 despues")
         XCTAssertTrue(["coins", "package", "oro"].contains(result.value as? String ?? ""))
 
         let extra = app.buttons["mattress.extra"]

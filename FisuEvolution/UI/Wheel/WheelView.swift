@@ -42,12 +42,35 @@ struct WheelView: View {
         let _ = gameState.effectsVersion
         let availability = gameState.wheelAvailability(storefrontAllows: storefrontAllows)
         let segments = spin?.outcome.segments ?? (result == nil ? gameState.wheelSegments : result?.segments ?? [])
+        ScrollViewReader { proxy in
+            content(segments: segments, availability: availability)
+                // El premio sale debajo de la rueda: en una pantalla chica se baja a verlo.
+                .onChange(of: result?.segment.id) { _, id in
+                    guard id != nil, spin == nil else { return }
+                    withAnimation { proxy.scrollTo(Self.resultAnchor, anchor: .center) }
+                }
+        }
+        .panelSheet { PanelTitleBanner(titleKey: "wheel.title") }
+        .navigationTitle(Text(verbatim: ""))
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) { ArtCloseButton(action: close) }
+        }
+        .task {
+            ads.preloadRewarded(for: .wheel)
+            storefrontAllows = await LootBoxGate.current()
+        }
+    }
+
+    private static let resultAnchor = "wheel.result.card"
+
+    private func content(segments: [WheelConfig.Segment], availability: WheelAvailability) -> some View {
         ScrollView {
             VStack(spacing: Tokens.s16) {
                 host
                 wheel(segments: segments, availability: availability)
                 if let result, spin == nil {
-                    resultCard(result)
+                    resultCard(result).id(Self.resultAnchor)
                 } else if availability.bonus > 0, spin == nil {
                     Text("wheel.hint")
                         .font(Tokens.body)
@@ -60,16 +83,6 @@ struct WheelView: View {
             .padding(.horizontal, WoodPanelBackground.columnInset)
             .padding(.top, Tokens.s12)
             .padding(.bottom, Tokens.s24)
-        }
-        .panelSheet { PanelTitleBanner(titleKey: "wheel.title") }
-        .navigationTitle(Text(verbatim: ""))
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) { ArtCloseButton(action: close) }
-        }
-        .task {
-            ads.preloadRewarded(for: .wheel)
-            storefrontAllows = await LootBoxGate.current()
         }
     }
 
@@ -257,7 +270,7 @@ enum WheelStage {
     static let discRadius: CGFloat = 128
     /// Lo que se ve del clip: el marco con el puntero y las luces, y el
     /// festejo; los bordes vacíos del cuadro no ocupan lugar.
-    static let size = CGSize(width: 335, height: 340)
+    static let size = CGSize(width: 335, height: 322)
 
     static var discDiameter: CGFloat { discRadius * 2 * scale }
     /// Cuánto se corre el disco del centro del cuadro.

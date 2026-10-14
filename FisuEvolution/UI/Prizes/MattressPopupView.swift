@@ -75,10 +75,13 @@ struct MattressPopupView: View {
         } actions: {
             if stage != .opening {
                 if let outcome {
-                    if outcome.extraOpensLeft > 0 {
-                        extraButton
+                    // Apilados: «Otro colchón con un video» no entra en media fila (visto en el SE).
+                    VStack(spacing: Tokens.s8) {
+                        if outcome.extraOpensLeft > 0 {
+                            extraButton
+                        }
+                        GameButton("mattress.collect", role: .free, identifier: "mattress.collect", action: close)
                     }
-                    GameButton("mattress.collect", role: .free, identifier: "mattress.collect", action: close)
                 } else if gameState.mattressPopup?.extraOnly == true {
                     extraButton
                 } else {

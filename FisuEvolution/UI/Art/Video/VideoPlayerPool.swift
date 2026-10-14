@@ -13,11 +13,31 @@ enum VideoRole: Int, Comparable, Sendable {
     static func < (lhs: VideoRole, rhs: VideoRole) -> Bool { lhs.rawValue < rhs.rawValue }
 }
 
-/// Decide quién decodifica: tope de 3 vivos, el más nuevo de cada rol, la cinemática sola. No
-/// toca AVFoundation: cada holder crea o suelta su player cuando el pool lo pone vivo o lo baja.
+/// Decide quién decodifica: tope de 3 vivos (2 en el iPhone SE), el más nuevo de cada rol, la
+/// cinemática sola. No toca AVFoundation: cada holder crea o suelta su player cuando el pool lo
+/// pone vivo o lo baja.
 @MainActor
 final class VideoPlayerPool {
-    static let maxLive = 3
+    nonisolated static let maxLive = 3
+    nonisolated static let conservativeMaxLive = 2
+
+    /// El escalón conservador (G1 de E8d): el iPhone SE de 2.ª y 3.ª generación, con pantalla de
+    /// 4,7" y 3-4 GB de RAM, sostiene menos decodificaciones a la vez. El simulador informa el
+    /// modelo simulado en `SIMULATOR_MODEL_IDENTIFIER`.
+    nonisolated static let iPhoneSEModels: Set<String> = ["iPhone12,8", "iPhone14,6"]
+
+    nonisolated static func maxLive(forModel model: String) -> Int {
+        iPhoneSEModels.contains(model) ? conservativeMaxLive : maxLive
+    }
+
+    nonisolated static var hardwareModel: String {
+        if let simulated = ProcessInfo.processInfo.environment["SIMULATOR_MODEL_IDENTIFIER"] { return simulated }
+        var system = utsname()
+        uname(&system)
+        return withUnsafeBytes(of: &system.machine) { buffer in
+            String(decoding: buffer.prefix { $0 != 0 }, as: UTF8.self)
+        }
+    }
     static let shared: VideoPlayerPool = {
         let pool = VideoPlayerPool(policy: .launch)
         observer.start(pool: pool)
@@ -49,9 +69,11 @@ final class VideoPlayerPool {
     private var nextID = 0
 
     private(set) var liveCount = 0
+    let maxLive: Int
 
-    init(policy: VideoPlaybackPolicy) {
+    init(policy: VideoPlaybackPolicy, maxLive: Int = VideoPlayerPool.maxLive(forModel: VideoPlayerPool.hardwareModel)) {
         self.policy = policy
+        self.maxLive = maxLive
     }
 
     func acquire(_ holder: VideoLeaseHolder, role: VideoRole) -> Lease {
@@ -135,7 +157,7 @@ final class VideoPlayerPool {
             return [cinematic.id]
         }
         guard suspensions.isEmpty, policy.allowsLoops else { return [] }
-        let capacity = max(0, Self.maxLive - reservations.count)
+        let capacity = max(0, maxLive - reservations.count)
         var chosen: [Int] = []
         for role in [VideoRole.popup, .background, .icon] {
             if let newest = entries.last(where: { $0.role == role }) { chosen.append(newest.id) }

@@ -11,7 +11,7 @@ struct SpendingFrozenStrip: View {
             let left = max(0, Int((until - context.date.timeIntervalSince1970).rounded(.up)))
             StateBadge(
                 text: String(localized: "spending.frozen.strip \(String(left))"),
-                systemImage: "lock.fill",
+                glyph: .lock,
                 textAlignment: .center,
                 muted: false
             )

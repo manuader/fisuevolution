@@ -148,9 +148,9 @@ private struct AchievementCard: View {
     /// Ancho fijo del riel derecho, el mismo que FisuJobs: sin él, "Cobrar" y
     /// "Cobrado" dejan los datos de cada tarjeta arrancando en una columna
     /// distinta y la lista se ve desalineada de arriba abajo.
-    /// 92 es el `minWidth` real de `ActionPill`: lo que sobraba era aire que le
+    /// 96 es el `minWidth` del `GameButton`: lo que sobraba era aire que le
     /// faltaba a la columna del título.
-    private static let railWidth: CGFloat = 92
+    private static let railWidth: CGFloat = 96
 
     /// El catálogo nombra el metal (`trophy_bronze`); la vista lo mapea al
     /// icono. Un metal que no exista cae a bronce en vez de dejar el hueco
@@ -240,8 +240,7 @@ private struct AchievementCard: View {
     /// el dato que convierte "un logro más" en "esto me paga".
     private var reward: some View {
         HStack(spacing: 4) {
-            Image(systemName: "gift.fill")
-                .font(.system(size: 10, weight: .black))
+            GameGlyphView(glyph: .gift, size: 14)
             Text(verbatim: row.rewardText)
                 .font(Tokens.caption)
                 .lineLimit(1)
@@ -266,9 +265,8 @@ private struct AchievementCard: View {
             // sin esto no hay test de UI que pueda apretar UNO. Es un `String` y
             // no una clave, así que interpolarlo es correcto (la trampa 5 es de
             // `LocalizedStringKey`). Mismo patrón que `jobs.hire.<id>`.
-            ActionPill(
-                titleKey: "ach.claim",
-                systemImage: "hand.tap.fill",
+            GameButton(
+                "ach.claim", role: .free, medallion: .none, size: .compact,
                 identifier: "ach.claim.\(row.id)",
                 accessibilityLabel: Text(verbatim: "\(String(localized: "ach.claim")): \(row.titleText)"),
                 action: claim
@@ -276,10 +274,10 @@ private struct AchievementCard: View {
             .frame(width: Self.railWidth, alignment: .trailing)
         case .claimed:
             // Dice exactamente lo que ya publica el valor de la fila, así que se
-            // tapa — a diferencia del `ActionPill`, que es el control.
+            // tapa — a diferencia del `GameButton`, que es el control.
             StateBadge(
                 text: String(localized: "ach.state.claimed"),
-                systemImage: "checkmark.circle.fill",
+                glyph: .check,
                 muted: true
             )
             .accessibilityHidden(true)

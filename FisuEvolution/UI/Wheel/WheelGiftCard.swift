@@ -19,8 +19,8 @@ struct WheelGiftCard: View {
                 }
                 .foregroundStyle(Color("PaletteInk"))
                 Spacer(minLength: Tokens.s8)
-                ActionPill(titleKey: "gifts.wheel.open", systemImage: "arrow.clockwise.circle.fill",
-                           tint: Color("PaletteOrange"), identifier: "gifts.wheel.open", action: open)
+                GameButton("gifts.wheel.open", role: .free, medallion: .glyph(.wheel), size: .compact,
+                           identifier: "gifts.wheel.open", action: open)
             }
         }
     }

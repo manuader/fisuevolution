@@ -161,7 +161,7 @@ struct ArtButton<Label: View>: View {
     }
 }
 
-/// Ícono de moneda (`ui_coin`); sin arte, SF Symbol teñido.
+/// Ícono de moneda (`ui_coin`); sin arte, el glifo dibujado de la casa.
 struct CoinIcon: View {
     var size: CGFloat = 26
     var body: some View {
@@ -169,9 +169,7 @@ struct CoinIcon: View {
             if let coin = UIArt.image("ui_coin") {
                 coin.resizable().scaledToFit()
             } else {
-                Image(systemName: "dollarsign.circle.fill")
-                    .resizable().scaledToFit()
-                    .foregroundStyle(Color("PaletteYellow"))
+                GameGlyphView(glyph: .coin, size: size)
             }
         }
         .frame(width: size, height: size)
@@ -188,17 +186,14 @@ struct OroIcon: View {
             if let oro = UIArt.image("ui_oro") {
                 oro.resizable().scaledToFit()
             } else {
-                Image(systemName: "sparkles")
-                    .resizable().scaledToFit()
-                    .foregroundStyle(Color("PaletteYellow"))
-                    .shadow(color: Color("PaletteInk").opacity(0.35), radius: 0.5)
+                GameGlyphView(glyph: .blue, size: size)
             }
         }
         .frame(width: size, height: size)
     }
 }
 
-/// Botón cerrar (X roja `ui_btn_close`); sin arte, `xmark.circle.fill`.
+/// Botón cerrar (X roja `ui_btn_close`); sin arte, la X dibujada de la casa.
 struct ArtCloseButton: View {
     let action: () -> Void
     var size: CGFloat = 40
@@ -208,9 +203,7 @@ struct ArtCloseButton: View {
                 if let img = UIArt.image("ui_btn_close") {
                     img.resizable().scaledToFit()
                 } else {
-                    Image(systemName: "xmark.circle.fill")
-                        .resizable().scaledToFit()
-                        .foregroundStyle(Color("PaletteInk").opacity(0.4))
+                    GameGlyphView(glyph: .close, size: size)
                 }
             }
             .frame(width: size, height: size)

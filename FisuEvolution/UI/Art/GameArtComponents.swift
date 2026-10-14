@@ -634,10 +634,7 @@ struct PricePill: View {
                 case .coins: CoinIcon(size: 20)
                 case .oro: OroIcon(size: 20)
                 case .money:
-                    Image(systemName: "cart.fill")
-                        .font(.system(size: 15, weight: .black))
-                        .foregroundStyle(affordable ? .white : Color("PaletteInk"))
-                        .frame(width: 20, height: 20)
+                    GameGlyphView(glyph: .cart, size: 22)
                 }
                 VStack(spacing: -2) {
                     if let strikeText {

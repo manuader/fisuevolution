@@ -28,9 +28,7 @@ struct OddsDisclosureView: View {
                         if let kind = row.kind {
                             RewardArt(kind: kind).frame(width: 28, height: 28)
                         } else {
-                            Image(systemName: row.symbol)
-                                .font(.system(size: 14, weight: .bold))
-                                .frame(width: 28)
+                            GameGlyphView(glyph: .sparkle, size: 28)
                         }
                         Text(verbatim: row.title)
                             .font(Tokens.body)

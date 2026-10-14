@@ -69,6 +69,27 @@ final class AdsCoordinator: AdsProvider {
     /// hoja, volver del background, reencarnar), sí.
     @ObservationIgnored private(set) var isPresentingFullScreen = false
 
+    /// El audio del juego, que calla mientras hay un anuncio en pantalla (E14b B1).
+    @ObservationIgnored private var audio: (any AdAudioGate)?
+
+    func attachAudio(_ audio: any AdAudioGate) {
+        self.audio = audio
+    }
+
+    /// El único lugar donde un anuncio de pantalla completa ocupa la pantalla: marca el
+    /// «no encimar» y calla el audio mientras dura, y los suelta en el `defer`, así que
+    /// cualquier desenlace (visto, cerrado antes, error al presentar, sin inventario)
+    /// reanuda una sola vez. Las llamadas rechazadas por la guarda ni llegan acá.
+    private func presenting<Result>(_ show: () async -> Result) async -> Result {
+        isPresentingFullScreen = true
+        audio?.pauseForAd()
+        defer {
+            isPresentingFullScreen = false
+            audio?.resumeAfterAd()
+        }
+        return await show()
+    }
+
     // MARK: - Los forzados de la 2.0
 
     /// El estado de la política de cortes naturales. `nil` = este proceso no
@@ -180,9 +201,7 @@ final class AdsCoordinator: AdsProvider {
         // un toque rechazado no herede el resultado de otra llamada.
         lastRewardedAttempt = .busy
         guard !isPresentingFullScreen else { return false }
-        isPresentingFullScreen = true
-        defer { isPresentingFullScreen = false }
-        let earned = await active.showRewarded(for: placement)
+        let earned = await presenting { await active.showRewarded(for: placement) }
         lastRewardedAttempt = active.lastRewardedAttempt
         // Se anota gane o no gane, pero SÓLO si hubo video en pantalla: lo que
         // abre la gracia es haber comido una pantalla completa de publicidad,
@@ -204,9 +223,7 @@ final class AdsCoordinator: AdsProvider {
     @discardableResult
     func showInterstitial() async -> Bool {
         guard !removedAds, !isPresentingFullScreen else { return false }
-        isPresentingFullScreen = true
-        defer { isPresentingFullScreen = false }
-        return await active.showInterstitial()
+        return await presenting { await active.showInterstitial() }
     }
 
     /// Misma regla que el interstitial: `false` con `remove_ads`.
@@ -225,9 +242,7 @@ final class AdsCoordinator: AdsProvider {
     func showRewardedInterstitial() async -> Bool {
         lastRewardedInterstitialAttempt = .busy
         guard !removedAds, !isPresentingFullScreen else { return false }
-        isPresentingFullScreen = true
-        defer { isPresentingFullScreen = false }
-        let earned = await active.showRewardedInterstitial()
+        let earned = await presenting { await active.showRewardedInterstitial() }
         lastRewardedInterstitialAttempt = active.lastRewardedInterstitialAttempt
         return earned
     }
@@ -246,12 +261,19 @@ final class AdsCoordinator: AdsProvider {
     @discardableResult
     func showAppOpen() async -> Bool {
         guard !removedAds, !isPresentingFullScreen else { return false }
-        isPresentingFullScreen = true
-        defer { isPresentingFullScreen = false }
-        return await active.showAppOpen()
+        return await presenting { await active.showAppOpen() }
     }
 
     func prepare() {
         active.prepare()
     }
 }
+
+/// Lo que el coordinador le pide al audio al abrirse y cerrarse un anuncio de pantalla completa.
+@MainActor
+protocol AdAudioGate: AnyObject {
+    func pauseForAd()
+    func resumeAfterAd()
+}
+
+extension AudioManager: AdAudioGate {}

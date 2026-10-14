@@ -893,6 +893,8 @@ struct StateBadge: View {
     let text: String
     /// Glifo a la izquierda (`lock.fill`, `checkmark.circle.fill`), o `nil`.
     var systemImage: String?
+    /// El glifo de la casa a la izquierda (T25): reemplaza a `systemImage`.
+    var glyph: GameGlyph?
     /// Cómo se parte un texto de dos renglones. Nació en el riel derecho de
     /// FisuJobs —donde `.trailing` es lo que alinea el badge con el borde de la
     /// tarjeta— y por eso ese es el default; adentro de una tarjeta centrada, el
@@ -902,7 +904,9 @@ struct StateBadge: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            if let systemImage {
+            if let glyph {
+                GameGlyphView(glyph: glyph, size: 16)
+            } else if let systemImage {
                 Image(systemName: systemImage)
                     .font(.system(size: 11, weight: .black))
             }

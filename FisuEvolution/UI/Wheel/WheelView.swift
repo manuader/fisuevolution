@@ -205,9 +205,7 @@ struct WheelView: View {
     // MARK: El giro
 
     private func start(_ source: WheelSpinSource) {
-        // Un giro por video llega acá cuando el video ya se miró, pero `videoBusy`
-        // se apaga recién en el próximo ciclo: no puede trabar el premio.
-        guard spin == nil, source == .video || !videoBusy,
+        guard WheelSpinGate.allows(source, spinning: spin != nil, videoBusy: videoBusy),
               let outcome = gameState.beginWheelSpin(source, latch: &latch, storefrontAllows: storefrontAllows)
         else { return }
         result = nil
@@ -254,6 +252,16 @@ struct WheelView: View {
     private func repeatPrize() {
         guard spin == nil, !resolving, let outcome = gameState.repeatWheelPrize() else { return }
         result = outcome
+    }
+}
+
+/// Quién puede tirar la rueda: nadie mientras gira, y mientras corre un video
+/// (el de «repetir» o el del giro por video) sólo el giro que ese video paga.
+/// Un giro por video llega cuando el video ya se miró, pero `videoBusy` se
+/// apaga recién en el próximo ciclo: no puede trabar el premio.
+enum WheelSpinGate {
+    static func allows(_ source: WheelSpinSource, spinning: Bool, videoBusy: Bool) -> Bool {
+        !spinning && (source == .video || !videoBusy)
     }
 }
 

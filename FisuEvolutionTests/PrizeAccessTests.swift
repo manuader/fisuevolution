@@ -186,6 +186,22 @@ struct WheelSpinLatchTests {
         #expect(gameState.wheelAvailability(storefrontAllows: true).oroLeft == before - 1)
     }
 
+    @Test("con un video en curso no gira ni el regalado ni el de ORO; el que paga ese video, sí")
+    func aVideoInFlightBlocksTheOtherSpins() {
+        #expect(!WheelSpinGate.allows(.bonus, spinning: false, videoBusy: true))
+        #expect(!WheelSpinGate.allows(.oro, spinning: false, videoBusy: true))
+        #expect(WheelSpinGate.allows(.video, spinning: false, videoBusy: true))
+    }
+
+    @Test("sin video en curso giran todos; con la rueda girando, ninguno")
+    func theGateOnlyClosesWhenItMust() {
+        for source in WheelSpinSource.allCases {
+            #expect(WheelSpinGate.allows(source, spinning: false, videoBusy: false))
+            #expect(!WheelSpinGate.allows(source, spinning: true, videoBusy: false))
+            #expect(!WheelSpinGate.allows(source, spinning: true, videoBusy: true))
+        }
+    }
+
     @Test("un giro que no sale suelta el cerrojo")
     func aFailedSpinReleasesTheLatch() async {
         let gameState = await makeGameState()

@@ -93,8 +93,11 @@ final class WheelUITests: XCTestCase {
         XCTAssertNotEqual(after.label, before, "la cuenta de videos bajó")
     }
 
-    /// Mientras carga el video de "repetir" no se puede girar.
-    func testCannotSpinWhileTheRepeatVideoLoads() {
+    /// El video de "repetir" no gira la rueda ni gasta el giro regalado que queda.
+    /// Que un toque DURANTE el video no gire lo prueba el unitario del cerrojo
+    /// (`WheelSpinLatchTests`): el video del stub dura 2 s y, con la máquina
+    /// cargada, el segundo toque de XCUITest llegaba después y giraba con derecho.
+    func testTheRepeatVideoDoesNotSpendTheFreeSpin() {
         let app = launch(spins: 2)
         openWheel(app)
 
@@ -105,11 +108,11 @@ final class WheelUITests: XCTestCase {
         XCTAssertTrue(again.waitForExistence(timeout: 8))
         again.tap()
 
-        XCTAssertTrue(app.descendants(matching: .any)["wheel.repeat.watching"].waitForExistence(timeout: 3))
-        app.buttons["wheel.spin.bonus"].tap()
-        XCTAssertFalse(app.descendants(matching: .any)["wheel.spinning"].exists, "con el video en curso no se gira")
-        XCTAssertTrue(app.descendants(matching: .any)["wheel.repeat.watching"].waitForNonExistence(timeout: 10))
+        let watching = app.descendants(matching: .any)["wheel.repeat.watching"]
+        XCTAssertTrue(watching.waitForExistence(timeout: 3))
+        XCTAssertTrue(watching.waitForNonExistence(timeout: 10))
+        XCTAssertFalse(app.descendants(matching: .any)["wheel.spinning"].exists, "repetir no gira la rueda")
         XCTAssertTrue(app.buttons["wheel.spin.bonus"].waitForExistence(timeout: 3),
-                      "el toque durante el video no gastó el giro regalado")
+                      "repetir no gastó el giro regalado")
     }
 }

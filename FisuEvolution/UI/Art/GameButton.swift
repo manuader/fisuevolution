@@ -4,8 +4,8 @@ import SwiftUI
 /// labio oscuro abajo, contorno grueso tono sobre tono— y un **medallón** crema
 /// a la izquierda con el ícono del juego (`GameGlyph`, nunca un SF Symbol). El
 /// color dice la función, no el gusto de cada pantalla. Reemplaza, pantalla por
-/// pantalla (T11–T25), a `ActionPill`, `PricePill` y al botón de
-/// `RewardedOfferButton`.
+/// pantalla (T11–T25), a `PricePill` y al botón de `RewardedOfferButton`
+/// (la cápsula `ActionPill` ya no existe).
 ///
 /// Como `PricePill`, nunca usa `.disabled`: `available: false` lo pone crema,
 /// lo hace temblar al tocarlo y la acción corre igual (el estado decide).

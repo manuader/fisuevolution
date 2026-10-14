@@ -96,6 +96,11 @@ struct SettingsView: View {
     @State private var showsPrivacyRow = false
     @State private var showsReset = false
 
+    /// El aire entre un bloque y el siguiente, y entre una cinta y su tarjeta
+    /// (E14b B12): la pantalla tiene diez cintas y juntas se leían como un muro.
+    private static let sectionGap = Tokens.s24 + Tokens.s12
+    private static let ribbonGap = Tokens.s16
+
     var body: some View {
         // Los volúmenes son `var` del manager y persisten solos en su `didSet`:
         // el slider escribe directo y no hay estado local que pueda desfasarse.
@@ -105,7 +110,7 @@ struct SettingsView: View {
             // `VStack` y no `LazyVStack`: son ~18 filas contadas y todas tienen
             // que existir en el árbol de accesibilidad sin scrollear, que es lo
             // que ejerce `MenuUITests` (misma razón que Estadísticas).
-            VStack(spacing: Tokens.s12) {
+            VStack(spacing: Self.sectionGap) {
                 languageSection
                 audioSection(music: $audio.musicVolume, sfx: $audio.sfxVolume)
                 gameSection
@@ -168,7 +173,7 @@ struct SettingsView: View {
     // MARK: Idioma
 
     private var languageSection: some View {
-        VStack(spacing: Tokens.s12) {
+        VStack(spacing: Self.ribbonGap) {
             SectionHeader("settings.language")
                 .padding(.top, Tokens.s4)
             GameCard(style: .normal) {
@@ -206,21 +211,19 @@ struct SettingsView: View {
     // MARK: Audio
 
     private func audioSection(music: Binding<Double>, sfx: Binding<Double>) -> some View {
-        VStack(spacing: Tokens.s12) {
+        VStack(spacing: Self.ribbonGap) {
             SectionHeader("settings.section.audio")
             GameCard(style: .normal) {
                 VStack(spacing: 0) {
                     SliderRow(
                         titleKey: "settings.music",
                         identifier: "settings.music",
-                        systemImage: "music.note",
                         value: music
                     )
                     RowDivider()
                     SliderRow(
                         titleKey: "settings.sfx",
                         identifier: "settings.sfx",
-                        systemImage: "speaker.wave.2.fill",
                         value: sfx
                     )
                     RowDivider()
@@ -237,7 +240,7 @@ struct SettingsView: View {
     // MARK: En el juego
 
     private var gameSection: some View {
-        VStack(spacing: Tokens.s12) {
+        VStack(spacing: Self.ribbonGap) {
             SectionHeader("settings.section.game")
             GameCard(style: .normal) {
                 VStack(spacing: 0) {
@@ -258,7 +261,7 @@ struct SettingsView: View {
     /// bloqueó, la salida a sus Ajustes. Con el maestro apagado los motivos se
     /// esconden pero no se olvidan.
     private var notificationsSection: some View {
-        VStack(spacing: Tokens.s12) {
+        VStack(spacing: Self.ribbonGap) {
             SectionHeader("settings.section.notifications")
             GameCard(style: .normal) {
                 VStack(spacing: 0) {
@@ -275,10 +278,9 @@ struct SettingsView: View {
                         Task { await notifications.setEnabled(wantsOn) }
                     }
                     if notifications.isDenied {
-                        ActionPill(
-                            titleKey: "settings.notifications.open_settings",
-                            systemImage: "gearshape.fill",
-                            tint: Color("PaletteBlue"),
+                        GameButton(
+                            "settings.notifications.open_settings", role: .blue,
+                            medallion: .glyph(.clock), size: .compact, fullWidth: true,
                             identifier: "settings.notifications.open_settings",
                             action: openSystemNotificationSettings
                         )
@@ -318,7 +320,7 @@ struct SettingsView: View {
     /// repasar: las filas quedan apagadas y lo dicen.
     private var tutorialSection: some View {
         let available = gameState.tutorialReplayAvailable
-        return VStack(spacing: Tokens.s12) {
+        return VStack(spacing: Self.ribbonGap) {
             SectionHeader("settings.section.tutorial")
             GameCard(style: .normal) {
                 VStack(spacing: Tokens.s8) {
@@ -329,20 +331,18 @@ struct SettingsView: View {
                             .fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    ActionPill(
-                        titleKey: "settings.tutorial.replay",
-                        systemImage: "graduationcap.fill",
-                        tint: Color("PaletteBlue"),
-                        identifier: "settings.tutorial.replay"
+                    GameButton(
+                        "settings.tutorial.replay", role: .blue, medallion: .glyph(.clock),
+                        size: .compact, fullWidth: true, identifier: "settings.tutorial.replay"
                     ) {
                         gameState.requestTutorialReplay()
                         close()
                     }
-                    ActionPill(
-                        titleKey: "settings.tutorial.tour",
-                        systemImage: "sparkles",
-                        tint: Color("PaletteOrange"),
-                        identifier: "settings.tutorial.tour"
+                    // Secundario y crema: el naranja es de las cintas, y una
+                    // tarjeta tiene una sola acción principal (el repaso).
+                    GameButton(
+                        "settings.tutorial.tour", role: .neutral,
+                        size: .compact, fullWidth: true, identifier: "settings.tutorial.tour"
                     ) {
                         gameState.requestTour()
                         close()
@@ -358,7 +358,7 @@ struct SettingsView: View {
     // MARK: Compras
 
     private var purchasesSection: some View {
-        VStack(spacing: Tokens.s12) {
+        VStack(spacing: Self.ribbonGap) {
             SectionHeader("settings.section.purchases")
             GameCard(style: .normal) {
                 VStack(spacing: Tokens.s8) {
@@ -369,11 +369,9 @@ struct SettingsView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     // Azul y no verde: no cobra nada. Mismo botón, mismo color y
                     // mismo identifier que el de la cabecera de la tienda.
-                    ActionPill(
-                        titleKey: "settings.restore",
-                        systemImage: "arrow.clockwise",
-                        tint: Color("PaletteBlue"),
-                        identifier: "settings.restore"
+                    GameButton(
+                        "settings.restore", role: .blue, medallion: .glyph(.check),
+                        size: .compact, fullWidth: true, identifier: "settings.restore"
                     ) {
                         Task { await runRestore() }
                     }
@@ -412,12 +410,12 @@ struct SettingsView: View {
                 text: count > 0
                     ? String(localized: "settings.restore.done \(String(count))")
                     : String(localized: "settings.restore.empty"),
-                systemImage: count > 0 ? "checkmark.circle.fill" : "info.circle.fill",
+                systemImage: nil,
                 textAlignment: .center,
                 muted: count == 0
             )
         case .failed(let message):
-            StateBadge(text: message, systemImage: "exclamationmark.triangle.fill",
+            StateBadge(text: message, systemImage: nil,
                        textAlignment: .center, muted: false)
         }
     }
@@ -441,7 +439,7 @@ struct SettingsView: View {
     /// dice que hace falta.
     @ViewBuilder private var privacySection: some View {
         if showsPrivacyRow {
-            VStack(spacing: Tokens.s12) {
+            VStack(spacing: Self.ribbonGap) {
                 SectionHeader("settings.section.privacy")
                 GameCard(style: .normal) {
                     VStack(spacing: Tokens.s8) {
@@ -450,11 +448,9 @@ struct SettingsView: View {
                             .foregroundStyle(Color("PaletteInk").opacity(0.7))
                             .fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                        ActionPill(
-                            titleKey: "settings.privacy.options",
-                            systemImage: "hand.raised.fill",
-                            tint: Color("PaletteBlue"),
-                            identifier: "settings.privacy.options"
+                        GameButton(
+                            "settings.privacy.options", role: .blue, medallion: .glyph(.lock),
+                            size: .compact, fullWidth: true, identifier: "settings.privacy.options"
                         ) {
                             Task { await AdsConsent.presentPrivacyOptions() }
                         }
@@ -468,7 +464,7 @@ struct SettingsView: View {
     // MARK: Legales
 
     private var legalSection: some View {
-        VStack(spacing: Tokens.s12) {
+        VStack(spacing: Self.ribbonGap) {
             SectionHeader("settings.section.legal")
             GameCard(style: .normal) {
                 VStack(spacing: 0) {
@@ -480,9 +476,7 @@ struct SettingsView: View {
                                     .font(Tokens.body)
                                     .foregroundStyle(Color("PaletteInk"))
                                     .frame(maxWidth: .infinity, alignment: .leading)
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 13, weight: .black))
-                                    .foregroundStyle(Color("PaletteInk").opacity(0.45))
+                                RowChevron()
                             }
                             .padding(.vertical, 9)
                             .contentShape(Rectangle())
@@ -499,7 +493,7 @@ struct SettingsView: View {
     // MARK: Acerca de
 
     private var aboutSection: some View {
-        VStack(spacing: Tokens.s12) {
+        VStack(spacing: Self.ribbonGap) {
             SectionHeader("settings.section.about")
             GameCard(style: .normal) {
                 VStack(spacing: Tokens.s8) {
@@ -525,7 +519,7 @@ struct SettingsView: View {
     // MARK: Zona de peligro
 
     private var dangerSection: some View {
-        VStack(spacing: Tokens.s12) {
+        VStack(spacing: Self.ribbonGap) {
             SectionHeader("settings.section.danger", tint: Color("PalettePink"))
             GameCard(style: .danger) {
                 VStack(spacing: Tokens.s8) {
@@ -534,11 +528,9 @@ struct SettingsView: View {
                         .foregroundStyle(Color("PaletteInk").opacity(0.75))
                         .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    ActionPill(
-                        titleKey: "settings.reset",
-                        systemImage: "trash.fill",
-                        tint: Color("PalettePink"),
-                        identifier: "settings.reset"
+                    GameButton(
+                        "settings.reset", role: .video, medallion: .none,
+                        size: .compact, fullWidth: true, identifier: "settings.reset"
                     ) {
                         showsReset = true
                     }
@@ -603,21 +595,16 @@ private struct ToggleRow: View {
     }
 }
 
-/// Fila de volumen: glifo, etiqueta y el slider, que escribe directo en el
+/// Fila de volumen: etiqueta, porcentaje y el slider, que escribe directo en el
 /// `AudioManager` (que persiste solo).
 private struct SliderRow: View {
     let titleKey: LocalizedStringKey
     let identifier: String
-    let systemImage: String
     @Binding var value: Double
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: Tokens.s8) {
-                Image(systemName: systemImage)
-                    .font(.system(size: 13, weight: .black))
-                    .foregroundStyle(Color("PaletteInk").opacity(0.7))
-                    .accessibilityHidden(true)
                 Text(titleKey)
                     .font(Tokens.body)
                     .foregroundStyle(Color("PaletteInk"))
@@ -653,11 +640,17 @@ private struct LanguageRow: View {
                     .font(Tokens.body)
                     .foregroundStyle(Color("PaletteInk"))
                     .frame(maxWidth: .infinity, alignment: .leading)
-                Image(systemName: selected ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 18, weight: .black))
-                    .foregroundStyle(selected
-                        ? Color("PaletteGreen")
-                        : Color("PaletteInk").opacity(0.25))
+                Group {
+                    if selected {
+                        GameGlyphView(glyph: .check, size: 22)
+                    } else {
+                        Circle()
+                            .strokeBorder(Color("PaletteInk").opacity(0.25), lineWidth: 2.5)
+                            .frame(width: 20, height: 20)
+                    }
+                }
+                .frame(width: 22, height: 22)
+                .accessibilityHidden(true)
             }
             .padding(.vertical, 9)
             .contentShape(Rectangle())
@@ -668,5 +661,20 @@ private struct LanguageRow: View {
         // Sin traducir: lo compara el test de UI (trampa 6).
         .accessibilityValue(Text(verbatim: selected ? "selected" : "unselected"))
         .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
+    }
+}
+
+/// La flecha de las filas de Legal: dibujada, no un SF Symbol.
+private struct RowChevron: View {
+    var body: some View {
+        Path { path in
+            path.move(to: CGPoint(x: 0, y: 0))
+            path.addLine(to: CGPoint(x: 7, y: 7))
+            path.addLine(to: CGPoint(x: 0, y: 14))
+        }
+        .stroke(Color("PaletteInk").opacity(0.45),
+                style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
+        .frame(width: 8, height: 14)
+        .accessibilityHidden(true)
     }
 }

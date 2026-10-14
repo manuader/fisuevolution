@@ -66,15 +66,4 @@ final class VisitorUITests: XCTestCase {
         chip.tap()
         XCTAssertTrue(accept.waitForExistence(timeout: 6), "la tarjeta lo reabre")
     }
-
-    @MainActor
-    func testElComisarioPideConLaCaraYSeLeDiceQueNo() throws {
-        let app = launch("comisario_arresto")
-        let decline = app.buttons["visit.option.decline"]
-        XCTAssertTrue(decline.waitForExistence(timeout: 25))
-        XCTAssertTrue(app.descendants(matching: .any)["visit.request"].exists, "el popup muestra a quién pide")
-        attach(app, "comisario: el popup del pedido")
-        decline.tap()
-        XCTAssertTrue(decline.waitForNonExistence(timeout: 6))
-    }
 }

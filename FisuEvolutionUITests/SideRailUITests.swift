@@ -43,6 +43,13 @@ final class SideRailUITests: XCTestCase {
         XCTAssertTrue(packages.waitForExistence(timeout: 3))
         XCTAssertEqual(packages.value as? String, "ready:1")
         packages.tap()
+        XCTAssertTrue(app.buttons["package.open"].waitForExistence(timeout: 5), "el sello abre la pantalla del paquete")
+        app.buttons["package.open"].tap()
+        let box = app.buttons["package.tap"]
+        XCTAssertTrue(box.waitForExistence(timeout: 8))
+        for _ in 0..<3 where box.exists { box.tap() }
+        XCTAssertTrue(app.buttons["package.collect"].waitForExistence(timeout: 8))
+        app.buttons["package.collect"].tap()
         expectation(for: NSPredicate(format: "value == %@", String(before + 1)), evaluatedWith: units)
         waitForExpectations(timeout: 10)
     }

@@ -93,7 +93,7 @@ struct GameComponentsTests {
             .coins: "rw_coins", .incomeBoost: "rw_income_mult", .tapBoost: "rw_tap_mult",
             .hireDiscount: "rw_hire_discount", .boostRefresh: "rw_boost_refresh", .evolve: "rw_evolve",
             .freeUnit: "rw_free_unit", .exchange: "rw_exchange", .fine: "rw_fine", .arrest: "rw_arrest",
-            .frozen: "rw_frozen", .blue: "ui_dolar_blue", .package: "pickup_package_full",
+            .frozen: "rw_frozen", .blue: "ui_dolar_blue", .package: "rw_package_employee",
             .packageRain: "ui_oro_package_rain", .chest: "ui_chest_closed", .wheelSpin: "wheel_icon",
             .gift: "ui_gift_bow", .mystery: "rw_mystery_all", .mattressTreasure: "rw_mattress_treasure"
         ]

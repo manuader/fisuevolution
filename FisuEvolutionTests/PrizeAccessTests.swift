@@ -18,25 +18,68 @@ struct PrizeAccessTests {
         #expect(gameState.prizeAccess == PrizeAccess(packagesWaiting: 2, packagesBlocked: false, mattressReady: true, wheelSpinsReady: 7))
     }
 
-    @Test("tocar el paquete lo abre y el acceso se actualiza en el acto")
+    @Test("tocar el paquete abre su pantalla sin gastarlo")
     func tappingAPackage() async {
         let gameState = await makeGameState()
         gameState.debugAddPackages(1)
         gameState.refreshPrizeAccess()
-        guard case .opened = gameState.packageTapped() else {
-            Issue.record("el paquete no se abrió")
-            return
-        }
-        #expect(gameState.prizeAccess.packagesWaiting == 0)
+        #expect(gameState.packageTapped())
+        #expect(gameState.packagePopup?.arrivals.isEmpty == true)
+        #expect(gameState.prizeAccess.packagesWaiting == 1)
+        #expect(gameState.pendingBoardChanges.isEmpty)
     }
 
-    @Test("el doble toque sobre un único paquete trae a uno solo")
-    func doubleTapOnAPackage() async {
+    @Test("sin paquetes, tocar no abre nada")
+    func tappingWithoutPackages() async {
+        let gameState = await makeGameState()
+        #expect(!gameState.packageTapped())
+        #expect(gameState.packagePopup == nil)
+    }
+
+    @Test("«¡Abrir!» resta uno, encola la llegada en el piso que se anuncia y el doble toque no trae a otro")
+    func openingFromTheScreen() async throws {
+        let gameState = await makeGameState()
+        gameState.debugAddPackages(2)
+        gameState.packageTapped()
+        gameState.openPackageFromPopup()
+        let arrival = try #require(gameState.packagePopup?.arrivals.first)
+        #expect(gameState.prizeAccess.packagesWaiting == 1)
+        let change = try #require(gameState.pendingBoardChanges.last)
+        #expect(change.kind == .arrival(typeId: arrival.typeId))
+        let ordinal = try #require(gameState.floorOrdinal(of: change))
+        #expect(gameState.content?.floorTable[ordinal].id == arrival.floorId)
+        gameState.openPackageFromPopup()
+        #expect(gameState.packagesWaiting == 1, "ya salió uno: otro toque a «Abrir» no gasta más")
+        #expect(gameState.pendingBoardChanges.filter { $0.origin == .package }.count == 1)
+    }
+
+    @Test("«Abrir otro» vuelve a la caja cerrada y «Abrir todos» abre los que entran")
+    func openAnotherAndOpenAll() async throws {
+        let gameState = await makeGameState()
+        gameState.debugAddPackages(2)
+        gameState.packageTapped()
+        gameState.openPackageFromPopup()
+        gameState.packagePopupOpenAnother()
+        #expect(gameState.packagePopup?.arrivals.isEmpty == true)
+        gameState.debugAddPackages(1)
+        gameState.openAllPackagesFromPopup()
+        #expect(gameState.packagePopup?.arrivals.count == 2)
+        #expect(gameState.packagesWaiting == 0)
+        #expect(gameState.pendingBoardChanges.filter { $0.origin == .package }.count == 3)
+        gameState.closePackagePopup()
+        #expect(gameState.packagePopup == nil)
+    }
+
+    @Test("con la pantalla del paquete abierta, el tablero espera y nada más se abre encima")
+    func theScreenKeepsTheBoardBusy() async {
         let gameState = await makeGameState()
         gameState.debugAddPackages(1)
         gameState.packageTapped()
-        #expect(gameState.packageTapped() == .noneWaiting)
-        #expect(gameState.pendingBoardChanges.filter { $0.origin == .package }.count == 1)
+        #expect(gameState.isBoardBusy)
+        gameState.debugSpawnMattress()
+        gameState.mattressTapped()
+        #expect(gameState.mattressPopup == nil)
+        #expect(!gameState.packageTapped(), "no se apila sobre sí misma")
     }
 
     @Test("el colchón: el popup, el video, lo que salió y otro más")
@@ -161,11 +204,10 @@ struct PrizeAccessTests {
         gameState.player?.run.units = [base: capacity - 1]
         gameState.reconcileTower()
         gameState.debugAddPackages(2)
-        guard case .opened = gameState.packageTapped() else {
-            Issue.record("el primero tenía lugar")
-            return
-        }
-        #expect(gameState.packageTapped() == .full)
+        gameState.packageTapped()
+        gameState.openPackageFromPopup()
+        #expect(gameState.packagePopup?.arrivals.count == 1)
+        #expect(gameState.openPackage() == .full)
         #expect(gameState.pendingBoardChanges.filter { $0.origin == .package }.count == 1)
         #expect(gameState.prizeAccess.packagesWaiting == 1)
         #expect(gameState.prizeAccess.packagesBlocked)

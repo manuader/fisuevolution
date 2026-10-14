@@ -131,6 +131,7 @@ struct TowerNoticeView: View {
         case .spendingFrozen: "tower.notice.spending_frozen"
         case .rewardCompensated(let durationText): "tower.notice.reward_compensated \(durationText)"
         case .rewardGranted(let text): "tower.notice.reward_granted \(text)"
+        case .packagesWon(let count): count == 1 ? "tower.notice.package_won" : "tower.notice.packages_won \(count)"
         }
     }
 
@@ -139,7 +140,7 @@ struct TowerNoticeView: View {
         case .floorFull, .destinationFloorFull, .spendingFrozen: .lock
         case .hireUnlocked: .check
         case .rewardCompensated: .clock
-        case .rewardGranted: .gift
+        case .rewardGranted, .packagesWon: .gift
         }
     }
 

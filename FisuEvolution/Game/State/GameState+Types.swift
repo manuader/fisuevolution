@@ -104,6 +104,8 @@ extension GameState {
             case rewardCompensated(durationText: String)
             /// Un premio que entregó un anuncio (la pausa publicitaria, E7b).
             case rewardGranted(text: String)
+            /// Se ganó un paquete de la Aduana (C20, C28).
+            case packagesWon(count: Int)
         }
 
         let id = UUID()

@@ -189,6 +189,35 @@ struct PackageRollerTests {
         }
     }
 
+    @Test("la tabla de «puede venir» reparte la chance de cada tier entre sus tipos y suma 1")
+    func typeOddsSplitEachTier() {
+        let eligible = [fxType("y", tier: 3), fxType("x", tier: 3), fxType("z", tier: 2)]
+        let tierOdds = PackageRoller.odds(eligible: eligible, windowTiers: 4, ratio: 2)
+        let shown = PackageRoller.typeOdds(eligible: eligible, windowTiers: 4, ratio: 2)
+        #expect(shown.map(\.typeId) == ["x", "y", "z"])
+        #expect(abs(shown[0].probability - tierOdds[0].probability / 2) < 1e-12)
+        #expect(shown[0].probability == shown[1].probability)
+        #expect(abs(shown[2].probability - tierOdds[1].probability) < 1e-12)
+        #expect(abs(shown.map(\.probability).reduce(0, +) - 1) < 1e-12)
+    }
+
+    @Test("lo que se muestra es lo que se sortea: las frecuencias del sorteo siguen la tabla")
+    func shownOddsAreTheRolledOdds() throws {
+        var rng = SeededRNG(seed: 20_261_014)
+        let eligible = [fxType("a", tier: 4), fxType("b", tier: 3), fxType("c", tier: 3), fxType("d", tier: 1)]
+        let shown = PackageRoller.typeOdds(eligible: eligible, windowTiers: 4, ratio: 2)
+        let draws = 30_000
+        var counts: [String: Int] = [:]
+        for _ in 0..<draws {
+            let pick = try #require(PackageRoller.roll(eligible: eligible, windowTiers: 4, ratio: 2, using: &rng))
+            counts[pick.id, default: 0] += 1
+        }
+        for row in shown {
+            let share = Double(counts[row.typeId, default: 0]) / Double(draws)
+            #expect(abs(share - row.probability) < 0.012, "\(row.typeId): sale \(share), se muestra \(row.probability)")
+        }
+    }
+
     @Test("el sorteo respeta la tabla: el tope cae cerca del 6,7 %")
     func theRollFollowsTheTable() throws {
         var rng = SeededRNG(seed: 20_261_007)

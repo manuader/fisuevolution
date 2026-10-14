@@ -50,6 +50,7 @@ extension GameState {
     var isBoardBusy: Bool {
         uiCoversBoard || characterSheet != nil || careerPrompt != nil || stageChallenge != nil
             || visitorPopup != nil || eventPopup != nil || mattressPopup != nil || wheelSheet != nil
+            || packagePopup != nil
             || adBreakOffer != nil || adBreakInFlight
             || !isSceneActive || fullScreenUIActive()
     }

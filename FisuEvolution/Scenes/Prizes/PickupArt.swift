@@ -7,7 +7,6 @@ import UIKit
 enum PickupArt {
     enum Piece: String, CaseIterable {
         case package = "pickup_package"
-        case packageLid = "pickup_package_lid"
         case mattress = "pickup_mattress"
     }
 
@@ -24,7 +23,6 @@ enum PickupArt {
     static func placeholder(_ piece: Piece) -> UIImage {
         let size: CGSize = switch piece {
         case .package: CGSize(width: 96, height: 84)
-        case .packageLid: CGSize(width: 100, height: 28)
         case .mattress: CGSize(width: 96, height: 60)
         }
         return UIGraphicsImageRenderer(size: size).image { context in

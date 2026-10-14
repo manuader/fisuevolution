@@ -108,8 +108,7 @@ extension GameState {
             return mattressPopup != nil ? .acted : .refused
         case .packages:
             if packagesWaiting > 0 {
-                if case .opened = packageTapped() { return .acted }
-                return .refused
+                return packageTapped() ? .acted : .refused
             }
             return canOfferPackageRainVideo() ? .offer : .refused
         case .boost:

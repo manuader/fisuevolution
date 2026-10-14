@@ -1,14 +1,44 @@
 import EconomyKit
 import Foundation
 
-/// Lo que pasa al tocar un paquete.
+/// Lo que pasa al abrir un paquete.
 enum PackageOpenResult: Equatable {
-    /// Sorteó a quién trae y lo dejó en el embudo de E1: llega en su turno, a la vista.
-    case opened(typeId: String)
+    /// Sorteó a quién trae y lo dejó en el embudo de E1: llega en su turno, a la vista,
+    /// al piso `floorId`.
+    case opened(typeId: String, floorId: String)
     /// No hay a quién traer con lugar: "LLENO", y el paquete se queda.
     case full
     /// No había ninguno esperando.
     case noneWaiting
+}
+
+/// Uno de los empleados posibles de un paquete, con su chance (E14 C28).
+struct PackageChance: Identifiable, Equatable {
+    let typeId: String
+    let faceKey: String
+    let name: String
+    let probability: Double
+
+    var id: String { typeId }
+}
+
+/// A quién le tocó y a qué piso llega.
+struct PackageArrival: Identifiable, Equatable {
+    let id = UUID()
+    let typeId: String
+    let floorId: String
+}
+
+/// La pantalla del Paquete de la Aduana (E14 C28); `arrivals` es lo que salió, cuando ya se abrió.
+struct PackagePopup: Identifiable, Equatable {
+    let id = UUID()
+    var arrivals: [PackageArrival] = []
+}
+
+/// Se ganó un paquete: lo que la vista usa para volarlo al sello.
+struct PackageWin: Identifiable, Equatable {
+    let id = UUID()
+    let count: Int
 }
 
 /// El Paquete de la Aduana en la partida (PLAN-v2 E5).
@@ -22,6 +52,26 @@ extension GameState {
             state: player, tiers: content.tiers, floorTable: content.floorTable, config: content.economy,
             occupancy: tower.floors.map(\.occupiedCount).enumerated().map { $0.element + queuedArrivals(onFloor: $0.offset) }
         )
+    }
+
+    /// «Adentro puede venir»: la tabla con la que se sortea, tipo por tipo. Sin lugar en ningún piso
+    /// muestra a los que vendrían si lo hubiera (la pantalla dice que no hay lugar, con sus caras).
+    var packageChances: [PackageChance] {
+        guard let content, let player, let tower else { return [] }
+        var eligible = packageCandidates
+        if eligible.isEmpty {
+            eligible = PackageRoller.eligibleTypes(
+                state: player, tiers: content.tiers, floorTable: content.floorTable, config: content.economy,
+                occupancy: Array(repeating: 0, count: tower.floors.count)
+            )
+        }
+        let ratio = content.packages.tierRatio(bestSupplierLevel: bestSupplierLevel)
+        return PackageRoller.typeOdds(eligible: eligible, windowTiers: content.packages.windowTiers, ratio: ratio)
+            .compactMap { row in
+                content.tiers.type(id: row.typeId).map {
+                    PackageChance(typeId: $0.id, faceKey: "\($0.id)_face", name: $0.localizedName, probability: row.probability)
+                }
+            }
     }
 
     /// Las llegadas ya encoladas o en vuelo que van a ocupar un lugar del piso:
@@ -76,7 +126,56 @@ extension GameState {
         haptics?.play(.purchase)
         scheduleSave()
         Log.economy.info("package opened: \(type.id)")
-        return .opened(typeId: type.id)
+        let floorId = floorOrdinal(of: change).map { content.floorTable[$0].id } ?? ""
+        return .opened(typeId: type.id, floorId: floorId)
+    }
+
+    /// El sello o la caja del tablero: abre la pantalla del paquete. Sin lugar también abre, a
+    /// explicarlo. `false` si no había nada que abrir o algo más ocupa la pantalla.
+    @discardableResult
+    func packageTapped() -> Bool {
+        tutorialTipCompleted(.packages)
+        guard packagesWaiting > 0, packagePopup == nil, mattressPopup == nil, wheelSheet == nil else { return false }
+        packagePopup = PackagePopup()
+        refreshPrizeAccess()
+        return true
+    }
+
+    /// «¡Abrir!»: el paquete se gasta y a quién trae ya está decidido (la animación sólo lo demora).
+    func openPackageFromPopup() {
+        guard packagePopup?.arrivals.isEmpty == true, case let .opened(typeId, floorId) = openPackage() else { return }
+        packagePopup?.arrivals = [PackageArrival(typeId: typeId, floorId: floorId)]
+        refreshPrizeAccess()
+    }
+
+    /// «Abrir todos»: los que entren, de una vez.
+    func openAllPackagesFromPopup() {
+        guard packagePopup?.arrivals.isEmpty == true else { return }
+        var arrivals: [PackageArrival] = []
+        while case let .opened(typeId, floorId) = openPackage() {
+            arrivals.append(PackageArrival(typeId: typeId, floorId: floorId))
+        }
+        guard !arrivals.isEmpty else { return }
+        packagePopup?.arrivals = arrivals
+        refreshPrizeAccess()
+    }
+
+    /// «Abrir otro» desde lo que salió: vuelve a la caja cerrada.
+    func packagePopupOpenAnother() {
+        guard packagePopup?.arrivals.isEmpty == false, packagesWaiting > 0 else { return }
+        packagePopup = PackagePopup()
+    }
+
+    func closePackagePopup() {
+        packagePopup = nil
+    }
+
+    /// Se ganó un paquete (visitante, Ruleta, evento): vuela al sello y avisa arriba. Los que caen
+    /// solos del reloj no pasan por acá.
+    func notePackagesWon(_ count: Int) {
+        guard count > 0 else { return }
+        packageWin = PackageWin(count: count)
+        towerNotice = TowerNotice(kind: .packagesWon(count: count))
     }
 
     /// Un paquete cuyo empleado ya no entra cuando le toca el turno vuelve al

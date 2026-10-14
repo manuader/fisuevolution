@@ -17,18 +17,9 @@ extension GameState {
         if prizeAccess != access { prizeAccess = access }
     }
 
-    /// El chip o una caja del tablero.
-    @discardableResult
-    func packageTapped() -> PackageOpenResult {
-        tutorialTipCompleted(.packages)
-        let result = openPackage()
-        refreshPrizeAccess()
-        return result
-    }
-
     /// El chip o el colchón del tablero: abre su popup.
     func mattressTapped() {
-        guard mattressWaiting || mattressExtraPending, mattressPopup == nil, wheelSheet == nil else { return }
+        guard mattressWaiting || mattressExtraPending, mattressPopup == nil, wheelSheet == nil, packagePopup == nil else { return }
         if mattressWaiting { tutorialTipCompleted(.mattress) }
         mattressPopup = MattressPopup(extraOnly: !mattressWaiting)
     }

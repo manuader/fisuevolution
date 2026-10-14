@@ -1,7 +1,8 @@
 import SwiftUI
 
-/// La hoja de la ruleta suelta, aparte de `RootView`: con una hoja más en su
-/// cadena el type-checker se rinde. El colchón ya es un popup (`GamePopups`).
+/// La hoja de la ruleta suelta y la pantalla del Paquete de la Aduana, aparte
+/// de `RootView`: con una hoja más en su cadena el type-checker se rinde. El
+/// colchón ya es un popup (`GamePopups`).
 struct PrizeSheets: ViewModifier {
     @Environment(GameState.self) private var gameState
     /// Re-publica `uiCoversBoard` cuando una de las dos se abre o se cierra
@@ -12,6 +13,15 @@ struct PrizeSheets: ViewModifier {
         content
             .onChange(of: gameState.mattressPopup) { syncCover() }
             .onChange(of: gameState.wheelSheet) { syncCover() }
+            .onChange(of: gameState.packagePopup) { syncCover() }
+            .gamePopup(item: packagePopupBinding) { _ in
+                PackagePopupView(onClose: { gameState.closePackagePopup() })
+            }
+            .overlayPreferenceValue(TutorialAnchorKey.self) { anchors in
+                GeometryReader { geo in
+                    PackageFlight(seal: anchors[.sidePackages].map { geo[$0] }, container: geo.size)
+                }
+            }
             .fisuSheet(item: wheelSheetBinding) { _ in
                 NavigationStack {
                     WheelView(close: { gameState.closeWheel() })
@@ -19,6 +29,13 @@ struct PrizeSheets: ViewModifier {
                 .tint(Color("PaletteInk"))
                 .fisuSheet()
             }
+    }
+
+    private var packagePopupBinding: Binding<PackagePopup?> {
+        Binding(
+            get: { gameState.packagePopup },
+            set: { if $0 == nil { gameState.closePackagePopup() } }
+        )
     }
 
     private var wheelSheetBinding: Binding<WheelSheet?> {

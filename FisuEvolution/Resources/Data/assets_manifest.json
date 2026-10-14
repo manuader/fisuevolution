@@ -627,7 +627,12 @@
     "rw_hire_discount": "rw_hire_discount",
     "rw_income_mult": "rw_income_mult",
     "rw_mattress_treasure": "rw_mattress_treasure",
+    "rw_mattress_hero": "rw_mattress_hero",
     "rw_mystery_all": "rw_mystery_all",
+    "rw_pack_bienvenida": "rw_pack_bienvenida",
+    "rw_pack_mudanza": "rw_pack_mudanza",
+    "rw_pack_renacer": "rw_pack_renacer",
+    "rw_reencarnar": "rw_reencarnar",
     "rw_package_employee": "rw_package_employee",
     "rw_tap_mult": "rw_tap_mult",
     "ui_dolar_blue": "ui_dolar_blue",
@@ -637,11 +642,14 @@
     "ui_icon_video": "ui_icon_video",
     "ui_offer_bienvenida": "ui_offer_bienvenida",
     "ui_offer_mudanza": "ui_offer_mudanza",
+    "ui_notif_campana": "ui_notif_campana",
     "ui_offer_renacer": "ui_offer_renacer",
     "ui_rail_mattress": "ui_rail_mattress",
     "ui_rail_merge_all": "ui_rail_merge_all",
     "ui_rail_package": "ui_rail_package",
-    "ui_rail_wheel": "ui_rail_wheel"
+    "ui_rail_wheel": "ui_rail_wheel",
+    "ui_reset_demolicion": "ui_reset_demolicion",
+    "ui_save_rescate": "ui_save_rescate"
   },
   "npcs": {
     "npc_comisario": "npc_comisario",

@@ -20,6 +20,8 @@
 > mockups aprobados (`Docs/correcciones-v2/mockups/`), 30 tareas en `tasks.md` §5 «E14» y §4.0. Va antes que
 > todo lo demás de la cola. Detalle: `Docs/SESION-2026-10-12-v2-e14-correcciones-dueno.md`.
 >
+> 📍 **Estado al cierre del relevo 53 (2026-10-14; manda sobre los párrafos de abajo):** `version-2` sigue en `d53a4098`; lo nuevo está en **`v2i/integ-r53` = `089bd374` (pusheada, SIN `completo`)**: E14 T22, T21, T13, T17 y el ranking como contenido generado por usuarios. Primero el `completo` con la máquina sola; si da VERDE, fast-forward de `version-2`. Detalle: `Docs/SESION-2026-10-13-v2-relevo-53.md`.
+>
 > 📍 **Estado al cierre del relevo 52 (2026-10-13; manda sobre los párrafos de abajo):** `version-2` = la punta de `v2i/integ-r52` (pusheada). **Progreso: 283 de 306 (92,5 %).** Entraron de **E14: T12 (la barra de abajo a todo el ancho; Contratar y Reencarnar como solapas; el tablero gana 44 pt) y T11 (los 10 popups al contenedor único; el vendedor que se ofende)**. La cola del 53 está en `tasks.md` §4.0 fila 0 (resto de la ola 3: T21 · T22, y el `completo`). Detalle: `Docs/SESION-2026-10-13-v2-relevo-52.md`.
 >
 > 📍 **Estado al cierre del relevo 51 (2026-10-13; manda sobre los párrafos de abajo):** `version-2` = la punta de `v2i/integ-r51` (pusheada). **Progreso: 281 de 306 (91,8 %).** Entraron de **E14: T8 (el desbloqueo de piso no se saltea; corto en cada vida nueva), T3 (las 27 imágenes y los 11 videos aprobados) y T10 (atajo «el primero del piso»)**. La cola del 52 está en `tasks.md` §4.0 fila 0 (ola 3: T11 · T12 · T21, más T22). Detalle: `Docs/SESION-2026-10-13-v2-relevo-51.md`.
@@ -383,6 +385,10 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-10-13/14 (relevo 53) — El resto de la ola 3 y la ola 4 de E14; los pendientes del dueño
+
+T22 (la torre por las ventanas), T21 (un solo marco), T13 (las esquinas), T17 (Ruleta y Colchón en tres momentos) y el ranking como contenido generado por usuarios (términos aceptados, bloqueo propio, sitio publicado), en `v2i/integ-r53` sin `completo`. Del dueño: build 5 libre, notas y Novedades subidas, UGC en la 2.0, `admin.sql` probado. Ver `Docs/SESION-2026-10-13-v2-relevo-53.md`.
 
 ### Sesión del 2026-10-13 (relevo 52) — La ola 3 de E14, primera mitad: T11, T12
 
@@ -5027,6 +5033,13 @@ Siguen vigentes y no estaban en ningún otro lado:
 - **El repaso se retira si el núcleo volvió a vivir** y no arranca con el núcleo sin hacer: no hay que "arreglarlo" para que arranque igual, pisaría la fase.
 - **El reset del ORO es `min(saldo, comprado)`:** devolver el comprado entero regala ORO gastado; devolver el saldo entero regala el ORO ganado jugando. Cualquier cambio a `ResetPlan` o a `resolveAcrossReset` se prueba con `ResetEpochTests`.
 
+### Del relevo 53 (2026-10-13/14)
+
+- **Con 16 GB, ≤ 2 agentes compilando y el `completo` solo:** con 3 agentes + `completo` la Mac quedó sin memoria (carga 850) y StoreKit tardó ~1 h por test.
+- **`kill` de `oraculo.sh` no lo frena:** sigue al paso siguiente; se detiene con `TaskStop`.
+- **Nunca `xcrun simctl shutdown all`:** apaga los simuladores de los otros agentes en plena prueba.
+- **`.presentationBackground(.clear)` a mano rompe `SheetPresentationGuardTests`:** se usa `.fisuSheet()`.
+
 ### Del relevo 52 (2026-10-13)
 
 - **`RootView` se puede repartir por región** entre dos tareas (cadena de hojas / `bottomBar`): el merge sale limpio.
@@ -5631,6 +5644,7 @@ Anotado por si algún día importa, con su medición:
 - **`Docs/SESION-2026-10-12-v2-relevo-38-ola-aj.md`**: el relevo 38 (los eventos de 25 s dicen «En curso»; fuera `tutorial.tip.wheel`).
 - **`Docs/SESION-2026-10-12-v2-relevo-37-ola-ai.md`**: el relevo 37 (el UI test del otro colchón `extraOnly`; el pager asienta con el scroll quieto).
 - **`Docs/SESION-2026-10-13-v2-relevo-50.md`**: el relevo 50 (E14 T4, T6, T28; la carga de la máquina).
+- **`Docs/SESION-2026-10-13-v2-relevo-53.md`**: el relevo 53 (E14 T22, T21, T13, T17; ranking UGC; pendientes del dueño).
 - **`Docs/SESION-2026-10-13-v2-relevo-52.md`**: el relevo 52 (E14 T11, T12).
 - **`Docs/SESION-2026-10-13-v2-relevo-51.md`**: el relevo 51 (E14 T8, T3, T10).
 - **`Docs/SESION-2026-10-13-v2-relevo-49.md`**: el relevo 49 en vivo (la calibración de 45 h, la mediación, E14 T29/T9/T5/T7, los dos arreglos de arranque).

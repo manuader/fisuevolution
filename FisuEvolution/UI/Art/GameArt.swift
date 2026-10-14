@@ -22,12 +22,14 @@ enum UIArt {
     /// Retratos de personajes: atlas parametrizable, separado del atlas UI y
     /// cacheado por `atlas/key` para que la ficha no recodifique PNGs al paginar.
     private static var characterCache: [String: UIImage] = [:]
+    private static var warmedAtlases: Set<String> = []
 
     /// Llamado en bootstrap con `content.manifest.ui.keys` (assets integrados).
     static func configure(available names: Set<String>) {
         available = names
         uiCache.removeAll()
         characterCache.removeAll()
+        warmedAtlases.removeAll()
     }
 
     /// Las claves `ui` del manifest del bundle, leídas sin pasar por
@@ -45,6 +47,8 @@ enum UIArt {
     static func uiImage(_ name: String) -> UIImage? {
         guard available.contains(name) else { return nil }
         if let cached = uiCache[name] { return cached }
+        let started = ContinuousClock.now
+        defer { PagerProbe.coldDecode("ui/\(name)", since: started) }
         let cg = atlas.textureNamed(name).cgImage()
         // Escala alta → tamaño en PUNTOS chico (~200pt). Clave para el 9-slice:
         // los capInsets se miden en puntos de la imagen; si la imagen midiera 1024pt,
@@ -65,6 +69,8 @@ enum UIArt {
         if let cached = characterCache[cacheKey] { return Image(uiImage: cached) }
         let texture = AtlasCache.atlas(named: atlasName).textureNamed(key)
         guard texture.size().width > 1, texture.size().height > 1 else { return nil }
+        let started = ContinuousClock.now
+        defer { PagerProbe.coldDecode(cacheKey, since: started) }
         let cg = texture.cgImage()
         let image = UIImage(cgImage: cg, scale: max(1, CGFloat(cg.width) / 200), orientation: .up)
         characterCache[cacheKey] = image
@@ -91,6 +97,18 @@ enum UIArt {
             Task { @MainActor in
                 _ = characterImage(atlas: atlasName, key: key)
             }
+        }
+    }
+
+    /// Carga las páginas de varios atlas en background, una sola vez por atlas:
+    /// el `cgImage()` que sigue (en el hilo principal) ya no decodifica la página
+    /// entera. Es lo que hace el menú deslizable con el arte de sus vecinas.
+    static func warmAtlases(_ names: Set<String>) {
+        let cold = names.subtracting(warmedAtlases)
+        guard !cold.isEmpty else { return }
+        warmedAtlases.formUnion(cold)
+        for name in cold {
+            AtlasCache.atlas(named: name).preload {}
         }
     }
 
@@ -285,5 +303,6 @@ struct PanelTitleBanner: View {
                 .overlay(Capsule().strokeBorder(Color("PaletteBrown"), lineWidth: 3))
                 .shadow(color: .black.opacity(0.18), radius: 6, y: 2)
         )
+        .pagerTitleSlot()
     }
 }

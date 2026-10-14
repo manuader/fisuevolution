@@ -183,6 +183,7 @@ private struct PanelSheetLayout<Header: View, Ornament: View>: ViewModifier {
 
     @Environment(\.menuPager) private var pager
     @State private var headerHeight: CGFloat = 0
+    @State private var titleHeight: CGFloat = 0
 
     @ViewBuilder func body(content: Content) -> some View {
         if let pager {
@@ -224,16 +225,19 @@ private struct PanelSheetLayout<Header: View, Ornament: View>: ViewModifier {
                 awning: awning,
                 material: material,
                 headerHeight: headerHeight,
+                titleHeight: titleHeight,
                 ornament: AnyView(ornament)
             )])
     }
 
-    /// El título entre los dos huecos donde el paginador pone las flechas.
+    /// La cabecera entera usa el ancho de la columna: sólo el cartel del título
+    /// deja el hueco de las flechas (`pagerTitleSlot`) y publica su alto, que es
+    /// la altura a la que el paginador pone las flechas.
     private func slottedHeader(_ pager: MenuPagerContext) -> some View {
         header
             .frame(maxWidth: .infinity)
-            .padding(.horizontal, pager.count > 1 ? MenuPagerView.chevronSlot : 0)
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { headerHeight = $0 }
+            .onPreferenceChange(MenuTitleHeightKey.self) { titleHeight = $0 }
     }
 
     private func layout(_ content: Content, header: some View) -> some View {

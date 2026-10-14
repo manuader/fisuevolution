@@ -139,13 +139,17 @@ struct UpgradesView: View {
             selectedTab = tab
             if tab == .boosts { gameState.oroShopSpendChosen() }
         } label: {
+            // Sin achicar la letra: la pestaña es ancha (la cabecera usa todo el ancho
+            // de la columna) y, si aun así no entra, baja a un segundo renglón.
             Text(key)
                 .font(Tokens.body)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
                 .foregroundStyle(selected ? Color.white : Color("PaletteInk").opacity(0.55))
                 .shadow(color: .black.opacity(selected ? 0.35 : 0), radius: 1, y: 1)
-                .frame(maxWidth: .infinity, minHeight: 44)
+                .padding(.horizontal, Tokens.s4)
+                .frame(maxWidth: .infinity, minHeight: 54)
                 .background {
                     // Naranja, como la pestaña activa de la referencia (era azul).
                     if selected {

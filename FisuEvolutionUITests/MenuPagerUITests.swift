@@ -91,6 +91,46 @@ final class MenuPagerUITests: XCTestCase {
         XCTAssertFalse(isNew(app.buttons["hud.bonus"]), "la página quieta sí cuenta como vista")
     }
 
+    /// La cabecera de Mejoras (E14b B10): las flechas quedan sobre las pestañas (a la
+    /// altura del cartel) y el selector usa casi todo el ancho de la columna, con
+    /// botones altos.
+    @MainActor
+    func testLasFlechasSubenAlCartelYLasPestanasUsanTodoElAncho() throws {
+        let app = launch()
+        tapTab("hud.upgrades", in: app)
+        let characters = app.buttons["upgrades.tab.characters"]
+        let boosts = app.buttons["upgrades.tab.boosts"]
+        XCTAssertTrue(characters.waitForExistence(timeout: 10))
+        let next = app.buttons["menu.pager.next"]
+        XCTAssertTrue(next.waitForExistence(timeout: 5))
+        let window = app.windows.firstMatch.frame
+
+        XCTAssertLessThan(next.frame.maxY, characters.frame.minY, "las flechas van a la altura del cartel, sobre las pestañas")
+        let span = boosts.frame.maxX - characters.frame.minX
+        XCTAssertGreaterThan(span, window.width * 0.7, "el selector de pestañas ocupa casi todo el ancho")
+        XCTAssertGreaterThanOrEqual(characters.frame.height, 48, "botones grandes")
+        XCTAssertFalse(next.frame.intersects(characters.frame), "nada se superpone")
+        attach(app, named: "B10 cabecera de Mejoras")
+    }
+
+    /// Recorrer todas las páginas con las flechas no deja ninguna a medio armar: cada
+    /// una muestra su cuerpo apenas queda quieta (las vecinas ya estaban armadas).
+    @MainActor
+    func testElPasoEntrePaginasMuestraLaVecinaYaArmada() throws {
+        let app = launch()
+        tapTab("hud.upgrades", in: app)
+        XCTAssertTrue(app.buttons["upgrades.tab.permanent"].waitForExistence(timeout: 10))
+        for expected in ["2/5", "3/5"] {
+            app.buttons["menu.pager.next"].tap()
+            let settled = NSPredicate(format: "value == %@", expected)
+            let dots = app.otherElements["menu.pager.dots"]
+            expectation(for: settled, evaluatedWith: dots)
+            waitForExpectations(timeout: 5)
+        }
+        XCTAssertEqual(app.buttons.matching(identifier: "sheet.close").count, 1,
+                       "con las vecinas armadas sigue habiendo una sola X")
+    }
+
     // MARK: - Utilidades
 
     @MainActor

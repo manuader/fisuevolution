@@ -67,9 +67,9 @@ enum ChestStage {
     /// El centro del cuadro, en puntos desde el centro de la pantalla.
     static let clipY: CGFloat = 50
     /// El centro del premio, en puntos desde el centro de la pantalla.
-    static let prizeY: CGFloat = -172
-    /// El alto que ocupa el bloque del premio (placa, cinta, nombre, detalle).
-    static let prizeHeight: CGFloat = 190
+    static let prizeY: CGFloat = -190
+    /// El alto que ocupa el bloque del premio (tarjeta con su nombre y el detalle).
+    static let prizeHeight: CGFloat = 220
 
     /// Y (puntos desde el centro de la pantalla) de la punta de la tapa abierta.
     static var lidTopY: CGFloat { clipY + (openLidTop - 256) * scale }
@@ -165,8 +165,6 @@ struct ChestOpeningView: View {
     /// Tope de la espera del fin del clip: el latido que espera no lo avanza
     /// nadie más, y un decoder trabado dejaría la cola de celebraciones muda.
     private static let openingSeconds = 73.0 / 24.0
-    private static let portraitSide: CGFloat = 96
-    private static let plateShape = RoundedRectangle(cornerRadius: 14, style: .continuous)
 
     var body: some View {
         // Un `ZStack` pelado y offsets en PUNTOS desde el centro, no un
@@ -318,25 +316,15 @@ struct ChestOpeningView: View {
     // MARK: El premio
 
     /// El premio, sobre el cofre abierto: sale del brillo (crece desde abajo),
-    /// con sus rayos y el pop de la placa. Sin pergamino: el texto va en
+    /// en una tarjeta de figurita (`ChestPrizeCard`), con sus rayos y el pop. El detalle va en
     /// blanco sobre el telón. Vive como capa hermana del escenario para que
     /// ninguna transformación del arte (el respiro, la entrada) rasterice el
     /// texto.
     private var cardContent: some View {
         VStack(spacing: Tokens.s8) {
-            prizeArt
-            if case .skin = reward.outcome {
-                rarityRibbon
+            ChestPrizeCard(rarity: rarity, name: prizeName, showsSeal: isSkinPrize) {
+                prizeArt
             }
-            Text(prizeName)
-                .font(Tokens.title)
-                .foregroundStyle(.white)
-                .shadow(color: .black.opacity(0.6), radius: 0, y: 2)
-                .multilineTextAlignment(.center)
-                .minimumScaleFactor(0.7)
-                // Envolver, nunca truncar: el nombre sale del catálogo y un
-                // nombre cortado no nombra a nadie.
-                .fixedSize(horizontal: false, vertical: true)
             Text(subtitle)
                 .font(Tokens.caption)
                 .foregroundStyle(.white.opacity(0.85))
@@ -362,7 +350,7 @@ struct ChestOpeningView: View {
         .accessibilityValue(cardValue)
     }
 
-    /// La rareza, para VoiceOver. Se canta por la misma regla que la cinta: es
+    /// La rareza, para VoiceOver. Se canta sólo con una pinta (como el sello): es
     /// la etiqueta de la pinta, no del monto de plata.
     private var cardValue: Text {
         guard case .skin = reward.outcome else { return Text(verbatim: "") }
@@ -372,26 +360,17 @@ struct ChestOpeningView: View {
     /// El retrato del premio, por el mismo camino que lo dibuja el tablero. Con
     /// plata, la moneda gigante en su lugar.
     @ViewBuilder private var prizeArt: some View {
-        Group {
-            switch reward.outcome {
-            case let .skin(id, characterType, _):
-                skinPortrait(skinID: id, typeID: characterType)
-            case .coins:
-                RewardArt(kind: .coins).padding(Tokens.s8)
-            }
+        switch reward.outcome {
+        case let .skin(id, characterType, _):
+            skinPortrait(skinID: id, typeID: characterType)
+        case .coins:
+            RewardArt(kind: .coins).padding(Tokens.s8)
         }
-        .frame(width: Self.portraitSide, height: Self.portraitSide)
-        .background(Color("PaletteYellow").opacity(0.3))
-        .clipShape(Self.plateShape)
-        .overlay(Self.plateShape.strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
-        // Los rayos del premio (E14 C4) detrás de la placa, del color de la
-        // rareza, y el pop al aparecer. Van de fondo y de overlay: no mueven nada.
-        .background {
-            RewardRays(tint: ChestRarityStyle.color(rarity))
-                .frame(width: Self.portraitSide * 1.6, height: Self.portraitSide * 1.6)
-        }
-        .overlay { PrizePop() }
-        .accessibilityHidden(true)
+    }
+
+    private var isSkinPrize: Bool {
+        if case .skin = reward.outcome { return true }
+        return false
     }
 
     /// Mismo criterio de fallback que la ficha y el tablero: si el arte de la
@@ -409,11 +388,9 @@ struct ChestOpeningView: View {
                 .padding(Tokens.s4)
                 .colorMultiply(SkinResolver.swiftUITint(for: treatment) ?? .white)
         } else {
-            Image(systemName: "person.fill")
-                .resizable()
-                .scaledToFit()
-                .padding(20)
-                .foregroundStyle(Color("PaletteInk"))
+            Text(verbatim: "?")
+                .font(Tokens.display)
+                .foregroundStyle(Color("PaletteInk").opacity(0.6))
         }
     }
 
@@ -424,19 +401,6 @@ struct ChestOpeningView: View {
             return skinImage
         }
         return UIArt.characterImage(atlas: asset.atlas, key: asset.key)
-    }
-
-    private var rarityRibbon: some View {
-        Text(ChestRarityStyle.nameKey(rarity))
-            .font(Tokens.caption)
-            .foregroundStyle(Color("PaletteInk"))
-            .padding(.horizontal, Tokens.s12)
-            .padding(.vertical, 4)
-            .background {
-                Capsule()
-                    .fill(ChestRarityStyle.color(rarity))
-                    .overlay(Capsule().strokeBorder(Color("PaletteInk").opacity(0.85), lineWidth: 2))
-            }
     }
 
     // MARK: Los latidos

@@ -26,7 +26,7 @@
      "price": 40, "dailyLimit": 1,
      "rewards": [{"kind": "nextDailyMultiplier", "multiplier": 3}]},
     {"id": "skip_cooldowns", "shelf": "shortcuts", "iconKey": "ui_shop_skip_cooldowns", "symbol": "timer",
-     "price": 25,
+     "price": 25, "dailyLimit": 3,
      "rewards": [{"kind": "clearBoostCooldowns"}]},
     {"id": "merge_all", "shelf": "shortcuts", "iconKey": "ui_shop_merge_all", "symbol": "arrow.triangle.merge",
      "price": 20, "dailyLimit": 5, "action": "mergeAll"},

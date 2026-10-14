@@ -15,7 +15,7 @@ struct VideoPlayerPoolTests {
         }
     }
     private func pool(_ policy: VideoPlaybackPolicy = .allowAll) -> VideoPlayerPool {
-        VideoPlayerPool(policy: policy)
+        VideoPlayerPool(policy: policy, maxLive: 3)
     }
 
     @Test("fondo + popup + ícono: los tres vivos")
@@ -241,5 +241,25 @@ struct VideoPlayerPoolTests {
         }
         pool.unreserve(pool.reserve())
         #expect(survivor.live && pool.liveCount == 1)
+    }
+
+    @Test("el tope por modelo: el iPhone SE de 2.ª y 3.ª generación 2, el resto 3")
+    func capByModel() {
+        #expect(VideoPlayerPool.maxLive(forModel: "iPhone12,8") == 2)
+        #expect(VideoPlayerPool.maxLive(forModel: "iPhone14,6") == 2)
+        for model in ["iPhone15,4", "iPhone16,1", "iPhone13,2", "iPhone12,1", "arm64", ""] {
+            #expect(VideoPlayerPool.maxLive(forModel: model) == 3, "\(model)")
+        }
+    }
+
+    @Test("con maxLive = 2 viven el popup y el fondo; el ícono espera")
+    func conservativePoolDropsTheIcon() {
+        let pool = VideoPlayerPool(policy: .allowAll, maxLive: VideoPlayerPool.maxLive(forModel: "iPhone14,6"))
+        let bg = Holder(), popup = Holder(), icon = Holder()
+        _ = pool.acquire(icon, role: .icon)
+        _ = pool.acquire(bg, role: .background)
+        _ = pool.acquire(popup, role: .popup)
+        #expect(popup.live && bg.live && !icon.live)
+        #expect(pool.liveCount == 2)
     }
 }

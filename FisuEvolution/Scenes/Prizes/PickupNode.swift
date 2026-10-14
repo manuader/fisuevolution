@@ -3,7 +3,8 @@ import SpriteKit
 /// Una caja del Paquete o el colchón, en el tablero. Todo lo que se mueve va por
 /// frame (`update`): entra con un resorte, respira, y tiembla si se la toca sin
 /// lugar. Si tiene clip de espera, lo reproduce en loop sobre su textura mientras la escena lo
-/// pide (`setWaiting`): el póster no se saca nunca, y sin video queda quieto.
+/// pide (`setWaiting`), y sin video queda quieto. El clip es con alfa y encuadra distinto que el PNG:
+/// el arte quieto se apaga mientras el video se ve, o la caja se dibuja dos veces (E14b B2).
 @MainActor
 final class PickupNode: SKNode {
     enum Kind: Equatable {
@@ -13,6 +14,9 @@ final class PickupNode: SKNode {
 
     static let popSeconds: TimeInterval = 0.35
     static let shakeSeconds: TimeInterval = 0.4
+
+    /// Debajo del escenario y de los empleados (`BoardScene.fieldBaseZ`), arriba de los fondos.
+    static let layerZ: CGFloat = 5
 
     let kind: Kind
     private let sprite: SKSpriteNode
@@ -27,7 +31,8 @@ final class PickupNode: SKNode {
         self.kind = kind
         sprite = SKSpriteNode(texture: texture)
         waitingVideo = waitingClip.map {
-            LoopingVideoNode(clip: $0, poster: texture, size: .zero, role: .icon, manifest: manifest, pool: pool,
+            // El póster va transparente: el arte quieto es `sprite`, y dos copias del PNG se sumarían.
+            LoopingVideoNode(clip: $0, poster: Self.clearTexture, size: .zero, role: .icon, manifest: manifest, pool: pool,
                              packs: packs)
         }
         super.init()
@@ -43,6 +48,17 @@ final class PickupNode: SKNode {
         addChild(fullSign)
         resize(side: side)
         setScale(0.01)
+    }
+
+    private static let clearTexture = SKTexture(image: UIGraphicsImageRenderer(size: CGSize(width: 1, height: 1))
+        .image { _ in })
+
+    /// El arte quieto cede mientras el video (con alfa) se ve: 0 con el video a pleno.
+    var staticArtAlpha: CGFloat { sprite.alpha }
+    var staticArtTexture: SKTexture? { sprite.texture }
+
+    func syncArt(videoAlpha: CGFloat) {
+        sprite.alpha = 1 - min(1, max(0, videoAlpha))
     }
 
     @available(*, unavailable)
@@ -85,6 +101,7 @@ final class PickupNode: SKNode {
     }
 
     func update(delta: TimeInterval, reduceMotion: Bool) {
+        syncArt(videoAlpha: waitingVideo?.videoAlpha ?? 0)
         age += delta
         if reduceMotion {
             setScale(1)

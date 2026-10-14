@@ -34,6 +34,42 @@ struct PickupControllerTests {
         #expect(controller.mattress == nil)
     }
 
+    /// Cuántas copias del PNG de la pieza dibuja el árbol del nodo (el póster del video cuenta).
+    private func artCopies(in node: SKNode, texture: SKTexture) -> Int {
+        let own = (node as? SKSpriteNode).map { $0.texture === texture ? 1 : 0 } ?? 0
+        return own + node.children.reduce(0) { $0 + artCopies(in: $1, texture: texture) }
+    }
+
+    @Test("un solo nodo dibuja cada caja y el colchón, y el arte quieto cede cuando el video se ve")
+    func oneNodePerPickup() async throws {
+        let (gameState, controller) = await pickups()
+        gameState.debugAddPackages(2)
+        gameState.debugSpawnMattress()
+        gameState.refreshPrizeAccess()
+        controller.update(delta: 1, reduceMotion: true)
+        let mattress = try #require(controller.mattress)
+        #expect(controller.boxes.count == 2)
+        for box in controller.boxes {
+            #expect(artCopies(in: box, texture: PickupArt.texture(.package)) == 1)
+            #expect(box.waitingVideoNode != nil)
+        }
+        #expect(artCopies(in: mattress, texture: PickupArt.texture(.mattress)) == 1)
+        let box = try #require(controller.boxes.first)
+        box.syncArt(videoAlpha: 0)
+        #expect(box.staticArtAlpha == 1)
+        box.syncArt(videoAlpha: 1)
+        #expect(box.staticArtAlpha == 0)
+    }
+
+    @Test("la caja y el colchón van debajo de los empleados y de los visitantes, y encima de los fondos")
+    func layerOrder() async {
+        let (_, controller) = await pickups()
+        #expect(controller.layer.zPosition == PickupController.layerZ)
+        #expect(PickupController.layerZ > FloorNode.backgroundZ(ordinal: 99))
+        #expect(PickupController.layerZ < BoardScene.fieldBaseZ)
+        #expect(PickupController.layerZ < StageController.layerZ)
+    }
+
     @Test("tocar una caja abre la pantalla del paquete, sin gastarlo")
     func tappingABox() async throws {
         let (gameState, controller) = await pickups()

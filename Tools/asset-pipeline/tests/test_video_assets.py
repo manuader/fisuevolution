@@ -24,7 +24,7 @@ SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
 import video_assets  # noqa: E402
-from chest_video_frames import CHEST_ANIM, CINEMATIC_FILE, KEY_COLOR, VIDEO  # noqa: E402
+from chest_video_frames import KEY_COLOR, VIDEO  # noqa: E402
 from PIL import ImageDraw  # noqa: E402
 from video_assets import (  # noqa: E402
     BUSTO,
@@ -394,13 +394,13 @@ class ManifestVersionado(unittest.TestCase):
 
 
 def alfa_decodificable() -> bool:
-    """¿Este ffmpeg ve la capa alfa del HEVC de Apple? Se pregunta al mov del
-    cofre, que la tiene: ffprobe dice yuv420p igual (trampa del cofre), y un
-    ffmpeg viejo decodifica todo opaco."""
+    """¿Este ffmpeg ve la capa alfa del HEVC de Apple? Se pregunta al loop de
+    espera del cofre, que la tiene: ffprobe dice yuv420p igual (trampa del
+    cofre), y un ffmpeg viejo decodifica todo opaco."""
     with tempfile.TemporaryDirectory() as tmp:
         png = Path(tmp) / "f.png"
         subprocess.run(
-            ["ffmpeg", "-v", "error", "-i", str(CHEST_ANIM / CINEMATIC_FILE),
+            ["ffmpeg", "-v", "error", "-i", str(RESOURCES / "Loops" / "obj_cofre_espera.mov"),
              "-frames:v", "1", "-pix_fmt", "rgba", str(png)],
             check=True,
         )

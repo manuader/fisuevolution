@@ -19,4 +19,15 @@ extension CharacterType {
     var localizedName: String {
         Bundle.main.localizedString(forKey: "tier.name.\(id)", value: displayName, table: nil)
     }
+
+    /// La descripción del personaje para la hoja (E14b B16), en el idioma del jugador.
+    ///
+    /// Vive en el catálogo bajo `tier.desc.<id>`. Misma trampa que `localizedName`: la clave se arma
+    /// en runtime, así que el lookup va por el bundle. Sin clave devuelve `nil` (la hoja no dibuja
+    /// el bloque) y no la clave cruda.
+    var localizedDescription: String? {
+        let key = "tier.desc.\(id)"
+        let text = Bundle.main.localizedString(forKey: key, value: key, table: nil)
+        return text == key ? nil : text
+    }
 }

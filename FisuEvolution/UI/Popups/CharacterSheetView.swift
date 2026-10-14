@@ -51,6 +51,7 @@ struct CharacterSheetView: View {
                     pager
                     names
                     thumbnails
+                    description
                     action
                     dismissal
                 }
@@ -194,6 +195,25 @@ struct CharacterSheetView: View {
             .frame(width: 52, height: 52)
             .background(shape.fill(Color("PaletteYellow").opacity(isSelected ? 0.55 : 0.2)))
             .overlay(shape.strokeBorder(Color("PaletteBrown").opacity(isSelected ? 0.9 : 0.4), lineWidth: isSelected ? 2.5 : 1.5))
+    }
+
+    // MARK: La descripción
+
+    /// El texto del personaje (B16): debajo de las skins, en un bloque de pergamino con la tipografía
+    /// de cuerpo de la casa. La hoja ya scrollea, así que un texto largo no se corta en el SE.
+    @ViewBuilder private var description: some View {
+        if let text = sheet.type.localizedDescription {
+            GameCard(style: .highlighted(Color("PaletteYellow"))) {
+                Text(verbatim: text)
+                    .font(Tokens.body)
+                    .foregroundStyle(Color("PaletteInk"))
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("character.description")
+        }
     }
 
     // MARK: Ponérsela o comprarla

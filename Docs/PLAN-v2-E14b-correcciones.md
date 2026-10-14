@@ -182,3 +182,26 @@ revisión según el riesgo.
 Al terminar se corre un `completo` solo, se instala en el iPhone del dueño y él mira: el duplicado, las capas y el
 horizonte en los 10 escenarios, la caja y el colchón en el tablero, los visitantes simultáneos, el menú, el audio
 y los pop-ups.
+
+### B13 — Toda recompensa se ve llegar: monedas que vuelan al contador (pedido del dueño, 2026-10-14)
+- Hoy un evento o un visitante (la Vecina chusma, el Ministro de Economía, el Turista gringo, etc.) da plata y no
+  dice cuánto, ni muestra cuánto tenías antes y cuánto tenés ahora. El jugador no siente que recibió algo.
+- **Con cada recompensa** (plata, dólar blue, producción, boosts, paquetes, lo que sea), una animación hecha con
+  código (sin video, sin arte nuevo obligatorio: los íconos de moneda/blue que ya existen):
+  1. Sale del personaje que la da (o del pop-up/sello de origen) un chorro de monedas (o billetes blue, o el ícono
+     del premio) que vuela en curva hasta el contador correspondiente del HUD.
+  2. Un rótulo grande con el monto (`+$1,2 M`, `+15 blue`) sobre el origen.
+  3. El contador del HUD cuenta hacia arriba de lo que había a lo que hay (no salta), con un rebote y un brillo
+     al recibir cada tanda; haptic y sonido de moneda (los efectos que ya existen o sintetizados con
+     `Tools/audio-synth`).
+  4. Los premios que no son plata (boost, paquete, skin) vuelan con su ícono a su lugar (chip de boosts, sello,
+     etc.).
+- Un componente reutilizable (p. ej. `RewardFlight`) que cualquier fuente llama con origen, destino, tipo y monto;
+  todas las fuentes de recompensa lo usan (eventos, visitantes, Ruleta, colchón, cofre, regalos, offline,
+  diario). La plata se acredita igual que hoy: la animación es presentación, no cambia la economía ni el pacing.
+- Reduce Motion: sin vuelo; el rótulo del monto y el contador que sube con fundido.
+- Rendimiento: tope de partículas por tanda (SE con `maxLive = 2` en video: medir fps), sin trabar el tablero.
+- **Listo cuando:** un test unitario verifica que cada fuente de recompensa dispara la animación con el monto
+  correcto y que el saldo final es el mismo con y sin animación; capturas (o una tira de cuadros) del vuelo en el
+  SE y el Pro Max para un evento de plata y uno de blue; D14 cero superposición. Revisión: sonnet (opus si toca
+  `grant()` o la acreditación).

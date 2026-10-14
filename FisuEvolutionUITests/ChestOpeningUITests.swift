@@ -45,12 +45,16 @@ final class ChestOpeningUITests: XCTestCase {
                        "y la pinta no se ofrece hasta el marco final")
 
         let llegada = XCTAttachment(screenshot: app.screenshot())
-        llegada.name = "cofre: la llegada"
+        llegada.name = "cofre 1 antes"
         llegada.lifetime = .keepAlways
         add(llegada)
 
         // Los tres toques del candado; el video corre solo después del tercero.
         area.tap()
+        let durante = XCTAttachment(screenshot: app.screenshot())
+        durante.name = "cofre 2 durante"
+        durante.lifetime = .keepAlways
+        add(durante)
         area.tap()
         area.tap()
 
@@ -67,7 +71,7 @@ final class ChestOpeningUITests: XCTestCase {
         XCTAssertTrue(app.buttons["chest.dismiss"].exists, "y la salida sin equipar")
 
         let reposo = XCTAttachment(screenshot: app.screenshot())
-        reposo.name = "cofre: el premio en el marco"
+        reposo.name = "cofre 3 despues"
         reposo.lifetime = .keepAlways
         add(reposo)
 

@@ -10,11 +10,21 @@ final class WheelUITests: XCTestCase {
         continueAfterFailure = false
     }
 
-    private func launch(spins: Int) -> XCUIApplication {
+    /// `video` le saca al pool el póster forzado: la Ruleta se ve con el marco del clip.
+    private func launch(spins: Int, video: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-wheel-spins=\(spins)"]
+            + (video ? ["--uitest-video"] : [])
         app.launch()
         return app
+    }
+
+    /// La captura de un momento de la pantalla de premio (E14 T17), adjunta al resultado.
+    private func snap(_ app: XCUIApplication, _ name: String) {
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = name
+        shot.lifetime = .keepAlways
+        add(shot)
     }
 
     private func openWheel(_ app: XCUIApplication) {
@@ -27,17 +37,20 @@ final class WheelUITests: XCTestCase {
     }
 
     func testTheWheelSpinsFromGifts() {
-        let app = launch(spins: 1)
+        let app = launch(spins: 1, video: true)
         openWheel(app)
 
         XCTAssertTrue(app.descendants(matching: .any)["wheel.odds.coins_30"].waitForExistence(timeout: 5),
                       "la tabla está a la vista antes de girar")
         let free = app.buttons["wheel.spin.bonus"]
         XCTAssertTrue(free.waitForExistence(timeout: 5))
+        snap(app, "ruleta 1 antes")
         free.tap()
+        snap(app, "ruleta 2 durante")
 
         let result = app.descendants(matching: .any)["wheel.result"]
         XCTAssertTrue(result.waitForExistence(timeout: 8))
+        snap(app, "ruleta 3 despues")
         XCTAssertFalse((result.value as? String ?? "").isEmpty)
         let again = app.buttons["wheel.repeat"]
         XCTAssertTrue(again.waitForExistence(timeout: 3))

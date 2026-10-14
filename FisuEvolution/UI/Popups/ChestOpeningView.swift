@@ -257,6 +257,17 @@ struct ChestOpeningView: View {
                 controls
                     .frame(maxWidth: 250)
                     .offset(y: Self.controlsY)
+            } else if beat >= .waiting, beat < .cinematic {
+                // Antes y durante (E14 C4): lo que hay que hacer, a la vista.
+                Text("chest.tap.hint")
+                    .font(Tokens.title)
+                    .foregroundStyle(.white)
+                    .shadow(color: .black.opacity(0.6), radius: 0, y: 2)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 250)
+                    .offset(y: Self.controlsY)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
             }
 
             // El área tappable: una capa propia, ARRIBA del arte y ABAJO de
@@ -431,13 +442,20 @@ struct ChestOpeningView: View {
             case let .skin(id, characterType, _):
                 skinPortrait(skinID: id, typeID: characterType)
             case .coins:
-                CoinIcon(size: Self.portraitSide * 0.8)
+                RewardArt(kind: .coins).padding(Tokens.s8)
             }
         }
         .frame(width: Self.portraitSide, height: Self.portraitSide)
         .background(Color("PaletteYellow").opacity(0.3))
         .clipShape(Self.plateShape)
         .overlay(Self.plateShape.strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
+        // Los rayos del premio (E14 C4) detrás de la placa, del color de la
+        // rareza, y el pop al aparecer. Van de fondo y de overlay: no mueven nada.
+        .background {
+            RewardRays(tint: ChestRarityStyle.color(rarity))
+                .frame(width: Self.portraitSide * 1.6, height: Self.portraitSide * 1.6)
+        }
+        .overlay { PrizePop() }
         .accessibilityHidden(true)
     }
 
@@ -738,11 +756,7 @@ struct ChestOpeningView: View {
                 // Ponérsela desde acá: el premio se gana en medio del loop y
                 // mandarlo a buscar la ficha para usarlo es fricción de más
                 // (mismo criterio que `SkinAwardView`).
-                ActionPill(
-                    titleKey: "chest.equip",
-                    systemImage: "tshirt.fill",
-                    identifier: "chest.equip"
-                ) {
+                GameButton("chest.equip", role: .free, medallion: .none, identifier: "chest.equip") {
                     guard !extraChestBusy else { return }
                     gameState.equipSkin(id: id, forCharacterType: characterType)
                     gameState.dismissChestReward()
@@ -759,12 +773,7 @@ struct ChestOpeningView: View {
             // Conserva el identifier `chest.dismiss`: cerrar es siempre el mismo
             // control, cambie el premio que cambie.
             VStack(spacing: Tokens.s4) {
-                ActionPill(
-                    titleKey: "chest.coins.ok",
-                    systemImage: "checkmark",
-                    tint: Color("PaletteGreen"),
-                    identifier: "chest.dismiss"
-                ) {
+                GameButton("chest.coins.ok", role: .free, identifier: "chest.dismiss") {
                     guard !extraChestBusy else { return }
                     gameState.dismissChestReward()
                 }
@@ -788,9 +797,8 @@ struct ChestOpeningView: View {
                 title: String(localized: "ads.offer.chest.again"),
                 identifier: "chest.again.ad",
                 placement: .chestExtra,
-                systemImage: "play.rectangle.fill",
-                tint: Color("PaletteBlue"),
-                isBusy: $extraChestBusy
+                isBusy: $extraChestBusy,
+                gameRole: .video
             ) {
                 gameState.dismissChestReward()
                 gameState.grantExtraChestFromAd()

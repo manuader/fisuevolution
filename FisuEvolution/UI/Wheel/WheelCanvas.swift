@@ -1,9 +1,30 @@
 import EconomyKit
 import SwiftUI
 
-/// La rueda dibujada: rebanadas iguales alternando los colores de la casa, el
-/// ícono y el número de cada premio, el aro y el centro. `rotation` en grados,
-/// sentido horario.
+/// Cómo se acomoda un gajo: cuánto mide el dibujo del premio y a qué altura
+/// del radio va él y su número. Puro, para pinearlo en un test.
+enum WheelSliceLayout {
+    /// El dibujo del premio, en fracción del radio.
+    static let artSide = 0.30
+    /// A qué distancia del centro va el dibujo.
+    static let artRadius = 0.52
+    /// A qué distancia va el número ("30 min", "×2").
+    static let labelRadius = 0.80
+    /// El gajo más angosto de la rueda no puede ser menor que su dibujo.
+    static func artFits(slices: Int) -> Bool {
+        guard slices > 0 else { return false }
+        let chord = 2 * artRadius * sin(Double.pi / Double(slices))
+        return chord >= artSide
+    }
+
+    /// Qué imagen lleva el gajo de un premio (E14 C4: cada gajo con su arte).
+    static func kind(of reward: RewardSpec) -> RewardKind { RewardKind(reward) ?? .gift }
+}
+
+/// Los gajos de la rueda, con la imagen de su premio y el número al costado,
+/// rotados como una sola pieza (`rotation` en grados, sentido horario). El aro,
+/// las luces y el puntero son del video (`ruleta_espera`), que va debajo; esto
+/// es el disco que gira encima.
 struct WheelCanvas: View {
     let segments: [WheelConfig.Segment]
     let rotation: Double
@@ -11,64 +32,58 @@ struct WheelCanvas: View {
     static let palette = ["PaletteYellow", "PaletteGreen", "PaletteOrange", "PaletteBlue", "PalettePink"]
 
     var body: some View {
-        Canvas { context, size in
-            let radius = min(size.width, size.height) / 2
-            context.translateBy(x: size.width / 2, y: size.height / 2)
-            context.rotate(by: .degrees(rotation))
-            for (index, arc) in WheelGeometry.arcs(count: segments.count).enumerated() {
-                var wedge = Path()
-                wedge.move(to: .zero)
-                wedge.addArc(center: .zero, radius: radius * 0.92,
-                             startAngle: .degrees(arc.start - 90), endAngle: .degrees(arc.end - 90), clockwise: false)
-                wedge.closeSubpath()
-                context.fill(wedge, with: .color(Color(Self.palette[index % Self.palette.count])))
-                context.stroke(wedge, with: .color(Color("PaletteInk").opacity(0.55)), lineWidth: 1.5)
-
-                var label = context
-                label.rotate(by: .degrees(arc.mid))
-                let reward = segments[index].reward
-                var icon = label.resolve(Image(systemName: RewardCopy.symbol(reward)))
-                icon.shading = .color(Color("PaletteInk"))
-                let iconSide = radius * 0.16
-                label.draw(icon, in: CGRect(x: -iconSide / 2, y: -radius * 0.70 - iconSide / 2,
-                                            width: iconSide, height: iconSide))
-                if let text = RewardCopy.slice(reward) {
-                    label.draw(
-                        Text(verbatim: text)
-                            .font(.system(size: radius * 0.10, weight: .heavy, design: .rounded))
-                            .foregroundStyle(Color("PaletteInk")),
-                        at: CGPoint(x: 0, y: -radius * 0.47)
-                    )
+        GeometryReader { geo in
+            let side = min(geo.size.width, geo.size.height)
+            let radius = side / 2
+            ZStack {
+                Canvas { context, size in
+                    let radius = min(size.width, size.height) / 2
+                    context.translateBy(x: size.width / 2, y: size.height / 2)
+                    for (index, arc) in WheelGeometry.arcs(count: segments.count).enumerated() {
+                        var wedge = Path()
+                        wedge.move(to: .zero)
+                        wedge.addArc(center: .zero, radius: radius,
+                                     startAngle: .degrees(arc.start - 90), endAngle: .degrees(arc.end - 90),
+                                     clockwise: false)
+                        wedge.closeSubpath()
+                        context.fill(wedge, with: .color(Color(Self.palette[index % Self.palette.count])))
+                        context.stroke(wedge, with: .color(Color("PaletteInk").opacity(0.55)), lineWidth: 1.5)
+                    }
+                    let edge = Path(ellipseIn: CGRect(x: -radius, y: -radius, width: radius * 2, height: radius * 2))
+                    context.stroke(edge, with: .color(Color("PaletteInk")), lineWidth: 2)
+                    let hub = Path(ellipseIn: CGRect(x: -radius * 0.12, y: -radius * 0.12,
+                                                     width: radius * 0.24, height: radius * 0.24))
+                    context.fill(hub, with: .color(Color("PaletteCream")))
+                    context.stroke(hub, with: .color(Color("PaletteInk")), lineWidth: 2)
+                }
+                ForEach(Array(segments.enumerated()), id: \.element.id) { index, segment in
+                    slice(segment, arc: WheelGeometry.arcs(count: segments.count)[index], radius: radius)
                 }
             }
-            let rim = Path(ellipseIn: CGRect(x: -radius * 0.96, y: -radius * 0.96, width: radius * 1.92, height: radius * 1.92))
-            context.stroke(rim, with: .color(Color("PaletteBrown")), lineWidth: radius * 0.08)
-            let hub = Path(ellipseIn: CGRect(x: -radius * 0.14, y: -radius * 0.14, width: radius * 0.28, height: radius * 0.28))
-            context.fill(hub, with: .color(Color("PaletteCream")))
-            context.stroke(hub, with: .color(Color("PaletteInk")), lineWidth: 2)
+            .frame(width: side, height: side)
+            .drawingGroup()
+            .rotationEffect(.degrees(rotation))
+            .frame(width: geo.size.width, height: geo.size.height)
         }
         .accessibilityHidden(true)
     }
-}
 
-/// El puntero de arriba.
-struct WheelPointer: View {
-    var body: some View {
-        PointerShape()
-            .fill(Color("PaletteOrange"))
-            .overlay(PointerShape().stroke(Color("PaletteInk"), lineWidth: 2))
-            .accessibilityHidden(true)
-    }
-
-    private struct PointerShape: Shape {
-        func path(in rect: CGRect) -> Path {
-            var path = Path()
-            path.move(to: CGPoint(x: rect.minX, y: rect.minY))
-            path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
-            path.addLine(to: CGPoint(x: rect.midX, y: rect.maxY))
-            path.closeSubpath()
-            return path
+    private func slice(_ segment: WheelConfig.Segment, arc: WheelGeometry.Arc, radius: CGFloat) -> some View {
+        ZStack {
+            RewardArt(kind: WheelSliceLayout.kind(of: segment.reward))
+                .frame(width: radius * WheelSliceLayout.artSide, height: radius * WheelSliceLayout.artSide)
+                .offset(y: -radius * WheelSliceLayout.artRadius)
+            if let text = RewardCopy.slice(segment.reward) {
+                Text(verbatim: text)
+                    .font(.system(size: radius * 0.10, weight: .heavy, design: .rounded))
+                    .foregroundStyle(Color("PaletteInk"))
+                    .lineLimit(1)
+                    .fixedSize()
+                    .offset(y: -radius * WheelSliceLayout.labelRadius)
+            }
         }
+        .frame(width: radius * 2, height: radius * 2)
+        .rotationEffect(.degrees(arc.mid))
     }
 }
 

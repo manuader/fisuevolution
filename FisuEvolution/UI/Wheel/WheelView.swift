@@ -1,10 +1,14 @@
 import EconomyKit
 import SwiftUI
 
-/// La Ruleta (PLAN-v2 E5): la presenta el Conductor de TV, gira con un frenado
-/// de `wheel.json` `spinSeconds` y un tic por rebanada, y la tabla de
-/// probabilidades está a la vista, debajo (Apple 3.1.1). El premio ya se
-/// acreditó cuando la rueda arranca (`spinWheel`).
+/// La Ruleta (PLAN-v2 E5, E14 C4/C26) en tres momentos. Antes: el marco con las
+/// luces del video y los gajos con la imagen de su premio, el botón y la tabla
+/// de probabilidades a la vista (Apple 3.1.1). Durante: se tira con un botón o
+/// con un deslizón (el giro regalado) y frena con `wheel.json` `spinSeconds` y
+/// un tic por rebanada. Después: las luces festejan (`ruleta_premio`) y el
+/// premio ganado sale grande, con rayos y un pop. El premio lo decide el código
+/// y ya se acreditó cuando la rueda arranca (`beginWheelSpin`); el video sólo
+/// pone el marco.
 ///
 /// Se empuja desde Regalos o se presenta sola (`GameState.wheelSheet`): quien
 /// la muestra decide qué hace `close`.
@@ -25,31 +29,26 @@ struct WheelView: View {
     /// trabe): corta el cobro de un segundo toque sin apagar los botones.
     @State private var latch = PurchaseLatch()
     @State private var videoBusy = false
+    /// El clip de festejo corre (el giro terminó y falta que las luces acaben).
+    @State private var celebrating = false
 
     private var resolving: Bool { latch.isLocked }
 
     /// Quien presenta la ruleta (PLAN-v2 §2).
     private static let hostVisitorId = "npc_conductor"
-    private static let wheelSide: CGFloat = 300
     private static let turns = 5
 
     var body: some View {
         let _ = gameState.effectsVersion
         let availability = gameState.wheelAvailability(storefrontAllows: storefrontAllows)
         let segments = spin?.outcome.segments ?? (result == nil ? gameState.wheelSegments : result?.segments ?? [])
-        ScrollView {
-            VStack(spacing: Tokens.s16) {
-                host
-                wheel(segments: segments)
-                if let result, spin == nil {
-                    resultCard(result)
+        ScrollViewReader { proxy in
+            content(segments: segments, availability: availability)
+                // El premio sale debajo de la rueda: en una pantalla chica se baja a verlo.
+                .onChange(of: result?.segment.id) { _, id in
+                    guard id != nil, spin == nil else { return }
+                    withAnimation { proxy.scrollTo(Self.resultAnchor, anchor: .center) }
                 }
-                buttons(availability)
-                OddsDisclosureView(titleKey: "wheel.odds.title", rows: oddsRows, identifier: "wheel.odds")
-            }
-            .padding(.horizontal, WoodPanelBackground.columnInset)
-            .padding(.top, Tokens.s12)
-            .padding(.bottom, Tokens.s24)
         }
         .panelSheet { PanelTitleBanner(titleKey: "wheel.title") }
         .navigationTitle(Text(verbatim: ""))
@@ -60,6 +59,30 @@ struct WheelView: View {
         .task {
             ads.preloadRewarded(for: .wheel)
             storefrontAllows = await LootBoxGate.current()
+        }
+    }
+
+    private static let resultAnchor = "wheel.result.card"
+
+    private func content(segments: [WheelConfig.Segment], availability: WheelAvailability) -> some View {
+        ScrollView {
+            VStack(spacing: Tokens.s16) {
+                host
+                wheel(segments: segments, availability: availability)
+                if let result, spin == nil {
+                    resultCard(result).id(Self.resultAnchor)
+                } else if availability.bonus > 0, spin == nil {
+                    Text("wheel.hint")
+                        .font(Tokens.body)
+                        .foregroundStyle(Color("PaletteInk"))
+                        .multilineTextAlignment(.center)
+                }
+                buttons(availability)
+                OddsDisclosureView(titleKey: "wheel.odds.title", rows: oddsRows, identifier: "wheel.odds")
+            }
+            .padding(.horizontal, WoodPanelBackground.columnInset)
+            .padding(.top, Tokens.s12)
+            .padding(.bottom, Tokens.s24)
         }
     }
 
@@ -78,18 +101,33 @@ struct WheelView: View {
         }
     }
 
-    private func wheel(segments: [WheelConfig.Segment]) -> some View {
-        TimelineView(.animation(minimumInterval: nil, paused: spin == nil)) { context in
-            WheelCanvas(segments: segments, rotation: spin?.rotation(at: context.date) ?? resting)
-                .frame(width: Self.wheelSide, height: Self.wheelSide)
-                .overlay(alignment: .top) {
-                    WheelPointer()
-                        .frame(width: 28, height: 34)
-                        .offset(y: -10)
-                }
-                .onChange(of: context.date) { _, date in advance(to: date) }
+    private func wheel(segments: [WheelConfig.Segment], availability: WheelAvailability) -> some View {
+        let clip = celebrating ? "ruleta_premio" : "ruleta_espera"
+        let playback: ArtPlayback = celebrating ? .once { celebrating = false } : .loop
+        return ZStack {
+            Circle().fill(Color("PaletteCream"))
+                .overlay(Circle().strokeBorder(Color("PaletteBrown"), lineWidth: 4))
+                .frame(width: WheelStage.discDiameter + 8, height: WheelStage.discDiameter + 8)
+                .offset(WheelStage.discOffset)
+            AnimatedArtView(clip: .object(clip), role: .popup, playback: playback) {
+                Color.clear.frame(width: WheelStage.clipSide, height: WheelStage.clipSide)
+            }
+            TimelineView(.animation(minimumInterval: nil, paused: spin == nil)) { context in
+                WheelCanvas(segments: segments, rotation: spin?.rotation(at: context.date) ?? resting)
+                    .frame(width: WheelStage.discDiameter, height: WheelStage.discDiameter)
+                    .onChange(of: context.date) { _, date in advance(to: date) }
+            }
+            .offset(WheelStage.discOffset)
         }
-        .frame(height: Self.wheelSide + 12)
+        .frame(width: WheelStage.size.width, height: WheelStage.size.height)
+        .clipped()
+        .contentShape(Rectangle())
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 24).onEnded { drag in
+                guard WheelStage.isSwipe(drag.translation), availability.bonus > 0 else { return }
+                start(.bonus)
+            }
+        )
         .accessibilityElement()
         .accessibilityIdentifier("wheel.wheel")
         .accessibilityValue(Text(verbatim: spin == nil ? "idle" : "spinning"))
@@ -99,36 +137,38 @@ struct WheelView: View {
     private func buttons(_ availability: WheelAvailability) -> some View {
         VStack(spacing: Tokens.s8) {
             if spin != nil || resolving {
-                StateBadge(text: String(localized: "wheel.spinning"), systemImage: "hourglass",
+                StateBadge(text: String(localized: "wheel.spinning"),
                            textAlignment: .center, muted: true)
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("wheel.spinning")
             } else {
                 if availability.bonus > 0 {
-                    ActionPill(titleKey: "wheel.spin.bonus", systemImage: "gift.fill",
-                               tint: Color("PaletteGreen"), identifier: "wheel.spin.bonus") { start(.bonus) }
+                    GameButton("wheel.spin.bonus", role: .free, medallion: .none, identifier: "wheel.spin.bonus") {
+                        start(.bonus)
+                    }
                 } else if availability.videoLeft > 0 {
                     RewardedOfferButton(
                         title: RewardCopy.text("wheel.spin.video", String(availability.videoLeft)),
                         identifier: "wheel.spin.video",
                         placement: .wheel,
-                        isBusy: $videoBusy
+                        isBusy: $videoBusy,
+                        gameRole: .video
                     ) { start(.video) }
                 } else {
-                    StateBadge(text: String(localized: "wheel.empty"), systemImage: "moon.zzz.fill",
+                    StateBadge(text: String(localized: "wheel.empty"),
                                textAlignment: .center, muted: true)
                         .accessibilityElement(children: .combine)
                         .accessibilityIdentifier("wheel.empty")
                 }
                 if availability.oroLeft > 0 {
-                    PricePill(text: String(availability.oroCost), currency: .oro, affordable: availability.canPayOro,
-                              identifier: "wheel.spin.oro", accessibilityPurpose: Text("wheel.spin.oro.ax")) {
+                    GameButton(verbatim: String(availability.oroCost), role: .blue, available: availability.canPayOro,
+                               identifier: "wheel.spin.oro", accessibilityLabel: Text("wheel.spin.oro.ax")) {
                         if availability.canPayOro { start(.oro) }
                     }
                 }
                 if availability.canRepeat, result != nil {
                     RewardedOfferButton(title: String(localized: "wheel.repeat"), identifier: "wheel.repeat",
-                                        placement: .wheel, isBusy: $videoBusy) { repeatPrize() }
+                                        placement: .wheel, isBusy: $videoBusy, gameRole: .video) { repeatPrize() }
                 }
             }
         }
@@ -137,33 +177,27 @@ struct WheelView: View {
     private func resultCard(_ outcome: WheelSpinOutcome) -> some View {
         let reward = outcome.segment.reward
         let text = outcome.coins > 0 ? "+\(CoinFormatter.string(from: outcome.coins))" : RewardCopy.title(reward)
-        return GameCard(style: .highlighted(Color("PaletteYellow"))) {
-            HStack(spacing: Tokens.s8) {
-                Image(systemName: RewardCopy.symbol(reward))
-                    .font(.system(size: 26, weight: .heavy))
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("wheel.result.title")
-                        .font(Tokens.caption)
-                    Text(verbatim: text)
-                        .font(Tokens.title)
-                        .monospacedDigit()
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.6)
-                }
-                Spacer(minLength: 0)
+        return GameCard {
+            VStack(spacing: Tokens.s8) {
+                Text("wheel.result.title")
+                    .font(Tokens.caption)
+                    .foregroundStyle(Color("PaletteInk").opacity(0.7))
+                PrizeReveal(kind: WheelSliceLayout.kind(of: reward), text: text)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("wheel.result")
+                    .accessibilityValue(Text(verbatim: outcome.segment.id))
+                GameButton("wheel.collect", role: .free, identifier: "wheel.collect") { result = nil }
             }
-            .foregroundStyle(Color("PaletteInk"))
+            .frame(maxWidth: .infinity)
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("wheel.result")
-        .accessibilityValue(Text(verbatim: outcome.segment.id))
     }
 
     private var oddsRows: [OddsDisclosureView.Row] {
         zip(gameState.wheelSegments, gameState.wheelOdds).map { segment, odds in
             OddsDisclosureView.Row(
                 id: segment.id, title: RewardCopy.title(segment.reward),
-                symbol: RewardCopy.symbol(segment.reward), probability: odds.probability
+                symbol: RewardCopy.symbol(segment.reward), probability: odds.probability,
+                kind: WheelSliceLayout.kind(of: segment.reward)
             )
         }
     }
@@ -183,6 +217,7 @@ struct WheelView: View {
         guard !reduceMotion else {
             resting = target.truncatingRemainder(dividingBy: 360)
             result = outcome
+            celebrating = true
             releaseSoon()
             return
         }
@@ -202,6 +237,7 @@ struct WheelView: View {
         guard spin.isFinished(at: date) else { return }
         resting = spin.to.truncatingRemainder(dividingBy: 360)
         result = spin.outcome
+        celebrating = true
         self.spin = nil
         latch.release()
     }
@@ -218,5 +254,32 @@ struct WheelView: View {
     private func repeatPrize() {
         guard spin == nil, !resolving, let outcome = gameState.repeatWheelPrize() else { return }
         result = outcome
+    }
+}
+
+/// El escenario de la Ruleta: el clip (512 px de lado) y el disco liso que
+/// trae, medidos en el cuadro del video, pasados a puntos. Los gajos de
+/// `WheelCanvas` se dibujan encima del disco, así que esto tiene que coincidir
+/// con `ruleta_espera` / `ruleta_premio`.
+enum WheelStage {
+    /// Puntos por píxel del clip.
+    static let scale: CGFloat = 0.78
+    static let clipSide: CGFloat = 512 * scale
+    /// El centro del disco liso en el cuadro del clip, y su radio (px).
+    static let discCenter = CGPoint(x: 255, y: 262)
+    static let discRadius: CGFloat = 128
+    /// Lo que se ve del clip: el marco con el puntero y las luces, y el
+    /// festejo; los bordes vacíos del cuadro no ocupan lugar.
+    static let size = CGSize(width: 335, height: 322)
+
+    static var discDiameter: CGFloat { discRadius * 2 * scale }
+    /// Cuánto se corre el disco del centro del cuadro.
+    static var discOffset: CGSize {
+        CGSize(width: (discCenter.x - 256) * scale, height: (discCenter.y - 256) * scale)
+    }
+
+    /// Un deslizón lateral tira la ruleta; uno vertical es el scroll de la hoja.
+    static func isSwipe(_ translation: CGSize) -> Bool {
+        abs(translation.width) >= 60 && abs(translation.width) > abs(translation.height) * 1.5
     }
 }

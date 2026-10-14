@@ -13,7 +13,7 @@ final class CorralitoUITests: XCTestCase {
         app.buttons["sheet.close"].tap()
         XCTAssertTrue(app.buttons["event.escape"].waitForNonExistence(timeout: 6))
         app.buttons["hud.quickhire"].tap()
-        XCTAssertTrue(app.buttons["tower.notice"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["tower.notice"].waitForExistence(timeout: 5))
         app.buttons["hud.hire"].tap()
         XCTAssertTrue(app.otherElements["jobs.spending_frozen"].waitForExistence(timeout: 5))
     }

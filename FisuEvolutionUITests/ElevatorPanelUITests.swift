@@ -92,6 +92,39 @@ final class ElevatorPanelUITests: XCTestCase {
         attach(app, named: "E13b placa con 10 pisos")
     }
 
+    /// C30: con un boost en la columna de la derecha, la placa queda encima y sus botones reciben
+    /// el toque; al irse, el boost vuelve a tocarse.
+    @MainActor
+    func testLaPlacaVaEncimaDeLosBoostsYAlIrseElBoostSeToca() throws {
+        let app = launch()
+        app.buttons["hud.bonus"].tap()
+        let activate = app.buttons["bonus.activate.mate"]
+        XCTAssertTrue(activate.waitForExistence(timeout: 6))
+        activate.tap()
+        app.buttons["sheet.close"].tap()
+        let chip = app.otherElements["hud.bonus.chip"].firstMatch
+        XCTAssertTrue(chip.waitForExistence(timeout: 6), "el boost no apareció en la columna")
+        let chipFrame = chip.frame
+
+        app.buttons["hud.map"].press(forDuration: 0.9)
+        let keypad = app.otherElements["hud.elevator.keypad"]
+        XCTAssertTrue(keypad.waitForExistence(timeout: 3))
+        XCTAssertTrue(keypad.frame.intersects(chip.frame), "la placa no cae sobre la columna: el caso no prueba nada")
+        attach(app, named: "E14 T14 placa sobre los boosts")
+        app.buttons["hud.elevator.keypad.floor.urban"].tap()
+        XCTAssertTrue(keypad.waitForNonExistence(timeout: 2), "elegir no recogió la placa")
+        XCTAssertFalse(app.buttons["sheet.close"].exists, "el toque al botón del piso llegó al boost de abajo")
+        let arrived = NSPredicate(format: "value == %@", "urban")
+        XCTAssertEqual(XCTWaiter().wait(for: [expectation(for: arrived, evaluatedWith: app.otherElements["board.floor"])],
+                                        timeout: 5), .completed, "el botón no llevó al urbano")
+
+        let deadline = Date().addingTimeInterval(15)
+        while Date() < deadline, !(chip.exists && chip.isHittable) { usleep(300_000) }
+        attach(app, named: "E14 T14 placa recogida")
+        XCTAssertTrue(chip.isHittable, "con la placa recogida el boost vuelve a tocarse")
+        XCTAssertEqual(chip.frame, chipFrame, "el boost quedó movido")
+    }
+
     @MainActor
     private func attach(_ app: XCUIApplication, named name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot())

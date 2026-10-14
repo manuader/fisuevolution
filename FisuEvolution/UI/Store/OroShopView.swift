@@ -54,17 +54,23 @@ struct PurchaseLatch: Equatable {
     }
 }
 
-/// "Gastar ORO" (PLAN-v2 E6): el saldo y los estantes de `oro_shop.json`. Vive
-/// ADENTRO de la hoja de la Tienda, debajo de su selector: misma columna, mismas
-/// `GameCard` y el mismo `PricePill` que FisuJobs y Mejoras.
+/// Los estantes de `oro_shop.json` que se pagan con blue (PLAN-v2 E6, E14 C11):
+/// la Tienda quedó para la plata de verdad y esto vive en Mejoras —los boosts y
+/// los permanentes del catálogo— y en Pintas —el cofre—. Cada hoja pide los
+/// estantes que le tocan; misma columna, mismas `GameCard` y el mismo `PricePill`
+/// que FisuJobs y Mejoras.
 ///
 /// La vista no decide nada: dibuja `oroShopRows` y llama a `buyOroShopItem`.
 /// Ninguna animación es condición para cobrar ni para entregar.
 struct OroShopShelves: View {
     @Environment(GameState.self) private var gameState
-    /// El azar pagado se vende acá (`LootBoxGate` de E5a); lo resuelve la hoja y,
-    /// hasta que conteste, está cerrado.
+    let shelves: [OroShopCatalog.Shelf]
+    /// El azar pagado se vende en Pintas (`LootBoxGate` de E5a); lo resuelve la
+    /// hoja y, hasta que conteste, está cerrado.
     let chanceAllowed: Bool
+    /// Cada estante con su cinta; Mejoras los agrupa bajo el sello de su pestaña
+    /// («Para siempre», «Por un rato») y no la repite.
+    var titled = true
 
     @Environment(\.loopsManifest) private var loops
     @State private var latch = PurchaseLatch()
@@ -82,15 +88,14 @@ struct OroShopShelves: View {
             .filter { $0.1.isDrawn }
         let focused = focusedRow(in: rows.map(\.0))
         VStack(spacing: Tokens.s12) {
-            OroBalancePill(text: gameState.oroText)
-            ForEach(OroShopCatalog.Shelf.allCases, id: \.self) { shelf in
-                let shelfRows = rows.filter { $0.0.item.shelf == shelf }
-                if shelf == .cosmetics {
-                    cosmeticsShelf
-                } else if !shelfRows.isEmpty {
-                    SectionHeader(LocalizedStringKey(OroShopCopy.shelfKey(shelf)))
-                        .frame(maxWidth: .infinity)
-                        .padding(.top, Tokens.s8)
+            ForEach(shelves, id: \.self) { shelf in
+                let shelfRows = Self.displayOrder(rows.filter { $0.0.item.shelf == shelf }, shelf: shelf)
+                if !shelfRows.isEmpty {
+                    if titled {
+                        SectionHeader(LocalizedStringKey(OroShopCopy.shelfKey(shelf)))
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, Tokens.s8)
+                    }
                     ForEach(Array(shelfRows.enumerated()), id: \.element.0.id) { offset, entry in
                         OroShopItemRow(
                             row: entry.0, odds: entry.1, pendingNote: pendingNote(for: entry.0.item),
@@ -103,13 +108,6 @@ struct OroShopShelves: View {
                         }
                         .staggeredAppearance(index: offset)
                     }
-                    if shelf == .boosts {
-                        Text("oroShop.footer.reincarnate")
-                            .font(Tokens.caption)
-                            .foregroundStyle(Color("PaletteInk").opacity(0.65))
-                            .multilineTextAlignment(.center)
-                            .accessibilityIdentifier("oroShop.footer.reincarnate")
-                    }
                 }
             }
         }
@@ -120,38 +118,17 @@ struct OroShopShelves: View {
         .onDisappear { packTags.forEach { ArtPacks.shared.release($0) } }
     }
 
-    /// Las pintas de ORO de `skins.json`: a color, siempre. En la tienda el arte es el
-    /// argumento de venta (en Pintas, lo que no tenés va en silueta).
-    @ViewBuilder private var cosmeticsShelf: some View {
-        let cosmetics = gameState.cosmeticRows
-        if !cosmetics.isEmpty {
-            SectionHeader(LocalizedStringKey(OroShopCopy.shelfKey(.cosmetics)))
-                .frame(maxWidth: .infinity)
-                .padding(.top, Tokens.s8)
-            ForEach(cosmetics) { row in
-                CosmeticItemRow(row: row, preview: preview(for: row)) { purchaseSkin(row.id) }
-                    .tutorialAnchor(.storeCosmetics, when: row.id == cosmetics.first?.id)
-            }
-        }
-    }
-
-    private func preview(for row: CosmeticRow) -> Image? {
-        guard let content = gameState.content else { return nil }
-        let type: CharacterType? = switch row.kind {
-        case .outfit(let typeID): content.tiers.type(id: typeID)
-        case .family: gameState.cosmeticPreviewType
-        }
-        guard let type else { return nil }
-        return SkinArt.image(type: type, skinID: row.id, skins: content.skins, manifest: content.manifest)
-    }
-
-    private func purchaseSkin(_ skinID: String) {
-        guard latch.claim() else { return }
-        gameState.buySkinWithOro(skinID: skinID)
-        Task {
-            try? await Task.sleep(for: .seconds(Self.latchSeconds))
-            latch.release()
-        }
+    /// Lo que se compra y se usa va arriba, por precio (el más barato primero); lo
+    /// comprado al máximo se va al fondo con su tilde. Los permanentes conservan el
+    /// orden del catálogo: lugares extra primero.
+    static func displayOrder<Entry>(
+        _ entries: [(OroShopRow, Entry)], shelf: OroShopCatalog.Shelf
+    ) -> [(OroShopRow, Entry)] {
+        let ordered = shelf == .permanents
+            ? entries
+            : entries.sorted { ($0.0.quote.price ?? $0.0.item.price ?? 0) < ($1.0.quote.price ?? $1.0.item.price ?? 0) }
+        let open = ordered.filter { $0.0.quote.blocker != .maxed }
+        return open + ordered.filter { $0.0.quote.blocker == .maxed }
     }
 
     /// Los packs ODR de los íconos de la tienda: se precargan al abrirla.
@@ -206,7 +183,7 @@ struct OroShopShelves: View {
 }
 
 /// El saldo de ORO, con el número como valor de accesibilidad para los tests.
-private struct OroBalancePill: View {
+struct OroBalancePill: View {
     let text: String
 
     var body: some View {
@@ -233,9 +210,57 @@ private struct OroBalancePill: View {
     }
 }
 
+/// Lo cosmético que se paga con blue (C11, D3), en la hoja de Pintas: el cofre de
+/// pintas con sus probabilidades y las pintas y familias de `skins.json`, a color
+/// siempre —acá el arte es el argumento de venta—.
+struct BlueCosmeticsShelf: View {
+    @Environment(GameState.self) private var gameState
+    let chanceAllowed: Bool
+
+    @State private var latch = PurchaseLatch()
+
+    private static let latchSeconds = 0.6
+
+    var body: some View {
+        let _ = gameState.effectsVersion
+        let _ = gameState.skinSelectionVersion
+        let cosmetics = gameState.cosmeticRows
+        VStack(spacing: Tokens.s12) {
+            SectionHeader("skins.blue.title")
+                .frame(maxWidth: .infinity)
+                .padding(.top, Tokens.s8)
+            OroBalancePill(text: gameState.oroText)
+            OroShopShelves(shelves: [.luck], chanceAllowed: chanceAllowed, titled: false)
+            ForEach(cosmetics) { row in
+                CosmeticItemRow(row: row, preview: preview(for: row)) { purchaseSkin(row.id) }
+                    .tutorialAnchor(.storeCosmetics, when: row.id == cosmetics.first?.id)
+            }
+        }
+    }
+
+    private func preview(for row: CosmeticRow) -> Image? {
+        guard let content = gameState.content else { return nil }
+        let type: CharacterType? = switch row.kind {
+        case .outfit(let typeID): content.tiers.type(id: typeID)
+        case .family: gameState.cosmeticPreviewType
+        }
+        guard let type else { return nil }
+        return SkinArt.image(type: type, skinID: row.id, skins: content.skins, manifest: content.manifest)
+    }
+
+    private func purchaseSkin(_ skinID: String) {
+        guard latch.claim() else { return }
+        gameState.buySkinWithOro(skinID: skinID)
+        Task {
+            try? await Task.sleep(for: .seconds(Self.latchSeconds))
+            latch.release()
+        }
+    }
+}
+
 /// Una fila: ícono, nombre, qué da, cuántas van hoy (o el nivel) y el precio. La
 /// tarjeta informa, el botón cobra (el patrón de FisuJobs).
-private struct OroShopItemRow: View {
+struct OroShopItemRow: View {
     let row: OroShopRow
     let odds: ChestOddsDisplay
     let pendingNote: String?
@@ -315,14 +340,11 @@ private struct OroShopItemRow: View {
     @ViewBuilder private var rail: some View {
         switch row.quote.blocker {
         case .maxed?:
-            StateBadge(text: String(localized: "upgrades.maxed"), systemImage: "star.circle.fill",
-                       textAlignment: .center, muted: false)
-                .accessibilityElement(children: .combine)
+            StateTag(state: .done, text: String(localized: "upgrades.maxed"))
                 .accessibilityIdentifier("oroShop.maxed.\(row.id)")
         case .dailyLimitReached?, .alreadyPending?, .nothingToDo?:
-            StateBadge(text: blockedText, systemImage: "clock.fill", textAlignment: .center, muted: true)
-                .frame(maxWidth: 110)
-                .accessibilityElement(children: .combine)
+            StateTag(state: .running, text: blockedText)
+                .frame(maxWidth: 130)
                 .accessibilityIdentifier("oroShop.blocked.\(row.id)")
         case .cantAfford?, nil:
             PricePill(
@@ -360,9 +382,7 @@ private struct OroShopItemRow: View {
                             art.resizable().scaledToFit()
                         }
                     } else {
-                        Image(systemName: row.item.symbol)
-                            .resizable().scaledToFit()
-                            .foregroundStyle(Color("PaletteOrange"))
+                        GameGlyphView(glyph: .art(row.item.iconKey), size: 32)
                     }
                 }
                 .padding(8)
@@ -397,7 +417,7 @@ private struct CosmeticItemRow: View {
         GameCard {
             HStack(spacing: Tokens.s12) {
                 Group {
-                    if let preview { preview.resizable().scaledToFit() } else { Image(systemName: "sparkles") }
+                    if let preview { preview.resizable().scaledToFit() } else { GameGlyphView(glyph: .gift, size: 40) }
                 }
                 .frame(width: 64, height: 64)
                 .accessibilityHidden(true)
@@ -415,10 +435,8 @@ private struct CosmeticItemRow: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 if row.owned {
-                    StateBadge(text: String(localized: "oroShop.cosmetic.owned"), systemImage: "checkmark.circle.fill",
-                               textAlignment: .center, muted: false)
-                        .frame(maxWidth: 110)
-                        .accessibilityElement(children: .combine)
+                    StateTag(state: .done, text: String(localized: "oroShop.cosmetic.owned"))
+                        .frame(maxWidth: 130)
                         .accessibilityIdentifier("oroShop.cosmetic.owned.\(row.id)")
                 } else {
                     PricePill(

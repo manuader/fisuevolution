@@ -400,7 +400,7 @@ struct TutorialLessonsTests {
 
     // MARK: La tienda de ORO
 
-    @Test("la tienda de ORO pasa por la mitad «Gastar ORO»")
+    @Test("la tienda de ORO pasa por la pestaña Boosts de Mejoras")
     func oroShopNeedsTheSpendHalf() async throws {
         let gameState = await makeGameState()
         only(.oroShop, in: gameState)
@@ -413,13 +413,13 @@ struct TutorialLessonsTests {
         gameState.refreshProjections()
         #expect(gameState.tutorialRun?.steps.map(\.id) == ["oro_shop.open", "oro_shop.spend", "oro_shop.caps"])
 
-        gameState.menuDidOpen(at: .store)
-        #expect(gameState.tutorialRun?.step?.id == "oro_shop.spend", "abrir la Tienda no basta")
+        gameState.menuDidOpen(at: .upgrades)
+        #expect(gameState.tutorialRun?.step?.id == "oro_shop.spend", "abrir Mejoras no basta")
         gameState.oroShopSpendChosen()
         #expect(gameState.tutorialRun?.step?.id == "oro_shop.caps")
     }
 
-    @Test("elegir «Gastar ORO» no cumple el paso de otra lección")
+    @Test("abrir la pestaña Boosts no cumple el paso de otra lección")
     func spendingHalfOnlyAnswersTheShopLessons() async {
         let gameState = await makeGameState()
         only(.prestige, in: gameState)
@@ -441,7 +441,7 @@ struct TutorialLessonsTests {
         #expect(gameState.luckMomentIsOn(chanceAllowed: true))
         #expect(!gameState.luckMomentIsOn(chanceAllowed: false), "en una tienda restringida no se vende azar")
         #expect(!gameState.isEligible(.luck), "la puerta arranca cerrada hasta que StoreKit contesta")
-        #expect(GameState.TutorialLesson.luck.steps.map(\.id) == ["luck.open", "luck.spend", "luck.odds"])
+        #expect(GameState.TutorialLesson.luck.steps.map(\.id) == ["luck.open", "luck.odds"])
     }
 
     @Test("los cosméticos: nacen con una pinta de ORO que el saldo alcanza y la tienda aprendida")
@@ -458,7 +458,7 @@ struct TutorialLessonsTests {
         #expect(!gameState.isEligible(.cosmetics))
         gameState.player?.meta.oro = cheapest
         gameState.refreshProjections()
-        #expect(gameState.tutorialRun?.steps.map(\.id) == ["cosmetics.open", "cosmetics.spend", "cosmetics.where"])
+        #expect(gameState.tutorialRun?.steps.map(\.id) == ["cosmetics.open", "cosmetics.where"])
         #expect(gameState.tutorialRun?.steps.last?.target == .storeCosmetics)
     }
 

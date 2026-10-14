@@ -91,15 +91,15 @@ final class AppStoreScreenshotTests: XCTestCase {
         settle(seconds: 8)
         shoot(app, "01-tablero")
 
-        // 02. La Tienda, del lado del oro (el lado de las compras muestra el precio
-        // de StoreKit, que en el simulador sin catálogo dice "no disponible").
-        if open(app, tab: "hud.coins.plus", marker: "store.segment.spend") {
-            app.buttons["store.segment.spend"].tap()
+        // 02. Mejoras, del lado del blue (la Tienda muestra el precio de StoreKit, que
+        // en el simulador sin catálogo dice "no disponible").
+        if open(app, tab: "hud.upgrades", marker: "upgrades.tab.boosts") {
+            app.buttons["upgrades.tab.boosts"].tap()
             if app.descendants(matching: .any)["oroShop.balance"].waitForExistence(timeout: 15) {
                 settle()
                 shoot(app, "02-tienda-oro")
             } else {
-                XCTFail("la Tienda no mostró el saldo de oro")
+                XCTFail("Mejoras no mostró el saldo de blue")
             }
         }
         closeSheet(app)

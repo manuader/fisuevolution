@@ -1,35 +1,39 @@
 import XCTest
 
-/// La tienda de ORO (PLAN-v2 E6): el selector en la cabecera de la Tienda, las
-/// filas que cobran y el saldo que baja. Todo por identifier: el runner corre en
-/// inglés (trampa 6).
+/// Gastar blue (PLAN-v2 E6, E14 C11): vive en Mejoras —Permanentes y Boosts—, no en
+/// la Tienda. Todo por identifier: el runner corre en inglés (trampa 6).
 final class OroShopUITests: XCTestCase {
     override func setUp() {
         continueAfterFailure = false
     }
 
     @MainActor
-    private func openStore(_ extra: [String] = []) -> XCUIApplication {
+    private func openUpgrades(_ extra: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial"] + extra
         app.launch()
-        let store = app.buttons["hud.coins.plus"]
-        XCTAssertTrue(store.waitForExistence(timeout: 20), "el + de la moneda nunca apareció")
-        store.tap()
+        let upgrades = app.buttons["hud.upgrades"]
+        XCTAssertTrue(upgrades.waitForExistence(timeout: 20), "la pestaña Mejoras nunca apareció")
+        upgrades.tap()
         return app
     }
 
     @MainActor
-    private func openSpendSide(_ extra: [String] = []) -> (app: XCUIApplication, balance: XCUIElement) {
-        let app = openStore(["--uitest-oro=500"] + extra)
-        let spend = app.buttons["store.segment.spend"]
-        XCTAssertTrue(spend.waitForExistence(timeout: 10))
-        spend.tap()
+    private func openTab(_ tab: String, _ extra: [String] = []) -> (app: XCUIApplication, balance: XCUIElement) {
+        let app = openUpgrades(["--uitest-oro=500"] + extra)
+        let button = app.buttons["upgrades.tab.\(tab)"]
+        XCTAssertTrue(button.waitForExistence(timeout: 10))
+        button.tap()
         // `descendants(.any)`: la píldora combina ícono y texto, y el tipo del
         // elemento combinado no está garantizado.
         let balance = app.descendants(matching: .any)["oroShop.balance"]
         XCTAssertTrue(balance.waitForExistence(timeout: 10))
         return (app, balance)
+    }
+
+    @MainActor
+    private func openSpendSide(_ extra: [String] = []) -> (app: XCUIApplication, balance: XCUIElement) {
+        openTab("boosts", extra)
     }
 
     @MainActor
@@ -39,31 +43,54 @@ final class OroShopUITests: XCTestCase {
     }
 
     @MainActor
-    func testTheStoreStillOpensOnTheMoneySide() throws {
-        let app = openStore()
-        XCTAssertTrue(app.buttons["store.segment.buy"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.buttons["store.segment.spend"].exists)
-        XCTAssertFalse(app.descendants(matching: .any)["oroShop.balance"].exists, "abre en Comprar ORO: App Review ve primero los IAP")
+    func testUpgradesHasThreeTabsAndThePermanentOnesLeadWithTheGoal() throws {
+        let (app, _) = openTab("permanent")
+        for tab in ["characters", "permanent", "boosts"] {
+            XCTAssertTrue(app.buttons["upgrades.tab.\(tab)"].exists, "falta la pestaña \(tab)")
+        }
+        XCTAssertTrue(
+            app.buttons["oroShop.buy.extra_slots"].waitForExistence(timeout: 5),
+            "los lugares extra de la torre viven en Permanentes"
+        )
+        XCTAssertTrue(app.buttons["upgrades.permanent.income"].exists, "y las siete globales, debajo")
+        XCTAssertTrue(
+            app.descendants(matching: .any)["upgrades.goal.bar"].exists,
+            "con 500 blue falta para los 600 de la meta: la barra de ahorro"
+        )
+        XCTAssertFalse(app.buttons["oroShop.buy.income_x2"].exists, "los boosts no se mezclan con los permanentes")
+        attach(app, named: "E14 T19 Permanentes")
     }
 
-    /// La bajada de la cabecera acompaña a la mitad elegida: en Gastar ORO ya no
-    /// habla de plata de verdad, y al volver a Comprar ORO vuelve la de los packs.
     @MainActor
-    func testTheStoreSubtitleFollowsTheSelectedSide() throws {
-        let app = openStore()
-        let buySubtitle = app.staticTexts["store.subtitle.buy"]
-        let spendSubtitle = app.staticTexts["store.subtitle.spend"]
-        XCTAssertTrue(buySubtitle.waitForExistence(timeout: 10), "abre en Comprar ORO con su bajada")
-        XCTAssertFalse(spendSubtitle.exists)
+    func testTheGoalBecomesTheBuyButtonAndChargesOnce() throws {
+        let app = openUpgrades(["--uitest-oro=700"])
+        app.buttons["upgrades.tab.permanent"].tap()
+        let balance = app.descendants(matching: .any)["oroShop.balance"]
+        XCTAssertTrue(balance.waitForExistence(timeout: 10))
+        let buy = app.buttons["upgrades.goal.buy"]
+        XCTAssertTrue(buy.waitForExistence(timeout: 5), "con 700 blue la meta alcanza: el botón reemplaza a la barra")
+        XCTAssertFalse(app.descendants(matching: .any)["upgrades.goal.bar"].exists)
+        buy.tap()
+        waitForBalance(balance, "100")
+        sleep(1)
+        XCTAssertEqual(balance.value as? String, "100")
+    }
 
-        app.buttons["store.segment.spend"].tap()
-        XCTAssertTrue(spendSubtitle.waitForExistence(timeout: 5), "Gastar ORO tiene su bajada")
-        XCTAssertFalse(buySubtitle.exists, "la bajada de la plata no queda en Gastar ORO")
-        XCTAssertTrue(app.buttons["store.restore"].exists, "restaurar compras se ve en las dos mitades")
+    @MainActor
+    func testBoostsTabHoldsBoostsAndShortcutsAndNoTheShop() throws {
+        let (app, _) = openSpendSide()
+        XCTAssertTrue(app.buttons["oroShop.buy.income_x2"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["oroShop.buy.extra_slots"].exists)
+        XCTAssertFalse(app.buttons["store.restore"].exists, "la Tienda es otra hoja")
+    }
 
-        app.buttons["store.segment.buy"].tap()
-        XCTAssertTrue(buySubtitle.waitForExistence(timeout: 5))
-        XCTAssertFalse(spendSubtitle.exists)
+    @MainActor
+    func testThePlusLeadsToTheStoreForMoreBlue() throws {
+        let (app, _) = openTab("permanent")
+        let plus = app.buttons["upgrades.blue.plus"]
+        XCTAssertTrue(plus.exists)
+        plus.tap()
+        XCTAssertTrue(app.buttons["store.restore"].waitForExistence(timeout: 10), "el + abre la Tienda de plata real")
     }
 
     @MainActor

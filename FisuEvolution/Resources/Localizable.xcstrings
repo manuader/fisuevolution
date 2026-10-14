@@ -4905,6 +4905,23 @@
         }
       }
     },
+    "hud.bonus.more.ax %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld more bonuses"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld bonus más"
+          }
+        }
+      }
+    },
     "hud.coins.label" : {
       "localizations" : {
         "en" : {
@@ -5998,6 +6015,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tus empleados escondieron plata en el colchón. ¿Lo abrimos?"
+          }
+        }
+      }
+    },
+    "mattress.tap" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap the mattress to open it!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Tocá el colchón para abrirlo!"
           }
         }
       }
@@ -7662,6 +7696,23 @@
         }
       }
     },
+    "quickhire.ax.floor_base" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "first of the floor"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "el primero del piso"
+          }
+        }
+      }
+    },
     "quickhire.ax.pinned" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7730,6 +7781,23 @@
         }
       }
     },
+    "quickhire.picker.floor" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "First of the floor"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El primero del piso"
+          }
+        }
+      }
+    },
     "quickhire.picker.full" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7777,6 +7845,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Anónimo"
+          }
+        }
+      }
+    },
+    "ranking.block" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hide this name"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No ver más este nombre"
           }
         }
       }
@@ -8066,6 +8151,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Entrar al ranking"
+          }
+        }
+      }
+    },
+    "ranking.entry.terms" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By publishing your name you accept the Terms: zero tolerance for offensive or abusive names."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Al publicar tu nombre aceptás los Términos: tolerancia cero con nombres ofensivos o abusivos."
+          }
+        }
+      }
+    },
+    "ranking.entry.terms.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read the Terms"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leer los Términos"
           }
         }
       }
@@ -10323,6 +10442,23 @@
         }
       }
     },
+    "share.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share it!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Compartilo!"
+          }
+        }
+      }
+    },
     "siderail.boost.ax" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10489,6 +10625,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Que llueva"
+          }
+        }
+      }
+    },
+    "siderail.ready" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ready!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Listo!"
           }
         }
       }
@@ -12138,6 +12291,74 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "En Mejoras potenciás tus ganancias."
+          }
+        }
+      }
+    },
+    "state.done.ax" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hecho"
+          }
+        }
+      }
+    },
+    "state.locked.ax" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Locked"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bloqueado"
+          }
+        }
+      }
+    },
+    "state.ready.ax" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ready to collect"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listo para cobrar"
+          }
+        }
+      }
+    },
+    "state.running.ax" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In progress"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En curso"
           }
         }
       }
@@ -16572,6 +16793,23 @@
         }
       }
     },
+    "visit.declined" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maybe next time!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Otra vez será!"
+          }
+        }
+      }
+    },
     "visit.gossip.next" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -16742,6 +16980,23 @@
         }
       }
     },
+    "visit.offended.bye" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bye"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chau"
+          }
+        }
+      }
+    },
     "visit.option.accept" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -16789,6 +17044,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ con video"
+          }
+        }
+      }
+    },
+    "visit.option.decline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No, thanks"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No, gracias"
           }
         }
       }
@@ -17422,6 +17694,57 @@
         }
       }
     },
+    "visit.vendor.offended.1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fine, fine! Don't come crying to me when your mate runs out…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Bueno, bueno! Después no vengas llorando cuando se te acabe el mate…"
+          }
+        }
+      }
+    },
+    "visit.vendor.offended.2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oh, look at you. Not even a free boost. See you around, then!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ah, mirá vos. Ni un boost de regalo. ¡Que te vaya bien, eh!"
+          }
+        }
+      }
+    },
+    "visit.vendor.offended.3" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How ungrateful! And it was still hot…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Qué desagradecido! Con lo calentito que estaba…"
+          }
+        }
+      }
+    },
     "visit.vendor.take" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -17626,6 +17949,23 @@
         }
       }
     },
+    "wheel.collect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collect!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Cobrar!"
+          }
+        }
+      }
+    },
     "wheel.empty" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -17639,6 +17979,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Por hoy no quedan giros. Mañana hay más."
+          }
+        }
+      }
+    },
+    "wheel.hint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Swipe the wheel to spin"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deslizá la ruleta para girar"
           }
         }
       }

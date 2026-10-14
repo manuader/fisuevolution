@@ -1183,7 +1183,7 @@ struct GameTabBar: View {
     /// es 0, así que el panel fundido —que llega hasta el borde— apoyaba las
     /// leyendas contra el bezel. Con home indicator el inset ya pone 34, el `max`
     /// devuelve 0 y el layout **no cambia en nada**.
-    private static let minimumBottomGap: CGFloat = 12
+    static let minimumBottomGap: CGFloat = 12
     private var bottomGap: CGFloat {
         ScreenInsets.floorGap(minimum: Self.minimumBottomGap, inset: ScreenInsets.shared.bottom)
     }
@@ -1301,10 +1301,10 @@ struct GameTabBar: View {
         UnevenRoundedRectangle(
             topLeadingRadius: 24, topTrailingRadius: 24, style: .continuous
         )
-        // Al 90% la multitud apenas se adivina detrás de los tabs (pedido del
-        // dueño, 2026-08-19; la superior va al 80%). El contorno ink queda
-        // opaco: es el trazo, no el fondo.
-        .fill(Color("PaletteCream").opacity(0.9))
+        // Sólida (E14b B3): al 90 % el tablero se adivinaba detrás de los tabs como un
+        // velo blanco. El fondo del escenario termina arriba de esta barra
+        // (`BoardScene.floorBottom`), así que no hay nada que dejar ver.
+        .fill(Color("PaletteCream"))
         .overlay(
             UnevenRoundedRectangle(
                 topLeadingRadius: 24, topTrailingRadius: 24, style: .continuous

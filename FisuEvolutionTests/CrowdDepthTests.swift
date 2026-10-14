@@ -139,4 +139,44 @@ struct CrowdBandTests {
             #expect(frontRowTop >= backRowBottom - 0.001, "queda un hueco entre \(frontRowTop) y \(backRowBottom)")
         }
     }
+
+    /// E14b B3: el piso lleno y todas las hileras compradas (10, 15 y 20 lugares: 2, 3 y 4 filas),
+    /// en los diez escenarios y todas las pantallas. La fila de atrás, con su deambular, apoya los
+    /// pies a lo sumo en el horizonte de su escenario: nunca flota sobre el fondo.
+    @Test("con el piso lleno y todas las hileras compradas, ninguna fila supera el horizonte de ningún escenario")
+    func noRowPassesTheHorizon() {
+        for screen in screens {
+            for capacity in [10, 15, 20] {
+                let layout = PlayLayout(size: screen, capacity: capacity)
+                let stage = StageLayout(sceneSize: screen, bottomInset: BoardScene.bottomInset,
+                                        cellSize: layout.cellSize, floorBottom: BoardScene.floorBottom)
+                for background in StageLayout.horizons.keys {
+                    let horizon = stage.standY(background: background)
+                    let band = BoardScene.crowdBand(sceneHeight: screen.height, cellSize: layout.cellSize,
+                                                    rows: layout.rows, horizon: horizon)
+                    let backRowFeet = band.frontY + band.rowDepth * CGFloat(layout.rows - 1) + band.wanderRange / 2
+                    #expect(
+                        backRowFeet + BoardScene.bottomInset <= horizon + 0.5,
+                        "\(layout.rows) filas en \(screen) sobre \(background): los pies llegan a \(backRowFeet + BoardScene.bottomInset) y el horizonte está en \(horizon)"
+                    )
+                    #expect(horizon <= stage.horizonY(background: background) + 0.001)
+                }
+            }
+        }
+    }
+
+    @Test("el horizonte sólo baja la franja: sin él, o con uno más alto que el techo, queda como antes")
+    func horizonOnlyLowersTheBand() {
+        for screen in screens {
+            for rows in [2, 3, 4] {
+                let cell = cellSize(screen: screen)
+                let plain = BoardScene.crowdBand(sceneHeight: screen.height, cellSize: cell, rows: rows)
+                let high = BoardScene.crowdBand(sceneHeight: screen.height, cellSize: cell, rows: rows, horizon: screen.height)
+                #expect(plain == high)
+                let low = BoardScene.crowdBand(sceneHeight: screen.height, cellSize: cell, rows: rows,
+                                               horizon: BoardScene.bottomInset + cell * 3)
+                #expect(low.topY <= plain.topY)
+            }
+        }
+    }
 }

@@ -15,6 +15,8 @@ struct PickupLayoutTests {
     ]
 
     private static let backgrounds: [String?] = [nil, "alley", "moon", "god_realm"]
+    /// Sin borde (el default de los tests puros) y el de la app, `BoardScene.floorBottom`.
+    private static let floorBottoms: [CGFloat?] = [nil, 96]
 
     @Test("lejos de los bordes y a los costados del visitante")
     func clearOfTheEdgesAndTheVisitor() {
@@ -44,12 +46,21 @@ struct PickupLayoutTests {
     @Test("apoyados en el horizonte del fondo, el mismo donde se para el visitante")
     func onTheHorizon() {
         for (size, cell) in Self.screens {
-            for background in Self.backgrounds {
-                let layout = PickupLayout(sceneSize: size, bottomInset: 118, cellSize: cell, background: background)
-                let stage = StageLayout(sceneSize: size, bottomInset: 118, cellSize: cell)
-                let horizon = stage.standY(background: background)
-                #expect(abs(layout.packagePosition(index: 0).y - layout.side / 2 - horizon) < 0.5)
-                #expect(abs(layout.baselineY - horizon) < 0.5)
+            for floorBottom in Self.floorBottoms {
+                for background in Self.backgrounds {
+                    let layout = PickupLayout(sceneSize: size, bottomInset: 118, cellSize: cell, background: background, floorBottom: floorBottom)
+                    let stage = StageLayout(sceneSize: size, bottomInset: 118, cellSize: cell, floorBottom: floorBottom)
+                    let horizon = stage.standY(background: background)
+                    let stackTop = horizon + layout.side * (1 + CGFloat(PickupLayout.maxVisibleBoxes - 1) * PickupLayout.stackStep)
+                    let label = "\(size) \(background ?? "-") \(String(describing: floorBottom))"
+                    #expect(layout.baselineY <= horizon + 0.5, "\(label): flota sobre el horizonte")
+                    if stackTop < size.height * PickupLayout.maxTopRatio - 0.5 {
+                        #expect(abs(layout.packagePosition(index: 0).y - layout.side / 2 - horizon) < 0.5, label)
+                        #expect(abs(layout.baselineY - horizon) < 0.5, label)
+                    } else {
+                        #expect(layout.baselineY + layout.side * 1.6 <= size.height * PickupLayout.maxTopRatio, "\(label): la pila llena pasa del tope")
+                    }
+                }
             }
         }
     }
@@ -82,6 +93,19 @@ struct PickupLayoutTests {
             let layout = PickupLayout(sceneSize: size, bottomInset: 118, cellSize: cell, background: "urban")
             #expect(abs(layout.mattressPosition.y - layout.side * 0.35 - layout.baselineY) < 0.01)
             #expect(layout.mattressPosition.y + layout.side / 2 < size.height)
+        }
+    }
+
+    @Test("en los diez escenarios la caja y el colchón apoyan en el suelo: ni bajo la barra ni sobre el horizonte")
+    func neverFloatsInAnyScenario() {
+        for (size, cell) in Self.screens {
+            for background in StageLayout.horizons.keys {
+                let layout = PickupLayout(sceneSize: size, bottomInset: 118, cellSize: cell, background: background, floorBottom: 96)
+                let stage = StageLayout(sceneSize: size, bottomInset: 118, cellSize: cell, floorBottom: 96)
+                #expect(layout.baselineY >= 118 + cell, "\(size) \(background): la caja toca la barra")
+                #expect(layout.baselineY <= stage.horizonY(background: background), "\(size) \(background): la caja flota sobre el horizonte")
+                #expect(layout.packagePosition(index: PickupLayout.maxVisibleBoxes - 1).y + layout.side / 2 < size.height * PickupLayout.maxTopRatio)
+            }
         }
     }
 }

@@ -256,7 +256,7 @@ extension CelebrationKind {
     /// ya pidió el suyo y el cofre que la sigue cierra la cola.
     var endsInNaturalBreak: Bool {
         switch self {
-        case .boardCelebration, .chestOpening, .skinAward, .specialDrop, .dailyReward, .careerChoice:
+        case .boardCelebration, .chestOpening, .skinAward, .specialDrop, .dailyReward, .careerChoice, .newCharacter:
             true
         case .offlineEarnings, .visitorEncounter, .achievements, .towerNotice, .tutorialTip, .cinematic, .offer:
             false

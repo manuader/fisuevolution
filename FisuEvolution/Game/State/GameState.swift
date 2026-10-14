@@ -155,6 +155,9 @@ final class GameState {
     var shareCardMoment: ShareMoment?
     /// El momento viral ofrecido como botón. Lo escribe `+Share`.
     var shareOffer: ShareMoment?
+    /// La card de personaje nuevo que espera su turno o está en pantalla (E14 C24).
+    /// Lo escribe `+Share`.
+    var newCharacterCard: ShareMoment?
     /// El momento que espera una pausa para ofrecerse. Lo escribe `+Share`.
     @ObservationIgnored var pendingShareMoment: ShareMoment?
     /// Con `false` no se ofrece nada (corridas de UI sin `--uitest-share`).

@@ -132,6 +132,11 @@ struct DebugPanelView: View {
                         dismiss()
                     }
                     .accessibilityIdentifier("debug.share.offer")
+                    Button("Card de personaje nuevo") {
+                        gameState.debugOfferNewCharacterCard()
+                        dismiss()
+                    }
+                    .accessibilityIdentifier("debug.share.character")
                 }
                 // ⚠️ Va DESPUÉS de las puertas de los tests (Specials, Cofres,
                 // Ficha): la List es perezosa y una fila bajo el pliegue no existe

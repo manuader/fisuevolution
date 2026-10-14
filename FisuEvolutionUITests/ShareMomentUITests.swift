@@ -33,6 +33,23 @@ final class ShareMomentUITests: XCTestCase {
     }
 
     @MainActor
+    func testUnPersonajeNuevoAbreSuCardYSeguirCierraSinTocarElTablero() throws {
+        let app = launch()
+        openDebugRow("debug.share.character", in: app)
+        let share = app.buttons["share.offer"]
+        XCTAssertTrue(share.waitForExistence(timeout: 8), "el personaje nuevo no abrió su card")
+        let keepGoing = app.buttons["share.card.continue"]
+        XCTAssertTrue(keepGoing.exists, "falta «Seguir»")
+        XCTAssertTrue(app.staticTexts["share.card.bonus"].exists || app.otherElements["share.card.bonus"].exists,
+                      "el bonus tiene que estar a la vista")
+        // Es lo único que bloquea: el tablero de atrás no recibe el toque.
+        XCTAssertFalse(app.buttons["share.offer.dismiss"].exists, "la oferta chica no se suma a la card")
+        keepGoing.tap()
+        XCTAssertTrue(keepGoing.waitForNonExistence(timeout: 8))
+        XCTAssertFalse(app.buttons["share.offer"].exists, "seguir cierra la card y no deja la oferta chica")
+    }
+
+    @MainActor
     private func launch() -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-share"]
@@ -43,11 +60,16 @@ final class ShareMomentUITests: XCTestCase {
 
     @MainActor
     private func offer(in app: XCUIApplication) {
+        openDebugRow("debug.share.offer", in: app)
+    }
+
+    @MainActor
+    private func openDebugRow(_ identifier: String, in app: XCUIApplication) {
         let debugKey = app.buttons["hud.debug"]
         XCTAssertTrue(debugKey.waitForExistence(timeout: 6))
         debugKey.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         // La lista del panel es perezosa: la fila puede estar bajo el pliegue.
-        let button = app.buttons["debug.share.offer"]
+        let button = app.buttons[identifier]
         var swipes = 0
         while !button.waitForExistence(timeout: 2), swipes < 4 {
             app.swipeUp()

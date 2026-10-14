@@ -1,0 +1,9 @@
+{
+  "share.action": {"es": "¡Compartir!", "en": "Share!"},
+  "share.continue": {"es": "Seguir", "en": "Continue"},
+  "share.great": {"es": "¡Genial!", "en": "Awesome!"},
+  "share.bonus %@": {"es": "+%@ min", "en": "+%@ min"},
+  "share.newcharacter.phrase %@": {"es": "¡Descubriste a %@!", "en": "You discovered %@!"},
+  "share.newcharacter.god": {"es": "¡Llegaste a Dios!", "en": "You made it to God!"},
+  "share.card.store": {"es": "Bajalo gratis en la App Store", "en": "Free on the App Store"}
+}

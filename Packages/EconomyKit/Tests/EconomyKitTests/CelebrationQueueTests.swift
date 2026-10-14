@@ -325,9 +325,10 @@ struct CelebrationQueueTests {
 
     /// Se puede saltear exactamente lo que se cierra solo. Lo que espera al
     /// jugador tiene su propio botón, así que ni se saltea ni se vence.
-    @Test("salteable y con tope son la misma lista, salvo la cinemática y las lecciones")
+    @Test("salteable y con tope son la misma lista, salvo la cinemática, las lecciones y la card del personaje")
     func skippableMatchesSelfClosing() {
-        for kind in CelebrationKind.allCases where kind != .cinematic && kind != .tutorialTip {
+        let exceptions: Set<CelebrationKind> = [.cinematic, .tutorialTip, .newCharacter]
+        for kind in CelebrationKind.allCases where !exceptions.contains(kind) {
             #expect(
                 kind.isSkippable == (kind.timeout != nil),
                 "\(kind.rawValue) rompe la invariante: se cierra solo pero no se saltea, o al revés"
@@ -427,5 +428,26 @@ struct CelebrationQueueTests {
         #expect(queue.current == .chestOpening, "la oferta no le pasa por encima a un premio")
         queue.finish(.chestOpening)
         #expect(queue.current == .offer)
+    }
+
+    @Test("la card del personaje nuevo espera al tablero, no se saltea y el watchdog la destraba")
+    func newCharacterCardWaitsForTheBoardAndHasAWatchdog() {
+        #expect(CelebrationKind.newCharacter.priority > CelebrationKind.boardCelebration.priority)
+        #expect(!CelebrationKind.newCharacter.isSkippable)
+        #expect(CelebrationKind.newCharacter.timeout != nil)
+        var queue = CelebrationQueue()
+        queue.enqueue(.boardCelebration)
+        queue.enqueue(.newCharacter)
+        #expect(queue.current == .boardCelebration, "el reveal del tablero va primero")
+        let tapOverBoard = queue.skip()
+        #expect(!tapOverBoard, "un tap al tablero no la saltea")
+        queue.finish(.boardCelebration)
+        #expect(queue.current == .newCharacter)
+        _ = queue.tick(1)
+        let tapOverCard = queue.skip()
+        #expect(!tapOverCard, "ni con el piso de tiempo cumplido")
+        let expired = queue.tick(CelebrationKind.newCharacter.timeout ?? 0)
+        #expect(expired == .newCharacter)
+        #expect(queue.current == nil)
     }
 }

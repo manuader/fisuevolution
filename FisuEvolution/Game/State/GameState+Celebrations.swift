@@ -64,6 +64,7 @@ extension GameState {
         if dailyClaim != nil { celebrations.enqueue(.dailyReward) }
         if careerPrompt != nil { celebrations.enqueue(.careerChoice) }
         if skinAward != nil { celebrations.enqueue(.skinAward) }
+        if newCharacterCard != nil { celebrations.enqueue(.newCharacter) }
         if specialDrop != nil { celebrations.enqueue(.specialDrop) }
         if chestReward != nil { celebrations.enqueue(.chestOpening) }
         if towerNotice != nil { celebrations.enqueue(.towerNotice) }
@@ -244,6 +245,10 @@ extension GameState {
         case .offer:
             // Se mostró su única vez (se marcó al abrir la hoja): de acá en más vive en el chip.
             presentingOfferId = nil
+        case .newCharacter:
+            // Sólo el watchdog llega acá sin que el jugador haya elegido: la
+            // card no vuelve (el bonus no se cobra, no se completó nada).
+            newCharacterCard = nil
         case .offlineEarnings, .dailyReward,
              .careerChoice, .skinAward, .specialDrop, .chestOpening:
             break

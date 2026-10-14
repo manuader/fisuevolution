@@ -1,0 +1,4 @@
+{
+  "wheel.spin.blue": {"es": "%1$@ (quedan %2$@)", "en": "%1$@ (%2$@ left)"},
+  "oroShop.item.wheel_spins.desc": {"es": "+%@ giros por día en la ruleta, con video o con blue", "en": "+%@ Wheel spins a day, with a video or Blue"}
+}

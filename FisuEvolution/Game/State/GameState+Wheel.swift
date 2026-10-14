@@ -15,8 +15,10 @@ struct WheelSpinOutcome: Equatable {
 /// Lo que la ruleta ofrece ahora.
 struct WheelAvailability: Equatable {
     let bonus: Int
+    /// Lo que queda del cupo único del día (E14b D11): lo gastan el video y el blue.
     let videoLeft: Int
-    /// 0 donde la tienda no permite azar con ORO.
+    /// El mismo cupo, visto desde el botón de blue: 0 donde la tienda no
+    /// permite azar con blue.
     let oroLeft: Int
     let oroCost: Int
     let canPayOro: Bool
@@ -153,15 +155,15 @@ extension GameState {
         return state
     }
 
-    /// Cuándo vuelven los giros por video, si hoy se usó alguno: la medianoche
-    /// que cierra el día guardado, con el mismo calendario gregoriano fijo de
+    /// Cuándo vuelve el cupo del día, si hoy se usó algo: la medianoche que
+    /// cierra el día guardado, con el mismo calendario gregoriano fijo de
     /// `wheelDay` y la misma tolerancia (un día guardado futuro sólo cuenta hasta
-    /// mañana). Los giros regalados y los de ORO no avisan: los regalados no
-    /// vencen y el de ORO depende de la tienda. Sin giros por video usados, nada.
+    /// mañana). Un giro con blue gasta el mismo cupo que el video (E14b D11), así
+    /// que también cuenta. Los regalados no avisan: no vencen. Sin cupo usado, nada.
     func wheelSpinsReadyAt(now: TimeInterval) -> TimeInterval? {
         guard let wheel = player?.meta.engagement.wheel else { return nil }
         let state = Self.wheelState(wheel, at: now)
-        guard state.videoSpinsUsed > 0, let saved = state.day else { return nil }
+        guard state.dailySpinsUsed > 0, let saved = state.day else { return nil }
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = .current
         let today = calendar.startOfDay(for: Date(timeIntervalSince1970: now))

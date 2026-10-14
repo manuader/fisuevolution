@@ -160,8 +160,12 @@ struct WheelView: View {
                         .accessibilityElement(children: .combine)
                         .accessibilityIdentifier("wheel.empty")
                 }
+                // El cupo es uno solo (E14b D11): el blue dice lo mismo que el video
+                // y, sin cupo, se va con él y queda el cartel de «no quedan giros».
                 if availability.oroLeft > 0 {
-                    GameButton(verbatim: String(availability.oroCost), role: .blue, available: availability.canPayOro,
+                    GameButton(verbatim: RewardCopy.text("wheel.spin.blue", String(availability.oroCost),
+                                                         String(availability.oroLeft)),
+                               role: .blue, available: availability.canPayOro,
                                identifier: "wheel.spin.oro", accessibilityLabel: Text("wheel.spin.oro.ax")) {
                         if availability.canPayOro { start(.oro) }
                     }

@@ -20,6 +20,8 @@
 > mockups aprobados (`Docs/correcciones-v2/mockups/`), 30 tareas en `tasks.md` §5 «E14» y §4.0. Va antes que
 > todo lo demás de la cola. Detalle: `Docs/SESION-2026-10-12-v2-e14-correcciones-dueno.md`.
 >
+> 📍 **Estado al cierre del relevo 55 (2026-10-14; manda sobre los párrafos de abajo):** `version-2` sigue en `d53a4098`; lo nuevo está en **`v2i/integ-r54` (pusheada)**: lo del 54 + el arreglo de los 6 rojos (iOS 18 abortaba en dyld por el rpath de Debug), E14 T16, T20, T24, el cofre con los clips de C26 y E14b B1 y B2. Queda 1 rojo real (`TowerNoticeUITests`) antes del fast-forward. **La E14b (`Docs/PLAN-v2-E14b-correcciones.md`, B1–B15) va antes de los cierres T25/T26/T27.** Detalle: `Docs/SESION-2026-10-14-v2-relevo-55.md`.
+>
 > 📍 **Estado al cierre del relevo 54 (2026-10-14; manda sobre los párrafos de abajo):** `version-2` sigue en `d53a4098`; lo nuevo está en **`v2i/integ-r54` = `38e86376` (pusheada)**: todo lo de integ-r53 (E14 T22, T21, T13, T17, ranking UGC) + los textos de E14 al catálogo + E14 T19, T14, T15, T18, T23 + las decisiones del dueño (visitantes, topes, `maxLive` del SE) + la ficha con X. Su `completo`: UI 169 · 0 rojos, pero 6 rojos reales (StoreUITests ×3 en iOS 18.6, IAPCopyTests, RankingWiringTests ×2): arreglarlos y recién ahí fast-forward de `version-2`. La 2.0 se lanza **sin Meta Audience Network** (decisión del dueño). Detalle: `Docs/SESION-2026-10-14-v2-relevo-54.md`.
 >
 > 📍 **Estado al cierre del relevo 53 (2026-10-14; manda sobre los párrafos de abajo):** `version-2` sigue en `d53a4098`; lo nuevo está en **`v2i/integ-r53` = `089bd374` (pusheada, SIN `completo`)**: E14 T22, T21, T13, T17 y el ranking como contenido generado por usuarios. Primero el `completo` con la máquina sola; si da VERDE, fast-forward de `version-2`. Detalle: `Docs/SESION-2026-10-13-v2-relevo-53.md`.
@@ -387,6 +389,10 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-10-14 (relevo 55) — Los 6 rojos, E14 T16/T20/T24, el cofre de C26 y la E14b
+
+Los `StoreUITests` de iOS 18.6 eran un aborto en dyld (rpath de Debug), no un arranque lento; T16, T20, T24 y el cofre con sus clips; la E14b del dueño (B1–B15, con B13 recompensas animadas, B14 cero ORO y B15 giros con blue en el cupo) cargada en el spec y el tablero, con B1 y B2 hechas y el arte de B9/B14 aprobado. Detalle: `Docs/SESION-2026-10-14-v2-relevo-55.md`.
 
 ### Sesión del 2026-10-14 (relevo 54) — El `completo` de integ-r53, E14 T19/T14/T15/T18/T23 y las decisiones del dueño
 
@@ -5039,6 +5045,13 @@ Siguen vigentes y no estaban en ningún otro lado:
 - **El repaso se retira si el núcleo volvió a vivir** y no arranca con el núcleo sin hacer: no hay que "arreglarlo" para que arranque igual, pisaría la fase.
 - **El reset del ORO es `min(saldo, comprado)`:** devolver el comprado entero regala ORO gastado; devolver el saldo entero regala el ORO ganado jugando. Cualquier cambio a `ResetPlan` o a `resolveAcrossReset` se prueba con `ResetEpochTests`.
 
+### Del relevo 55 (2026-10-14)
+
+- **«La app tarda 60 s en quedar quieta» puede ser una app muerta:** mirar los `.ips` de `~/Library/Logs/DiagnosticReports`. El rpath de Debug con `@executable_path/Frameworks` primero cargaba el XCTest copiado al `.app` y abortaba en iOS 18.
+- **Quien retire algo de `Resources/` corre la suite de Python de `Tools/asset-pipeline`:** el `tarea` no la corre.
+- **El póster de un video con alfa va transparente:** si encuadra distinto que el PNG, se ve doble.
+- **Para una build urgente del iPhone, reusar el worktree de integración:** uno nuevo recompila todo (~15 min con carga).
+
 ### Del relevo 54 (2026-10-14)
 
 - **Las claves de una tarea se aplican al catálogo al integrarla** (`catalogo.py aplicar`; cambiar = `quitar` + `aplicar`): esperar a T26 dejó al dueño con claves crudas en el iPhone.
@@ -5657,6 +5670,7 @@ Anotado por si algún día importa, con su medición:
 - **`Docs/SESION-2026-10-12-v2-relevo-38-ola-aj.md`**: el relevo 38 (los eventos de 25 s dicen «En curso»; fuera `tutorial.tip.wheel`).
 - **`Docs/SESION-2026-10-12-v2-relevo-37-ola-ai.md`**: el relevo 37 (el UI test del otro colchón `extraOnly`; el pager asienta con el scroll quieto).
 - **`Docs/SESION-2026-10-13-v2-relevo-50.md`**: el relevo 50 (E14 T4, T6, T28; la carga de la máquina).
+- **`Docs/SESION-2026-10-14-v2-relevo-55.md`**: el relevo 55 (los 6 rojos, E14 T16/T20/T24, el cofre de C26, E14b B1/B2 y el spec de E14b).
 - **`Docs/SESION-2026-10-14-v2-relevo-54.md`**: el relevo 54 (E14 T19, T14, T15, T18, T23; decisiones del dueño; textos; sin Meta).
 - **`Docs/SESION-2026-10-13-v2-relevo-53.md`**: el relevo 53 (E14 T22, T21, T13, T17; ranking UGC; pendientes del dueño).
 - **`Docs/SESION-2026-10-13-v2-relevo-52.md`**: el relevo 52 (E14 T11, T12).

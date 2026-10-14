@@ -1,15 +1,9 @@
 import AVFoundation
 import SwiftUI
 
-/// El tramo cinemático del cofre: `chest_open.mov` (HEVC con canal alfa
-/// premultiplicado), del estallido al marco vacío, reproducido por hardware.
-///
-/// Es el primer AVFoundation del repo, y entra por una razón medida: los
-/// ~4 s lineales del estallido a la carta pesan ~1,6 MB en HEVC contra ~12 MB
-/// en frames PNG, con los 48 fps del retime garantizados por el decoder. Los
-/// tramos que responden al dedo (idle y sacudidas) siguen siendo frames de
-/// `ChestAnimationFeed`: un tap pide el swap en el mismo cuadro y un seek de
-/// AVPlayer mete latencia variable.
+/// Un clip HEVC con canal alfa premultiplicado reproducido por hardware con
+/// preroll de verdad. El cofre ya no lo usa (E14 C26: sus clips van por
+/// `AnimatedArtView`); hoy lo usa la cabina del ascensor para sus puertas.
 ///
 /// El item termina PAUSADO en su último frame (`actionAtItemEnd = .pause`):
 /// el marco vacío queda en pantalla y el contenido del premio se renderiza

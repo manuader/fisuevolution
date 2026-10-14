@@ -2411,3 +2411,28 @@ más (×12 de blue cada uno), con la misma tabla que los de video. Ninguna otra 
 de blue da giros; el abono `wheelDailySpins` está topado en +3 (9 por día al máximo).
 
 Comando: el de «Cómo re-correr» de la calibración 2.0, con `--profile free | ads | max`.
+
+# E14b B7 — visitantes congelados por piso y simultáneos (2026-10-14, D6)
+
+**Qué cambió:** el visitante que espera en un piso que se deja de mirar queda congelado (la paciencia no corre)
+y vuelve tal cual al volver al piso; mientras, el piso nuevo puede recibir a otro. Uno por piso, varios pisos a la
+vez (`VisitorsState.waiting`, en el save; `VisitorScheduler.park`/`resume`). El que espera en un piso no entra en otro.
+
+**Ritmo:** las visitas siguen atadas al mismo reloj único (`intervalMin/MaxSeconds` 240–360 s): llega a lo sumo una
+por intervalo, haya uno o varios pisos ocupados. Lo que cambia es que la visita no se pierde por mirar otro piso
+(antes la paciencia de 30 s corría fuera de pantalla) y que un piso ocupado ya no frena al reloj si el jugador está
+en otro. El techo de premios por hora no sube; lo que sube es la fracción de visitas cobradas, que el simulador ya
+cuenta entera (el bot «cobra» todas). No hizo falta tocar ninguna perilla.
+
+**Pacing (medido, sin cambio):** el bot no juega a los visitantes y la rotación no usa la lista de espera, así que
+los tres perfiles dan la línea de base:
+
+| Perfil | Dios (h activas) | de pared | ORO a Dios | Reencarnaciones |
+|---|---|---|---|---|
+| `.free` | 45,40 | 816,07 | 5.996 | 6 |
+| `.ads` | 31,36 | 561,02 | 7.846 | 6 |
+| `.max` | 30,05 | 537,05 | 8.344 | 6 |
+
+Rotación de visitantes (`.free`): 544 visitas hasta Dios, entre 0,56 y 0,75 por hora, vinieron los 18.
+
+Comando: el de «Cómo re-correr» de la calibración 2.0, con `--profile free | ads | max`.

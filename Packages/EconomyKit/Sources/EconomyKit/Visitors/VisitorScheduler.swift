@@ -47,6 +47,7 @@ public enum VisitorScheduler {
         isOfferable: (VisitorsConfig.Script) -> Bool
     ) -> Bool {
         isUnlocked(script, config: config, context: context)
+            && !isWaiting(script.visitor, state: state)
             && (state.visitsToday[script.id] ?? 0) < script.dailyCap
             && isOfferable(script)
     }
@@ -141,6 +142,30 @@ public enum VisitorScheduler {
         state.lastScriptByVisitor[script.visitor] = script.id
         state.visitsToday[script.id, default: 0] += 1
         state.secondsUntilVisit = Double.random(in: config.intervalMinSeconds...config.intervalMaxSeconds, using: &rng)
+    }
+
+    // MARK: Un visitante por piso (E14b B7, D6)
+
+    /// Se fue del piso con alguien esperando: queda congelado ahí, con la
+    /// paciencia que le quedaba. Uno por piso: el nuevo reemplaza al anterior.
+    public static func park(_ visitor: FloorVisitor, state: inout VisitorsState) {
+        state.waiting.removeAll { $0.floorOrdinal == visitor.floorOrdinal }
+        state.waiting.append(visitor)
+    }
+
+    /// Volvió al piso: el que esperaba ahí sale de la lista tal como quedó.
+    public static func resume(floor: Int, state: inout VisitorsState) -> FloorVisitor? {
+        guard let index = state.waiting.firstIndex(where: { $0.floorOrdinal == floor }) else { return nil }
+        return state.waiting.remove(at: index)
+    }
+
+    public static func waiting(onFloor floor: Int, state: VisitorsState) -> FloorVisitor? {
+        state.waiting.first { $0.floorOrdinal == floor }
+    }
+
+    /// Está esperando en algún piso: no puede entrar en otro.
+    public static func isWaiting(_ visitorId: String, state: VisitorsState) -> Bool {
+        state.waiting.contains { $0.visitorId == visitorId }
     }
 
     /// Le tocaba a alguien y nadie puede venir: reintenta pronto, no espera otro

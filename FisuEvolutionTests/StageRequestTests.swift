@@ -62,12 +62,14 @@ struct StageRequestTests {
     @Test("el popup no sale si no se mira su piso, y sale al volver a él")
     func popupWaitsForItsFloor() async throws {
         let (gameState, controller) = try await world("turista_propina", arrival: false)
+        let home = gameState.visibleFloorOrdinal
         #expect(gameState.moveVisibleFloor(by: -1) || gameState.moveVisibleFloor(by: 1))
-        try walkIn(gameState, controller)
+        #expect(gameState.stageVisit == nil, "se congeló en su piso (E14b B7)")
         frames(controller, 10)
         #expect(gameState.visitorPopup == nil, "estás en otro piso")
-        gameState.setVisibleFloor(controller.anchorOrdinal)
+        gameState.setVisibleFloor(home)
         frames(controller, 3)
+        #expect(controller.anchorOrdinal == home)
         #expect(gameState.visitorPopup != nil)
     }
 

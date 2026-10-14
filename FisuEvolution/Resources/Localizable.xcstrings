@@ -823,13 +823,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ ORO"
+            "value" : "%@ Blue"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ de ORO"
+            "value" : "%@ blue"
           }
         }
       }
@@ -2991,13 +2991,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bought with ORO, here or in the Store"
+            "value" : "Bought with Blue, here or in the Store"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Se compra con ORO, acá o en la Tienda"
+            "value" : "Se compra con blue, acá o en la Tienda"
           }
         }
       }
@@ -3280,13 +3280,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reincarnation: the Hobo rises through a storm of gold coins."
+            "value" : "Reincarnation: the Hobo rises through a storm of Blue Dollars."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reencarnación: el Fisura sube entre monedas de oro."
+            "value" : "Reencarnación: el Fisura sube entre una lluvia de dólares blue."
           }
         }
       }
@@ -5214,13 +5214,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ORO, 2 h of income and a skin chest"
+            "value" : "Blue, 2 h of income and a skin chest"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ORO, 2 h de ingresos y un cofre de pintas"
+            "value" : "Blue, 2 h de ingresos y un cofre de pintas"
           }
         }
       }
@@ -5248,13 +5248,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ORO, 8 h of income and 3 Parcels"
+            "value" : "Blue, 8 h of income and 3 Parcels"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ORO, 8 h de ingresos y 3 Paquetes"
+            "value" : "Blue, 8 h de ingresos y 3 Paquetes"
           }
         }
       }
@@ -5282,13 +5282,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ORO, 4 h of income and ×3 for 30 minutes"
+            "value" : "Blue, 4 h of income and ×3 for 30 minutes"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ORO, 4 h de ingresos y ×3 por 30 minutos"
+            "value" : "Blue, 4 h de ingresos y ×3 por 30 minutos"
           }
         }
       }
@@ -5316,13 +5316,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ ORO for those who want it all, and want it now"
+            "value" : "%@ Blue for those who want it all, and want it now"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ de ORO para el que quiere todo, y lo quiere ahora"
+            "value" : "%@ blue para el que quiere todo, y lo quiere ahora"
           }
         }
       }
@@ -5333,13 +5333,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vault of ORO"
+            "value" : "Vault of Blue Dollars"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bóveda de ORO"
+            "value" : "Bóveda de dólares blue"
           }
         }
       }
@@ -5350,13 +5350,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ ORO: boosts, upgrades and skins, with change left over"
+            "value" : "%@ Blue: boosts, upgrades and skins, with change left over"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ de ORO: boosts, mejoras y skins, y todavía te sobra"
+            "value" : "%@ blue: boosts, mejoras y skins, y todavía te sobra"
           }
         }
       }
@@ -5367,13 +5367,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sack of ORO"
+            "value" : "Sack of Blue Dollars"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saco de ORO"
+            "value" : "Saco de dólares blue"
           }
         }
       }
@@ -5384,13 +5384,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ ORO for a boost or that upgrade you keep eyeing"
+            "value" : "%@ Blue for a boost or that upgrade you keep eyeing"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ de ORO para un boost o esa mejora que venís mirando"
+            "value" : "%@ blue para un boost o esa mejora que venís mirando"
           }
         }
       }
@@ -5401,13 +5401,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Handful of ORO"
+            "value" : "Handful of Blue Dollars"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Puñado de ORO"
+            "value" : "Puñado de dólares blue"
           }
         }
       }
@@ -7261,17 +7261,18 @@
       }
     },
     "prestige.body %@" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Every ORO you earn adds %@ to your global multiplier, forever. Every life starts faster."
+            "value" : "Every Blue you earn adds %@ to your global multiplier, forever. Every life starts faster."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cada ORO que ganás suma %@ al multiplicador global, para siempre. Cada vida arranca más rápido."
+            "value" : "Cada blue que ganás suma %@ al multiplicador global, para siempre. Cada vida arranca más rápido."
           }
         }
       }
@@ -7343,18 +7344,18 @@
       }
     },
     "prestige.keeps %@" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You keep: your ORO, the ×%@ multiplier, permanent upgrades and skins"
+            "value" : "You keep: your Blue, the ×%@ multiplier, permanent upgrades and skins"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Conservás: tu ORO, el multiplicador ×%@, las mejoras permanentes y las skins"
+            "value" : "Conservás: tus blue, el multiplicador ×%@, las mejoras permanentes y las skins"
           }
         }
       }
@@ -7393,17 +7394,18 @@
       }
     },
     "prestige.oro.gain %@" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%@ ORO"
+            "value" : "+%@ Blue"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%@ ORO"
+            "value" : "+%@ blue"
           }
         }
       }
@@ -7414,13 +7416,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Earn %@ more for your next ORO"
+            "value" : "Earn %@ more for your next Blue"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Te falta juntar %@ para tu próximo ORO"
+            "value" : "Te falta juntar %@ para tu próximo blue"
           }
         }
       }
@@ -7549,13 +7551,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ ORO"
+            "value" : "%@ Blue"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ de ORO"
+            "value" : "%@ blue"
           }
         }
       }
@@ -8994,13 +8996,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Purchased outfits (money or ORO): %@"
+            "value" : "Purchased outfits (money or Blue): %@"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pintas compradas (con plata o con ORO): %@"
+            "value" : "Pintas compradas (con plata o con blue): %@"
           }
         }
       }
@@ -9062,13 +9064,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ORO: you have %1$@ (bought %2$@, earned %3$@) → you keep %4$@"
+            "value" : "Blue: you have %1$@ (bought %2$@, earned %3$@) → you keep %4$@"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ORO: tenés %1$@ (comprados %2$@, ganados %3$@) → conservás %4$@"
+            "value" : "Blue: tenés %1$@ (comprados %2$@, ganados %3$@) → conservás %4$@"
           }
         }
       }
@@ -9096,13 +9098,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "If a purchase of ORO is refunded later, only that ORO is deducted."
+            "value" : "If a purchase of Blue is refunded later, only that Blue is deducted."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Si después te reembolsan una compra de ORO, se descuenta sólo ese ORO."
+            "value" : "Si después te reembolsan una compra de blue, se descuentan sólo esos blue."
           }
         }
       }
@@ -9402,13 +9404,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@ ORO"
+            "value" : "%1$@ Blue"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@ de ORO"
+            "value" : "%1$@ blue"
           }
         }
       }
@@ -12488,13 +12490,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ORO in the wallet"
+            "value" : "Blue in the wallet"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ORO en la billetera"
+            "value" : "Blue en la billetera"
           }
         }
       }
@@ -12505,13 +12507,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ORO earned overall"
+            "value" : "Blue earned overall"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ORO ganado en total"
+            "value" : "Blue ganados en total"
           }
         }
       }
@@ -12889,18 +12891,18 @@
       }
     },
     "store.pack.oro %@" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gives you %@ ORO to spend on permanent upgrades"
+            "value" : "Gives you %@ Blue to spend on permanent upgrades"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Te da %@ de ORO para las mejoras permanentes"
+            "value" : "Te da %@ blue para las mejoras permanentes"
           }
         }
       }
@@ -13008,18 +13010,18 @@
       }
     },
     "store.section.oro" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ORO"
+            "value" : "Blue"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ORO"
+            "value" : "Blue"
           }
         }
       }
@@ -13047,13 +13049,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Buy ORO"
+            "value" : "Buy Blue"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Comprar ORO"
+            "value" : "Comprar blue"
           }
         }
       }
@@ -13064,13 +13066,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Spend ORO"
+            "value" : "Spend Blue"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gastar ORO"
+            "value" : "Gastar blue"
           }
         }
       }
@@ -13093,17 +13095,18 @@
       }
     },
     "store.subtitle" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Shortcuts, ORO and outfits, with real money"
+            "value" : "Shortcuts, Blue and outfits, with real money"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Atajos, ORO y pintas, con plata de verdad"
+            "value" : "Atajos, blue y pintas, con plata de verdad"
           }
         }
       }
@@ -13114,13 +13117,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Spend your ORO on boosts, shortcuts and luck"
+            "value" : "Spend your Blue on boosts, shortcuts and luck"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gastá tu ORO en boosts, atajos y suerte"
+            "value" : "Gastá tus blue en boosts, atajos y suerte"
           }
         }
       }
@@ -14440,13 +14443,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "There are ORO outfits within reach. Open the Store with the +."
+            "value" : "There are outfits you can pay for with Blue. Open the Store with the +."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hay pintas de ORO a tu alcance. Abrí la Tienda con el +."
+            "value" : "Hay pintas que podés pagar con blue. Abrí la Tienda con el +."
           }
         }
       }
@@ -14457,13 +14460,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tap “Spend ORO”."
+            "value" : "Tap “Spend Blue”."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tocá «Gastar ORO»."
+            "value" : "Tocá «Gastar blue»."
           }
         }
       }
@@ -14474,13 +14477,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ORO outfits are bought here and worn in Outfits."
+            "value" : "Outfits are bought with Blue here and worn in Outfits."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Las pintas de ORO se compran acá y se ponen en Pintas."
+            "value" : "Las pintas se compran con blue acá y se ponen en Pintas."
           }
         }
       }
@@ -14643,13 +14646,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tap “Spend ORO”."
+            "value" : "Tap “Spend Blue”."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tocá «Gastar ORO»."
+            "value" : "Tocá «Gastar blue»."
           }
         }
       }
@@ -14779,13 +14782,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Some have a daily cap. Your ORO balance is at the very top."
+            "value" : "Some have a daily cap. Your Blue balance is at the very top."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Algunos tienen tope por día. El saldo de ORO se ve arriba de todo."
+            "value" : "Algunos tienen tope por día. Tu saldo de blue se ve arriba de todo."
           }
         }
       }
@@ -14796,13 +14799,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You have ORO to spend. Open the Store with the +."
+            "value" : "You have Blue to spend. Open the Store with the +."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tenés ORO para gastar. Abrí la Tienda con el +."
+            "value" : "Tenés blue para gastar. Abrí la Tienda con el +."
           }
         }
       }
@@ -14813,13 +14816,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tap “Spend ORO”: boosts, shortcuts and permanent upgrades."
+            "value" : "Tap “Spend Blue”: boosts, shortcuts and permanent upgrades."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tocá «Gastar ORO»: boosts, atajos y mejoras permanentes."
+            "value" : "Tocá «Gastar blue»: boosts, atajos y mejoras permanentes."
           }
         }
       }
@@ -14898,13 +14901,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tap here to see how much ORO you'd get."
+            "value" : "Tap here to see how much Blue you’d get."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tocá acá para ver cuánto ORO te llevás."
+            "value" : "Tocá acá para ver cuántos blue te llevás."
           }
         }
       }
@@ -14915,13 +14918,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You can reincarnate! You start over, but with ORO that multiplies everything forever."
+            "value" : "You can reincarnate! You start over, but with Blue that multiplies everything forever."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¡Ya podés reencarnar! Empezás de cero, pero con ORO que multiplica todo para siempre."
+            "value" : "¡Ya podés reencarnar! Empezás de cero, pero con blue que multiplican todo para siempre."
           }
         }
       }
@@ -15339,13 +15342,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your first ORO! Trade it in Upgrades for a permanent boost"
+            "value" : "Your first Blue! Trade it in Upgrades for a permanent boost"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¡Tu primer ORO! Canjealo en Mejoras por una mejora permanente"
+            "value" : "¡Tu primer blue! Canjealo en Mejoras por una mejora permanente"
           }
         }
       }
@@ -15764,13 +15767,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Each ORO adds %@ to your multiplier"
+            "value" : "Each Blue adds %@ to your multiplier"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cada ORO suma %@ a tu multiplicador"
+            "value" : "Cada blue suma %@ a tu multiplicador"
           }
         }
       }
@@ -16115,18 +16118,18 @@
       }
     },
     "upgrades.flavor.prestige" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Every ORO you ever earned pulls a little harder next life."
+            "value" : "Every Blue you ever earned pulls a little harder next life."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cada ORO que ganaste rinde un poco más en la próxima vida."
+            "value" : "Cada blue que ganaste rinde un poco más en la próxima vida."
           }
         }
       }
@@ -16200,17 +16203,18 @@
       }
     },
     "upgrades.oro_balance %@" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ORO: %@"
+            "value" : "Blue: %@"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ORO: %@"
+            "value" : "Blue: %@"
           }
         }
       }
@@ -16306,13 +16310,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "While the clamp lasts, cheaper ORO with no limit."
+            "value" : "While the clamp lasts, cheaper Blue with no limit."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mientras dure el cepo, ORO más barato y sin tope."
+            "value" : "Mientras dure el cepo, blue más barato y sin tope."
           }
         }
       }
@@ -16340,13 +16344,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sells you ORO for cash. Up to %1$@ a day."
+            "value" : "Sells you Blue for cash. Up to %1$@ a day."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Te vende ORO a cambio de plata. Hasta %1$@ por día."
+            "value" : "Te vende blue a cambio de plata. Hasta %1$@ por día."
           }
         }
       }
@@ -16357,13 +16361,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Exchange, exchange, exchaaange! Cash for ORO, good rate, no questions asked."
+            "value" : "Exchange, exchange, exchaaange! Cash for Blue, good rate, no questions asked."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¡Cambio, cambio, cambiooo! Plata por ORO, buen precio, sin preguntar."
+            "value" : "¡Cambio, cambio, cambiooo! Plata por blue, buen precio, sin preguntar."
           }
         }
       }
@@ -17071,13 +17075,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Swap %1$@ for %2$@ ORO"
+            "value" : "Swap %1$@ for %2$@ Blue"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cambiar %1$@ por %2$@ ORO"
+            "value" : "Cambiar %1$@ por %2$@ blue"
           }
         }
       }

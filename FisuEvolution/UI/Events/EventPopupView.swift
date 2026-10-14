@@ -68,7 +68,8 @@ struct EventPopupView: View {
         }
     }
 
-    private static let illustrationHeight: CGFloat = 120
+    private static let illustrationHeight: CGFloat = 150
+    private static let illustrationSize: CGFloat = 100
 
     /// El premio que ilustra un evento de compra: el pack de plata, el de blue, el boost o los lugares
     /// extra. El juego no inventa arte para el evento: usa el de lo que promociona (C4, C25).
@@ -88,18 +89,33 @@ struct EventPopupView: View {
 
     private static func posterKey(_ eventId: String) -> String { "ui_event_\(eventId)" }
 
+    /// El premio que ilustra un evento sin imagen propia: el de su primer efecto con dibujo y, si
+    /// ninguno lo tiene (el Apagón, la escena de los campeones), el regalo o la multa según su polaridad.
+    static func fallbackKind(for event: EventCatalog.Event) -> RewardKind {
+        event.effects.lazy.compactMap { RewardKind(event: $0) }.first ?? (event.polarity == .negative ? .fine : .gift)
+    }
+
+    /// Todo evento lleva su imagen principal (B9): la suya, o la de lo que cambia.
     @ViewBuilder
     private func illustration(_ event: EventCatalog.Event) -> some View {
         if let offer = event.shopOffer {
-            RewardIllustration(kind: Self.shopIllustrationKind(for: offer), size: 80, spinsRays: false)
+            RewardIllustration(kind: Self.shopIllustrationKind(for: offer), size: Self.illustrationSize, spinsRays: false)
                 .frame(height: Self.illustrationHeight)
-        } else if let clip = Self.illustrationClip(for: event.id, in: loops),
-           let poster = UIArt.image(Self.posterKey(event.id)) {
-            AnimatedArtView(clip: clip, role: .popup) {
-                poster.resizable().scaledToFit()
+        } else if let poster = UIArt.image(Self.posterKey(event.id)) {
+            Group {
+                if let clip = Self.illustrationClip(for: event.id, in: loops) {
+                    AnimatedArtView(clip: clip, role: .popup) {
+                        poster.resizable().scaledToFit()
+                    }
+                } else {
+                    poster.resizable().scaledToFit()
+                }
             }
             .frame(height: Self.illustrationHeight)
             .accessibilityHidden(true)
+        } else {
+            RewardIllustration(kind: Self.fallbackKind(for: event), size: Self.illustrationSize, spinsRays: false)
+                .frame(height: Self.illustrationHeight)
         }
     }
 

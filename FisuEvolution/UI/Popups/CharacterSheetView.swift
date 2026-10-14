@@ -70,6 +70,7 @@ struct CharacterSheetView: View {
         .overlay {
             if confirmingDismissal {
                 GameConfirmCard(
+                    artKey: "fisura_wave",
                     titleKey: "character.dismiss.title",
                     message: Text("character.dismiss.message"),
                     confirmTitleKey: "character.dismiss.confirm",

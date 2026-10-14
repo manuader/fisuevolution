@@ -78,6 +78,10 @@ struct ResetGameFlowView: View {
                                systemImage: "exclamationmark.triangle.fill", textAlignment: .center, muted: false)
                         .accessibilityIdentifier("reset.notice")
                 }
+                GameIcon(artKey: "ui_reset_demolicion", size: 128) {
+                    IconCanvas { MarkDisc(mark: "!", fill: GameTint.alert) }
+                }
+                .accessibilityHidden(true)
                 switch step {
                 case .summary: summaryCard
                 case .word: wordCard
@@ -95,6 +99,7 @@ struct ResetGameFlowView: View {
         .overlay {
             if askLeave {
                 GameConfirmCard(
+                    artKey: "ui_reset_demolicion",
                     titleKey: "reset.leave.title",
                     message: Text("reset.leave.body"),
                     confirmTitleKey: "reset.leave.confirm",

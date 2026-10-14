@@ -14,6 +14,10 @@ struct SaveRecoveryView: View {
             PanelCard {
                 VStack(spacing: Tokens.s16) {
                     PanelTitleBanner(titleKey: confirmingStartOver ? "recovery.confirm.title" : "recovery.title")
+                    GameIcon(artKey: "ui_save_rescate", size: 124) {
+                        IconCanvas { MarkDisc(mark: "!", fill: GameTint.alert) }
+                    }
+                    .accessibilityHidden(true)
                     Text(confirmingStartOver ? "recovery.confirm.body" : "recovery.body")
                         .font(Tokens.body)
                         .foregroundStyle(Color("PaletteInk"))

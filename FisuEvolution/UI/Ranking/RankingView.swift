@@ -151,6 +151,7 @@ struct RankingView: View {
     @ViewBuilder private func overlays(_ model: RankingBoardModel) -> some View {
         if let target = reporting {
             GameConfirmCard(
+                artKey: "ui_menu_trophy",
                 titleKey: "ranking.report.confirm.title",
                 message: Text("ranking.report.confirm"),
                 confirmTitleKey: "ranking.report", confirmSystemImage: "flag.fill",

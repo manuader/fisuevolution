@@ -28,23 +28,24 @@ struct OfferSheets: ViewModifier {
                 selection = OfferPresentation(id: offer.id)
             }
             .onChange(of: selection) { syncCover() }
-            .fisuSheet(item: $selection, onDismiss: {
+            .gamePopup(item: $selection, onDismiss: {
                 if gameState.showing == .offer { gameState.celebrationFinished(.offer) }
             }) { presentation in
-                OfferSheet(offerId: presentation.id)
+                OfferSheet(offerId: presentation.id, onClose: { selection = nil })
             }
     }
 }
 
-/// La hoja de una oferta de 24 h: qué trae (con los números del dato), cuánto
+/// El popup de una oferta de 24 h: qué trae (con los números del dato), cuánto
 /// falta, el precio de StoreKit y —si trae azar— las probabilidades ANTES del
 /// botón (Apple 3.1.1). "No, gracias" está siempre a la vista: rechazarla no
 /// cuesta nada.
 struct OfferSheet: View {
     @Environment(GameState.self) private var gameState
     @Environment(StoreManager.self) private var store
-    @Environment(\.dismiss) private var dismiss
     let offerId: String
+    /// Cierra el popup (lo pone quien lo presenta).
+    let onClose: () -> Void
 
     /// La puerta del azar de esta hoja: arranca con la última respuesta y se
     /// renueva al abrir y cada vez que cambia la tienda del jugador.
@@ -60,21 +61,17 @@ struct OfferSheet: View {
 
     var body: some View {
         let _ = gameState.effectsVersion
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: Tokens.s12) {
-                    if let offer {
-                        contents(offer)
-                    }
-                }
-                .padding(.horizontal, WoodPanelBackground.columnInset)
-                .padding(.vertical, Tokens.s12)
+        PopupContainer(LocalizedStringKey(IAPCopy.nameKey(for: offer?.productId ?? "")),
+                       ribbonTint: Color("PaletteYellow"), onClose: onClose) {
+            if let offer {
+                contents(offer)
             }
-            .panelSheet(awning: true) { header }
-            .navigationTitle(Text(verbatim: ""))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) { ArtCloseButton { dismiss() } }
+        } actions: {
+            if let offer {
+                VStack(spacing: Tokens.s8) {
+                    buyButton(offer)
+                    GameButton("offer.decline", role: .neutral, identifier: "offer.decline", action: onClose)
+                }
             }
         }
         .background {
@@ -90,47 +87,48 @@ struct OfferSheet: View {
             }
         }
         .onChange(of: isAvailable) {
-            if !isAvailable { dismiss() }
+            if !isAvailable { onClose() }
         }
     }
 
-    private var header: some View {
-        PanelTitleBanner(titleKey: LocalizedStringKey(IAPCopy.nameKey(for: offer?.productId ?? "")))
-    }
-
+    /// Lo que trae el pack: su imagen principal grande y, debajo, cada premio con
+    /// su dibujo y los números del dato.
     @ViewBuilder private func contents(_ offer: OffersCatalog.Offer) -> some View {
-        GameCard(style: .highlighted(Color("PaletteYellow"))) {
-            VStack(alignment: .leading, spacing: Tokens.s8) {
-                ForEach(Array(OfferCopy.lines(for: offer).enumerated()), id: \.offset) { _, line in
-                    Label { Text(verbatim: line) } icon: {
-                        Image(systemName: "checkmark.circle.fill").foregroundStyle(Color("PaletteGreen"))
-                    }
-                    .font(Tokens.body)
-                    .foregroundStyle(Color("PaletteInk"))
+        PopupHero(artKey: OfferHeroArt.key(forOfferId: offer.id, iconKey: offer.iconKey), fallback: .blue)
+        VStack(alignment: .leading, spacing: Tokens.s8) {
+            ForEach(Array(offer.rewards.enumerated()), id: \.offset) { _, reward in
+                HStack(spacing: Tokens.s8) {
+                    offerLineArt(reward)
+                        .frame(width: 28, height: 28)
+                    Text(verbatim: RewardCopy.title(reward))
+                        .font(Tokens.body)
+                        .foregroundStyle(Color("PaletteInk"))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                if let active = gameState.activeOffers().first(where: { $0.id == offer.id }) {
-                    TimelineView(.periodic(from: .now, by: 1)) { context in
-                        Text("offer.endsIn \(OfferCopy.countdown(until: active.expiresAt, now: context.date))")
-                            .font(Tokens.caption)
-                            .monospacedDigit()
-                            .foregroundStyle(Color("PaletteInk").opacity(0.7))
-                    }
+                .accessibilityElement(children: .combine)
+            }
+            if let active = gameState.activeOffers().first(where: { $0.id == offer.id }) {
+                TimelineView(.periodic(from: .now, by: 1)) { context in
+                    Text("offer.endsIn \(OfferCopy.countdown(until: active.expiresAt, now: context.date))")
+                        .font(Tokens.caption)
+                        .monospacedDigit()
+                        .foregroundStyle(Color("PaletteInk").opacity(0.7))
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         if offer.isChance {
             chestOdds
         }
-        buyButton(offer)
-        Button { dismiss() } label: {
-            Text("offer.decline")
-                .font(Tokens.caption)
-                .foregroundStyle(Color("PaletteInk").opacity(0.7))
-                .padding(Tokens.s8)
+    }
+
+    @ViewBuilder private func offerLineArt(_ reward: RewardSpec) -> some View {
+        if let kind = RewardKind(reward) {
+            RewardArt(kind: kind)
+        } else {
+            GameGlyphView(glyph: .check, size: 24)
         }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier("offer.decline")
     }
 
     /// Las probabilidades del cofre, en la misma pantalla del botón. Con la

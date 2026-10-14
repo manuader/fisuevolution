@@ -16,6 +16,7 @@ struct PrestigeView: View {
         let preview = gameState.prestigePreview
 
         return PopupContainer("prestige.title", ribbonTint: Color("PalettePink"), onClose: onClose) {
+            PopupHero(artKey: "rw_reencarnar", fallback: .blue)
             if preview.isWorthIt {
                 oroGain(preview)
                 multiplierArrow(preview)

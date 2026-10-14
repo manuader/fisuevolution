@@ -50,7 +50,7 @@ struct OfflineEarningsView: View {
 
     var body: some View {
         PopupContainer("offline.title", ribbonTint: Color("PaletteGreen"), onClose: close) {
-            RewardIllustration(kind: .coins, size: 96)
+            RewardIllustration(kind: .coins, size: 110)
             // Duplicado, el monto que se muestra es el TOTAL: el jugador miró un
             // video para ver un número más grande, así que el número más grande
             // es lo que tiene que ver.

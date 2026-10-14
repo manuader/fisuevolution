@@ -96,13 +96,14 @@ struct MattressPopupView: View {
 
     /// Antes: todo lo que puede haber adentro, y la tabla con sus chances.
     @ViewBuilder private var before: some View {
+        PopupHero(artKey: "rw_mattress_hero", fallback: .mattressTreasure)
         if gameState.mattressPopup?.extraOnly != true {
             Text("mattress.pitch")
                 .font(Tokens.body)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(Color("PaletteInk"))
         }
-        RewardIllustration(kind: .mystery, size: 96)
+        PrizePileHero()
         OddsDisclosureView(titleKey: "mattress.odds.title", rows: oddsRows, identifier: "mattress.odds")
     }
 

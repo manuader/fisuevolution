@@ -66,13 +66,12 @@ struct RewardedInterstitialIntroView: View {
 
     private var prizeCard: some View {
         GameCard(style: .highlighted(Color("PaletteYellow"))) {
-            HStack(spacing: Tokens.s12) {
-                Image(systemName: RewardCopy.symbol(offer.prize))
-                    .font(.system(size: 28, weight: .heavy))
-                    .foregroundStyle(Color("PaletteInk"))
+            VStack(spacing: Tokens.s8) {
+                RewardIllustration(kind: RewardKind(offer.prize) ?? .gift, size: 72, spinsRays: false)
                 Text(verbatim: RewardCopy.title(offer.prize))
                     .font(Tokens.title)
                     .foregroundStyle(Color("PaletteInk"))
+                    .multilineTextAlignment(.center)
                     .lineLimit(2)
                     .minimumScaleFactor(0.7)
             }

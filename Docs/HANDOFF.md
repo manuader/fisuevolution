@@ -20,6 +20,8 @@
 > mockups aprobados (`Docs/correcciones-v2/mockups/`), 30 tareas en `tasks.md` §5 «E14» y §4.0. Va antes que
 > todo lo demás de la cola. Detalle: `Docs/SESION-2026-10-12-v2-e14-correcciones-dueno.md`.
 >
+> 📍 **Estado al cierre del relevo 54 (2026-10-14; manda sobre los párrafos de abajo):** `version-2` sigue en `d53a4098`; lo nuevo está en **`v2i/integ-r54` = `38e86376` (pusheada)**: todo lo de integ-r53 (E14 T22, T21, T13, T17, ranking UGC) + los textos de E14 al catálogo + E14 T19, T14, T15, T18, T23 + las decisiones del dueño (visitantes, topes, `maxLive` del SE) + la ficha con X. Su `completo`: UI 169 · 0 rojos, pero 6 rojos reales (StoreUITests ×3 en iOS 18.6, IAPCopyTests, RankingWiringTests ×2): arreglarlos y recién ahí fast-forward de `version-2`. La 2.0 se lanza **sin Meta Audience Network** (decisión del dueño). Detalle: `Docs/SESION-2026-10-14-v2-relevo-54.md`.
+>
 > 📍 **Estado al cierre del relevo 53 (2026-10-14; manda sobre los párrafos de abajo):** `version-2` sigue en `d53a4098`; lo nuevo está en **`v2i/integ-r53` = `089bd374` (pusheada, SIN `completo`)**: E14 T22, T21, T13, T17 y el ranking como contenido generado por usuarios. Primero el `completo` con la máquina sola; si da VERDE, fast-forward de `version-2`. Detalle: `Docs/SESION-2026-10-13-v2-relevo-53.md`.
 >
 > 📍 **Estado al cierre del relevo 52 (2026-10-13; manda sobre los párrafos de abajo):** `version-2` = la punta de `v2i/integ-r52` (pusheada). **Progreso: 283 de 306 (92,5 %).** Entraron de **E14: T12 (la barra de abajo a todo el ancho; Contratar y Reencarnar como solapas; el tablero gana 44 pt) y T11 (los 10 popups al contenedor único; el vendedor que se ofende)**. La cola del 53 está en `tasks.md` §4.0 fila 0 (resto de la ola 3: T21 · T22, y el `completo`). Detalle: `Docs/SESION-2026-10-13-v2-relevo-52.md`.
@@ -385,6 +387,10 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-10-14 (relevo 54) — El `completo` de integ-r53, E14 T19/T14/T15/T18/T23 y las decisiones del dueño
+
+Textos de E14 al catálogo (el dueño veía claves crudas), la ficha desde Mejoras con su X, visitantes que repiten salvo el vendedor, topes de `package_rain` (×10) y de saltear cooldowns (3/día), `maxLive = 2` en el SE, Mejoras en tres pestañas, avisos arriba sin comer toques, el escenario de visitantes, el Paquete de la Aduana y la card de personaje nuevo; en `v2i/integ-r54`. Decisión: la 2.0 sale sin Meta. Ver `Docs/SESION-2026-10-14-v2-relevo-54.md`.
 
 ### Sesión del 2026-10-13/14 (relevo 53) — El resto de la ola 3 y la ola 4 de E14; los pendientes del dueño
 
@@ -5033,6 +5039,13 @@ Siguen vigentes y no estaban en ningún otro lado:
 - **El repaso se retira si el núcleo volvió a vivir** y no arranca con el núcleo sin hacer: no hay que "arreglarlo" para que arranque igual, pisaría la fase.
 - **El reset del ORO es `min(saldo, comprado)`:** devolver el comprado entero regala ORO gastado; devolver el saldo entero regala el ORO ganado jugando. Cualquier cambio a `ResetPlan` o a `resolveAcrossReset` se prueba con `ResetEpochTests`.
 
+### Del relevo 54 (2026-10-14)
+
+- **Las claves de una tarea se aplican al catálogo al integrarla** (`catalogo.py aplicar`; cambiar = `quitar` + `aplicar`): esperar a T26 dejó al dueño con claves crudas en el iPhone.
+- **Un «aislado» con agentes compilando no es aislado:** el lanzamiento tardó 316 s y el test cayó por eso.
+- **`menuPager` se hereda por el entorno a las hojas:** `fisuSheet` lo resetea; una hoja nueva fuera de `fisuSheet` tiene que hacer lo mismo.
+- **Un agente con un build de fondo entrega antes de terminar:** el brief lo prohíbe y se lo reanuda con `SendMessage`.
+
 ### Del relevo 53 (2026-10-13/14)
 
 - **Con 16 GB, ≤ 2 agentes compilando y el `completo` solo:** con 3 agentes + `completo` la Mac quedó sin memoria (carga 850) y StoreKit tardó ~1 h por test.
@@ -5644,6 +5657,7 @@ Anotado por si algún día importa, con su medición:
 - **`Docs/SESION-2026-10-12-v2-relevo-38-ola-aj.md`**: el relevo 38 (los eventos de 25 s dicen «En curso»; fuera `tutorial.tip.wheel`).
 - **`Docs/SESION-2026-10-12-v2-relevo-37-ola-ai.md`**: el relevo 37 (el UI test del otro colchón `extraOnly`; el pager asienta con el scroll quieto).
 - **`Docs/SESION-2026-10-13-v2-relevo-50.md`**: el relevo 50 (E14 T4, T6, T28; la carga de la máquina).
+- **`Docs/SESION-2026-10-14-v2-relevo-54.md`**: el relevo 54 (E14 T19, T14, T15, T18, T23; decisiones del dueño; textos; sin Meta).
 - **`Docs/SESION-2026-10-13-v2-relevo-53.md`**: el relevo 53 (E14 T22, T21, T13, T17; ranking UGC; pendientes del dueño).
 - **`Docs/SESION-2026-10-13-v2-relevo-52.md`**: el relevo 52 (E14 T11, T12).
 - **`Docs/SESION-2026-10-13-v2-relevo-51.md`**: el relevo 51 (E14 T8, T3, T10).

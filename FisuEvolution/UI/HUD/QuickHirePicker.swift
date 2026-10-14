@@ -155,8 +155,7 @@ struct QuickHirePicker: View {
                 GameIcon(artKey: entry.faceKey, size: 44) { EmptyView() }
                     .overlay(alignment: .topTrailing) {
                         if entry.isPinned {
-                            Image(systemName: "pin.fill")
-                                .font(.system(size: 11, weight: .black))
+                            GameGlyphView(glyph: .pin, size: 16)
                                 .rotationEffect(.degrees(30))
                                 .offset(x: 4, y: -4)
                         }

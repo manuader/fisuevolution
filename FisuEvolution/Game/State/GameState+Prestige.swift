@@ -165,6 +165,7 @@ extension GameState {
         stageChallenge = nil
         stageRuntime.calledScript = nil
         sendStageActorAway()
+        dismissWaitingVisitors()
         // La cinemática de la reencarnación va antes del cofre (PLAN-v2 E8) y trae su
         // propio sonido: el SFX de prestigio sólo suena si ella no.
         if !playCinematicIfDue(.reencarnacion) { audio?.play(.prestige) }

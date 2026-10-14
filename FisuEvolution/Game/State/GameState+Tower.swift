@@ -122,6 +122,7 @@ extension GameState {
         let clamped = min(max(0, ordinal), maxVisible)
         guard clamped != visibleFloorOrdinal else { return }
         visibleFloorOrdinal = clamped
+        syncStageWithVisibleFloor()
         bumpBoard()
     }
 

@@ -1,0 +1,4 @@
+{
+  "visit.waiting.ax %@ %@": {"es": "%1$@ te espera en el piso %2$@", "en": "%1$@ is waiting for you on floor %2$@"},
+  "elevator.floor.visitor": {"es": "Un visitante te espera", "en": "A visitor is waiting"}
+}

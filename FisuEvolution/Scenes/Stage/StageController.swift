@@ -3,7 +3,8 @@ import SpriteKit
 
 /// El escenario de la escena (PLAN-v2 E4, E14 C2/C6/C16): quien entra desde un
 /// borde, camina hasta el horizonte de su piso, abre su popup y se va por el otro
-/// lado. Se queda en el piso donde apareció: la capa cuelga de la cámara, pero la
+/// lado. Se queda en el piso donde apareció (`StageVisit.floorOrdinal`; si se deja
+/// de mirar, `+Stage` lo congela, E14b B7): la capa cuelga de la cámara, pero la
 /// posición de cada visita se corre con el desplazamiento de la cámara para que
 /// scrollear lo deje en su piso. Todo se mueve por frame y no con `SKAction`: lo
 /// que hace se prueba con un `SKNode` pelado y deltas inyectados
@@ -38,8 +39,9 @@ final class StageController {
     private var bubbleAge: TimeInterval = 0
     private var requestClock: TimeInterval = 0
     private var cameraOffsetY: CGFloat?
-    /// La oferta que ya abrió su popup sola: cerrarlo sin elegir no lo reabre.
-    private var autoOpenedOffer: VisitOffer?
+    /// La oferta que ya abrió su popup sola, por visita: cerrarlo sin elegir no lo
+    /// reabre, ni al volver a un piso donde esperaba congelado (E14b B7).
+    private var autoOpenedOffers: [UUID: VisitOffer] = [:]
     private var leavingOffended = false
     private var feedback: (kind: DropOutcome, age: TimeInterval)?
     private var hoveringRight = false
@@ -77,6 +79,7 @@ final class StageController {
               visit.phase != .entering || gameState.showing == .visitorEncounter
         else { return clear() }
         let node = actorNode(for: visit, reduceMotion: reduceMotion)
+        anchorOrdinal = visit.floorOrdinal
         switch visit.phase {
         case .entering: enter(node, visit: visit, delta: delta, reduceMotion: reduceMotion)
         case .waiting: wait(node, visit: visit, delta: delta, reduceMotion: reduceMotion)
@@ -216,8 +219,9 @@ final class StageController {
         if let actor, actor.visitId == visit.id { return actor }
         clear()
         entersFromLeft.toggle()
-        anchorOrdinal = gameState?.visibleFloorOrdinal ?? 0
-        autoOpenedOffer = nil
+        anchorOrdinal = visit.floorOrdinal
+        let parked = Set(gameState?.stageRuntime.parked.values.map(\.id) ?? [])
+        autoOpenedOffers = autoOpenedOffers.filter { $0.key == visit.id || parked.contains($0.key) }
         leavingOffended = false
         feedback = nil
         let node = VisitorNode(visitId: visit.id, actorId: visit.actorId,
@@ -263,7 +267,9 @@ final class StageController {
         node.position = CGPoint(x: layout.standX + sway, y: standY + lift)
         if reduceMotion { node.setScale(1) } else { node.breathe(delta: delta) }
         if hoveringRight, !reduceMotion { node.setScale(node.xScale * 1.08) }
-        if case .visitor = visit.role, visit.offer != nil, visit.offer != autoOpenedOffer { openPopupWhenDue(visit) }
+        if case .visitor = visit.role, visit.offer != nil, visit.offer != autoOpenedOffers[visit.id] {
+            openPopupWhenDue(visit)
+        }
 
         if let ask = requestedUnit(of: visit) {
             hideBubble()
@@ -300,7 +306,7 @@ final class StageController {
         guard let gameState, gameState.visibleFloorOrdinal == anchorOrdinal, gameState.isCalmMoment,
               gameState.stageChallenge == nil, actor.map({ abs($0.position.x - layout.standX) < 1 }) ?? false
         else { return }
-        autoOpenedOffer = visit.offer
+        autoOpenedOffers[visit.id] = visit.offer
         gameState.stageActorTapped(id: visit.id)
     }
 

@@ -41,10 +41,10 @@ struct MattressOpening: Equatable {
     }
 }
 
-/// El Colchón (PLAN-v2 E5, E14 C4/C27) en tres momentos. Antes: lo que puede
-/// haber adentro, en imágenes, y el botón del video. Durante: el premio ya está
-/// acreditado y el colchón se toca tres veces (sacude, sacude, se descose). Después:
-/// lo que salió, grande y con rayos, y «otro colchón» con un segundo video.
+/// El Colchón (PLAN-v2 E5, E14 C4/C27, E14b B6). Desde la columna: lo que puede haber
+/// adentro, en imágenes, y el botón del video; al terminar el video el popup se cierra y el
+/// colchón cae al tablero. Abierto en el tablero: lo que salió, grande y con rayos, y «otro
+/// colchón» con un segundo video, que se abre acá tocándolo tres veces (sacude, sacude, se descose).
 /// Vive en el `PopupContainer` de la casa (E14 C15).
 struct MattressPopupView: View {
     @Environment(GameState.self) private var gameState
@@ -63,7 +63,9 @@ struct MattressPopupView: View {
 
     var body: some View {
         let outcome = gameState.mattressPopup?.outcome
-        let stage = MattressStage(hasOutcome: outcome != nil, revealed: revealed)
+        // Abierto en el tablero, la animación ya se vio allá: el premio sale directo (E14b B6).
+        let stage = MattressStage(hasOutcome: outcome != nil,
+                                  revealed: revealed || gameState.mattressPopup?.openedOnBoard == true)
         PopupContainer("mattress.title", ribbonTint: Color("PaletteOrange"), onClose: close) {
             if stage == .opening {
                 tapTheMattress

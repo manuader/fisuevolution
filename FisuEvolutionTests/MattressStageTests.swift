@@ -13,28 +13,27 @@ struct MattressStageTests {
         #expect(MattressStage(hasOutcome: false, revealed: true) == .waiting)
     }
 
-    @Test("el premio ya está acreditado mientras el colchón se abre")
+    @Test("abierto en el tablero el premio sale directo; el «otro colchón» ya está acreditado mientras se abre")
     func paymentPrecedesTheReveal() async throws {
         let gameState = await makeGameState()
-        gameState.debugSpawnMattress()
-        gameState.mattressTapped()
-        let before = gameState.mattressPopup?.outcome
-        gameState.mattressVideoWatched()
-        let outcome = try #require(gameState.mattressPopup?.outcome)
-        #expect(before == nil)
-        #expect(MattressStage(hasOutcome: true, revealed: false) == .opening)
+        gameState.debugSpawnMattress(onBoard: true)
+        gameState.openMattressOnBoard()
+        let popup = try #require(gameState.mattressPopup)
+        #expect(popup.openedOnBoard, "la animación ya se vio en el tablero")
+        gameState.extraMattressVideoWatched()
+        let extra = try #require(gameState.mattressPopup)
+        #expect(!extra.openedOnBoard, "el «otro colchón» se abre tocándolo en el popup")
+        let outcome = try #require(extra.outcome)
         #expect(outcome.coins > 0 || !outcome.rewards.isEmpty, "el pago no espera al clip")
     }
 
-    @Test("un segundo aviso del video no paga otra vez ni reabre el clip")
-    func doubleVideoPaysOnce() async throws {
+    @Test("abrir el del tablero dos veces paga una sola")
+    func doubleOpenPaysOnce() async throws {
         let gameState = await makeGameState()
-        gameState.debugSpawnMattress()
-        gameState.mattressTapped()
-        gameState.mattressVideoWatched()
-        let first = try #require(gameState.mattressPopup?.outcome)
+        gameState.debugSpawnMattress(onBoard: true)
+        let first = try #require(gameState.openMattressOnBoard())
         let coins = try #require(gameState.player?.run.coins)
-        gameState.mattressVideoWatched()
+        #expect(gameState.openMattressOnBoard() == nil)
         #expect(gameState.mattressPopup?.outcome == first)
         #expect(gameState.player?.run.coins == coins)
     }

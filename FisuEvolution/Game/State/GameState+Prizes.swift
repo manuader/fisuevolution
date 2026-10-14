@@ -12,31 +12,49 @@ extension GameState {
             packagesBlocked: packagesBlocked,
             mattressReady: mattressWaiting,
             wheelSpinsReady: wheel.bonus + wheel.videoLeft,
-            mattressExtraReady: mattressExtraPending
+            mattressExtraReady: mattressExtraPending,
+            mattressOnBoard: mattressOnBoard
         )
         if prizeAccess != access { prizeAccess = access }
     }
 
-    /// El chip o el colchón del tablero: abre su popup.
+    /// La columna: abre su popup (D5). El de la columna pide su video; uno ya abierto ofrece el
+    /// «otro colchón». El que está en el tablero se abre ahí (`boardMattressTapped`).
     func mattressTapped() {
         guard mattressWaiting || mattressExtraPending, mattressPopup == nil, wheelSheet == nil, packagePopup == nil else { return }
         if mattressWaiting { tutorialTipCompleted(.mattress) }
         mattressPopup = MattressPopup(extraOnly: !mattressWaiting)
     }
 
-    /// Terminó el video del colchón: lo que salió queda en el popup. Sólo el
-    /// primero cuenta: un video que termina con el resultado ya a la vista no
-    /// abre otro colchón (que pudo haber aparecido mientras tanto).
+    /// Terminó el video del colchón de la columna (E14b B6, D3): se cierra el popup y el colchón cae
+    /// al tablero, todavía cerrado. Sólo el primer aviso cuenta: uno repetido no paga otro colchón.
     func mattressVideoWatched() {
-        guard mattressPopup?.outcome == nil, mattressPopup?.extraOnly == false, let outcome = openMattress() else { return }
-        mattressPopup?.outcome = outcome
+        guard let popup = mattressPopup, popup.outcome == nil, !popup.extraOnly, payMattress() else { return }
+        mattressPopup = nil
         refreshPrizeAccess()
+    }
+
+    /// El colchón del tablero se tocó: `true` si la escena puede abrirlo ahí (con la pantalla libre).
+    /// Todavía no gasta nada: se abre cuando termina la animación (`openMattressOnBoard`).
+    func boardMattressTapped() -> Bool {
+        mattressOnBoard && mattressPopup == nil && wheelSheet == nil && packagePopup == nil
+    }
+
+    /// Terminó de abrirse en el tablero: sortea, acredita y sale el pop-up del premio, siempre (D3).
+    @discardableResult
+    func openMattressOnBoard() -> MattressOutcome? {
+        guard boardMattressTapped(), let outcome = openMattress() else { return nil }
+        mattressPopup = MattressPopup(openedOnBoard: true, outcome: outcome)
+        refreshPrizeAccess()
+        scheduleSave()
+        return outcome
     }
 
     /// Terminó el segundo video: "otro colchón".
     func extraMattressVideoWatched() {
         guard let popup = mattressPopup, popup.outcome != nil || popup.extraOnly,
               let outcome = openExtraMattress() else { return }
+        mattressPopup?.openedOnBoard = false
         mattressPopup?.outcome = outcome
         refreshPrizeAccess()
         scheduleSave()

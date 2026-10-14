@@ -66,7 +66,9 @@ private struct ElevatorKeypadLayer: View {
 
     var body: some View {
         GeometryReader { proxy in
-            let model = ElevatorKeypadModel(map: gameState.floorMap, visibleOrdinal: gameState.visibleFloorOrdinal)
+            let model = ElevatorKeypadModel(
+                map: gameState.floorMap, visibleOrdinal: gameState.visibleFloorOrdinal,
+                visitorOrdinals: Set(gameState.visitorsWaitingElsewhere.map(\.floorOrdinal)))
             let origin = proxy.frame(in: .global).origin
             let anchor = ride.keypadAnchor.offsetBy(dx: -origin.x, dy: -origin.y)
             let top = anchor.maxY + 2

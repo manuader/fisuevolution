@@ -94,6 +94,8 @@ enum SideRailModel {
             return input.wheelSecondsUntilReset.map { .waiting(seconds: whole($0)) } ?? .idle
         case .mattress:
             if input.access.mattressReady || input.access.mattressExtraReady { return .ready(count: nil) }
+            // Ya cayó al tablero: se abre ahí, y su reloj no corre hasta que se abra (E14b B6).
+            if input.access.mattressOnBoard { return .idle }
             return input.mattressSecondsUntilNext.map { .waiting(seconds: whole($0)) } ?? .idle
         case .packages:
             if input.access.packagesBlocked { return .blocked }

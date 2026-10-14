@@ -1,3 +1,4 @@
+import EconomyKit
 import SwiftUI
 
 /// La tarjeta del personaje especial (PLAN-v2 E14 C3): el primer lugar de la
@@ -18,8 +19,18 @@ struct StageChips: View {
                 ChallengeChip(challenge: challenge, visitorId: visit.actorId)
                     .transition(.scale(scale: 0.7, anchor: .topTrailing).combined(with: .opacity))
             }
+            // La lista sólo cambia al cambiar de piso, que sube `boardVersion`.
+            let _ = gameState.boardVersion
+            let waiting = gameState.visitorsWaitingElsewhere
+            if let first = waiting.first {
+                WaitingVisitorsChip(first: first, count: waiting.count) {
+                    gameState.attendWaitingVisitor(onFloor: first.floorOrdinal)
+                }
+                .transition(.scale(scale: 0.7, anchor: .topTrailing).combined(with: .opacity))
+            }
         }
         .animation(.spring(duration: 0.3), value: gameState.stageVisit?.offer != nil)
+        .animation(.spring(duration: 0.3), value: gameState.visibleFloorOrdinal)
     }
 }
 
@@ -61,6 +72,48 @@ struct VisitorChip: View {
             guard !reduceMotion else { return }
             withAnimation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true)) { pulse = true }
         }
+    }
+}
+
+/// Los que esperan congelados en otros pisos (E14b B7, D6): una sola tarjeta,
+/// la cara del de más arriba con «×N» si son varios, y no una por piso. Tocarla
+/// lleva a su piso y abre su popup: desde acá se lo despacha.
+struct WaitingVisitorsChip: View {
+    let first: FloorVisitor
+    let count: Int
+    let action: () -> Void
+    @Environment(GameState.self) private var gameState
+
+    private var name: String {
+        gameState.content?.visitors.visitor(id: first.visitorId).map { VisitCopy.name(of: $0) } ?? ""
+    }
+
+    var body: some View {
+        Button(action: action) {
+            VisitorFace(visitorId: first.visitorId, side: SpecialCardLayout.face - 8)
+                .shadow(color: .black.opacity(0.25), radius: 3, y: 2)
+                .overlay(alignment: .topLeading) {
+                    SideRailBadge(text: count > 1 ? "×\(count)" : "!")
+                        .offset(x: -6, y: -4)
+                }
+                .overlay(alignment: .bottom) {
+                    Text(verbatim: String(first.floorOrdinal + 1))
+                        .font(.system(size: 12, design: .rounded).weight(.heavy))
+                        .monospacedDigit()
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, Tokens.s4)
+                        .frame(minWidth: 22, minHeight: 18)
+                        .background(PillBackground(fill: Color("PaletteBlue"), lip: 2))
+                        .offset(y: 8)
+                        .accessibilityHidden(true)
+                }
+                .frame(width: SpecialCardLayout.touch, height: SpecialCardLayout.touch)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("stage.chip.waiting")
+        .accessibilityLabel(Text("visit.waiting.ax \(name) \(String(first.floorOrdinal + 1))"))
+        .accessibilityValue(Text(verbatim: String(count)))
     }
 }
 

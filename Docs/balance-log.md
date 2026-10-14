@@ -2411,3 +2411,53 @@ más (×12 de blue cada uno), con la misma tabla que los de video. Ninguna otra 
 de blue da giros; el abono `wheelDailySpins` está topado en +3 (9 por día al máximo).
 
 Comando: el de «Cómo re-correr» de la calibración 2.0, con `--profile free | ads | max`.
+
+# E14b B7 — visitantes congelados por piso y simultáneos (2026-10-14, D6)
+
+**Qué cambió:** el visitante que espera en un piso que se deja de mirar queda congelado (la paciencia no corre)
+y vuelve tal cual al volver al piso; mientras, el piso nuevo puede recibir a otro. Uno por piso, varios pisos a la
+vez (`VisitorsState.waiting`, en el save; `VisitorScheduler.park`/`resume`). El que espera en un piso no entra en otro.
+
+**Ritmo:** las visitas siguen atadas al mismo reloj único (`intervalMin/MaxSeconds` 240–360 s): llega a lo sumo una
+por intervalo, haya uno o varios pisos ocupados. Lo que cambia es que la visita no se pierde por mirar otro piso
+(antes la paciencia de 30 s corría fuera de pantalla) y que un piso ocupado ya no frena al reloj si el jugador está
+en otro. El techo de premios por hora no sube; lo que sube es la fracción de visitas cobradas, que el simulador ya
+cuenta entera (el bot «cobra» todas). No hizo falta tocar ninguna perilla.
+
+**Pacing (medido, sin cambio):** el bot no juega a los visitantes y la rotación no usa la lista de espera, así que
+los tres perfiles dan la línea de base:
+
+| Perfil | Dios (h activas) | de pared | ORO a Dios | Reencarnaciones |
+|---|---|---|---|---|
+| `.free` | 45,40 | 816,07 | 5.996 | 6 |
+| `.ads` | 31,36 | 561,02 | 7.846 | 6 |
+| `.max` | 30,05 | 537,05 | 8.344 | 6 |
+
+Rotación de visitantes (`.free`): 544 visitas hasta Dios, entre 0,56 y 0,75 por hora, vinieron los 18.
+
+# E14b B6 — el colchón: columna, video, tablero, y 1 de cada 4 de regalo (2026-10-14, D3/D4)
+
+**Qué cambió:** el colchón tiene un recorrido (`TreasuresState.phase`: `none` → `waiting` en la columna → `onBoard`
+en el tablero → abierto). El de la columna se paga con un video y recién ahí cae al tablero; el premio se sortea y se
+acredita al abrirlo en el tablero. `treasures.json` suma `giftOneIn: 4`: el `TreasureScheduler` sortea 1 de cada 4
+como regalo, que entra directo en `onBoard` sin video. El «otro colchón» (`extraOpensPerTreasure` 1, un video más)
+no cambia. El reloj sigue sin correr con un colchón en juego, ahora también mientras está en el tablero.
+`spawnIntervalSeconds` sigue en 720.
+
+**Pacing (medido):** el simulador cobra el primer video de cada colchón en `1 − 1/giftOneIn` (0,75) y los «otro
+colchón» enteros; los premios no cambian.
+
+| Perfil | Dios (h activas) | de pared | ORO a Dios | Antes de B6 |
+|---|---|---|---|---|
+| `.free` | 45,40 | 816,07 | 5.996 | 45,40 (sin cambio) |
+| `.ads` | 30,60 | 542,26 | 6.139 | 31,36 — 67,4 % de `.free` (guarda ≥ 65 %) |
+| `.max` | 30,02 | 537,02 | 7.823 | 30,05 — 66,1 % (guarda ≥ 55 %) |
+
+Con `--seed-fraction 0.1` y `0.9`: `.free` 45,40 / 45,34 h, `.ads` 31,36 / 30,90 h. La línea de base (B6 con
+`giftOneIn: 0`) reproduce las cifras de B15 (31,36 y 30,05 h). Dios queda en ~45 h: no hizo falta tocar el intervalo.
+
+Lo que el simulador no modela: `.free` no mira videos, así que no tiene colchones, ni antes ni ahora. En el juego, uno
+que nunca mira videos recibe un regalo sólo mientras no le toque uno de columna (que traba el reloj hasta pagarlo):
+en esperanza, 1/3 de colchón en toda la partida. Despreciable para el pacing.
+
+Comando: el de «Cómo re-correr» de la calibración 2.0, con `--profile free | ads | max`.

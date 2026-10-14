@@ -219,7 +219,17 @@ targets:
           # el ícono o con `simctl launch` (medido 2026-10-12). Xcode lo tapa al
           # correr/testear inyectando `DYLD_FRAMEWORK_PATH`. Lo vigila
           # `releaseops app verify` («Frameworks embebidos»).
-          LD_RUNPATH_SEARCH_PATHS: $(inherited) @executable_path/Frameworks $(PLATFORM_DIR)/Developer/Library/Frameworks $(PLATFORM_DIR)/Developer/Library/PrivateFrameworks
+          #
+          # ⚠️ Y va ÚLTIMO, detrás de los del platform dir: un build de tests
+          # copia XCTest y Testing.framework adentro del `.app` (es el host de
+          # los unit), y si `@executable_path/Frameworks` gana, XCTest sale de
+          # esa copia; su Testing busca `lib_TestingInterop.dylib` en
+          # `@loader_path/../../../usr/lib`, que fuera del platform dir no
+          # existe. El runtime 26 lo trae en `/usr/lib/swift` y lo tapa; el
+          # 18.6 no: dyld abortaba la app al lanzar y los StoreUITests nunca
+          # veían el HUD (medido 2026-10-14). La mediación no está en el
+          # platform dir, así que igual cae en `@executable_path/Frameworks`.
+          LD_RUNPATH_SEARCH_PATHS: $(inherited) $(PLATFORM_DIR)/Developer/Library/Frameworks $(PLATFORM_DIR)/Developer/Library/PrivateFrameworks @executable_path/Frameworks
     # Entitlements futuros (F6, detrás de feature flags — NO habilitar antes):
     #   com.apple.developer.game-center, iCloud/CloudKit container
   FisuEvolutionTests:

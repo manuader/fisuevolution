@@ -410,12 +410,11 @@ struct SettingsView: View {
                 text: count > 0
                     ? String(localized: "settings.restore.done \(String(count))")
                     : String(localized: "settings.restore.empty"),
-                systemImage: nil,
                 textAlignment: .center,
                 muted: count == 0
             )
         case .failed(let message):
-            StateBadge(text: message, systemImage: nil,
+            StateBadge(text: message,
                        textAlignment: .center, muted: false)
         }
     }

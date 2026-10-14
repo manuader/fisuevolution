@@ -7402,13 +7402,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%@ video spins, every day"
+            "value" : "+%@ Wheel spins a day, with a video or Blue"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%@ giros por video, todos los días"
+            "value" : "+%@ giros por día en la ruleta, con video o con blue"
           }
         }
       }
@@ -19666,6 +19666,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¡Te tocó!"
+          }
+        }
+      }
+    },
+    "wheel.spin.blue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ (%2$@ left)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ (quedan %2$@)"
           }
         }
       }

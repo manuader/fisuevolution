@@ -25,6 +25,8 @@ struct HUDView: View {
     @State private var showFloorMap = false
     /// El mantener apretado ya desplegó la placa: el toque de soltar no abre el mapa.
     @State private var keypadLongPressFired = false
+    /// Los vuelos de recompensa: retienen lo que todavía no aterrizó y piden el rebote del contador.
+    private let flights = RewardFlightCenter.shared
 
     /// Aire mínimo entre el borde FÍSICO de arriba y la fila principal. Sólo
     /// entra cuando la safe area de arriba se desploma: en el SE, con la barra de
@@ -142,6 +144,7 @@ struct HUDView: View {
             action: onStoreTap
         )
         .tutorialAnchor(.store)
+        .rewardFlightAnchor(.blue)
     }
 
     /// El centro de la barra. El `VStack` **no** lleva identifier: adentro hay
@@ -168,10 +171,10 @@ struct HUDView: View {
     private var coinsAmount: some View {
         HStack(spacing: Tokens.s4) {
             CoinIcon(size: 36)
-            Text(verbatim: gameState.coinsText)
+            Text(verbatim: displayedCoinsText)
                 .font(Tokens.display)
                 .monospacedDigit()
-                .contentTransition(reduceMotion ? .identity : .numericText())
+                .contentTransition(reduceMotion ? .opacity : .numericText())
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
                 // Ink sobre crema, como cualquier texto del juego: desde que el
@@ -180,7 +183,27 @@ struct HUDView: View {
                 // que lo despegaba: sobre crema sólo lo ensuciaba.
                 .foregroundStyle(Color("PaletteInk"))
         }
-        .animation(reduceMotion ? nil : .snappy(duration: 0.22), value: gameState.coinsText)
+        .animation(coinsAnimation, value: displayedCoinsText)
+        .keyframeAnimator(initialValue: CoinBump(), trigger: reduceMotion ? 0 : flights.bumpCount(.coins)) { view, bump in
+            view
+                .scaleEffect(bump.scale)
+                .background {
+                    Capsule()
+                        .fill(Color("PaletteYellow"))
+                        .blur(radius: 10)
+                        .opacity(bump.glow * 0.7)
+                }
+        } keyframes: { _ in
+            KeyframeTrack(\.scale) {
+                CubicKeyframe(1.14, duration: 0.09)
+                SpringKeyframe(1.0, duration: 0.3, spring: .bouncy)
+            }
+            KeyframeTrack(\.glow) {
+                LinearKeyframe(1, duration: 0.08)
+                CubicKeyframe(0, duration: 0.4)
+            }
+        }
+        .rewardFlightAnchor(.coins)
         .accessibilityElement(children: .ignore)
         .accessibilityIdentifier("hud.coins")
         .accessibilityLabel(Text("hud.coins.label"))
@@ -188,6 +211,21 @@ struct HUDView: View {
         // El tutorial le abre una ventana en el scrim mientras pide juntar
         // plata: sin ver el contador, "tocá hasta que alcance" no se entiende.
         .tutorialAnchor(.coins)
+    }
+
+    /// Lo que el contador muestra: mientras unas monedas vuelan, el saldo menos lo que todavía no
+    /// aterrizó, así que sube de a poco en vez de saltar. Sin vuelos es `coinsText`, tal cual.
+    /// El valor de accesibilidad (y los tests) leen siempre el saldo real.
+    private var displayedCoinsText: String {
+        guard flights.heldCoins > 0, let coins = gameState.player?.run.coins else { return gameState.coinsText }
+        return CoinFormatter.string(from: max(0, coins - flights.heldCoins))
+    }
+
+    /// Con Reduce Motion el contador sólo se desvanece, y sólo cuando llega una recompensa: los
+    /// refrescos de la producción siguen sin animar.
+    private var coinsAnimation: Animation? {
+        if reduceMotion { return flights.hasActiveBatches ? .easeInOut(duration: 0.3) : nil }
+        return .snappy(duration: 0.22)
     }
 
     /// El `X/s` que antes vivía apretado en la píldora de la torre. Acá está
@@ -310,4 +348,10 @@ struct HUDView: View {
             : "×\(preview.multiplierBeforeText)"))
     }
 
+}
+
+/// Los valores que anima el rebote del contador al recibir una tanda de monedas.
+private struct CoinBump {
+    var scale = 1.0
+    var glow = 0.0
 }

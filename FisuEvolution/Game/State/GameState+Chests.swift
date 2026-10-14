@@ -266,6 +266,7 @@ extension GameState {
     /// como dos líneas en la vista— para que el orden se pueda testear sin
     /// levantar la UI.
     func dismissChestReward() {
+        if let coins = chestReward?.coins { announceCoins(coins) }
         chestReward = nil
         celebrationFinished(.chestOpening)
     }

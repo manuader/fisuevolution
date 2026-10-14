@@ -223,6 +223,7 @@ struct GameBoardView: View {
         // El selector del atajo va ANTES del overlay del tutorial: así su cara fijada le llega.
         .modifier(QuickHirePickerLayer(isPresented: $showQuickHirePicker))
         .modifier(NoticesLayer())
+        .modifier(RewardFlightLayer())
         .modifier(ShareOfferLayer())
         .modifier(NewCharacterCardPopup())
         // El overlay se monta acá y no dentro del `ZStack` porque necesita los

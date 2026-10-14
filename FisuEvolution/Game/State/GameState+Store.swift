@@ -276,12 +276,14 @@ extension GameState {
             let amount = Self.coinPayout(minutes: minutes, player: player, content: content)
             player.run.coins += amount
             player.meta.lifetimeEarnings += amount
+            announceCoins(amount)
         case .oro:
             guard let amount = entry.oroAmount else { return false }
             // Sólo el balance. `oroEarnedLifetime` es lo que alimenta el
             // multiplicador global y sube únicamente al reencarnar.
             player.meta.oro += amount
             player.meta.recordOroPurchase(transactionID: transactionID, amount: amount)
+            announceBlue(amount)
         case .offer:
             // Lo pagado se entrega siempre: fuera de la ventana, en una tienda
             // restringida o repetido en otro dispositivo. La guarda es la de la

@@ -104,6 +104,7 @@ extension GameState {
             let credited = Self.coinReward(seconds: seconds, player: player, content: content, economy: economy)
             player.run.coins += credited
             player.meta.lifetimeEarnings += credited
+            announceCoins(credited)
             audio?.play(.coin)
         }
         if player.meta.sharesCompleted < content.viral.maxShares {

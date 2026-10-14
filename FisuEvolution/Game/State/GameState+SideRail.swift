@@ -197,7 +197,8 @@ extension GameState {
             compensateRewardedVideo()
             return
         }
-        grant(content.rewardedAds.effectiveSideRail.packageRain, source: "siderail.packageRain", now: now)
+        let rain = content.rewardedAds.effectiveSideRail.packageRain
+        announceReward(rain, coins: grant(rain, source: "siderail.packageRain", now: now), from: .seals)
         player?.meta.rewardedActivations[Self.packageRainVideoKey] = now
         refreshSideRail(now: now)
         scheduleSave()

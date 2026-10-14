@@ -26,7 +26,7 @@ struct GamePopups: ViewModifier {
                 // de 90 s de la política.
                 gameState.scheduleNaturalBreak(.offlinePopupDismissed)
             }) { reward in
-                OfflineEarningsView(reward: reward, onClose: { gameState.offlineReward = nil })
+                OfflineEarningsView(reward: reward, onClose: { gameState.dismissOfflineReward() })
             }
             .gamePopup(isPresented: $showPrestige) {
                 PrestigeView(onClose: { showPrestige = false })

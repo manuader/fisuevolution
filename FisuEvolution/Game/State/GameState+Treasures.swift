@@ -59,6 +59,7 @@ extension GameState {
     /// El colchón ya quedó gastado: acredita su premio por el único punto de premios.
     private func deliver(_ prize: TreasuresConfig.Prize, now: TimeInterval) -> MattressOutcome {
         let coins = grant(prize.rewards, source: "treasure.\(prize.id)", now: now)
+        announceReward(prize.rewards, coins: coins)
         Log.economy.info("mattress opened: \(prize.id)")
         return MattressOutcome(prizeId: prize.id, rewards: prize.rewards, coins: coins, extraOpensLeft: mattressExtraOpensLeft)
     }

@@ -263,6 +263,7 @@ extension GameState {
             )
             player.run.coins += chest
             player.meta.lifetimeEarnings += chest
+            announceCoins(chest)
             audio?.play(.coin)
         case .oro:
             // ⚠️ SÓLO el balance. `oroEarnedLifetime` es de donde sale el
@@ -270,6 +271,7 @@ extension GameState {
             // regalaría multiplicador permanente por fuera del prestigio (mismo
             // criterio que los packs de ORO de la tienda).
             player.meta.oro += achievement.reward.amount ?? 0
+            announceBlue(achievement.reward.amount ?? 0)
             audio?.play(.coin)
         case .freeBoost:
             grantFreeBoost(id: achievement.reward.boostId, player: &player, content: content, economy: economy, now: now)

@@ -2388,3 +2388,26 @@ $P … --seed-fraction 0.1       # y 0.9
 - Las 208 corridas de la búsqueda de T13, con los flags completos: `Docs/balance-run-v2-e2b-candidata.md` y `.csv`.
 - El journal de la búsqueda (hipótesis, descartados con su número, el estado CERRADO): `.claude/avo/2026-10-12-e2b-t13-busqueda/journal.md`, en el checkout principal y excluido de git.
 - Recordatorio de método: **comparar siempre la primera corrida contra la línea de base conocida** (la trampa de la quinta ronda, arriba) y pasar `--upgrades`.
+
+# E14b B15 — la Ruleta con un solo cupo diario (2026-10-14, D11)
+
+**Qué cambió:** los giros con blue gastan el mismo cupo de 6 por día que los de video (más lo que sume el abono
+`wheelDailySpins`, que ahora sube el máximo de los dos). `oroSpinsPerDay` dejó de sumar un segundo cupo: queda sólo
+como interruptor (0 = sin giro con blue). Los regalados (`bonusSpins`: el Conductor de visita) siguen fuera del cupo.
+Antes, quien tenía blue giraba 6 por video + 6 con blue = 12 por día; ahora, 6 en total.
+
+**Pacing (medido, sin cambio):** el simulador nunca modeló el giro con blue (`PacingSimulator+Sources` gira sólo
+`videoSpinsPerDay` + el abono por video), así que el camino de los tres perfiles da los mismos números que la línea de base:
+
+| Perfil | Dios (h activas) | de pared | ORO a Dios | Reencarnaciones |
+|---|---|---|---|---|
+| `.free` | 45,40 | 816,07 | 5.996 | 6 |
+| `.ads` | 31,36 | 561,02 | 7.846 | 6 |
+| `.max` | 30,05 | 537,05 | 8.344 | 6 |
+
+Lo que el cambio saca es la aceleración de quien compra blue, que el simulador no mide: hasta 6 giros diarios de
+más (×12 de blue cada uno), con la misma tabla que los de video. Ninguna otra puerta de giros sin fin con blue: el
+único `wheelSpin` regalado del contenido es la visita `conductor_ruleta` (`dailyCap` 1) y ningún ítem de la tienda
+de blue da giros; el abono `wheelDailySpins` está topado en +3 (9 por día al máximo).
+
+Comando: el de «Cómo re-correr» de la calibración 2.0, con `--profile free | ads | max`.

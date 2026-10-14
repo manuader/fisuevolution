@@ -156,6 +156,17 @@ revisión según el riesgo.
 - **Listo cuando:** hay un test de UI que reproduce el caso de la captura y lo cierra con el botón, y otro test que
   verifica que ningún tip queda sin una salida. Revisión: sonnet.
 
+### B12 — Ajustes con menos ruido visual
+- Captura del dueño del 2026-10-14: la pantalla de Settings está muy cargada.
+- **Más aire entre secciones:** más margen entre cada bloque (Tutorial, Purchases, Legal, About) y su cinta.
+- **Ningún botón naranja:** el naranja queda reservado para las cintas de sección, porque hoy «See what's new in
+  2.0» se confunde con ellas. Los botones de acción usan la gramática de botones de la casa (azul o verde, con
+  medallón), y en una misma tarjeta, una sola acción principal.
+- Se revisan las flechas ‹ › de las filas de Legal y el ícono de restaurar compras, para que no sean SF Symbols
+  (regla de la UI sin genéricos).
+- **Listo cuando:** hay capturas de Ajustes en el SE y el Pro Max sin botones naranjas y con más separación, y
+  `SettingsPrivacyUITests` está en verde. Revisión: sonnet. Es independiente: puede ir en cualquier ola.
+
 ---
 
 ## Orden (≤ 2 compilando)
@@ -164,7 +175,7 @@ revisión según el riesgo.
 |---|---|---|
 | 1 | B11 · B2 · B1 | B11 es un bug que bloquea la pantalla y entra al primer hueco. B2 arregla lo que B5 y B6 van a tocar. B1 es independiente. |
 | 2 | B3 · B4 + B10 | B3 depende de que B2 haya cerrado las capas. B4 y B10 tocan el mismo pager: van en la misma tarea o una detrás de la otra. |
-| 3 | B5 · B8 | B5 toca `PickupNode` después de B2 y B3. B8 es independiente. |
+| 3 | B5 · B8 + B12 | B5 toca `PickupNode` después de B2 y B3. B8 y B12 son independientes (B12 puede entrar antes, en cualquier hueco). |
 | 4 | B6 · B9 | B6 va después de B5 (`PickupNode`). B9 corre en paralelo: el arte se genera mientras tanto. |
 | 5 | B7 | Es la que más riesgo tiene en el ritmo. Va sola y con el pacing-sim. |
 

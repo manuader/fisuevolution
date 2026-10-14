@@ -1073,6 +1073,7 @@ Olas de ≤ 2 compilando: 1 = B11 · B2 · B1 · 2 = B3 · B4 + B10 · 3 = B5 ·
 | E14b-B9 | Todo pop-up con su imagen (auditoría + arte) | ⛔ | — | pop-ups, arte `fisu-v2-premios` | | sonnet; ola 4; D8 |
 | E14b-B10 | Cabecera de menús: flechas a la altura del título, pestañas a todo el ancho | ⛔ | — | `MenuPagerView`, cabecera de menús | | sonnet; con B4 (mismo pager) |
 | E14b-B11 | **BUG:** el tip «Share it and grab a bonus!» queda colgado sin salida; todo tip con botón de cerrar | ⏳ | — | `ShareOfferLayer`, tips/avisos | | sonnet; **primer hueco**; captura `build/capturas-dueno/b11-tip-colgado.webp` (checkout principal) |
+| E14b-B12 | Ajustes con menos ruido: margen entre secciones, ningún botón naranja, sin SF Symbols en Legal/restaurar | ⏳ | — | `SettingsView` | | sonnet; cualquier hueco; captura `build/capturas-dueno/b12-ajustes.webp` |
 
 ## 6. Gates humanos y 🔒 del dueño
 

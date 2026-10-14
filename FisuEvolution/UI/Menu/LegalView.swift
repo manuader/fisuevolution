@@ -256,10 +256,7 @@ struct LegalView: View {
     private var unavailableCard: some View {
         GameCard(style: .normal) {
             VStack(spacing: Tokens.s8) {
-                Image(systemName: "doc.questionmark")
-                    .font(.system(size: 30, weight: .black))
-                    .foregroundStyle(Color("PaletteOrange"))
-                    .accessibilityHidden(true)
+                GameGlyphView(glyph: .document, size: 40)
                 Text("legal.unavailable")
                     .font(Tokens.body)
                     .foregroundStyle(Color("PaletteInk"))

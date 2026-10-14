@@ -1327,23 +1327,6 @@
         }
       }
     },
-    "ach.toast.unlocked" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Achievement unlocked!"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "¡Logro desbloqueado!"
-          }
-        }
-      }
-    },
     "ach.videos_1.desc" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10972,23 +10955,6 @@
         }
       }
     },
-    "share.offer %@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Share it! +%@ min"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "¡Compartilo! +%@ min"
-          }
-        }
-      }
-    },
     "share.skip" : {
       "localizations" : {
         "en" : {
@@ -15701,13 +15667,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Open it: there's a new outfit inside for your workers."
+            "value" : "Open it and tap three times: there's a new outfit inside for your workers."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Abrilo: adentro hay una pinta nueva para tus empleados."
+            "value" : "Abrilo y tocá tres veces: adentro hay una pinta nueva para tus empleados."
           }
         }
       }
@@ -16566,13 +16532,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The reward calendar lives in Gifts. Drop by every day to grab yours."
+            "value" : "Gifts holds everything you can collect, what's coming soon and your daily streak. Drop by every day to grab yours."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El calendario de premios vive en Regalos. Pasá todos los días a buscar el tuyo."
+            "value" : "En Regalos está todo lo que podés cobrar, lo que llega pronto y la racha diaria. Pasá todos los días a buscar el tuyo."
           }
         }
       }
@@ -16583,13 +16549,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your workers stashed cash in the mattress. Tap it to open it."
+            "value" : "Your workers stashed cash in the mattress. Tap it here: watch a video and it drops onto the board, where you open it."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tus empleados escondieron plata en el colchón. Tocalo para abrirlo."
+            "value" : "Tus empleados escondieron plata en el colchón. Tocalo acá: con un video cae al tablero y lo abrís ahí."
           }
         }
       }
@@ -16702,13 +16668,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The Store has packs and extras. Check it out whenever you like, no rush."
+            "value" : "The Store has Blue packs and extras, paid with real money. Check it out whenever you like, no rush."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "En la Tienda hay packs y extras. Mirala cuando quieras, sin apuro."
+            "value" : "En la Tienda hay packs de blue y extras, y se pagan con plata de verdad. Mirala cuando quieras, sin apuro."
           }
         }
       }
@@ -16815,6 +16781,23 @@
         }
       }
     },
+    "tutorial.tour.gifts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gifts now sorts everything by status: what you can collect now, what's coming soon and what comes later. Chests open with three taps."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Regalos ahora ordena todo por estado: lo que ya podés cobrar, lo que llega pronto y lo que viene después. Los cofres se abren con tres toques."
+          }
+        }
+      }
+    },
     "tutorial.tour.intro" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -16889,13 +16872,30 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“Prizes” holds the Wheel, the Mattress, the Packages (boxes with a surprise employee) and the video boost."
+            "value" : "“Prizes” holds the Wheel (with one daily spin allowance), the Mattress, the Packages and the video boost. The mattress and the boxes drop onto the board: tap them there to open them."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "En «Premios» están la Ruleta, el Colchón, los Paquetes (cajas con un empleado sorpresa) y el boost por video."
+            "value" : "En «Premios» están la Ruleta (con un cupo de giros por día), el Colchón, los Paquetes y el boost por video. El colchón y las cajas caen al tablero: tocalos ahí para abrirlos."
+          }
+        }
+      }
+    },
+    "tutorial.tour.upgrades" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upgrades now has three tabs: Characters, Permanent and Boosts. You spend Blue there; the Store is now only for real-money purchases."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mejoras ahora tiene tres pestañas: Personajes, Permanentes y Boosts. El blue se gasta ahí; la Tienda quedó sólo para compras con plata de verdad."
           }
         }
       }
@@ -16906,13 +16906,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Characters now drop by with deals, and events arrive with a face and a countdown. I'll introduce them when they show up."
+            "value" : "Characters now walk onto the board and talk in a speech bubble: tap their face to see the deal. Events arrive with a face and a countdown. I'll introduce them when they show up."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ahora te visitan personajes con tratos, y los eventos llegan con cara y cuenta regresiva. Te los presento cuando aparezcan."
+            "value" : "Ahora te visitan personajes que entran al tablero y hablan en un globo: tocá su cara para ver el trato. Los eventos llegan con cara y cuenta regresiva. Te los presento cuando aparezcan."
           }
         }
       }

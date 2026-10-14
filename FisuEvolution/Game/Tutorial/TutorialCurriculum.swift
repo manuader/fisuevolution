@@ -33,6 +33,8 @@ enum TutorialCurriculum {
         .explain("tour.intro", text: "tutorial.tour.intro", pose: "fisura_celebrate"),
         .explain("tour.quick_hire", text: "tutorial.tour.quick_hire", on: .quickHire, hand: .hold),
         .explain("tour.menu_swipe", text: "tutorial.tour.menu_swipe", on: .menu, hand: .swipe(.left)),
+        .explain("tour.upgrades", text: "tutorial.tour.upgrades", on: .upgrades),
+        .explain("tour.gifts", text: "tutorial.tour.gifts", on: .gifts),
         .explain("tour.character_sheet", text: "tutorial.tour.character_sheet", hand: .hold),
         .explain("tour.elevator", text: "tutorial.tour.elevator", on: .map),
         .explain("tour.side_rail", text: "tutorial.tour.side_rail", on: .sideRail, hand: .tap),

@@ -804,7 +804,7 @@ struct PagerChevronButton: View {
 
     var body: some View {
         Button(action: action) {
-            PagerChevronLabel(systemName: direction == .previous ? "chevron.left" : "chevron.right")
+            PagerChevronLabel(pointsRight: direction == .next)
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(identifier)
@@ -820,14 +820,32 @@ struct PagerChevronButton: View {
     }
 }
 
+/// El ‹ o › dibujado (sin SF Symbols): un trazo grueso de punta redonda.
+private struct PagerChevronShape: Shape {
+    let pointsRight: Bool
+
+    func path(in rect: CGRect) -> Path {
+        let tail = rect.minX + rect.width * (pointsRight ? 0.1 : 0.9)
+        let tip = rect.minX + rect.width * (pointsRight ? 0.9 : 0.1)
+        var path = Path()
+        path.move(to: CGPoint(x: tail, y: rect.minY))
+        path.addLine(to: CGPoint(x: tip, y: rect.midY))
+        path.addLine(to: CGPoint(x: tail, y: rect.maxY))
+        return path
+    }
+}
+
 private struct PagerChevronLabel: View {
-    let systemName: String
+    let pointsRight: Bool
     @Environment(\.isEnabled) private var isEnabled
 
     var body: some View {
-        Image(systemName: systemName)
-            .font(.system(size: 15, weight: .black))
-            .foregroundStyle(Color("PaletteInk").opacity(isEnabled ? 1 : 0.3))
+        PagerChevronShape(pointsRight: pointsRight)
+            .stroke(
+                Color("PaletteInk").opacity(isEnabled ? 1 : 0.3),
+                style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round)
+            )
+            .frame(width: 9, height: 16)
             .frame(width: 34, height: 34)
             .background(
                 Circle()

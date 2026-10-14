@@ -109,6 +109,7 @@ struct FisuJobsView: View {
     private var header: some View {
         VStack(spacing: Tokens.s4) {
             FisuJobsWordmark()
+                .pagerTitleSlot()
             Text("jobs.subtitle")
                 .font(Tokens.caption)
                 .foregroundStyle(Color("PaletteInk").opacity(0.75))

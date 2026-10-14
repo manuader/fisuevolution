@@ -29,10 +29,45 @@ struct MenuPageChrome: Equatable {
     var awning: Bool
     var material: WoodPanelBackground.Material
     var headerHeight: CGFloat
+    /// El alto del cartel del título (primera fila de la cabecera): a esa altura
+    /// van las flechas, no al centro de toda la cabecera.
+    var titleHeight: CGFloat
     var ornament: AnyView
 
     static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.awning == rhs.awning && lhs.material == rhs.material && lhs.headerHeight == rhs.headerHeight
+        lhs.awning == rhs.awning && lhs.material == rhs.material
+            && lhs.headerHeight == rhs.headerHeight && lhs.titleHeight == rhs.titleHeight
+    }
+}
+
+/// El alto del cartel del título, publicado por el propio cartel (`pagerTitleSlot`).
+struct MenuTitleHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat { 0 }
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
+
+/// Lo que hace el cartel del título (o el logo) de una página del menú: deja a
+/// los lados el hueco de las flechas del paginador y publica su alto. Sólo el
+/// título cede ancho; lo que va debajo (las pestañas) usa todo el de la columna.
+private struct PagerTitleSlot: ViewModifier {
+    @Environment(\.menuPager) private var pager
+    @State private var height: CGFloat = 0
+
+    func body(content: Content) -> some View {
+        content
+            .padding(.horizontal, (pager?.count ?? 0) > 1 ? MenuPagerView.chevronSlot : 0)
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height = $0 }
+            .preference(key: MenuTitleHeightKey.self, value: height)
+    }
+}
+
+extension View {
+    /// Aplicar al cartel del título de una página del menú deslizable.
+    func pagerTitleSlot() -> some View {
+        modifier(PagerTitleSlot())
     }
 }
 
@@ -51,12 +86,13 @@ struct MenuPageChromeKey: PreferenceKey {
 /// recortados por el borde interior del marco. Afuera no hay nada: el sheet es
 /// transparente.
 ///
-/// En reposo se monta SOLO la página actual: la X de cada página vive en la barra
-/// de navegación de UIKit, que `accessibilityHidden` no oculta, y con vecinas
-/// montadas `sheet.close` aparecería tres veces en el árbol. Mientras el scroll
-/// se mueve (gesto, flechas) se montan también las vecinas, para que el
-/// deslizado no muestre un hueco. El arranque en la página pedida va por
-/// `ScrollViewReader`: `scrollPosition(id:)` no aplica el valor inicial.
+/// Se montan la página actual y sus dos vecinas: las vecinas se arman en reposo
+/// (poco después de abrir, con su arte ya calentado en background) para que el
+/// deslizado no pague el armado en el primer cuadro del gesto. La X de cada
+/// página ya no vive en su barra de navegación (el panel la oculta; la X es del
+/// paginador), así que las vecinas, tapadas de accesibilidad, no duplican
+/// `sheet.close`. El arranque en la página pedida va por `ScrollViewReader`:
+/// `scrollPosition(id:)` no aplica el valor inicial.
 struct MenuPagerView: View {
     let pages: [GameScreen]
     let adsProvider: AdsCoordinator
@@ -70,12 +106,16 @@ struct MenuPagerView: View {
     @State private var locked = false
     @State private var chromes: [Int: MenuPageChrome] = [:]
     @Environment(\.dismiss) private var dismiss
+    @Environment(GameState.self) private var gameState
     @State private var phase: ScrollPhase = .idle
     /// La página más cercana al offset: la que queda cuando el scroll se asienta.
     @State private var nearest: Int?
     /// El scroll se movió de verdad desde la última página asentada: el arranque
     /// programático (`scrollTo(start)`) parte del offset 0 y no es una página vista.
     @State private var scrolled = false
+    /// Las vecinas ya se armaron en reposo (después del arranque): el deslizado
+    /// no paga el armado de una página en el primer cuadro del gesto.
+    @State private var neighborsReady = false
     private let start: GameScreen
 
     init(pages: [GameScreen], start: GameScreen, adsProvider: AdsCoordinator,
@@ -113,6 +153,7 @@ struct MenuPagerView: View {
     }
 
     var body: some View {
+        let _ = PagerProbe.hit("pager.body shown=\(shown) phase=\(phase)")
         ZStack(alignment: .topTrailing) {
             ZStack {
                 if !locked { frame }
@@ -127,7 +168,8 @@ struct MenuPagerView: View {
                     .padding(.trailing, Tokens.s16)
             }
         }
-        .onPreferenceChange(MenuPageChromeKey.self) { chromes.merge($0) { _, new in new } }
+        .onPreferenceChange(MenuPageChromeKey.self) { merge(chromes: $0) }
+        .task { await prepareNeighbors() }
         .fisuSheet()
     }
 
@@ -181,7 +223,7 @@ struct MenuPagerView: View {
             .disabled(currentIndex >= pages.count - 1)
         }
         .padding(.horizontal, WoodPanelBackground.columnInset)
-        .frame(height: max(chrome?.headerHeight ?? 0, 34))
+        .frame(height: max(chrome?.titleHeight ?? 0, 34))
         .padding(.top, WoodPanelBackground.headerTopInset(awning: chrome?.awning ?? false))
         .frame(maxHeight: .infinity, alignment: .top)
     }
@@ -189,7 +231,9 @@ struct MenuPagerView: View {
     private var pager: some View {
         ScrollViewReader { proxy in
             ScrollView(.horizontal) {
-                LazyHStack(spacing: 0) {
+                // HStack y no Lazy: son a lo sumo siete páginas y las lejanas son un
+                // `Color.clear`; con Lazy la vecina se armaba recién al empezar el gesto.
+                HStack(spacing: 0) {
                     ForEach(Array(pages.enumerated()), id: \.element) { index, page in
                         slot(page, index: index)
                             .containerRelativeFrame(.horizontal)
@@ -256,26 +300,86 @@ struct MenuPagerView: View {
 
     @ViewBuilder private func slot(_ page: GameScreen, index: Int) -> some View {
         let isCurrent = index == currentIndex
+        let nearby = Self.isMounted(index: index, current: currentIndex)
+        PagerSlot(
+            page: page,
+            index: index,
+            count: pages.count,
+            mounted: isCurrent || ((neighborsReady || phase != .idle) && nearby),
+            isCurrent: isCurrent,
+            adsProvider: adsProvider,
+            onStore: onStore,
+            go: { go(to: $0) },
+            lock: { locked = $0 }
+        )
+        .equatable()
+    }
+
+    /// Las preferencias que no cambian nada no deben invalidar al paginador: cada
+    /// invalidación recorría las páginas montadas.
+    private func merge(chromes incoming: [Int: MenuPageChrome]) {
+        let merged = chromes.merging(incoming) { _, new in new }
+        guard merged != chromes else { return }
+        chromes = merged
+    }
+
+    /// Calienta el arte de las páginas vecinas fuera del hilo principal y, con el
+    /// arranque ya asentado, las deja armadas en reposo.
+    private func prepareNeighbors() async {
+        warmArt()
+        try? await Task.sleep(for: .milliseconds(400))
+        neighborsReady = true
+    }
+
+    private func warmArt() {
+        var atlases: Set<String> = ["ui"]
+        if pages.contains(.skins) || pages.contains(.store),
+           let characters = gameState.content?.manifest.characters {
+            atlases.formUnion(characters.values.map(\.atlas))
+        }
+        UIArt.warmAtlases(atlases)
+    }
+
+    private func go(to index: Int) {
+        guard pages.indices.contains(index) else { return }
+        withAnimation(.snappy) { current = pages[index] }
+    }
+}
+
+/// Una ranura del paginador. Es `Equatable` a propósito: el paginador se
+/// invalida con cada cambio de fase del scroll y de preferencia, y sin esto cada
+/// invalidación reconstruía el cuerpo de todas las páginas montadas (los
+/// cierres que recibe nunca son iguales entre sí). Lo que cambia de verdad
+/// —la página, su índice, si está armada o si es la actual— sí entra en la
+/// igualdad; el entorno (el estado del juego) invalida la página por su cuenta.
+private struct PagerSlot: View, Equatable {
+    let page: GameScreen
+    let index: Int
+    let count: Int
+    let mounted: Bool
+    let isCurrent: Bool
+    let adsProvider: AdsCoordinator
+    let onStore: () -> Void
+    let go: @MainActor (Int) -> Void
+    let lock: @MainActor (Bool) -> Void
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.page == rhs.page && lhs.index == rhs.index && lhs.count == rhs.count
+            && lhs.mounted == rhs.mounted && lhs.isCurrent == rhs.isCurrent
+    }
+
+    var body: some View {
+        let _ = PagerProbe.hit("slot.body \(page) mounted=\(mounted) current=\(isCurrent)")
         Group {
-            if isCurrent || (phase != .idle && Self.isMounted(index: index, current: currentIndex)) {
+            if mounted {
                 MenuPage(screen: page, adsProvider: adsProvider, onStore: onStore)
-                    .environment(\.menuPager, MenuPagerContext(
-                        index: index,
-                        count: pages.count,
-                        go: { go(to: $0) },
-                        lock: { locked = $0 }
-                    ))
+                    .environment(\.menuPager, MenuPagerContext(index: index, count: count, go: go, lock: lock))
             } else {
                 Color.clear
             }
         }
         .accessibilityHidden(!isCurrent)
         .allowsHitTesting(isCurrent)
-    }
-
-    private func go(to index: Int) {
-        guard pages.indices.contains(index) else { return }
-        withAnimation(.snappy) { current = pages[index] }
     }
 }
 

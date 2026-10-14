@@ -90,13 +90,23 @@ final class BottomMenuUITests: XCTestCase {
         let screen = app.windows.element(boundBy: 0).frame
         attach(app, named: "E3 Contratar al centro")
 
-        XCTAssertEqual(jobs.frame.midX, screen.midX, accuracy: 2, "Contratar tiene que ir al centro")
+        // Con Ranking al borde izquierdo (E14 T22) la barra es 3 + Contratar + 2: el
+        // plato destacado ya no cae en el eje de la pantalla, pero sigue en el
+        // medio de la barra (entre Pintas y Regalos) y a menos de una celda del
+        // eje. La simetría 2 + 1 + 2 la pinea `testLaBarraEsSimetrica`.
+        let skinsTab = app.buttons["hud.skins"], giftsTab = app.buttons["hud.bonus"]
+        XCTAssertGreaterThan(jobs.frame.midX, skinsTab.frame.midX, "Contratar va después de Pintas")
+        XCTAssertLessThan(jobs.frame.midX, giftsTab.frame.midX, "Contratar va antes de Regalos")
+        XCTAssertEqual(jobs.frame.midX, screen.midX, accuracy: skinsTab.frame.width,
+                       "Contratar tiene que ir en el medio de la barra")
         for identifier in ["hud.upgrades", "hud.skins", "hud.bonus", "hud.settings"] {
             let tab = app.buttons[identifier]
             XCTAssertTrue(tab.exists, "falta \(identifier)")
             XCTAssertGreaterThan(jobs.frame.height, tab.frame.height,
                                  "Contratar tiene que ser más alto que \(identifier)")
-            XCTAssertGreaterThan(tab.frame.minY, screen.height - 100,
+            // C12 sumó la leyenda bajo cada ícono (+14 pt de alto): los platos comunes
+            // arrancan a ~101 pt del borde de abajo, no a menos de 100.
+            XCTAssertGreaterThan(tab.frame.minY, screen.height - 110,
                                  "\(identifier) arrancó en \(tab.frame.minY): la barra no bajó")
         }
         XCTAssertFalse(app.buttons["hud.store"].exists, "la Tienda salió de la barra")
@@ -158,9 +168,15 @@ final class BottomMenuUITests: XCTestCase {
 
         // Encima de la barra, no adentro: si algún día cae dentro de la franja
         // de los tabs, tapa uno.
+        // C18: el atajo es una solapa sobre el borde de la barra, a un costado del
+        // plato de Contratar (que sobresale ×1,4). Nunca encima de él (D14) ni
+        // adentro de la franja de los tabs comunes.
         let jobs = app.buttons["hud.hire"]
         XCTAssertTrue(jobs.exists)
-        XCTAssertLessThanOrEqual(quickHire.frame.maxY, jobs.frame.minY,
+        XCTAssertFalse(quickHire.frame.intersects(jobs.frame),
+                       "el atajo \(quickHire.frame) pisa el plato de Contratar \(jobs.frame)")
+        let upgrades = app.buttons["hud.upgrades"]
+        XCTAssertLessThanOrEqual(quickHire.frame.maxY, upgrades.frame.minY + 1,
                                  "el atajo se metió adentro de la barra de tabs")
 
         let unitsBefore = app.otherElements["board.units"].value as? String

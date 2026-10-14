@@ -371,11 +371,14 @@ private struct FisuSheetItemPresenter<Item: Identifiable, Sheet: View>: ViewModi
     func body(content: Content) -> some View {
         if SheetPresentation.usesCover(on: UIDevice.current.userInterfaceIdiom) {
             content.fullScreenCover(item: $item, onDismiss: onDismiss) { item in
-                FisuCover { sheet(item) }
+                FisuCover { sheet(item).environment(\.menuPager, nil) }
             }
         } else {
             content.sheet(item: $item, onDismiss: onDismiss) { item in
-                sheet(item).fisuSheet()
+                // Una hoja presentada desde una página del menú NO es una página
+                // del paginador: el contexto se hereda por el entorno y, sin esto,
+                // la ficha salía sin marco y sin X (`panelSheet` la tomaba por página).
+                sheet(item).environment(\.menuPager, nil).fisuSheet()
             }
         }
     }
@@ -389,11 +392,11 @@ private struct FisuSheetFlagPresenter<Sheet: View>: ViewModifier {
     func body(content: Content) -> some View {
         if SheetPresentation.usesCover(on: UIDevice.current.userInterfaceIdiom) {
             content.fullScreenCover(isPresented: $isPresented, onDismiss: onDismiss) {
-                FisuCover { sheet() }
+                FisuCover { sheet().environment(\.menuPager, nil) }
             }
         } else {
             content.sheet(isPresented: $isPresented, onDismiss: onDismiss) {
-                sheet().fisuSheet()
+                sheet().environment(\.menuPager, nil).fisuSheet()
             }
         }
     }

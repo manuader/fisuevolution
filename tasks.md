@@ -1075,6 +1075,7 @@ Olas de ≤ 2 compilando: 1 = B11 · B2 · B1 · 2 = B3 · B4 + B10 · 3 = B5 ·
 | E14b-B11 | **BUG:** el tip «Share it and grab a bonus!» queda colgado sin salida; todo tip con botón de cerrar | ⏳ | — | `ShareOfferLayer`, tips/avisos | | sonnet; **primer hueco**; captura `build/capturas-dueno/b11-tip-colgado.webp` (checkout principal) |
 | E14b-B12 | Ajustes con menos ruido: margen entre secciones, ningún botón naranja, sin SF Symbols en Legal/restaurar | ⏳ | — | `SettingsView` | | sonnet; cualquier hueco; captura `build/capturas-dueno/b12-ajustes.webp` |
 | E14b-B13 | Toda recompensa se ve llegar: monto, monedas que vuelan del personaje al contador y el contador que sube (código) | ⏳ | — | componente nuevo `RewardFlight`, HUD (contadores), fuentes de recompensa | | sonnet (opus si toca `grant()`); pedido del dueño 14/10 en el chat del relevo 55 |
+| E14b-B14 | **Cero rastro de «ORO»:** textos, código, assets e imágenes a dólar blue (arte nuevo con Gemini Flash, D8); sólo quedan IDs de ASC y claves del save viejo | ⏳ | — | todo lo que diga `oro` (renombre amplio: va sola o con tareas sin archivos en común) | | **opus**; pedido del dueño 14/10 en el chat del relevo 55 |
 
 ## 6. Gates humanos y 🔒 del dueño
 

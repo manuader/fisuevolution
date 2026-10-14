@@ -205,3 +205,28 @@ y los pop-ups.
   correcto y que el saldo final es el mismo con y sin animación; capturas (o una tira de cuadros) del vuelo en el
   SE y el Pro Max para un evento de plata y uno de blue; D14 cero superposición. Revisión: sonnet (opus si toca
   `grant()` o la acreditación).
+
+### B14 — Cero rastro de «ORO»: todo pasa a dólar blue (pedido del dueño, 2026-10-14)
+- E14 T7 (C8) cambió sólo la presentación (48 claves e ícono `ui_dolar_blue`) y dejó intactos los IDs internos. El
+  dueño pide más: **no puede quedar rastro de que el dólar blue se llamó ORO**, ni en nombres, ni en imágenes, ni
+  en assets.
+- **Inventario primero** (`git grep -i` de `oro`, `gold`, `lingote`, `ingot` y parecidos, con cuidado de no tocar
+  palabras que sólo contienen «oro», p. ej. «tesoro», «Moron», «decoro»): textos (es/en), nombres de archivos y de
+  assets, atlas, `assets_manifest.json`, `loops_manifest.json`, imágenes que muestran oro (monedas doradas,
+  lingotes, cofres de oro usados como moneda premium), íconos de la Tienda, capturas de la App Store, docs de
+  review, nombres de IAP visibles, notas de ASC.
+- **Imágenes:** toda imagen que represente la moneda premium como oro se reemplaza por una de dólar blue (billetes
+  azules, fajos, la estética de `ui_dolar_blue`). Las que falten se generan con `automatic-image-generation`
+  (Gemini Flash, proyecto `fisu-v2-premios` o uno nuevo `fisu-v2-blue`, estilo de los premios aprobados) y se
+  integran directo (D8). La lista de lo generado queda en el doc de sesión.
+- **Código:** se renombran tipos, propiedades, funciones, archivos y assets (`oro*` → `blue*`). **Excepciones
+  inevitables, invisibles y documentadas:** los IDs de producto de App Store Connect (inmutables, p. ej.
+  `oro_medium`) y las claves de decodificación del save viejo (se leen con la clave vieja y se escriben con la
+  nueva, con migración y test de ida y vuelta). Ninguna de las dos se ve en la app.
+- La rareza «oro» de las skins (común/oro/diamante) **no es la moneda**: se decide en el inventario; si en
+  pantalla dice «Oro»/«Gold», pasa a otro nombre que no remita a la moneda vieja (p. ej. «Dorada»/«Golden» o
+  «Épica»), y se anota.
+- **Listo cuando:** `git grep -i` sólo encuentra las excepciones listadas (con un test o script que lo verifique y
+  falle si aparece una nueva), el save viejo migra sin perder blue (test), las capturas de la Tienda, Mejoras,
+  pop-ups y HUD en el SE no muestran oro, y el catálogo de textos no tiene «ORO»/«gold» como moneda. Revisión:
+  **opus** (toca el save y las compras).

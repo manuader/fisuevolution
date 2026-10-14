@@ -35,19 +35,13 @@ struct NotificationPermissionCard: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity)
                 HStack(spacing: Tokens.s8) {
-                    ActionPill(
-                        titleKey: "notifications.card.decline",
-                        systemImage: "clock",
-                        tint: Color("PaletteBrown"),
-                        identifier: "notifications.card.decline",
-                        action: decline
+                    GameButton(
+                        "notifications.card.decline", role: .neutral, medallion: .glyph(.clock),
+                        fullWidth: true, identifier: "notifications.card.decline", action: decline
                     )
-                    ActionPill(
-                        titleKey: "notifications.card.accept",
-                        systemImage: "bell.fill",
-                        tint: Color("PaletteGreen"),
-                        identifier: "notifications.card.accept",
-                        action: accept
+                    GameButton(
+                        "notifications.card.accept", role: .free, medallion: .glyph(.bell),
+                        fullWidth: true, identifier: "notifications.card.accept", action: accept
                     )
                 }
             }

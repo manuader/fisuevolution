@@ -23,6 +23,9 @@ public struct TreasuresConfig: Codable, Sendable, Equatable {
     public let firstTreasureAfterSeconds: Double
     /// Cuántas veces se puede pedir "otro colchón" (un video más cada una).
     public let extraOpensPerTreasure: Int
+    /// Uno de cada tantos llega de regalo, directo al tablero y sin video (E14b B6, D4).
+    /// 0 = ninguno: todos piden su video.
+    public let giftOneIn: Int
     public let prizes: [Prize]
 
     public init(
@@ -30,14 +33,29 @@ public struct TreasuresConfig: Codable, Sendable, Equatable {
         spawnIntervalSeconds: Double,
         firstTreasureAfterSeconds: Double,
         extraOpensPerTreasure: Int,
+        giftOneIn: Int = 0,
         prizes: [Prize]
     ) {
         self.schemaVersion = schemaVersion
         self.spawnIntervalSeconds = spawnIntervalSeconds
         self.firstTreasureAfterSeconds = firstTreasureAfterSeconds
         self.extraOpensPerTreasure = extraOpensPerTreasure
+        self.giftOneIn = giftOneIn
         self.prizes = prizes
     }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        schemaVersion = try container.decode(Int.self, forKey: .schemaVersion)
+        spawnIntervalSeconds = try container.decode(Double.self, forKey: .spawnIntervalSeconds)
+        firstTreasureAfterSeconds = try container.decode(Double.self, forKey: .firstTreasureAfterSeconds)
+        extraOpensPerTreasure = try container.decode(Int.self, forKey: .extraOpensPerTreasure)
+        giftOneIn = try container.decodeIfPresent(Int.self, forKey: .giftOneIn) ?? 0
+        prizes = try container.decode([Prize].self, forKey: .prizes)
+    }
+
+    /// La parte de los colchones que llega de regalo (0 sin regalos).
+    public var giftShare: Double { giftOneIn > 0 ? 1 / Double(giftOneIn) : 0 }
 
     /// La tabla que se muestra: la misma con la que sortea `TreasureRoller`.
     public var odds: [PrizeOdds] {
@@ -58,6 +76,7 @@ public struct TreasuresConfig: Codable, Sendable, Equatable {
         guard spawnIntervalSeconds > 0, spawnIntervalSeconds.isFinite else { throw ValidationError.outOfRange("spawnIntervalSeconds") }
         guard firstTreasureAfterSeconds > 0, firstTreasureAfterSeconds.isFinite else { throw ValidationError.outOfRange("firstTreasureAfterSeconds") }
         guard extraOpensPerTreasure >= 0 else { throw ValidationError.outOfRange("extraOpensPerTreasure") }
+        guard giftOneIn >= 0 else { throw ValidationError.outOfRange("giftOneIn") }
         guard !prizes.isEmpty else { throw ValidationError.noPrizes }
         var seen: Set<String> = []
         for prize in prizes {

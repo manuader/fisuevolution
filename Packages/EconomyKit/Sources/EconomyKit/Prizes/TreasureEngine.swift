@@ -1,28 +1,51 @@
 import Foundation
 
-/// El reloj del Colchón. Lo llama el tick: afuera no corre.
+/// El reloj del Colchón y su recorrido (E14b B6, D3/D4). Lo llama el tick: afuera no corre.
 public enum TreasureScheduler {
-    /// Avanza el reloj; devuelve si apareció uno. Con uno esperando no corre.
+    /// Cómo llegó el que acaba de aparecer.
+    public enum Arrival: Equatable, Sendable {
+        /// A la columna: se paga con un video y recién ahí cae al tablero.
+        case column
+        /// De regalo: directo al tablero, sin video.
+        case gift
+    }
+
+    /// Avanza el reloj; devuelve cómo llegó, si apareció uno. Con uno en juego (en la columna o
+    /// en el tablero) no corre. Uno de cada `giftOneIn` se sortea como regalo.
     @discardableResult
-    public static func advance(_ state: inout TreasuresState, delta: Double, config: TreasuresConfig) -> Bool {
-        guard delta > 0, !state.waiting else { return false }
+    public static func advance<R: RandomNumberGenerator>(
+        _ state: inout TreasuresState, delta: Double, config: TreasuresConfig, using rng: inout R
+    ) -> Arrival? {
+        guard delta > 0, !state.isPresent else { return nil }
         let remaining = (state.secondsUntilNext ?? config.firstTreasureAfterSeconds) - delta
         guard remaining <= 0 else {
             state.secondsUntilNext = remaining
-            return false
+            return nil
         }
-        state.waiting = true
+        let arrival: Arrival = Double.random(in: 0..<1, using: &rng) < config.giftShare ? .gift : .column
+        state.phase = arrival == .gift ? .onBoard : .waiting
         state.extraOpensLeft = 0
         state.secondsUntilNext = config.spawnIntervalSeconds
+        return arrival
+    }
+
+    /// Se miró el video de la columna: el colchón cae al tablero. `false` si no esperaba uno.
+    @discardableResult
+    public static func markPaid(_ state: inout TreasuresState) -> Bool {
+        guard state.phase == .waiting else { return false }
+        state.phase = .onBoard
         return true
     }
 
-    /// Se abrió (con el primer video): deja de esperar, habilita "otro
-    /// colchón" y el reloj arranca de nuevo.
-    public static func markOpened(_ state: inout TreasuresState, config: TreasuresConfig) {
-        state.waiting = false
+    /// Se abrió el del tablero: deja de estar en juego, habilita "otro colchón" y el reloj
+    /// arranca de nuevo. `false` si no había uno en el tablero.
+    @discardableResult
+    public static func markOpened(_ state: inout TreasuresState, config: TreasuresConfig) -> Bool {
+        guard state.phase == .onBoard else { return false }
+        state.phase = .none
         state.extraOpensLeft = config.extraOpensPerTreasure
         state.secondsUntilNext = config.spawnIntervalSeconds
+        return true
     }
 }
 

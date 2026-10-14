@@ -164,4 +164,43 @@ struct ActiveBonusTests {
         #expect(ActiveBonusBar.timeText(600) == "10:00")
         #expect(ActiveBonusBar.timeText(0) == "0s")
     }
+
+    // MARK: - La columna de la derecha (E14 C9)
+
+    private func chip(_ n: Int, event: Bool = false) -> ActiveBonus {
+        ActiveBonus(
+            id: UUID(), effect: .incomeMultiplier, icon: .art("ui_boost_mate"), effectText: "×\(n)",
+            expiresAt: now + Double(n), totalDuration: 60,
+            eventId: event ? "evento\(n)" : nil, polarity: event ? .positive : nil
+        )
+    }
+
+    @Test("los relojes de eventos van antes que los boosts, y cada grupo conserva su orden")
+    func eventsComeBeforeBoosts() {
+        let boostA = chip(1), eventB = chip(2, event: true), boostC = chip(3), eventD = chip(4, event: true)
+
+        let ordered = ActiveBonusBar.ordered([boostA, eventB, boostC, eventD])
+
+        #expect(ordered.map(\.id) == [eventB.id, eventD.id, boostA.id, boostC.id])
+    }
+
+    @Test("hasta cuatro filas se ven todas; de la quinta en adelante las agrupa el «+N»")
+    func fiveOrMoreRowsFoldIntoAPlusChip() {
+        let four = (1...4).map { chip($0) }
+        #expect(ActiveBonusBar.visibleRows(four, showsAll: false).count == 4)
+        #expect(ActiveBonusBar.hiddenCount(four) == 0)
+
+        let seven = (1...7).map { chip($0) }
+        #expect(ActiveBonusBar.visibleRows(seven, showsAll: false).count == 4)
+        #expect(ActiveBonusBar.hiddenCount(seven) == 3)
+        #expect(ActiveBonusBar.visibleRows(seven, showsAll: true).count == 7, "el «+N» abierto despliega el resto")
+    }
+
+    @Test("con el «+N» cerrado los eventos nunca quedan agrupados detrás de los boosts")
+    func eventsStayVisibleWhenFolded() {
+        let event = chip(9, event: true)
+        let rows = ActiveBonusBar.visibleRows((1...6).map { chip($0) } + [event], showsAll: false)
+
+        #expect(rows.first?.id == event.id)
+    }
 }

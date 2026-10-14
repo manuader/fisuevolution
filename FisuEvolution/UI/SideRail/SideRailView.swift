@@ -1,199 +1,117 @@
 import SwiftUI
 
-/// La geometría de la columna plegable: la de la botonera del ascensor,
-/// espejada contra el borde izquierdo.
+/// La geometría de la columna de sellos de la esquina de arriba a la izquierda.
 enum SideRailLayout {
-    /// "Premios" mide lo que el ícono del ascensor del HUD.
-    static let restSide: CGFloat = 44
-    static let button: CGFloat = 30
-    static let glyph: CGFloat = 20
-    /// Una celda: el botón y, debajo, su reloj en LED ("12:05").
-    static let cellWidth: CGFloat = 36
-    static let spacing: CGFloat = 6
-    /// Contra el borde, como la botonera contra el suyo.
-    static let edgeInset: CGFloat = Tokens.s12
-    static let gapAboveBottomBar: CGFloat = 10
-    /// 3 s y no los 2 de la botonera: lo pidió el dueño para ésta.
-    static var collapseDelay: Duration {
-        #if DEBUG
-        // Los UI tests miden los marcos de los cuatro botones, y consultarlos lleva más que 3 s.
-        if ProcessInfo.processInfo.arguments.contains("--uitest-rail-hold") { return .seconds(60) }
-        #endif
-        return .seconds(3)
-    }
+    /// El sello (C9: ~56 pt); el objetivo de toque lo agranda a `touchWidth`.
+    static let seal: CGFloat = 56
+    static let touchWidth: CGFloat = 62
+    static let ribbonHeight: CGFloat = 19
+    /// Cuánto se monta la cinta sobre el pie del sello.
+    static let ribbonOverlap: CGFloat = 7
+    /// Entre sello y sello: es lo único que se achica si el alto no alcanza.
+    static let spacing: CGFloat = 4
+    static let edgeInset: CGFloat = Tokens.s4
 }
 
-/// La columna lateral plegable (PLAN-v2 §2; opción C del dueño). En reposo, un
-/// solo botón "Premios" con el "!" sumado; al tocarlo se despliega la persiana
-/// con la Ruleta, El Colchón, los Paquetes y Fusionar todo, que se recoge sola a
-/// los 3 s sin uso o al tocar uno. Lee `sideRail` y toca por
-/// `sideRailTapped(_:)`: no decide nada.
+/// La columna de premios (PLAN-v2 E14 C9): siempre a la vista, uno debajo del
+/// otro, bajo el HUD y pegada al borde izquierdo. Cada sello lleva debajo su
+/// cinta de estado. Los que todavía no existen (nada que cobrar ni reloj que
+/// mostrar) no se dibujan y entran con animación cuando aparecen (D8). Lee
+/// `sideRail` y toca por `sideRailTapped(_:)`: no decide nada.
 ///
-/// ⚠️ Ni la persiana ni la tarjeta del video prenden `uiCoversBoard`: los
+/// ⚠️ Ni los sellos ni la tarjeta del video prenden `uiCoversBoard`: los
 /// videos piden el tablero libre (`canOffer*`) y se taparían a sí mismos.
 struct SideRailView: View {
     @Environment(GameState.self) private var gameState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOver
     /// La tarjeta del video abierta. Vive afuera: el toque en el tablero la cierra.
     @Binding var offer: SideRailKind?
-    @State private var expanded = false
-    /// Cada toque reinicia la cuenta de los 3 s (el mecanismo de la botonera).
-    @State private var activity = 0
 
     var body: some View {
-        // Un `ZStack` y no un `Group`: los `onChange` tienen que colgar de algo
-        // que existe también con la columna escondida.
-        ZStack(alignment: .topLeading) {
-            if gameState.sideRail.isVisible {
-                column(gameState.sideRail)
+        HStack(alignment: .top, spacing: Tokens.s8) {
+            column
+            if let offer {
+                SideRailOfferCard(kind: offer) { self.offer = nil }
+                    .id(offer)
+                    .fixedSize()
+                    .transition(.opacity)
             }
         }
-        .onChange(of: gameState.sideRail.isVisible) { _, visible in
-            guard !visible else { return }
-            fold()
-        }
+        .animation(.easeInOut(duration: 0.2), value: offer)
         .onChange(of: gameState.sideRail) { _, rail in
             offer = SideRailOffer.kept(offer, in: rail)
         }
         .onChange(of: gameState.celebrationHidesUI) { _, hides in
-            if hides { fold() }
+            if hides { offer = nil }
         }
     }
 
-    private func column(_ rail: SideRailState) -> some View {
-        VStack(alignment: .leading, spacing: Tokens.s4) {
-            if isOpen {
-                shutter(rail)
+    private var column: some View {
+        VStack(spacing: SideRailLayout.spacing) {
+            ForEach(shown) { item in
+                RailSeal(item: item) { tapped(item.kind) }
                     .transition(reduceMotion
                         ? .opacity
-                        : .scale(scale: 0.2, anchor: .bottomLeading).combined(with: .opacity))
-            }
-            restButton(rail)
-                .overlay(alignment: .bottomLeading) {
-                    // Con la persiana recogida, la tarjeta sale al lado de "Premios".
-                    if let offer {
-                        SideRailOfferCard(kind: offer) { self.offer = nil }
-                            .id(offer)
-                            .fixedSize()
-                            .offset(x: SideRailLayout.restSide + Tokens.s12)
-                            .transition(.opacity)
-                    }
-                }
-        }
-        .animation(reduceMotion ? .easeInOut(duration: 0.2) : .spring(duration: 0.35), value: isOpen)
-        .animation(.easeInOut(duration: 0.2), value: offer)
-        .onChange(of: lessonHoldsOpen, initial: true) { _, holds in
-            if holds {
-                unfold()
-            } else {
-                // Terminó la lección: desde acá, los 3 s de siempre.
-                activity &+= 1
+                        : .scale(scale: 0.3, anchor: .top).combined(with: .opacity))
             }
         }
-        .task(id: activity) {
-            // Con VoiceOver la persiana no se recoge sola: 3 s no alcanzan para leerla.
-            guard expanded, !voiceOver else { return }
-            try? await Task.sleep(for: SideRailLayout.collapseDelay)
-            guard !Task.isCancelled, !lessonHoldsOpen else { return }
-            expanded = false
-        }
+        .animation(reduceMotion ? .easeInOut(duration: 0.2) : .spring(duration: 0.4, bounce: 0.25),
+                   value: shown.map(\.kind))
+        .tutorialAnchor(.sideRail, when: !shown.isEmpty)
     }
 
-    private var isOpen: Bool { expanded || lessonHoldsOpen }
-
-    /// Una lección señala un botón de la persiana: tiene que estar abierta para
-    /// que el ancla exista, y no se recoge mientras la lección esté en pantalla.
-    private var lessonHoldsOpen: Bool {
-        guard let target = gameState.tutorialTip?.lesson.anchorTarget else { return false }
-        return SideRailKind.allCases.contains { $0.tutorialTarget == target }
+    /// Los sellos disponibles. El que una lección señala se queda aunque esté
+    /// apagado: el ancla tiene que existir.
+    private var shown: [SideRailItem] {
+        gameState.sideRail.shownItems(lessonTarget: gameState.tutorialTip?.lesson.anchorTarget)
     }
 
-    private func fold() {
-        expanded = false
-        offer = nil
-    }
-
-    // MARK: "Premios", en reposo
-
-    private func restButton(_ rail: SideRailState) -> some View {
-        Button {
-            offer = nil
-            if isOpen { expanded = false } else {
-                unfold()
-                gameState.sideRailOpened()
-            }
-        } label: {
-            GameIcon(artKey: "siderail_prizes", size: 28) { VectorTabGiftsIcon() }
-                .frame(width: SideRailLayout.restSide, height: SideRailLayout.restSide)
-                .background(MetalPlate(cornerRadius: 12))
-                .overlay(alignment: .topTrailing) {
-                    if rail.readyCount > 0 {
-                        SideRailBadge(text: String(rail.readyCount))
-                            .offset(x: 6, y: -6)
-                    }
-                }
-                .modifier(ReadyPulse(active: rail.readyCount > 0 && !isOpen && !reduceMotion))
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .tutorialAnchor(.sideRail)
-        .accessibilityIdentifier("siderail.toggle")
-        .accessibilityLabel(Text("siderail.toggle.ax"))
-        .accessibilityValue(Text(verbatim: String(rail.readyCount)))
-    }
-
-    // MARK: La persiana
-
-    private func shutter(_ rail: SideRailState) -> some View {
-        let rows = stride(from: 0, to: rail.items.count, by: 2).map {
-            Array(rail.items[$0 ..< min($0 + 2, rail.items.count)])
-        }
-        // `Grid` y no `LazyVGrid`, por lo mismo que la botonera: la perezosa se
-        // lleva puestos los identifiers.
-        return Grid(horizontalSpacing: SideRailLayout.spacing, verticalSpacing: SideRailLayout.spacing) {
-            ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
-                GridRow {
-                    ForEach(row) { item in
-                        SideRailButton(item: item) { tapped(item.kind) }
-                    }
-                }
-            }
-        }
-        .padding(Tokens.s8)
-        .background(MetalPlate(cornerRadius: 14))
-    }
-
-    private func unfold() {
-        expanded = true
-        activity &+= 1
-    }
-
-    /// Si abre algo u ofrece un video, la persiana se recoge (la tarjeta sale al
-    /// lado de "Premios"); si no había nada, el botón tiembla y la persiana se
-    /// queda 3 s más.
+    /// Si abre algo, la tarjeta del video se cierra; si ofrece un video, se
+    /// abre al lado; si no había nada, el sello tiembla.
     private func tapped(_ kind: SideRailKind) -> Bool {
+        gameState.sideRailOpened()
         switch gameState.sideRailTapped(kind) {
         case .acted:
-            expanded = false
             offer = nil
             return true
         case .offer:
-            expanded = false
             offer = kind
             return true
         case .refused:
-            activity &+= 1
             return false
         }
     }
 }
 
-/// Un botón de la persiana: redondo como los de la botonera, con el glifo, el
-/// "!" (o el número) y, debajo, su reloj en el LED del ascensor.
-struct SideRailButton: View {
+extension SideRailState {
+    /// Los sellos que se dibujan: los disponibles (D8). El que una lección
+    /// señala se queda aunque esté apagado, porque el ancla tiene que existir.
+    /// Sin paquetes a la vista, el de Paquetes sigue disponible mientras se
+    /// pueda ofrecer la lluvia por video: listo, o con su reloj.
+    func shownItems(lessonTarget: TutorialTarget?) -> [SideRailItem] {
+        guard isVisible else { return [] }
+        return items.compactMap { item in
+            let status = effectiveStatus(of: item)
+            guard status != .idle || item.kind.tutorialTarget == lessonTarget else { return nil }
+            return SideRailItem(kind: item.kind, status: status)
+        }
+    }
+
+    private func effectiveStatus(of item: SideRailItem) -> SideRailStatus {
+        guard item.kind == .packages, item.status == .idle else { return item.status }
+        switch packageRain {
+        case .available: return .ready(count: nil)
+        case .coolingDown(let seconds): return .waiting(seconds: Int(seconds.rounded(.up)))
+        case .notApplicable: return .idle
+        }
+    }
+}
+
+/// Un sello de la columna: el arte grande con el "!" (o el número) y, debajo,
+/// la cinta con su estado.
+struct RailSeal: View {
     let item: SideRailItem
-    /// `false` = no había nada que hacer: el botón tiembla.
+    /// `false` = no había nada que hacer: el sello tiembla.
     let tap: () -> Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var shakes = 0
@@ -207,11 +125,11 @@ struct SideRailButton: View {
         Button {
             if !tap(), !reduceMotion { shakes += 1 }
         } label: {
-            VStack(spacing: 3) {
+            VStack(spacing: -SideRailLayout.ribbonOverlap) {
                 face
-                led
+                RailRibbon(status: item.status)
             }
-            .frame(width: SideRailLayout.cellWidth)
+            .frame(width: SideRailLayout.touchWidth)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -224,48 +142,66 @@ struct SideRailButton: View {
 
     private var face: some View {
         SideRailGlyph(kind: item.kind)
-            .frame(width: SideRailLayout.glyph, height: SideRailLayout.glyph)
-            .frame(width: SideRailLayout.button, height: SideRailLayout.button)
-            .background(
-                Circle()
-                    .fill(LinearGradient(colors: [Color.white.opacity(0.85), Color("PaletteCream")],
-                                         startPoint: .top, endPoint: .bottom))
-                    .overlay(Circle().strokeBorder(Color("PaletteInk").opacity(0.85), lineWidth: 2))
-            )
-            .opacity(item.status == .idle ? 0.55 : 1)
+            .frame(width: SideRailLayout.seal, height: SideRailLayout.seal)
+            .shadow(color: .black.opacity(0.25), radius: 3, y: 2)
             .overlay(alignment: .topTrailing) {
                 if case .ready(let count) = item.status {
                     SideRailBadge(text: count.map { $0 > 9 ? "9+" : String($0) } ?? "!")
-                        .scaleEffect(0.8)
-                        .offset(x: 5, y: -5)
+                        .scaleEffect(0.85)
+                        .offset(x: 3, y: -2)
                 }
             }
             .modifier(ReadyPulse(active: isReady && !reduceMotion))
     }
+}
 
-    /// El reloj, con los tonos del display del ascensor. Listo o apagado, la
-    /// pantalla queda oscura: el "!" ya lo dice.
-    private var led: some View {
-        Group {
-            switch item.status {
-            case .waiting(let seconds):
-                Text(verbatim: SideRailClock.text(seconds) { String(localized: "siderail.hours \(String($0))") })
-            case .blocked: Text("prize.package.full")
-            case .ready, .idle: Text(verbatim: " ")
-            }
+/// La cinta de estado bajo el sello: «¡Listo!» cuando se puede usar, el reloj en
+/// el LED del ascensor cuando falta, «Lleno» si no entra.
+struct RailRibbon: View {
+    let status: SideRailStatus
+
+    var body: some View {
+        content
+            .font(.system(size: 11, weight: .heavy, design: .rounded))
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
+            .padding(.horizontal, Tokens.s4)
+            .frame(width: SideRailLayout.seal + 2, height: SideRailLayout.ribbonHeight)
+            .background(background)
+            .accessibilityHidden(true)
+    }
+
+    @ViewBuilder private var content: some View {
+        switch status {
+        case .ready:
+            Text("siderail.ready").foregroundStyle(.white)
+        case .blocked:
+            Text("prize.package.full").foregroundStyle(.white)
+        case .waiting(let seconds):
+            Text(verbatim: SideRailClock.text(seconds) { String(localized: "siderail.hours \(String($0))") })
+                .font(.system(size: 11, weight: .heavy, design: .monospaced))
+                .foregroundStyle(ElevatorLED.lit)
+        case .idle:
+            Text(verbatim: " ")
         }
-        .font(.system(size: 9, weight: .heavy, design: .monospaced))
-        .foregroundStyle(ElevatorLED.lit)
-        .lineLimit(1)
-        .minimumScaleFactor(0.6)
-        .frame(width: SideRailLayout.cellWidth, height: 12)
-        .background(RoundedRectangle(cornerRadius: 3, style: .continuous).fill(ElevatorLED.screen))
-        .accessibilityHidden(true)
+    }
+
+    @ViewBuilder private var background: some View {
+        switch status {
+        case .ready:
+            PillBackground(fill: Color("PaletteGreen"), lip: 2)
+        case .blocked:
+            PillBackground(fill: Color("PaletteOrange"), lip: 2)
+        case .waiting, .idle:
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .fill(ElevatorLED.screen)
+                .overlay(RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .strokeBorder(Color("PaletteBrown"), lineWidth: 2))
+        }
     }
 }
 
-/// El "!" (o el número) naranja de la columna. El de "Premios" suma los avisos
-/// de los cuatro.
+/// El "!" (o el número) naranja del sello.
 struct SideRailBadge: View {
     let text: String
 
@@ -286,7 +222,7 @@ struct SideRailBadge: View {
 
 /// El latido de lo que está listo. Sólo mientras lo está y sin Reduce Motion:
 /// nada de un `repeatForever` incondicional.
-private struct ReadyPulse: ViewModifier {
+struct ReadyPulse: ViewModifier {
     let active: Bool
 
     func body(content: Content) -> some View {
@@ -316,25 +252,6 @@ private struct RailShake: ViewModifier {
                 CubicKeyframe(-3, duration: 0.06)
                 CubicKeyframe(0, duration: 0.06)
             }
-        }
-    }
-}
-
-// MARK: - En la pantalla
-
-/// La columna colgada del borde de arriba de la franja de abajo, contra el
-/// borde izquierdo de la pantalla: el espejo de la botonera del ascensor.
-/// Vive en un `ViewModifier` porque `RootView.body` está al límite del
-/// type-checker.
-struct SideRailMount: ViewModifier {
-    @Binding var offer: SideRailKind?
-
-    func body(content: Content) -> some View {
-        content.overlay(alignment: .topLeading) {
-            SideRailView(offer: $offer)
-                .fixedSize()
-                .alignmentGuide(.top) { $0[.bottom] + SideRailLayout.gapAboveBottomBar }
-                .padding(.leading, SideRailLayout.edgeInset)
         }
     }
 }

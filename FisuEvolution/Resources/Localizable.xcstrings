@@ -783,6 +783,23 @@
         }
       }
     },
+    "ach.reward.blue %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Blue"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ blue"
+          }
+        }
+      }
+    },
     "ach.reward.boost %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -813,23 +830,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ monedas"
-          }
-        }
-      }
-    },
-    "ach.reward.oro %@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Blue"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ blue"
           }
         }
       }
@@ -2057,6 +2057,618 @@
         }
       }
     },
+    "blueShop.blocked.daily" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More tomorrow"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mañana hay más"
+          }
+        }
+      }
+    },
+    "blueShop.blocked.nothing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing to do now"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ahora no hace nada"
+          }
+        }
+      }
+    },
+    "blueShop.blocked.pending" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One is already waiting"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ya tenés uno esperando"
+          }
+        }
+      }
+    },
+    "blueShop.buy.ax %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buy %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comprar %@"
+          }
+        }
+      }
+    },
+    "blueShop.chest.coins" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You own every skin in the chest: this chest pays coins."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ya tenés todas las pintas del cofre: este cofre paga monedas."
+          }
+        }
+      }
+    },
+    "blueShop.chest.odds" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What you can get"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qué puede salir"
+          }
+        }
+      }
+    },
+    "blueShop.cosmetic.family" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The whole family: all 43 characters"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La familia entera: los 43 personajes"
+          }
+        }
+      }
+    },
+    "blueShop.cosmetic.outfit %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only for %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sólo para %@"
+          }
+        }
+      }
+    },
+    "blueShop.cosmetic.owned" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yours: wear it in Looks"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tuya: ponétela en Pintas"
+          }
+        }
+      }
+    },
+    "blueShop.footer.reincarnate" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Timed boosts are lost when you reincarnate."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los boosts por tiempo se pierden al reencarnar."
+          }
+        }
+      }
+    },
+    "blueShop.item.auto_tap.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rubber Finger"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dedo de goma"
+          }
+        }
+      }
+    },
+    "blueShop.item.better_supplier.desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Level %1$@ of %2$@: Parcels bring top hires more often"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nivel %1$@ de %2$@: los Paquetes traen más seguido a los de arriba"
+          }
+        }
+      }
+    },
+    "blueShop.item.better_supplier.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Better Supplier"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mejor proveedor"
+          }
+        }
+      }
+    },
+    "blueShop.item.daily_x3.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boosted Daily"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diario reforzado"
+          }
+        }
+      }
+    },
+    "blueShop.item.extra_slots.desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ spots on every floor. Full floors stop counting as \"running\" until you fill them."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ lugares en cada piso. Los pisos llenos dejan de estar «en marcha» hasta que los completes."
+          }
+        }
+      }
+    },
+    "blueShop.item.extra_slots.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expansion"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ampliación"
+          }
+        }
+      }
+    },
+    "blueShop.item.income_x2.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Double Shift"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doble turno"
+          }
+        }
+      }
+    },
+    "blueShop.item.income_x3.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triple Shift"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Triple turno"
+          }
+        }
+      }
+    },
+    "blueShop.item.merge_all.desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merges every pair on the floor you're looking at"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fusiona todos los pares del piso que estás mirando"
+          }
+        }
+      }
+    },
+    "blueShop.item.merge_all.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge Everything"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fusionar todo"
+          }
+        }
+      }
+    },
+    "blueShop.item.offline_x3.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Productive Nap"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siesta productiva"
+          }
+        }
+      }
+    },
+    "blueShop.item.package_rain.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parcel Rain"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lluvia de paquetes"
+          }
+        }
+      }
+    },
+    "blueShop.item.skin_chest.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Outfit Chest"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cofre de pintas"
+          }
+        }
+      }
+    },
+    "blueShop.item.skip_cooldowns.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Express Recharge"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recarga express"
+          }
+        }
+      }
+    },
+    "blueShop.item.time_jump_1h.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Overtime"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hora extra"
+          }
+        }
+      }
+    },
+    "blueShop.item.time_jump_4h.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Half Shift"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Media jornada"
+          }
+        }
+      }
+    },
+    "blueShop.item.wheel_spins.desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ Wheel spins a day, with a video or Blue"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ giros por día en la ruleta, con video o con blue"
+          }
+        }
+      }
+    },
+    "blueShop.item.wheel_spins.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wheel Pass"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abono a la ruleta"
+          }
+        }
+      }
+    },
+    "blueShop.pending.daily %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your next daily reward comes ×%@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El próximo diario viene ×%@"
+          }
+        }
+      }
+    },
+    "blueShop.pending.offline %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your next away popup comes ×%@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El popup de tu próxima ausencia viene ×%@"
+          }
+        }
+      }
+    },
+    "blueShop.shelf.boosts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boosts"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boosts"
+          }
+        }
+      }
+    },
+    "blueShop.shelf.cosmetics" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cosmetics"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cosméticos"
+          }
+        }
+      }
+    },
+    "blueShop.shelf.luck" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Luck"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suerte"
+          }
+        }
+      }
+    },
+    "blueShop.shelf.permanents" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permanent"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permanentes"
+          }
+        }
+      }
+    },
+    "blueShop.shelf.shortcuts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shortcuts"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atajos"
+          }
+        }
+      }
+    },
+    "blueShop.today %@ %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today: %1$@ of %2$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy: %1$@ de %2$@"
+          }
+        }
+      }
+    },
     "board.reveal.new" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2867,6 +3479,23 @@
         }
       }
     },
+    "character.skin.blue_shop" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bought with Blue, here or in the Store"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se compra con blue, acá o en la Tienda"
+          }
+        }
+      }
+    },
     "character.skin.equip" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2947,23 +3576,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apariencia bloqueada"
-          }
-        }
-      }
-    },
-    "character.skin.oro_shop" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bought with Blue, here or in the Store"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Se compra con blue, acá o en la Tienda"
           }
         }
       }
@@ -6869,618 +7481,6 @@
         }
       }
     },
-    "oroShop.blocked.daily" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "More tomorrow"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mañana hay más"
-          }
-        }
-      }
-    },
-    "oroShop.blocked.nothing" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nothing to do now"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ahora no hace nada"
-          }
-        }
-      }
-    },
-    "oroShop.blocked.pending" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "One is already waiting"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ya tenés uno esperando"
-          }
-        }
-      }
-    },
-    "oroShop.buy.ax %@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Buy %@"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comprar %@"
-          }
-        }
-      }
-    },
-    "oroShop.chest.coins" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You own every skin in the chest: this chest pays coins."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ya tenés todas las pintas del cofre: este cofre paga monedas."
-          }
-        }
-      }
-    },
-    "oroShop.chest.odds" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "What you can get"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Qué puede salir"
-          }
-        }
-      }
-    },
-    "oroShop.cosmetic.family" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The whole family: all 43 characters"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La familia entera: los 43 personajes"
-          }
-        }
-      }
-    },
-    "oroShop.cosmetic.outfit %@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Only for %@"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sólo para %@"
-          }
-        }
-      }
-    },
-    "oroShop.cosmetic.owned" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Yours: wear it in Looks"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tuya: ponétela en Pintas"
-          }
-        }
-      }
-    },
-    "oroShop.footer.reincarnate" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Timed boosts are lost when you reincarnate."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Los boosts por tiempo se pierden al reencarnar."
-          }
-        }
-      }
-    },
-    "oroShop.item.auto_tap.name" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rubber Finger"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dedo de goma"
-          }
-        }
-      }
-    },
-    "oroShop.item.better_supplier.desc" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Level %1$@ of %2$@: Parcels bring top hires more often"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nivel %1$@ de %2$@: los Paquetes traen más seguido a los de arriba"
-          }
-        }
-      }
-    },
-    "oroShop.item.better_supplier.name" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Better Supplier"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mejor proveedor"
-          }
-        }
-      }
-    },
-    "oroShop.item.daily_x3.name" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Boosted Daily"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Diario reforzado"
-          }
-        }
-      }
-    },
-    "oroShop.item.extra_slots.desc" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%@ spots on every floor. Full floors stop counting as \"running\" until you fill them."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%@ lugares en cada piso. Los pisos llenos dejan de estar «en marcha» hasta que los completes."
-          }
-        }
-      }
-    },
-    "oroShop.item.extra_slots.name" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Expansion"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ampliación"
-          }
-        }
-      }
-    },
-    "oroShop.item.income_x2.name" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Double Shift"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Doble turno"
-          }
-        }
-      }
-    },
-    "oroShop.item.income_x3.name" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Triple Shift"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Triple turno"
-          }
-        }
-      }
-    },
-    "oroShop.item.merge_all.desc" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Merges every pair on the floor you're looking at"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fusiona todos los pares del piso que estás mirando"
-          }
-        }
-      }
-    },
-    "oroShop.item.merge_all.name" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Merge Everything"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fusionar todo"
-          }
-        }
-      }
-    },
-    "oroShop.item.offline_x3.name" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Productive Nap"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Siesta productiva"
-          }
-        }
-      }
-    },
-    "oroShop.item.package_rain.name" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Parcel Rain"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lluvia de paquetes"
-          }
-        }
-      }
-    },
-    "oroShop.item.skin_chest.name" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Outfit Chest"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cofre de pintas"
-          }
-        }
-      }
-    },
-    "oroShop.item.skip_cooldowns.name" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Express Recharge"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recarga express"
-          }
-        }
-      }
-    },
-    "oroShop.item.time_jump_1h.name" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Overtime"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hora extra"
-          }
-        }
-      }
-    },
-    "oroShop.item.time_jump_4h.name" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Half Shift"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Media jornada"
-          }
-        }
-      }
-    },
-    "oroShop.item.wheel_spins.desc" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%@ Wheel spins a day, with a video or Blue"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%@ giros por día en la ruleta, con video o con blue"
-          }
-        }
-      }
-    },
-    "oroShop.item.wheel_spins.name" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wheel Pass"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abono a la ruleta"
-          }
-        }
-      }
-    },
-    "oroShop.pending.daily %@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your next daily reward comes ×%@"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El próximo diario viene ×%@"
-          }
-        }
-      }
-    },
-    "oroShop.pending.offline %@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your next away popup comes ×%@"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El popup de tu próxima ausencia viene ×%@"
-          }
-        }
-      }
-    },
-    "oroShop.shelf.boosts" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Boosts"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Boosts"
-          }
-        }
-      }
-    },
-    "oroShop.shelf.cosmetics" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cosmetics"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cosméticos"
-          }
-        }
-      }
-    },
-    "oroShop.shelf.luck" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Luck"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suerte"
-          }
-        }
-      }
-    },
-    "oroShop.shelf.permanents" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Permanent"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Permanentes"
-          }
-        }
-      }
-    },
-    "oroShop.shelf.shortcuts" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Shortcuts"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Atajos"
-          }
-        }
-      }
-    },
-    "oroShop.today %@ %@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Today: %1$@ of %2$@"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hoy: %1$@ de %2$@"
-          }
-        }
-      }
-    },
     "package.another" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7736,6 +7736,40 @@
         }
       }
     },
+    "prestige.blue.gain %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ Blue"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ blue"
+          }
+        }
+      }
+    },
+    "prestige.blue.next %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Earn %@ more for your next Blue"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te falta juntar %@ para tu próximo blue"
+          }
+        }
+      }
+    },
     "prestige.body %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7869,40 +7903,6 @@
         }
       }
     },
-    "prestige.oro.gain %@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%@ Blue"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%@ blue"
-          }
-        }
-      }
-    },
-    "prestige.oro.next %@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Earn %@ more for your next Blue"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Te falta juntar %@ para tu próximo blue"
-          }
-        }
-      }
-    },
     "prestige.prices_reset" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8004,6 +8004,23 @@
         }
       }
     },
+    "price.ax.blue %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Blue"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ blue"
+          }
+        }
+      }
+    },
     "price.ax.coins %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8017,23 +8034,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ monedas"
-          }
-        }
-      }
-    },
-    "price.ax.oro %@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Blue"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ blue"
           }
         }
       }
@@ -9415,6 +9415,23 @@
         }
       }
     },
+    "reset.summary.blue %@ %@ %@ %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blue: you have %1$@ (bought %2$@, earned %3$@) → you keep %4$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blue: tenés %1$@ (comprados %2$@, ganados %3$@) → conservás %4$@"
+          }
+        }
+      }
+    },
     "reset.summary.iap_skins %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9479,23 +9496,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sin anuncios"
-          }
-        }
-      }
-    },
-    "reset.summary.oro %@ %@ %@ %@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Blue: you have %1$@ (bought %2$@, earned %3$@) → you keep %4$@"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Blue: tenés %1$@ (comprados %2$@, ganados %3$@) → conservás %4$@"
           }
         }
       }
@@ -9670,6 +9670,23 @@
         }
       }
     },
+    "reward.title.blue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ Blue"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ blue"
+          }
+        }
+      }
+    },
     "reward.title.chest" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9819,23 +9836,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "La próxima vuelta, ×%1$@"
-          }
-        }
-      }
-    },
-    "reward.title.oro" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@ Blue"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@ blue"
           }
         }
       }
@@ -11833,7 +11833,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "De Oro"
+            "value" : "Dorada"
           }
         }
       }
@@ -12926,6 +12926,40 @@
         }
       }
     },
+    "stats.row.blue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blue in the wallet"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blue en la billetera"
+          }
+        }
+      }
+    },
+    "stats.row.blue_lifetime" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blue earned overall"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blue ganados en total"
+          }
+        }
+      }
+    },
     "stats.row.boosts_activated" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13024,40 +13058,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tier más alto (esta vida)"
-          }
-        }
-      }
-    },
-    "stats.row.oro" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Blue in the wallet"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Blue en la billetera"
-          }
-        }
-      }
-    },
-    "stats.row.oro_lifetime" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Blue earned overall"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Blue ganados en total"
           }
         }
       }
@@ -13417,6 +13417,23 @@
         }
       }
     },
+    "store.pack.blue %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gives you %@ Blue to spend on permanent upgrades"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te da %@ blue para las mejoras permanentes"
+          }
+        }
+      }
+    },
     "store.pack.coins %@" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -13430,23 +13447,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Te da %@ de plata"
-          }
-        }
-      }
-    },
-    "store.pack.oro %@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gives you %@ Blue to spend on permanent upgrades"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Te da %@ blue para las mejoras permanentes"
           }
         }
       }
@@ -13519,6 +13519,23 @@
         }
       }
     },
+    "store.section.blue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blue"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blue"
+          }
+        }
+      }
+    },
     "store.section.coins" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -13549,23 +13566,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Destacados"
-          }
-        }
-      }
-    },
-    "store.section.oro" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Blue"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Blue"
           }
         }
       }
@@ -15576,6 +15576,57 @@
         }
       }
     },
+    "tutorial.blue_shop.caps" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Some have a daily cap. Your Blue balance is at the very top."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Algunos tienen tope por día. Tu saldo de blue se ve arriba de todo."
+          }
+        }
+      }
+    },
+    "tutorial.blue_shop.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You have Blue to spend. Open Upgrades."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tenés blue para gastar. Abrí Mejoras."
+          }
+        }
+      }
+    },
+    "tutorial.blue_shop.spend" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap “Boosts”: what lasts a while. What lasts forever is under “Permanent”."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tocá «Boosts»: lo que dura un rato. Lo que dura para siempre está en «Permanentes»."
+          }
+        }
+      }
+    },
     "tutorial.boosts.explain" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -16017,57 +16068,6 @@
         }
       }
     },
-    "tutorial.oro_shop.caps" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Some have a daily cap. Your Blue balance is at the very top."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Algunos tienen tope por día. Tu saldo de blue se ve arriba de todo."
-          }
-        }
-      }
-    },
-    "tutorial.oro_shop.open" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You have Blue to spend. Open Upgrades."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tenés blue para gastar. Abrí Mejoras."
-          }
-        }
-      }
-    },
-    "tutorial.oro_shop.spend" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tap “Boosts”: what lasts a while. What lasts forever is under “Permanent”."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tocá «Boosts»: lo que dura un rato. Lo que dura para siempre está en «Permanentes»."
-          }
-        }
-      }
-    },
     "tutorial.passive.done" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -16136,6 +16136,23 @@
         }
       }
     },
+    "tutorial.prestige.blue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can reincarnate! You start over, but with Blue that multiplies everything forever."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Ya podés reencarnar! Empezás de cero, pero con blue que multiplican todo para siempre."
+          }
+        }
+      }
+    },
     "tutorial.prestige.open" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -16149,23 +16166,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tocá acá para ver cuántos blue te llevás."
-          }
-        }
-      }
-    },
-    "tutorial.prestige.oro" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You can reincarnate! You start over, but with Blue that multiplies everything forever."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "¡Ya podés reencarnar! Empezás de cero, pero con blue que multiplican todo para siempre."
           }
         }
       }
@@ -16475,6 +16475,23 @@
         }
       }
     },
+    "tutorial.tip.blue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your first Blue! Trade it in Upgrades for a permanent boost"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Tu primer blue! Canjealo en Mejoras por una mejora permanente"
+          }
+        }
+      }
+    },
     "tutorial.tip.elevator" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -16573,23 +16590,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¿Muchos repetidos? Tocá acá: con un video se fusiona todo el piso de una."
-          }
-        }
-      }
-    },
-    "tutorial.tip.oro" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your first Blue! Trade it in Upgrades for a permanent boost"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "¡Tu primer blue! Canjealo en Mejoras por una mejora permanente"
           }
         }
       }
@@ -17257,6 +17257,23 @@
         }
       }
     },
+    "upgrades.blue_balance %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blue: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blue: %@"
+          }
+        }
+      }
+    },
     "upgrades.boosts.seal" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -17404,7 +17421,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cada tanto un toque sale premiado, y muy de vez en cuando, uno de oro."
+            "value" : "Cada tanto un toque sale premiado, y muy de vez en cuando, uno dorado."
           }
         }
       }
@@ -17592,23 +17609,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Al máximo"
-          }
-        }
-      }
-    },
-    "upgrades.oro_balance %@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Blue: %@"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Blue: %@"
           }
         }
       }
@@ -19585,6 +19585,23 @@
         }
       }
     },
+    "wheel.spin.blue.ax" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spin the wheel"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Girar la ruleta"
+          }
+        }
+      }
+    },
     "wheel.spin.bonus" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -19598,23 +19615,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¡Girar gratis!"
-          }
-        }
-      }
-    },
-    "wheel.spin.oro.ax" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Spin the wheel"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Girar la ruleta"
           }
         }
       }

@@ -89,10 +89,13 @@ final class CharacterSheetUITests: XCTestCase {
         let portrait = app.otherElements["character.portrait"]
         XCTAssertTrue(portrait.waitForExistence(timeout: 10), "la ficha no mostró su retrato")
         attach(app, named: "E13 ficha desde Personajes")
-        // Debajo de la ficha sigue la X de Mejoras: la de la ficha es la de arriba.
+        // La X de Mejoras vive en el marco fijo del paginador (E14 T11/T21) y sigue en
+        // el árbol debajo de la ficha: la de la ficha es la última (la de más arriba).
+        // Si la ficha perdiera su X (el contexto del paginador filtrado por el
+        // entorno la dejaba sin marco), quedaría una sola y no cerraría la ficha.
         let closes = app.buttons.matching(identifier: "sheet.close")
-        XCTAssertEqual(closes.count, 2)
-        closes.element(boundBy: 1).tap()
+        XCTAssertEqual(closes.count, 2, "la ficha tiene que traer su X además de la de Mejoras")
+        closes.element(boundBy: closes.count - 1).tap()
         XCTAssertTrue(portrait.waitForNonExistence(timeout: 8))
         XCTAssertTrue(sheetButton.exists, "cerrar la ficha deja a Personajes abierta")
     }

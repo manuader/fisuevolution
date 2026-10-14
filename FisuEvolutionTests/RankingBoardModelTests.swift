@@ -26,6 +26,25 @@ struct RankingBoardModelTests {
         #expect(model.pinned == nil)
     }
 
+    @Test func blockedRowsLeaveTheTopButTheHookKeepsCountingThem() {
+        let top = (1...12).map { row($0, real: 10_000 * $0) }
+        var state = running(since: 1_000)
+        state.blocked("run-2")
+        state.blocked("run-11")
+        let model = RankingBoardModel(board: board(top: top), state: state, now: 4_600)
+        #expect(model.top.map(\.rank) == [1, 3, 4, 5, 6, 7, 8, 9, 10, 12])
+        #expect(model.hook == .chase(mine: 3_600, tenth: 100_000))
+    }
+
+    @Test func theEntryPromptKnowsIfTheTermsWereAccepted() {
+        var state = RankingState(
+            phase: .reachedGod(runId: "mine", serverStartedAt: 0, sealed: true),
+            submission: .init(name: nil, nameStatus: .missing, realSeconds: 900))
+        #expect(RankingBoardModel(board: nil, state: state).pendingEntry?.termsAccepted == false)
+        state.termsAccepted(at: 5)
+        #expect(RankingBoardModel(board: nil, state: state).pendingEntry?.termsAccepted == true)
+    }
+
     @Test func theOwnRowOutsideTheTopIsPinnedWithItsRank() {
         let top = (1...5).map { row($0) }
         let me = row(214, name: "Yo", isMe: true)

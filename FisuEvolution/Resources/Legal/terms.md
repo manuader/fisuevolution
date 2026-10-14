@@ -1,6 +1,6 @@
 # Términos de Servicio — FisuEvolution
 
-_Última actualización: 6 de octubre de 2026_
+_Última actualización: 13 de octubre de 2026_
 
 **Resumen honesto: es un juego. Es gratis. Si comprás algo, lo cobra Apple y
 lo que comprás son objetos de un juego, no plata de verdad.**
@@ -113,11 +113,22 @@ personales, la marca de otra persona o empresa, ni hacerse pasar por alguien. Lo
 reglas, una lista de palabras y una revisión automática con IA; esa revisión
 puede equivocarse, y podemos rechazar, cambiar u ocultar cualquier nombre.
 
-Cualquier jugador puede reportar un nombre desde el ranking. **Un nombre
-reportado se oculta** (con tres reportes, o antes si lo decidimos nosotros) y
-la partida deja de mostrarse hasta que se revise. Si usás el ranking para
-molestar, podemos sacarte de él. Para reportar algo que no se pueda hacer desde
-el juego, o para pedir que borremos tu nombre, escribinos a
+**Al publicar tu nombre aceptás estos Términos.** El juego te lo recuerda
+justo antes de publicar, con un enlace para leerlos. **Tolerancia cero:** no
+hay lugar en el ranking para nombres ofensivos, abusivos o que acosen a otras
+personas, y quien los use pierde su lugar en el ranking.
+
+Cualquier jugador puede reportar un nombre desde el ranking (con un toque largo
+sobre la fila). **Un nombre reportado se oculta** (con tres reportes, o antes si
+lo decidimos nosotros) y la partida deja de mostrarse hasta que se revise.
+Actuamos sobre los reportes dentro de las 24 horas y, si el nombre infringe
+estos Términos, lo sacamos del ranking. Si usás el ranking para molestar,
+podemos sacarte de él.
+
+También podés **bloquear** un nombre: con un toque largo sobre la fila, "No ver
+más este nombre" lo oculta sólo para vos. El bloqueo se guarda en tu
+dispositivo y no se lo avisamos a nadie. Para reportar algo que no se pueda
+hacer desde el juego, o para pedir que borremos tu nombre, escribinos a
 **adermanu@gmail.com**.
 
 ## 6. Sin garantías
@@ -179,7 +190,7 @@ Cualquier consulta, reclamo o pedido: **adermanu@gmail.com**
 
 # Terms of Service — FisuEvolution (English)
 
-_Last updated: 6 October 2026_
+_Last updated: 13 October 2026_
 
 **Honest summary: it's a game. It's free. If you buy something, Apple charges
 you, and what you get are game items, not real money.**
@@ -286,11 +297,21 @@ personal data or another person's or company's brand, nor impersonate anyone. We
 and an automated AI check; that check can be wrong, and we may reject, change
 or hide any name.
 
-Any player can report a name from the leaderboard. **A reported name is
-hidden** (after three reports, or earlier if we decide so) and the run stops
-being shown until it is reviewed. If you use the leaderboard to harass others we
-may remove you from it. To report something you can't report from the game, or
-to ask us to delete your name, write to **adermanu@gmail.com**.
+**By publishing your name you accept these Terms.** The game reminds you right
+before you publish, with a link to read them. **Zero tolerance:** there is no
+place on the leaderboard for offensive or abusive names, or names that harass
+other people, and anyone who uses them loses their place on the leaderboard.
+
+Any player can report a name from the leaderboard (long-press the row). **A
+reported name is hidden** (after three reports, or earlier if we decide so) and
+the run stops being shown until it is reviewed. We act on reports within 24
+hours and, if the name breaks these Terms, we remove it from the leaderboard. If
+you use the leaderboard to harass others we may remove you from it.
+
+You can also **block** a name: long-press the row and choose "Hide this name" to
+hide it for you only. The block is stored on your device and we don't tell
+anyone. To report something you can't report from the game, or to ask us to
+delete your name, write to **adermanu@gmail.com**.
 
 ## 6. No warranties
 

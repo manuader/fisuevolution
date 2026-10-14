@@ -183,4 +183,55 @@ struct RankingSaveTests {
         let resolved = SaveConflictResolver.resolve(local: older, remote: newer).meta.ranking
         #expect(resolved.carriedSubmission?.runId == "actual")
     }
+
+    // MARK: - Términos aceptados y nombres bloqueados (Apple 1.2)
+
+    @Test("un save sin los campos nuevos nace sin aceptación ni bloqueos; con ellos hace ida y vuelta")
+    func termsAndBlocksRoundTrip() throws {
+        let old = try decoded { $0["ranking"] = ["phase": ["ineligible": [String: Any]()]] as [String: Any] }
+        #expect(old.meta.ranking.termsAcceptedAt == nil)
+        #expect(old.meta.ranking.blockedRunIds.isEmpty)
+        var ranking = RankingState.newGame
+        ranking.termsAccepted(at: 77)
+        ranking.blocked("r9")
+        var state = fxState()
+        state.meta.ranking = ranking
+        let back = try JSONDecoder().decode(PlayerState.self, from: JSONEncoder().encode(state))
+        #expect(back.meta.ranking.termsAcceptedAt == 77)
+        #expect(back.meta.ranking.blockedRunIds == ["r9"])
+    }
+
+    @Test("aceptar los Términos conserva la primera vez; bloquear no repite y se acota")
+    func acceptAndBlockRules() {
+        var ranking = RankingState.newGame
+        #expect(ranking.hasAcceptedTerms == false)
+        ranking.termsAccepted(at: 10)
+        ranking.termsAccepted(at: 99)
+        #expect(ranking.termsAcceptedAt == 10)
+        ranking.blocked("a")
+        ranking.blocked("a")
+        #expect(ranking.blockedRunIds == ["a"])
+        for index in 0..<(RankingState.maxBlocked + 5) { ranking.blocked("run-\(index)") }
+        #expect(ranking.blockedRunIds.count == RankingState.maxBlocked)
+        #expect(ranking.blockedRunIds.last == "run-\(RankingState.maxBlocked + 4)")
+    }
+
+    @Test("el reset y los conflictos no pierden la aceptación ni los bloqueos")
+    func preferencesSurviveResetAndConflicts() {
+        var mine = god("r1")
+        mine.termsAccepted(at: 50)
+        mine.blocked("x")
+        #expect(mine.forNewGame().termsAcceptedAt == 50)
+        #expect(mine.forNewGame().blockedRunIds == ["x"])
+
+        var other = god("r2")
+        other.termsAccepted(at: 20)
+        other.blocked("y")
+        let merged = RankingState.resolve(winner: mine, loser: other)
+        #expect(merged.termsAcceptedAt == 20)
+        #expect(Set(merged.blockedRunIds) == ["x", "y"])
+        let across = RankingState.resolveAcrossReset(newer: RankingState.newGame, older: mine)
+        #expect(across.termsAcceptedAt == 50)
+        #expect(across.blockedRunIds == ["x"])
+    }
 }

@@ -106,6 +106,20 @@ final class StoreUITests: XCTestCase {
         )
     }
 
+    /// C11: la Tienda es sólo plata de verdad. No hay selector Comprar/Gastar ni
+    /// nada que se pague con blue; restaurar sigue a la vista.
+    @MainActor
+    func testTheStoreIsOnlyRealMoney() throws {
+        let app = openStore()
+        XCTAssertTrue(app.staticTexts["store.subtitle"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["store.restore"].exists, "restaurar compras se ve sin scrollear")
+        XCTAssertFalse(app.buttons["store.segment.spend"].exists)
+        XCTAssertFalse(app.buttons["store.segment.buy"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["oroShop.balance"].exists)
+        XCTAssertFalse(app.buttons["oroShop.buy.income_x2"].exists)
+        attach(app, named: "E14 T19 la Tienda, sólo plata real")
+    }
+
     @MainActor
     private func attach(_ app: XCUIApplication, named name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot())

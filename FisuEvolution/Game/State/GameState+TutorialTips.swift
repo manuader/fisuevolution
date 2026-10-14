@@ -164,7 +164,8 @@ extension GameState {
             case .hirePriceStep: .hire
             case .menuSwipe: .upgrades
             case .newTabs, .pendingTriple, .extraSlots: .bottomBar
-            case .oroShop, .luck, .cosmetics: .store
+            case .oroShop: .upgrades
+            case .luck, .cosmetics: .skins
             case .autoTap: .autoTapChip
             case .offers: .offerChip
             }
@@ -179,7 +180,9 @@ extension GameState {
             case .skins: .skins
             case .achievements, .album, .orgChart: .menu
             case .gifts, .boosts, .chests: .gifts
-            case .store, .oroShop, .luck, .cosmetics: .store
+            case .store: .store
+            case .oroShop: .upgrades
+            case .luck, .cosmetics: .skins
             case .hirePriceStep: .jobs
             case .visitor, .eventChip, .elevator, .elevatorKeypad, .quickHire, .floorSwipe, .floorFull, .staffedFloors,
                  .prestige, .prestigeGate, .characterSheet, .share, .sideRail, .packages, .mattress, .wheel, .mergeAllVideo,
@@ -263,19 +266,17 @@ extension GameState {
                 .explain("new_tabs.explain", text: "tutorial.new_tabs.explain"),
             ]
             case .oroShop: [
-                .act("oro_shop.open", .screenOpened(.store), text: "tutorial.oro_shop.open", on: .store),
-                .act("oro_shop.spend", .lessonAction, text: "tutorial.oro_shop.spend", on: .oroShop, surface: .page(.store)),
-                .explain("oro_shop.caps", text: "tutorial.oro_shop.caps", surface: .page(.store)),
+                .act("oro_shop.open", .screenOpened(.upgrades), text: "tutorial.oro_shop.open", on: .upgrades),
+                .act("oro_shop.spend", .lessonAction, text: "tutorial.oro_shop.spend", on: .oroShop, surface: .page(.upgrades)),
+                .explain("oro_shop.caps", text: "tutorial.oro_shop.caps", surface: .page(.upgrades)),
             ]
             case .luck: [
-                .act("luck.open", .screenOpened(.store), text: "tutorial.luck.open", on: .store),
-                .act("luck.spend", .lessonAction, text: "tutorial.luck.spend", on: .oroShop, surface: .page(.store)),
-                .explain("luck.odds", text: "tutorial.luck.odds", on: .storeOdds, surface: .page(.store)),
+                .act("luck.open", .screenOpened(.skins), text: "tutorial.luck.open", on: .skins),
+                .explain("luck.odds", text: "tutorial.luck.odds", on: .storeOdds, surface: .page(.skins)),
             ]
             case .cosmetics: [
-                .act("cosmetics.open", .screenOpened(.store), text: "tutorial.cosmetics.open", on: .store),
-                .act("cosmetics.spend", .lessonAction, text: "tutorial.cosmetics.spend", on: .oroShop, surface: .page(.store)),
-                .explain("cosmetics.where", text: "tutorial.cosmetics.where", on: .storeCosmetics, surface: .page(.store)),
+                .act("cosmetics.open", .screenOpened(.skins), text: "tutorial.cosmetics.open", on: .skins),
+                .explain("cosmetics.where", text: "tutorial.cosmetics.where", on: .storeCosmetics, surface: .page(.skins)),
             ]
             case .pendingTriple: [
                 .explain("pending_triple.explain", text: "tutorial.pending_triple.explain"),
@@ -513,10 +514,9 @@ extension GameState {
         isLessonDone(.oroShop) && chanceAllowed && chestOdds != .nothingYet
     }
 
-    /// El jugador eligió «Gastar ORO» en la Tienda: cumple el paso que lo pide.
+    /// El jugador abrió la pestaña Boosts de Mejoras: cumple el paso que lo pide.
     func oroShopSpendChosen() {
-        guard let id = tutorialRun?.lessonID, [TutorialLesson.oroShop, .luck, .cosmetics].map(\.rawValue).contains(id)
-        else { return }
+        guard let id = tutorialRun?.lessonID, id == TutorialLesson.oroShop.rawValue else { return }
         tutorialSignal(.lessonAction(id))
     }
 

@@ -1,0 +1,19 @@
+{
+  "upgrades.tab.boosts": {"es": "Boosts", "en": "Boosts"},
+  "upgrades.permanent.seal": {"es": "Para siempre", "en": "Forever"},
+  "upgrades.permanent.seal.note": {"es": "Se quedan aunque reencarnes", "en": "They stay even when you reincarnate"},
+  "upgrades.boosts.seal": {"es": "Por un rato", "en": "For a while"},
+  "upgrades.blue.plus.ax": {"es": "Comprar más blue", "en": "Buy more Blue"},
+  "upgrades.goal.title": {"es": "Tu meta", "en": "Your goal"},
+  "upgrades.goal.change": {"es": "Otra meta", "en": "Another goal"},
+  "upgrades.goal.saving %@ %@": {"es": "Ahorrando: %1$@ / %2$@ blue", "en": "Saving: %1$@ / %2$@ Blue"},
+  "upgrades.goal.buy": {"es": "¡Comprar!", "en": "Buy!"},
+  "upgrades.goal.buy.ax %@": {"es": "Comprar %@, tu meta", "en": "Buy %@, your goal"},
+  "skins.blue.title": {"es": "Con blue", "en": "With Blue"},
+  "store.subtitle": {"es": "Packs de blue y extras, con plata de verdad", "en": "Blue packs and extras, with real money"},
+  "tutorial.oro_shop.open": {"es": "Tenés blue para gastar. Abrí Mejoras.", "en": "You have Blue to spend. Open Upgrades."},
+  "tutorial.oro_shop.spend": {"es": "Tocá «Boosts»: lo que dura un rato. Lo que dura para siempre está en «Permanentes».", "en": "Tap “Boosts”: what lasts a while. What lasts forever is under “Permanent”."},
+  "tutorial.luck.open": {"es": "Hay un cofre de pintas que se paga con blue. Abrí Vestimenta.", "en": "There's an outfit chest you pay for with Blue. Open Outfits."},
+  "tutorial.cosmetics.open": {"es": "Hay pintas que podés pagar con blue. Abrí Vestimenta.", "en": "There are outfits you can pay for with Blue. Open Outfits."},
+  "tutorial.cosmetics.where": {"es": "Las pintas se compran con blue acá abajo y se ponen en la grilla de arriba.", "en": "Outfits are bought with Blue down here and worn in the grid above."}
+}

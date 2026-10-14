@@ -1,10 +1,10 @@
 import StoreKit
 import SwiftUI
 
-/// **La tienda** (spec §8, bible §4.4), en dos mitades (PLAN-v2 E6): "Comprar
-/// ORO" es lo único que se paga con plata de verdad —packs de plata y de ORO,
-/// quitar los anuncios y las dos skins pagas— y "Gastar ORO" es donde el ORO se
-/// gasta, sin plata de por medio.
+/// **La tienda** (spec §8, bible §4.4, E14 C11): lo único que se paga con plata de
+/// verdad —packs de plata y de blue, quitar los anuncios y las dos skins pagas—.
+/// Gastar blue vive en Mejoras (boosts, atajos y permanentes) y en Pintas (el
+/// cofre y las pintas): acá el precio es siempre en moneda real.
 ///
 /// La pantalla es una **vidriera**, no una lista de precios: arriba la oferta de
 /// bienvenida como tarjeta destacada —lo que el Animal Shop resuelve con la fila
@@ -48,27 +48,6 @@ struct StoreView: View {
     /// botón de reintento aunque el manager todavía no haya cortado.
     @State private var waitedSeconds = 0
 
-    /// Las dos mitades de la tienda: lo que se paga con plata y lo que se paga
-    /// con ORO. Abre siempre en la plata: es lo que revisa App Review.
-    enum Segment: String, CaseIterable {
-        case buy
-        case spend
-
-        /// La bajada de la cabecera es la de la mitad elegida: la de plata habla
-        /// de packs y de skins, la de ORO de en qué se gasta.
-        var subtitleKey: LocalizedStringKey {
-            switch self {
-            case .buy: "store.subtitle"
-            case .spend: "store.subtitle.spend"
-            }
-        }
-    }
-
-    @State private var segment: Segment = .buy
-    /// La puerta del azar de E5a, una vez por apertura. Arranca cerrada: hasta
-    /// que StoreKit conteste, el cofre no se ofrece.
-    @State private var chanceAllowed = false
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private let tick = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
@@ -79,12 +58,7 @@ struct StoreView: View {
                 // perezosa además rompe el podado de accesibilidad de las
                 // tarjetas (medido en la T11). El costo es el del primer armado.
                 VStack(spacing: Tokens.s12) {
-                    switch segment {
-                    case .buy:
-                        moneySide
-                    case .spend:
-                        OroShopShelves(chanceAllowed: chanceAllowed)
-                    }
+                    moneySide
                 }
                 .padding(.horizontal, Self.panelInset)
                 .padding(.top, Tokens.s12)
@@ -100,7 +74,6 @@ struct StoreView: View {
                 let waiting = store.loadState == .loading || store.loadState == .idle
                 waitedSeconds = waiting ? waitedSeconds + 1 : 0
             }
-            .task { chanceAllowed = await LootBoxGate.current() }
         }
     }
 
@@ -139,75 +112,25 @@ struct StoreView: View {
                 titleKey: "store.title",
                 icon: AnyView(GameIcon(artKey: "ui_tab_shop", size: 26) { VectorTabShopIcon() })
             )
-            Text(segment.subtitleKey)
-                .accessibilityIdentifier("store.subtitle.\(segment.rawValue)")
+            Text("store.subtitle")
+                .accessibilityIdentifier("store.subtitle")
                 .font(Tokens.caption)
                 .foregroundStyle(Color("PaletteInk").opacity(0.75))
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .minimumScaleFactor(0.8)
                 .padding(.horizontal, Tokens.s24)
-            segmentPicker
             // ⚠️ Restaurar vive ACÁ y no al final de la lista: App Review pide
             // que se vea sin scrollear, y en la cabecera fija se ve siempre. Va
-            // en azul y no en el verde de las compras porque no cobra nada: en
+            // neutro y no en el verde de las compras porque no cobra nada: en
             // esta pantalla el verde es plata que sale.
-            ActionPill(
-                titleKey: "store.restore",
-                systemImage: "arrow.clockwise",
-                tint: Color("PaletteBlue"),
+            GameButton(
+                "store.restore", role: .neutral, medallion: .none, size: .compact,
                 identifier: "store.restore"
             ) {
                 Task { await store.restore() }
             }
         }
-    }
-
-    /// Las dos mitades. Vive en la cabecera fija —se ve aunque StoreKit no
-    /// cargue— y copia las pestañas de Mejoras (`UpgradesView.tabPicker`).
-    /// ⚠️ El `HStack` no lleva identifier (trampa 9a-bis): lo lleva cada botón.
-    private var segmentPicker: some View {
-        HStack(spacing: Tokens.s4) {
-            segmentButton(.buy, key: "store.segment.buy", symbol: "cart.fill")
-            segmentButton(.spend, key: "store.segment.spend", symbol: "sparkles")
-                .tutorialAnchor(.oroShop)
-        }
-        .padding(Tokens.s4)
-        .background {
-            Capsule()
-                .fill(Color("PaletteBrown").opacity(0.12))
-                .overlay(Capsule().strokeBorder(Color("PaletteBrown").opacity(0.55), lineWidth: 2))
-        }
-        .animation(reduceMotion ? nil : .snappy(duration: 0.2), value: segment)
-    }
-
-    private func segmentButton(_ value: Segment, key: LocalizedStringKey, symbol: String) -> some View {
-        let selected = segment == value
-        return Button {
-            segment = value
-            if value == .spend { gameState.oroShopSpendChosen() }
-        } label: {
-            HStack(spacing: 6) {
-                Image(systemName: symbol)
-                    .font(.system(size: 13, weight: .black))
-                    .accessibilityHidden(true)
-                Text(key)
-                    .font(Tokens.body)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-            }
-            .foregroundStyle(selected ? Color.white : Color("PaletteInk").opacity(0.55))
-            .shadow(color: .black.opacity(selected ? 0.35 : 0), radius: 1, y: 1)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, Tokens.s8)
-            .background {
-                if selected { PillBackground(fill: Color("PaletteOrange")) }
-            }
-            .contentShape(Capsule())
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier("store.segment.\(value.rawValue)")
-        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     // MARK: Vidriera

@@ -1,6 +1,6 @@
 import XCTest
 
-/// Comprar con ORO una pinta exclusiva de la v1 en la tienda (PLAN-v2 E6b T8).
+/// Comprar con blue una pinta exclusiva de la v1, en Pintas (PLAN-v2 E6b T8, E14 C11).
 /// Por identifier: el runner corre en inglés (trampa 6).
 final class CosmeticsUITests: XCTestCase {
     /// La primera exclusiva del catálogo (150 ORO): `OroSkinsContentTests` pinea la lista.
@@ -15,12 +15,9 @@ final class CosmeticsUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-oro=500"]
         app.launch()
-        let plus = app.buttons["hud.coins.plus"]
-        XCTAssertTrue(plus.waitForExistence(timeout: 20), "el + de la moneda nunca apareció")
-        plus.tap()
-        let spend = app.buttons["store.segment.spend"]
-        XCTAssertTrue(spend.waitForExistence(timeout: 10))
-        spend.tap()
+        let skins = app.buttons["hud.skins"]
+        XCTAssertTrue(skins.waitForExistence(timeout: 20), "la pestaña Pintas nunca apareció")
+        skins.tap()
         let balance = app.descendants(matching: .any)["oroShop.balance"]
         XCTAssertTrue(balance.waitForExistence(timeout: 10))
         XCTAssertEqual(balance.value as? String, "500")

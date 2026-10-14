@@ -292,7 +292,7 @@ struct MenuPage: View {
     @ViewBuilder private var page: some View {
         switch screen {
         case .jobs: FisuJobsView()
-        case .upgrades: UpgradesView()
+        case .upgrades: UpgradesView(onStore: onStore)
         case .skins: CustomizationView()
         case .gifts: GiftsView(adsProvider: adsProvider)
         case .store: StoreView()

@@ -34,6 +34,9 @@ struct CustomizationView: View {
     /// haberlos visto, y ésos ordenan ARRIBA de los tuyos: abrir ahí sería
     /// aterrizar en un desconocido. Lo decide el estado, no esta vista.
     @State private var selectedTypeID: String?
+    /// La puerta del azar de E5a, una vez por apertura. Arranca cerrada: hasta
+    /// que StoreKit conteste, el cofre no se ofrece.
+    @State private var chanceAllowed = false
 
     /// Margen lateral de la columna: el del marco vectorial, publicado por el
     /// componente. Un solo número para las nueve hojas — el marco es el
@@ -77,6 +80,7 @@ struct CustomizationView: View {
                             .padding(.top, Tokens.s8)
                         grid(for: selected)
                     }
+                    BlueCosmeticsShelf(chanceAllowed: chanceAllowed)
                 }
                 .padding(.horizontal, Self.panelInset)
                 .padding(.bottom, Tokens.s24)
@@ -89,6 +93,7 @@ struct CustomizationView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) { ArtCloseButton { dismiss() } }
             }
+            .task { chanceAllowed = await LootBoxGate.current() }
         }
     }
 

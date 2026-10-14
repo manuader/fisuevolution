@@ -1,8 +1,11 @@
 import EconomyKit
 import SwiftUI
 
-/// Dos bolsillos explícitos: mejoras efímeras por personaje con plata y las
-/// siete mejoras globales que sobreviven en ORO.
+/// Tres pestañas, con la plata que pagan: **Personajes** (mejoras por personaje,
+/// en monedas), **Permanentes** (lo que se queda aunque reencarnes, en blue: los
+/// lugares extra de la torre, el proveedor, la ruleta y las siete globales) y
+/// **Boosts** (lo que dura un rato, en blue: boosts y atajos). Gastar blue no pasa
+/// por la Tienda, que es sólo plata de verdad (E14 C11).
 ///
 /// Toda fila —de las dos pestañas— dice **qué hace y cuánto**, con el número de
 /// ese personaje o de esa línea (RF-04, RF-06). Un "nivel 3/20" no le dice nada
@@ -17,11 +20,14 @@ struct UpgradesView: View {
     private enum Tab: String, CaseIterable, Identifiable {
         case characters
         case permanent
+        case boosts
         var id: Self { self }
     }
 
     @Environment(GameState.self) private var gameState
     @Environment(\.dismiss) private var dismiss
+    /// El «+» del blue: abre la Tienda a comprar más.
+    var onStore: () -> Void = {}
     @State private var selectedTab: Tab = .characters
     @State private var sheet: GameState.CharacterSheet?
 
@@ -45,8 +51,10 @@ struct UpgradesView: View {
                             SpendingFrozenStrip(until: until, identifier: "upgrades.spending_frozen")
                         }
                         characterRows
+                    } else if selectedTab == .permanent {
+                        permanentTab
                     } else {
-                        permanentRows
+                        boostsTab
                     }
                 }
                 .padding(.horizontal, Self.panelInset)
@@ -68,9 +76,9 @@ struct UpgradesView: View {
 
     // MARK: Cabecera
 
-    /// Título, pestañas y —en Permanentes— el saldo de ORO, ADENTRO del panel
-    /// metálico. Sin banda opaca: el `panelSheet` recorta el scroll por debajo
-    /// de la cabecera, y la banda tapaba el marco (2026-08-18).
+    /// Título, pestañas y —en las dos de blue— el saldo con su «+», ADENTRO del
+    /// panel. Sin banda opaca: el `panelSheet` recorta el scroll por debajo de la
+    /// cabecera, y la banda tapaba el marco (2026-08-18).
     ///
     /// Las pestañas viven acá y no en el cuerpo del scroll: son el control que
     /// gobierna la lista y quedarse sin ellas al bajar dos filas obligaba a
@@ -85,49 +93,22 @@ struct UpgradesView: View {
                 icon: AnyView(GameIcon(artKey: "ui_tab_upgrades", size: 26) { VectorTabUpgradesIcon() })
             )
             tabPicker
-            if selectedTab == .permanent {
-                oroBalance
+            if selectedTab != .characters {
+                BlueBalanceHeader(text: gameState.oroText, onStore: onStore)
             }
         }
     }
 
-    /// Lo que hay para gastar en esta pestaña. Sin esto, la única forma de saber
-    /// si un precio en ORO estaba a tiro era cerrar la hoja e ir al HUD.
-    ///
-    /// ⚠️ La moneda va tapada de VoiceOver, como los glifos de las filas: el
-    /// texto de al lado ya dice "ORO: 240" y la imagen sola dejaba una parada
-    /// muda entre las pestañas y la lista (el mismo defecto, el octavo glifo de
-    /// esta pestaña).
-    private var oroBalance: some View {
-        HStack(spacing: Tokens.s4) {
-            OroIcon(size: 18)
-                .accessibilityHidden(true)
-            Text("upgrades.oro_balance \(gameState.oroText)")
-                .font(Tokens.body)
-                .monospacedDigit()
-                .foregroundStyle(Color("PaletteInk"))
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-        }
-        .padding(.horizontal, Tokens.s16)
-        .padding(.vertical, 6)
-        .background {
-            Capsule()
-                .fill(Color("PaletteYellow").opacity(0.35))
-                .overlay(Capsule().strokeBorder(Color("PaletteBrown").opacity(0.6), lineWidth: 2))
-        }
-    }
-
-    /// Las dos pestañas. Se moderniza el dibujo —groove hundido, cápsula de
-    /// acento y transición— pero los dos identifiers son los que pinean
-    /// `BottomMenuUITests`, `TutorialUITests`, `LaunchSmokeTests` y los dos
-    /// tests de mejoras: no se tocan.
+    /// Las tres pestañas. Los identifiers son los que pinean `BottomMenuUITests`,
+    /// `TutorialUITests`, `LaunchSmokeTests` y los tests de mejoras: no se tocan.
     ///
     /// ⚠️ El `HStack` no lleva identifier (trampa 9a-bis): lo lleva cada botón.
     private var tabPicker: some View {
         HStack(spacing: Tokens.s4) {
             tabButton(.characters, key: "upgrades.tab.characters", identifier: "upgrades.tab.characters")
             tabButton(.permanent, key: "upgrades.tab.permanent", identifier: "upgrades.tab.permanent")
+            tabButton(.boosts, key: "upgrades.tab.boosts", identifier: "upgrades.tab.boosts")
+                .tutorialAnchor(.oroShop)
         }
         .padding(Tokens.s4)
         .background {
@@ -138,42 +119,30 @@ struct UpgradesView: View {
         .animation(.snappy(duration: 0.2), value: selectedTab)
     }
 
-    /// El glifo de cada pestaña (referencia v3: la persona para Personajes, la
-    /// estrella para Permanentes). Decoración —el texto de al lado ya lo
-    /// dice—, así que va tapado de VoiceOver.
-    private static func tabGlyph(_ tab: Tab) -> String {
-        switch tab {
-        case .characters: "person.fill"
-        case .permanent: "star.fill"
-        }
-    }
-
     private func tabButton(_ tab: Tab, key: LocalizedStringKey, identifier: String) -> some View {
         let selected = selectedTab == tab
-        return Button { selectedTab = tab } label: {
-            HStack(spacing: 6) {
-                Image(systemName: Self.tabGlyph(tab))
-                    .font(.system(size: 13, weight: .black))
-                    .accessibilityHidden(true)
-                Text(key)
-                    .font(Tokens.body)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-            }
-            .foregroundStyle(selected ? Color.white : Color("PaletteInk").opacity(0.55))
-            .shadow(color: .black.opacity(selected ? 0.35 : 0), radius: 1, y: 1)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, Tokens.s8)
-            .background {
-                // Naranja, como la pestaña activa de la referencia (era azul).
-                if selected {
-                    PillBackground(fill: Color("PaletteOrange"))
+        return Button {
+            selectedTab = tab
+            if tab == .boosts { gameState.oroShopSpendChosen() }
+        } label: {
+            Text(key)
+                .font(Tokens.body)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .foregroundStyle(selected ? Color.white : Color("PaletteInk").opacity(0.55))
+                .shadow(color: .black.opacity(selected ? 0.35 : 0), radius: 1, y: 1)
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .background {
+                    // Naranja, como la pestaña activa de la referencia (era azul).
+                    if selected {
+                        PillBackground(fill: Color("PaletteOrange"))
+                    }
                 }
-            }
-            .contentShape(Capsule())
+                .contentShape(Capsule())
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(identifier)
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     // MARK: Personajes (RF-03, RF-04)
@@ -261,12 +230,7 @@ struct UpgradesView: View {
                         // al máximo ("Al máximo" es una felicitación, no un
                         // límite que el jugador esté chocando — y `purchase`
                         // rechaza con `maxLevelReached`, que sonaría a error).
-                        StateBadge(
-                            text: String(localized: "upgrades.maxed"),
-                            systemImage: "star.circle.fill",
-                            textAlignment: .center,
-                            muted: false
-                        )
+                        StateTag(state: .done, text: String(localized: "upgrades.maxed"))
                         // El mismo hueco que el `PricePill` (riel de 92): sin él,
                         // el renglón del contador se estira SÓLO en las filas al
                         // tope y la lista baila entre estados.
@@ -304,12 +268,7 @@ struct UpgradesView: View {
                         // cápsula de LO QUE SALIÓ BIEN, te retaba. Un badge no es
                         // un control, así que no queda toque que castigar ni
                         // acción vacía que explicar.
-                        StateBadge(
-                            text: String(localized: "upgrades.character.passive_owned"),
-                            systemImage: "checkmark.circle.fill",
-                            textAlignment: .center,
-                            muted: false
-                        )
+                        StateTag(state: .done, text: String(localized: "upgrades.character.passive_owned"))
                         // El badge se sirve en el MISMO hueco que el `PricePill`
                         // (mínimo 92, pegado al borde). Es el riel fijo de
                         // FisuJobs y de Logros —`railWidth`— aplicado en el
@@ -410,10 +369,45 @@ struct UpgradesView: View {
         }
     }
 
-    // MARK: Permanentes (RF-06)
+    // MARK: Permanentes (RF-06, C11)
+
+    /// «Tu meta» arriba; después, bajo el sello «Para siempre», lo que más mueve el
+    /// juego primero: los lugares extra de la torre y lo demás del catálogo, y
+    /// recién ahí las siete globales.
+    @ViewBuilder private var permanentTab: some View {
+        if let goal = gameState.savingsGoal {
+            SavingsGoalCard(goal: goal)
+        }
+        sealHeader("upgrades.permanent.seal", note: "upgrades.permanent.seal.note", noteIdentifier: "upgrades.permanent.note")
+        OroShopShelves(shelves: [.permanents], chanceAllowed: false, titled: false)
+        permanentRows
+    }
+
+    /// Lo que dura un rato: boosts y atajos, del más barato al más caro.
+    @ViewBuilder private var boostsTab: some View {
+        sealHeader("upgrades.boosts.seal", note: "oroShop.footer.reincarnate", noteIdentifier: "oroShop.footer.reincarnate")
+        OroShopShelves(shelves: [.boosts, .shortcuts], chanceAllowed: false, titled: false)
+    }
+
+    private func sealHeader(_ titleKey: LocalizedStringKey, note: LocalizedStringKey, noteIdentifier: String) -> some View {
+        VStack(spacing: Tokens.s4) {
+            SectionHeader(titleKey)
+                .frame(maxWidth: .infinity)
+                .padding(.top, Tokens.s8)
+            Text(note)
+                .font(Tokens.caption)
+                .foregroundStyle(Color("PaletteInk").opacity(0.7))
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier(noteIdentifier)
+        }
+    }
 
     @ViewBuilder private var permanentRows: some View {
-        let lines = gameState.content?.upgradesConfig.upgrades ?? []
+        let allLines = gameState.content?.upgradesConfig.upgrades ?? []
+        // Lo comprado al máximo se va al fondo con su tilde.
+        let lines = allLines.filter { gameState.upgradeLevel(of: $0.id) < $0.maxLevel }
+            + allLines.filter { gameState.upgradeLevel(of: $0.id) >= $0.maxLevel }
         // La manito del primer ORO: mientras no haya NINGUNA línea subida y
         // alguna sea pagable, la primera pagable late — la lección del primer
         // ORO manda hasta acá, y esto dice DÓNDE (el mismo gesto que la fila
@@ -493,12 +487,7 @@ struct UpgradesView: View {
                         // razón: `buyUpgrade` rechaza con `maxLevelReached` y ese
                         // rechazo suena a error. "Al máximo" es una felicitación,
                         // no un límite que el jugador esté chocando.
-                        StateBadge(
-                            text: String(localized: "upgrades.maxed"),
-                            systemImage: "star.circle.fill",
-                            textAlignment: .center,
-                            muted: false
-                        )
+                        StateTag(state: .done, text: String(localized: "upgrades.maxed"))
                         // El mismo hueco que arriba: sin él la barra de nivel se
                         // estira sólo en las filas al máximo y las siete líneas
                         // dejan de tener la misma barra.

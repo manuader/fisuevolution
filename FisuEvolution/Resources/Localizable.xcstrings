@@ -11617,6 +11617,23 @@
         }
       }
     },
+    "skins.blue.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "With Blue"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Con blue"
+          }
+        }
+      }
+    },
     "skins.buy.ax %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13043,40 +13060,6 @@
         }
       }
     },
-    "store.segment.buy" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Buy Blue"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comprar blue"
-          }
-        }
-      }
-    },
-    "store.segment.spend" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Spend Blue"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gastar blue"
-          }
-        }
-      }
-    },
     "store.skin.equip-hint" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13100,30 +13083,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Shortcuts, Blue and outfits, with real money"
+            "value" : "Blue packs and extras, with real money"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Atajos, blue y pintas, con plata de verdad"
-          }
-        }
-      }
-    },
-    "store.subtitle.spend" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Spend your Blue on boosts, shortcuts and luck"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gastá tus blue en boosts, atajos y suerte"
+            "value" : "Packs de blue y extras, con plata de verdad"
           }
         }
       }
@@ -14443,30 +14409,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "There are outfits you can pay for with Blue. Open the Store with the +."
+            "value" : "There are outfits you can pay for with Blue. Open Outfits."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hay pintas que podés pagar con blue. Abrí la Tienda con el +."
-          }
-        }
-      }
-    },
-    "tutorial.cosmetics.spend" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tap “Spend Blue”."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tocá «Gastar blue»."
+            "value" : "Hay pintas que podés pagar con blue. Abrí Vestimenta."
           }
         }
       }
@@ -14477,13 +14426,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Outfits are bought with Blue here and worn in Outfits."
+            "value" : "Outfits are bought with Blue down here and worn in the grid above."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Las pintas se compran con blue acá y se ponen en Pintas."
+            "value" : "Las pintas se compran con blue acá abajo y se ponen en la grilla de arriba."
           }
         }
       }
@@ -14629,30 +14578,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Open the Store with the +."
+            "value" : "There's an outfit chest you pay for with Blue. Open Outfits."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Abrí la Tienda con el +."
-          }
-        }
-      }
-    },
-    "tutorial.luck.spend" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tap “Spend Blue”."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tocá «Gastar blue»."
+            "value" : "Hay un cofre de pintas que se paga con blue. Abrí Vestimenta."
           }
         }
       }
@@ -14799,13 +14731,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You have Blue to spend. Open the Store with the +."
+            "value" : "You have Blue to spend. Open Upgrades."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tenés blue para gastar. Abrí la Tienda con el +."
+            "value" : "Tenés blue para gastar. Abrí Mejoras."
           }
         }
       }
@@ -14816,13 +14748,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tap “Spend Blue”: boosts, shortcuts and permanent upgrades."
+            "value" : "Tap “Boosts”: what lasts a while. What lasts forever is under “Permanent”."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tocá «Gastar blue»: boosts, atajos y mejoras permanentes."
+            "value" : "Tocá «Boosts»: lo que dura un rato. Lo que dura para siempre está en «Permanentes»."
           }
         }
       }
@@ -15965,6 +15897,40 @@
         }
       }
     },
+    "upgrades.blue.plus.ax" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buy more Blue"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comprar más blue"
+          }
+        }
+      }
+    },
+    "upgrades.boosts.seal" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For a while"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Por un rato"
+          }
+        }
+      }
+    },
     "upgrades.character.income_now %@" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -16168,6 +16134,91 @@
         }
       }
     },
+    "upgrades.goal.buy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buy!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Comprar!"
+          }
+        }
+      }
+    },
+    "upgrades.goal.buy.ax %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buy %@, your goal"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comprar %@, tu meta"
+          }
+        }
+      }
+    },
+    "upgrades.goal.change" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Another goal"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otra meta"
+          }
+        }
+      }
+    },
+    "upgrades.goal.saving %@ %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saving: %1$@ / %2$@ Blue"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ahorrando: %1$@ / %2$@ blue"
+          }
+        }
+      }
+    },
+    "upgrades.goal.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your goal"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu meta"
+          }
+        }
+      }
+    },
     "upgrades.level %@ %@" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -16215,6 +16266,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Blue: %@"
+          }
+        }
+      }
+    },
+    "upgrades.permanent.seal" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forever"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para siempre"
+          }
+        }
+      }
+    },
+    "upgrades.permanent.seal.note" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "They stay even when you reincarnate"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se quedan aunque reencarnes"
+          }
+        }
+      }
+    },
+    "upgrades.tab.boosts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boosts"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boosts"
           }
         }
       }

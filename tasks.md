@@ -239,7 +239,7 @@ Evolution y AdVenture Capitalist).
 | # | Qué | Nota |
 |---|---|---|
 | 1 | Integrar `v2/e14-correcciones-dueno` a `version-2` (sólo docs + mockups; ya trae `origin/version-2` mergeado) | merge normal; si `tasks.md` choca con la integración en curso, gana lo de la integración y se re-aplican las secciones de E14 (§2 nota, §4.0, §5 E14, §6 «Gates de E14», §7 «2026-10-12 (tarde)») |
-| 0 | **E14b (pedido del dueño 2026-10-14 11:30) — ANTES de los cierres:** olas B2·B1 → B3·B4 → B5·B8 → B6·B9 → B7 (§5 E14b). Después T25, T26, T27 y los cierres | ≤ 2 compilando |
+| 0 | **E14b (pedido del dueño 2026-10-14 11:30) — ANTES de los cierres:** olas B11·B2·B1 → B3·B4+B10 → B5·B8 → B6·B9 → B7 (§5 E14b). Después T25, T26, T27 y los cierres | ≤ 2 compilando |
 | 0 | **Relevo 55 — empezar por acá:** `v2i/integ-r54` = `38e86376` (pusheada) trae integ-r53 + textos al catálogo + fix-ui + decisiones del dueño + E14 T19, T14, T15, T18, T23 (🟢). Su `completo`: UI 169 · 0 rojos, EK 912, unit 1885 + 3 rojos, store-ui 3 rojos. 1) **Arreglar los 6 rojos** (un agente, opus): `StoreUITests` ×3 en iOS 18.6 (la app tarda 60 s en quedar quieta y no aparece `hud.coins.plus`; prioridad 1: puede ser un arranque roto en iOS 18), `IAPCopyTests.theOroDescriptionTakesTheAmountFromTheData` (test viejo frente a T7), `RankingWiringTests` ×2 (`rankingCardDue` false; sospecha: `CelebrationKind.newCharacter` de T23). 2) VERDE → fast-forward de `version-2` a la punta, push, filas a ✅ y limpiar `v2i-integ-r53`. 3) **≤ 2 compilando:** T16 (pasar `PickupLayout` a `standY`), el cofre con los clips de C26 (`ola-r54/e14-cofre-c26.md`), T20, T24; después T25 y T26 y los cierres (E8d T15, E8e T9, E12 T17/T18, E10 T9/T11/T12/T13, E14 T27). Briefs, `comun.md` y la regla de las claves en `.claude/avo/2026-10-06-fisu-v2/ola-r54/`. Carries en `Docs/SESION-2026-10-14-v2-relevo-54.md` | ≤ 2 compilando; `completo` solo |
 | 0 | **Relevo 54 — empezar por acá (hecho, ver la fila del 55):** `v2i/integ-r53` = `089bd374` (pusheada) trae E14 T22, T21 (+fix `4ab8b7be`), T13, T17 y el ranking UGC, todo 🟢 **sin `completo`**. 1) `Tools/v2/oraculo.sh completo` sobre esa punta, **con la máquina sola** (sin agentes); un rojo de StoreKit por timeout es carga: repetir la clase sola. 2) VERDE → fast-forward de `version-2`, push, las 5 filas a ✅ (288 de 306 + la de UGC) y `limpiar-worktrees.sh --apply` de v2i-e14-t21/-t22/-t13/-t17 y v2i-ranking-ugc. 3) Después, **≤ 2 compilando**: `ola-r53/dueno-topes-visitantes.md` (decisiones del dueño: visitantes que repiten salvo el vendedor, topes de `package_rain` y de saltear cooldowns, `maxLive = 2` en el SE), E14 T19, y el cofre con los clips de C26 (carry de T17). Ola 5 después: T14, T15. Briefs y `comun.md` (con las reglas nuevas) en `.claude/avo/2026-10-06-fisu-v2/ola-r53/` | ≤ 2 compilando (16 GB); `completo` solo |
 | 0 | **Relevo 53 — empezar por acá:** T29, T9, T5, T7 (49), T4, T6, T28 (50), T8, T3, T10 (51) y T11, T12 (52) ✅. Sigue el **resto de la ola 3: T21** (menú deslizable; `MenuPagerView`/`panelSheet`) **y T22** (ascensor; destrabada por T4); al cerrarla, el `completo`. Después la ola 4: T13 (sobre T12 ✅), T17 (sobre T11 ✅), T19. Briefs y `comun.md` del 52: `.claude/avo/2026-10-06-fisu-v2/ola-r52/` (base nueva = punta de `version-2`) | ≤ 3 compilando; ≤ 2 si la carga pasa de 200 |
@@ -1058,19 +1058,21 @@ ilustrados, popups centrados y contenidos (C19, C29), y **cero superposición** 
 
 **Pedido del dueño del 2026-10-14 11:30 (DUENO.md, B1–B9).** Va después de lo que estaba en vuelo y **antes de los
 cierres E14 T25/T26/T27**. D1–D10 cerradas (no se re-preguntan); D8: el arte nuevo se integra directo, sin aprobación.
-Olas de ≤ 2 compilando: 1 = B2 · B1 · 2 = B3 · B4 · 3 = B5 · B8 · 4 = B6 · B9 · 5 = B7 (sola). B5, B6, B7 con revisión opus.
+Olas de ≤ 2 compilando: 1 = B11 · B2 · B1 · 2 = B3 · B4 + B10 · 3 = B5 · B8 · 4 = B6 · B9 · 5 = B7 (sola). B5, B6, B7 con revisión opus.
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
 | E14b-B1 | Audio en pausa durante los anuncios | ⏳ | — | `AudioManager`, delegados de anuncios | | sonnet |
 | E14b-B2 | Caja y colchón duplicados + capas debajo de los personajes | ⏳ | E14 T16 | `PickupNode`, `PickupController` | | sonnet; debug sistemático |
-| E14b-B3 | Menú inferior sólido, horizonte por escenario, visitantes +20–30 % | ⛔ | B2 | `StageLayout`, `PickupLayout`, barra inferior | | sonnet |
+| E14b-B3 | Menú inferior sólido, horizonte por escenario, visitantes +20–30 % **+ bajar el aviso del SE (D14, decisión del dueño 14/10: no se achican los chips)** | ⛔ | B2 | `StageLayout`, `PickupLayout`, barra inferior, `NoticesLayer` | | sonnet |
 | E14b-B4 | Transiciones de menú sin trabas (medir primero) | ⛔ | — | `MenuPagerView` | | sonnet; ola 2 |
 | E14b-B5 | La caja se abre en el tablero (`packageIntroSeen`) | ⛔ | B2, B3 | `PickupNode`, save | | **opus** |
 | E14b-B6 | Nuevo recorrido del colchón (`onBoard`, 1 de 4 de regalo) | ⛔ | B5 | EK colchón, save, pacing | | **opus**; Dios ~45 h |
 | E14b-B7 | Visitantes congelados por piso y simultáneos | ⛔ | B6 | `VisitorScheduler`, save, aviso | | **opus**; pacing ~45 h; sola |
 | E14b-B8 | Skin del cofre en tarjeta de figurita | ⛔ | — | `ChestOpeningView` | | sonnet; ola 3 |
 | E14b-B9 | Todo pop-up con su imagen (auditoría + arte) | ⛔ | — | pop-ups, arte `fisu-v2-premios` | | sonnet; ola 4; D8 |
+| E14b-B10 | Cabecera de menús: flechas a la altura del título, pestañas a todo el ancho | ⛔ | — | `MenuPagerView`, cabecera de menús | | sonnet; con B4 (mismo pager) |
+| E14b-B11 | **BUG:** el tip «Share it and grab a bonus!» queda colgado sin salida; todo tip con botón de cerrar | ⏳ | — | `ShareOfferLayer`, tips/avisos | | sonnet; **primer hueco**; captura `build/capturas-dueno/b11-tip-colgado.webp` (checkout principal) |
 
 ## 6. Gates humanos y 🔒 del dueño
 

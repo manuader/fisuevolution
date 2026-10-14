@@ -134,14 +134,36 @@ revisión según el riesgo.
 - **Listo cuando:** ninguna fila de la auditoría queda sin imagen y se revisan capturas de cada pop-up en el SE
   (sin desbordes) y el Pro Max. Revisión: sonnet.
 
+### B10 — Cabecera de los menús: flechas arriba y pestañas a todo el ancho
+- En **todas** las pantallas del menú (Mejoras, Pintas, Ranking, etc.), las flechas ‹ › suben a la misma altura que
+  el cartel del título.
+- Así el selector de pestañas (por ejemplo, Characters / Permanent / Boosts) ocupa todo el ancho, con margen a
+  los lados, y tiene botones más grandes: cada pestaña se lee completa, sin achicar la letra, y es más fácil de
+  tocar.
+- **Listo cuando:** hay capturas en el SE y el Pro Max de cada menú con pestañas, sin textos cortados, y
+  `MenuPagerUITests` está en verde. Revisión: sonnet. Va en la misma ola que B4, porque toca el mismo pager, o
+  justo después.
+
+### B11 — El tip de Compartir queda colgado (BUG, va primero)
+- Captura del dueño del 2026-10-14: la tarjeta «Share it and grab a bonus! Once per milestone.» (Fisura saludando
+  y la pastilla naranja) queda fija en pantalla, sin botón para cerrarla, y no se puede sacar.
+- **Causa:** se debuggea de forma sistemática. Sospecha: es un tip del tutorial o de la oferta de compartir (T23
+  movió `ShareOfferLayer` arriba) y espera un ancla o un toque que no está en pantalla.
+- **Arreglo:**
+  1. Se arregla la causa, para que el tip se cierre solo cuando corresponde.
+  2. **Todo tip o aviso de este tipo lleva un botón de cerrar** (asset custom, sin SF Symbol), además de cerrarse
+     con un toque afuera o con un tiempo máximo.
+- **Listo cuando:** hay un test de UI que reproduce el caso de la captura y lo cierra con el botón, y otro test que
+  verifica que ningún tip queda sin una salida. Revisión: sonnet.
+
 ---
 
 ## Orden (≤ 2 compilando)
 
 | Ola | Tareas | Por qué así |
 |---|---|---|
-| 1 | B2 · B1 | B2 arregla lo que B5 y B6 van a tocar. B1 es independiente. |
-| 2 | B3 · B4 | B3 depende de que B2 haya cerrado las capas. B4 es independiente. |
+| 1 | B11 · B2 · B1 | B11 es un bug que bloquea la pantalla y entra al primer hueco. B2 arregla lo que B5 y B6 van a tocar. B1 es independiente. |
+| 2 | B3 · B4 + B10 | B3 depende de que B2 haya cerrado las capas. B4 y B10 tocan el mismo pager: van en la misma tarea o una detrás de la otra. |
 | 3 | B5 · B8 | B5 toca `PickupNode` después de B2 y B3. B8 es independiente. |
 | 4 | B6 · B9 | B6 va después de B5 (`PickupNode`). B9 corre en paralelo: el arte se genera mientras tanto. |
 | 5 | B7 | Es la que más riesgo tiene en el ritmo. Va sola y con el pacing-sim. |

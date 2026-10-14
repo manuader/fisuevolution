@@ -4583,6 +4583,23 @@
         }
       }
     },
+    "gifts.daily.headline %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Day %lld of 7"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Día %lld de 7"
+          }
+        }
+      }
+    },
     "gifts.daily.note" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4668,6 +4685,91 @@
         }
       }
     },
+    "gifts.empty.later" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More gifts tomorrow. You've done your part today."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mañana hay más regalos. Hoy ya hiciste lo tuyo."
+          }
+        }
+      }
+    },
+    "gifts.empty.next %@ %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Come back in %1$@ to collect: %2$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vení en %1$@ y cobrás: %2$@"
+          }
+        }
+      }
+    },
+    "gifts.empty.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All collected. Nice pace!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todo cobrado. ¡Qué ritmo!"
+          }
+        }
+      }
+    },
+    "gifts.help.ax" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How the streak works"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cómo funciona la racha"
+          }
+        }
+      }
+    },
+    "gifts.help.ok" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Got it"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entendido"
+          }
+        }
+      }
+    },
     "gifts.payout %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4736,6 +4838,57 @@
         }
       }
     },
+    "gifts.section.later" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Later on"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más adelante"
+          }
+        }
+      }
+    },
+    "gifts.section.ready" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ready to collect"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para cobrar ahora"
+          }
+        }
+      }
+    },
+    "gifts.section.soon" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coming up"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pronto"
+          }
+        }
+      }
+    },
     "gifts.section.videos" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4783,6 +4936,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Regalos"
+          }
+        }
+      }
+    },
+    "gifts.wheel.back" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spins again soon"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vuelve a girar"
           }
         }
       }

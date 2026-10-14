@@ -35,7 +35,8 @@ final class PickupController {
     }
 
     func layout(sceneSize: CGSize, bottomInset: CGFloat, cellSize: CGFloat) {
-        layout = PickupLayout(sceneSize: sceneSize, bottomInset: bottomInset, cellSize: cellSize)
+        layout = PickupLayout(sceneSize: sceneSize, bottomInset: bottomInset, cellSize: cellSize,
+                              background: layout.background, backgroundOffset: layout.backgroundOffset)
         for node in boxes { node.resize(side: layout.side) }
         mattress?.resize(side: layout.side)
     }
@@ -44,6 +45,7 @@ final class PickupController {
         guard let gameState else { return }
         let access = gameState.prizeAccess
         layer.isHidden = gameState.celebrationHidesUI
+        followHorizon(of: gameState)
         syncBoxes(count: min(access.packagesWaiting, PickupLayout.maxVisibleBoxes), blocked: access.packagesBlocked)
         syncMattress(present: access.mattressReady)
         syncWaitingVideos(visible: sceneVisible && !layer.isHidden)
@@ -55,6 +57,15 @@ final class PickupController {
             mattress.position = layout.mattressPosition
             mattress.update(delta: delta, reduceMotion: reduceMotion)
         }
+    }
+
+    /// El horizonte es el del fondo del piso que se ve: si cambia, las cajas lo siguen.
+    private func followHorizon(of gameState: GameState) {
+        let table = gameState.content?.floorTable
+        let ordinal = gameState.visibleFloorOrdinal
+        let floor = table.flatMap { $0.floors.indices.contains(ordinal) ? $0[ordinal] : nil }
+        layout.background = floor?.background
+        layout.backgroundOffset = floor?.backgroundOffset ?? 0
     }
 
     /// `point` en coordenadas de `layer`. Devuelve si el toque era suyo.

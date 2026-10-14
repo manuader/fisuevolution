@@ -105,8 +105,13 @@ final class PickupNode: SKNode {
         zRotation = CGFloat(sin(shakeLeft * 60) * 0.14 * (shakeLeft / Self.shakeSeconds))
     }
 
-    /// `point` en las coordenadas del padre, con un margen generoso para el dedo.
+    /// `point` en las coordenadas del padre, con un margen generoso para el dedo: el
+    /// área crece con la caja (8 pt de aire) y nunca baja de `minTouchSide` (C10).
     func hitTest(_ point: CGPoint) -> Bool {
-        calculateAccumulatedFrame().insetBy(dx: -8, dy: -8).contains(point)
+        var area = calculateAccumulatedFrame().insetBy(dx: -8, dy: -8)
+        let missingWidth = max(0, PickupLayout.minTouchSide - area.width)
+        let missingHeight = max(0, PickupLayout.minTouchSide - area.height)
+        area = area.insetBy(dx: -missingWidth / 2, dy: -missingHeight / 2)
+        return area.contains(point)
     }
 }

@@ -88,6 +88,25 @@ struct PickupControllerTests {
         gameState.celebrationHidesUI = false
     }
 
+    @Test("el área de toque nunca baja de 60 pt, ni con una caja chica")
+    func touchTargetIsAtLeastSixty() {
+        let node = PickupNode(kind: .package, texture: PickupArt.texture(.package), side: 20)
+        node.position = CGPoint(x: 200, y: 300)
+        #expect(node.hitTest(CGPoint(x: 200 + 29, y: 300 + 29)))
+        #expect(!node.hitTest(CGPoint(x: 200 + 40, y: 300)))
+    }
+
+    @Test("las cajas se paran en el horizonte del piso que se ve, no en la barra de abajo")
+    func boxesStandOnTheHorizon() async throws {
+        let (gameState, controller) = await pickups()
+        gameState.debugAddPackages(1)
+        gameState.refreshPrizeAccess()
+        controller.update(delta: 1, reduceMotion: true)
+        let box = try #require(controller.boxes.first)
+        let stage = StageLayout(sceneSize: CGSize(width: 393, height: 852), bottomInset: 118, cellSize: 72)
+        #expect(box.position.y - 72 * PickupLayout.sideRatio / 2 > stage.baselineY + 72)
+    }
+
     // MARK: con video (E8e T6)
 
     private func pickupsWithVideo(pool: VideoPlayerPool) async -> (GameState, PickupController) {

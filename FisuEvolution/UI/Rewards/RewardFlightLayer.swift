@@ -142,7 +142,7 @@ private struct FlightPath: ViewModifier, Animatable {
     let control: CGPoint
     let end: CGPoint
 
-    var animatableData: CGFloat {
+    nonisolated var animatableData: CGFloat {
         get { progress }
         set { progress = newValue }
     }

@@ -55,8 +55,8 @@ struct PickupLayoutTests {
                     let label = "\(size) \(background ?? "-") \(String(describing: floorBottom))"
                     #expect(layout.baselineY <= horizon + 0.5, "\(label): flota sobre el horizonte")
                     if stackTop < size.height * PickupLayout.maxTopRatio - 0.5 {
-                        #expect(abs(layout.packagePosition(index: 0).y - layout.side / 2 - horizon) < 0.5, label)
-                        #expect(abs(layout.baselineY - horizon) < 0.5, label)
+                        #expect(abs(layout.packagePosition(index: 0).y - layout.side / 2 - horizon) < 0.5, "\(label)")
+                        #expect(abs(layout.baselineY - horizon) < 0.5, "\(label)")
                     } else {
                         #expect(layout.baselineY + layout.side * 1.6 <= size.height * PickupLayout.maxTopRatio, "\(label): la pila llena pasa del tope")
                     }

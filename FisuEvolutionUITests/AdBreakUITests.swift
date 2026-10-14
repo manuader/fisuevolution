@@ -19,14 +19,14 @@ final class AdBreakUITests: XCTestCase {
         XCTAssertTrue((1...5).contains(seconds ?? 0), "la cuenta regresiva no está en 1...5: \(String(describing: seconds))")
         decline.tap()
         XCTAssertTrue(decline.waitForNonExistence(timeout: 3))
-        XCTAssertFalse(app.buttons["tower.notice"].exists, "rechazarla no da ni quita nada")
+        XCTAssertFalse(app.descendants(matching: .any)["tower.notice"].exists, "rechazarla no da ni quita nada")
     }
 
     func testSiNoSeRechazaElAnuncioPagaSuPremio() {
         let app = launch()
         closeAScreen(app)
         XCTAssertTrue(app.buttons["adbreak.decline"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["tower.notice"].waitForExistence(timeout: 12), "5 s de cuenta + 2 s de anuncio + el aviso")
+        XCTAssertTrue(app.descendants(matching: .any)["tower.notice"].waitForExistence(timeout: 12), "5 s de cuenta + 2 s de anuncio + el aviso")
     }
 
     private func launch() -> XCUIApplication {

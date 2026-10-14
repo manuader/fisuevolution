@@ -35,6 +35,18 @@ struct PackagePopup: Identifiable, Equatable {
     var arrivals: [PackageArrival] = []
 }
 
+/// Lo que pasa al tocar la caja del tablero (E14b B5, D2).
+enum BoardPackageTap: Equatable {
+    /// La cuenta todavía no abrió ninguno: se abre la pantalla de C28.
+    case popup
+    /// Desde la segunda: la caja se sacude y se abre ahí mismo, sin pop-up.
+    case openInPlace
+    /// No entra nadie: la caja no se abre y avisa arriba (C20, C28 punto 4).
+    case full
+    /// No había nada que abrir o algo más ocupa la pantalla.
+    case refused
+}
+
 /// Se ganó un paquete: lo que la vista usa para volarlo al sello.
 struct PackageWin: Identifiable, Equatable {
     let id = UUID()
@@ -141,10 +153,51 @@ extension GameState {
         return true
     }
 
+    /// La caja del tablero (E14b B5, D2): la primera vez, la pantalla de C28; desde la segunda,
+    /// `.openInPlace` y la escena la abre ahí mismo. Todavía no gasta nada: el paquete se gasta
+    /// cuando la caja termina de abrirse (`openPackageOnBoard`). La columna y Regalos siguen
+    /// por `packageTapped` (D5).
+    @discardableResult
+    func boardPackageTapped() -> BoardPackageTap {
+        guard packageIntroSeen else { return packageTapped() ? .popup : .refused }
+        tutorialTipCompleted(.packages)
+        guard packagesWaiting > 0, packagePopup == nil, mattressPopup == nil, wheelSheet == nil else { return .refused }
+        guard !packagesBlocked else {
+            noteBoardPackageFull()
+            return .full
+        }
+        return .openInPlace
+    }
+
+    /// La caja del tablero terminó de abrirse: se gasta y el empleado sale hacia su lugar, sin pop-up.
+    /// Si en el medio se llenó todo, no se gasta y avisa arriba.
+    @discardableResult
+    func openPackageOnBoard() -> PackageOpenResult {
+        let result = openPackage()
+        if result == .full { noteBoardPackageFull() }
+        refreshPrizeAccess()
+        return result
+    }
+
+    var packageIntroSeen: Bool { player?.meta.engagement.packageIntroSeen ?? false }
+
+    private func noteBoardPackageFull() {
+        towerNotice = TowerNotice(kind: .packageFull)
+    }
+
+    /// Ya abrió uno desde la pantalla: la caja del tablero se abre sola de ahora en más.
+    private func markPackageIntroSeen() {
+        guard var player, !player.meta.engagement.packageIntroSeen else { return }
+        player.meta.engagement.packageIntroSeen = true
+        self.player = player
+        scheduleSave()
+    }
+
     /// «¡Abrir!»: el paquete se gasta y a quién trae ya está decidido (la animación sólo lo demora).
     func openPackageFromPopup() {
         guard packagePopup?.arrivals.isEmpty == true, case let .opened(typeId, floorId) = openPackage() else { return }
         packagePopup?.arrivals = [PackageArrival(typeId: typeId, floorId: floorId)]
+        markPackageIntroSeen()
         refreshPrizeAccess()
     }
 
@@ -157,6 +210,7 @@ extension GameState {
         }
         guard !arrivals.isEmpty else { return }
         packagePopup?.arrivals = arrivals
+        markPackageIntroSeen()
         refreshPrizeAccess()
     }
 

@@ -11,6 +11,7 @@ struct PrizeSheets: ViewModifier {
 
     func body(content: Content) -> some View {
         content
+            .background(boardPackageMarker)
             .onChange(of: gameState.mattressPopup) { syncCover() }
             .onChange(of: gameState.wheelSheet) { syncCover() }
             .onChange(of: gameState.packagePopup) { syncCover() }
@@ -29,6 +30,14 @@ struct PrizeSheets: ViewModifier {
                 .tint(Color("PaletteInk"))
                 .fisuSheet()
             }
+    }
+
+    /// Dónde tocar la caja del tablero, para los UI tests (E14b B5): invisible y medible.
+    private var boardPackageMarker: some View {
+        Color.clear
+            .accessibilityElement()
+            .accessibilityIdentifier("board.package")
+            .accessibilityValue(Text(verbatim: gameState.boardPackageMarker))
     }
 
     private var packagePopupBinding: Binding<PackagePopup?> {

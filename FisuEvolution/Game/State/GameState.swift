@@ -134,6 +134,9 @@ final class GameState {
     private(set) var cameraFloor: Double = 0
     /// La geometría del tablero para el marcador `board.layout` de los tests.
     private(set) var boardLayoutMarker = ""
+    /// Dónde está la caja de arriba del tablero, normalizada a la pantalla ("0.812,0.703"), o "" sin
+    /// caja: el marcador `board.package` de los tests (E14b B5).
+    private(set) var boardPackageMarker = ""
     /// Income pasivo agregado de todos los pisos, aunque no estén en cámara.
     var towerIncomePerSecond = 0.0
     var towerIncomePerSecondText = "0"
@@ -455,6 +458,10 @@ final class GameState {
 
     func publishBoardLayout(_ marker: String) {
         if boardLayoutMarker != marker { boardLayoutMarker = marker }
+    }
+
+    func publishBoardPackage(_ marker: String) {
+        if boardPackageMarker != marker { boardPackageMarker = marker }
     }
 
     #if DEBUG

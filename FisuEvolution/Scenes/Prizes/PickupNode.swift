@@ -14,6 +14,7 @@ final class PickupNode: SKNode {
 
     static let popSeconds: TimeInterval = 0.35
     static let shakeSeconds: TimeInterval = 0.4
+    static let vanishSeconds: TimeInterval = 0.3
 
     /// Debajo del escenario y de los empleados (`BoardScene.fieldBaseZ`), arriba de los fondos.
     static let layerZ: CGFloat = 5
@@ -24,11 +25,20 @@ final class PickupNode: SKNode {
     private let fullSign = SKLabelNode(fontNamed: "AvenirNext-Heavy")
     private var age: TimeInterval = 0
     private var shakeLeft: TimeInterval = 0
+    private let manifest: LoopsManifest
+    private let pool: VideoPlayerPool
+    private let packs: ArtPacks
+    /// Los clips de la apertura en el tablero (E14b B5): la sacudida y, encima, la apertura.
+    private var openingClips: [LoopingVideoNode] = []
+    private(set) var isOpening = false
 
     init(kind: Kind, texture: SKTexture, side: CGFloat, waitingClip: ArtClip? = nil,
          manifest: LoopsManifest = .main, pool: VideoPlayerPool = .shared,
          packs: ArtPacks = .shared) {
         self.kind = kind
+        self.manifest = manifest
+        self.pool = pool
+        self.packs = packs
         sprite = SKSpriteNode(texture: texture)
         waitingVideo = waitingClip.map {
             // El póster va transparente: el arte quieto es `sprite`, y dos copias del PNG se sumarían.
@@ -70,6 +80,7 @@ final class PickupNode: SKNode {
         let size = sprite.texture?.size() ?? CGSize(width: 1, height: 1)
         sprite.size = CGSize(width: side, height: side * size.height / max(size.width, 1))
         waitingVideo?.resize(sprite.size)
+        for clip in openingClips { clip.resize(sprite.size) }
         fullSign.fontSize = side * 0.3
         fullSign.position = CGPoint(x: 0, y: sprite.size.height * 0.75)
     }
@@ -79,6 +90,7 @@ final class PickupNode: SKNode {
 
     /// Sólo la caja que está a la vista pide el cupo del pool; al salir o taparse lo suelta.
     func setWaiting(_ waiting: Bool) {
+        let waiting = waiting && !isOpening
         guard waiting != isWaiting else { return }
         isWaiting = waiting
         waitingVideo?.setVisible(waiting)
@@ -87,7 +99,66 @@ final class PickupNode: SKNode {
     /// Se va del tablero: suelta el video antes de salir de la escena.
     func retire() {
         setWaiting(false)
+        stopOpeningClips()
         removeFromParent()
+    }
+
+    /// La caja se abre en el tablero (E14b B5, D2): `paquete_sacude` y después `paquete_abre`, una
+    /// pasada cada uno, y `onOpened` cuando terminó de abrirse. Sin video (política quieta, pack sin
+    /// bajar) los `.once` terminan en el acto: queda el temblor de siempre.
+    func playOpening(onOpened: @escaping @MainActor () -> Void) {
+        guard !isOpening else { return }
+        isOpening = true
+        setWaiting(false)
+        shake()
+        // La sacudida va con el rol de ícono; la apertura, con el de popup: con el mismo rol el pool
+        // bajaría la sacudida antes de que la apertura asome, y la caja quieta se vería un instante.
+        startOpeningClip("paquete_sacude", role: .icon) { [weak self] in
+            self?.startOpeningClip("paquete_abre", role: .popup) { onOpened() }
+        }
+    }
+
+    /// No se pudo abrir (se llenó todo en el medio): vuelve a esperar.
+    func cancelOpening() {
+        stopOpeningClips()
+        isOpening = false
+        shake()
+    }
+
+    /// Ya salió el empleado: la caja abierta se desvanece y se va del tablero.
+    func vanish(reduceMotion: Bool) {
+        let fade = SKAction.fadeOut(withDuration: Self.vanishSeconds)
+        let out: SKAction = reduceMotion ? fade : .group([fade, .scale(to: 1.15, duration: Self.vanishSeconds)])
+        run(.sequence([out, .run { [weak self] in self?.retire() }]))
+    }
+
+    private func startOpeningClip(_ id: String, role: VideoRole, onEnd: @escaping @MainActor () -> Void) {
+        let clip = LoopingVideoNode(clip: .object(id), poster: Self.clearTexture, size: sprite.size, role: role,
+                                    playback: .once(onEnd: onEnd), manifest: manifest, pool: pool, packs: packs)
+        clip.zPosition = 0.6 + CGFloat(openingClips.count) * 0.1
+        addChild(clip)
+        openingClips.append(clip)
+        clip.setVisible(true)
+    }
+
+    private func stopOpeningClips() {
+        for clip in openingClips {
+            clip.stop()
+            clip.removeFromParent()
+        }
+        openingClips.removeAll()
+    }
+
+    /// El clip que se ve tapa al de abajo: cuando la apertura ya está a pleno, la sacudida se suelta.
+    private func settleOpeningClips() -> CGFloat {
+        if let top = openingClips.last, top.videoAlpha >= 1, openingClips.count > 1 {
+            for clip in openingClips.dropLast() {
+                clip.stop()
+                clip.removeFromParent()
+            }
+            openingClips = [top]
+        }
+        return openingClips.map(\.videoAlpha).max() ?? 0
     }
 
     /// El cartel "LLENO" (PLAN-v2 §2).
@@ -101,7 +172,7 @@ final class PickupNode: SKNode {
     }
 
     func update(delta: TimeInterval, reduceMotion: Bool) {
-        syncArt(videoAlpha: waitingVideo?.videoAlpha ?? 0)
+        syncArt(videoAlpha: isOpening ? settleOpeningClips() : waitingVideo?.videoAlpha ?? 0)
         age += delta
         if reduceMotion {
             setScale(1)

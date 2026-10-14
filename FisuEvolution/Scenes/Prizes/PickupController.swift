@@ -18,6 +18,10 @@ final class PickupController {
     private var layout = PickupLayout(sceneSize: CGSize(width: 393, height: 852), bottomInset: 118, cellSize: 72)
     private(set) var boxes: [PickupNode] = []
     private(set) var mattress: PickupNode?
+    /// El empleado que acaba de salir de una caja del tablero y dónde estaba la caja (en `layer`):
+    /// la escena lo hace caminar de ahí a su lugar cuando juega la llegada (E14b B5).
+    private var boxExit: (typeId: String, point: CGPoint)?
+    private var reduceMotion = false
 
     init(gameState: GameState, manifest: LoopsManifest = .main, pool: VideoPlayerPool = .shared,
          packs: ArtPacks = .shared) {
@@ -44,6 +48,7 @@ final class PickupController {
 
     func update(delta: TimeInterval, reduceMotion: Bool) {
         guard let gameState else { return }
+        self.reduceMotion = reduceMotion
         let access = gameState.prizeAccess
         layer.isHidden = gameState.celebrationHidesUI
         followHorizon(of: gameState)
@@ -58,6 +63,18 @@ final class PickupController {
             mattress.position = layout.mattressPosition
             mattress.update(delta: delta, reduceMotion: reduceMotion)
         }
+        gameState.publishBoardPackage(boxMarker)
+    }
+
+    /// La caja de arriba, normalizada a la pantalla con el origen arriba a la izquierda (como la
+    /// coordenada de XCUITest), o "" sin caja.
+    private var boxMarker: String {
+        guard let top = boxes.last, !layer.isHidden, layout.sceneSize.width > 0, layout.sceneSize.height > 0 else {
+            return ""
+        }
+        let x = top.position.x / layout.sceneSize.width
+        let y = 1 - top.position.y / layout.sceneSize.height
+        return String(format: "%.3f,%.3f", x, y)
     }
 
     /// El horizonte es el del fondo del piso que se ve: si cambia, las cajas lo siguen.
@@ -78,8 +95,38 @@ final class PickupController {
             return true
         }
         guard boxes.contains(where: { $0.hitTest(point) }) else { return false }
-        gameState.packageTapped()
+        guard let top = boxes.last, !top.isOpening else { return true }
+        switch gameState.boardPackageTapped() {
+        case .openInPlace:
+            top.playOpening { [weak self, weak top] in
+                guard let self, let top else { return }
+                self.finishOpening(top)
+            }
+        case .full:
+            top.shake()
+        case .popup, .refused:
+            break
+        }
         return true
+    }
+
+    /// La caja terminó de abrirse: recién ahora se gasta el paquete y el empleado sale de ahí.
+    private func finishOpening(_ box: PickupNode) {
+        guard let gameState, box.parent != nil else { return }
+        guard case let .opened(typeId, _) = gameState.openPackageOnBoard() else {
+            box.cancelOpening()
+            return
+        }
+        boxExit = (typeId, box.position)
+        boxes.removeAll { $0 === box }
+        box.vanish(reduceMotion: reduceMotion)
+    }
+
+    /// Dónde estaba la caja de la que salió `typeId`, una sola vez: la llegada que juega la escena.
+    func takeBoxExit(typeId: String) -> CGPoint? {
+        guard let exit = boxExit, exit.typeId == typeId else { return nil }
+        boxExit = nil
+        return exit.point
     }
 
     /// La escena entra o sale del `SKView`: fuera de pantalla las esperas sueltan el cupo del pool.

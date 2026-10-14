@@ -207,7 +207,7 @@ struct LoopsManifestTests {
         let onDisk = try #require(Bundle.main.resourceURL)
         let movs = (FileManager.default.enumerator(at: onDisk, includingPropertiesForKeys: nil)?.allObjects as? [URL] ?? [])
             .filter { $0.pathExtension == "mov" }.map(\.lastPathComponent)
-        let extra = Set(movs).subtracting(declared).subtracting(["chest_open.mov"])
+        let extra = Set(movs).subtracting(declared)
         #expect(extra.isEmpty, "\(extra.sorted()): .mov en el bundle que el manifest no nombra")
     }
 

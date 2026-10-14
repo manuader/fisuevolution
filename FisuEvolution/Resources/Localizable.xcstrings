@@ -1854,23 +1854,6 @@
         }
       }
     },
-    "ads.reward.text.merge_all" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Merges every pair on this floor at once"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fusiona de una todos los pares de este piso"
-          }
-        }
-      }
-    },
     "ads.unavailable.floor_full" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3563,6 +3546,23 @@
         }
       }
     },
+    "elevator.floor.visitor" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A visitor is waiting"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un visitante te espera"
+          }
+        }
+      }
+    },
     "elevator.keypad.ax" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4957,40 +4957,6 @@
         }
       }
     },
-    "gifts.section.boosts" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Boosts"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Boosts"
-          }
-        }
-      }
-    },
-    "gifts.section.chests" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Skin chests"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cofres de pintas"
-          }
-        }
-      }
-    },
     "gifts.section.daily" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5055,40 +5021,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pronto"
-          }
-        }
-      }
-    },
-    "gifts.section.videos" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Watch an ad"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Por ver un video"
-          }
-        }
-      }
-    },
-    "gifts.section.wheel" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The Wheel"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La Ruleta"
           }
         }
       }
@@ -8140,40 +8072,6 @@
         }
       }
     },
-    "prize.mattress.ax" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "There's cash hidden in the mattress"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El colchón tiene plata escondida"
-          }
-        }
-      }
-    },
-    "prize.package.ax %@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Customs Packages waiting: %@"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paquetes de la Aduana esperando: %@"
-          }
-        }
-      }
-    },
     "prize.package.full" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8187,23 +8085,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "LLENO"
-          }
-        }
-      }
-    },
-    "prize.package.full.ax" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Customs Package: no room. Merge to make room."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paquete de la Aduana: no hay lugar. Fusioná para hacer lugar."
           }
         }
       }
@@ -19360,6 +19241,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Llevalo"
+          }
+        }
+      }
+    },
+    "visit.waiting.ax %@ %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ is waiting for you on floor %2$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ te espera en el piso %2$@"
           }
         }
       }

@@ -30,7 +30,8 @@ enum PagerProbe {
         #if DEBUG
         let elapsed = start.duration(to: ContinuousClock.now)
         let milliseconds = Double(elapsed.components.seconds) * 1000 + Double(elapsed.components.attoseconds) / 1e15
-        log.debug("art.cold \(label(), privacy: .public) main=\(Thread.isMainThread) ms=\(milliseconds, format: .fixed(precision: 1))")
+        let text = label()
+        log.debug("art.cold \(text, privacy: .public) main=\(Thread.isMainThread) ms=\(milliseconds, format: .fixed(precision: 1))")
         #endif
     }
 }

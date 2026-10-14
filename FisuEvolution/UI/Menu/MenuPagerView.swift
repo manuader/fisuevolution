@@ -352,7 +352,7 @@ struct MenuPagerView: View {
 /// cierres que recibe nunca son iguales entre sí). Lo que cambia de verdad
 /// —la página, su índice, si está armada o si es la actual— sí entra en la
 /// igualdad; el entorno (el estado del juego) invalida la página por su cuenta.
-private struct PagerSlot: View, Equatable {
+private struct PagerSlot: View, @MainActor Equatable {
     let page: GameScreen
     let index: Int
     let count: Int

@@ -103,7 +103,7 @@ struct ResetGameFlowView: View {
                     titleKey: "reset.leave.title",
                     message: Text("reset.leave.body"),
                     confirmTitleKey: "reset.leave.confirm",
-                    confirmSystemImage: "arrow.uturn.backward",
+                    confirmGlyph: .undo,
                     confirmTint: Color("PaletteBlue"),
                     cancelTitleKey: "reset.leave.stay",
                     onConfirm: requestLeave,

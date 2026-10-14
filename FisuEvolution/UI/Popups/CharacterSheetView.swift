@@ -74,7 +74,7 @@ struct CharacterSheetView: View {
                     titleKey: "character.dismiss.title",
                     message: Text("character.dismiss.message"),
                     confirmTitleKey: "character.dismiss.confirm",
-                    confirmSystemImage: "person.fill.xmark",
+                    confirmGlyph: .close,
                     cancelTitleKey: "character.dismiss.cancel",
                     onConfirm: {
                         gameState.dismissCharacter(floorOrdinal: sheet.floorOrdinal, slot: sheet.cellIndex)

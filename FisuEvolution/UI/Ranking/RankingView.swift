@@ -154,7 +154,7 @@ struct RankingView: View {
                 artKey: "ui_menu_trophy",
                 titleKey: "ranking.report.confirm.title",
                 message: Text("ranking.report.confirm"),
-                confirmTitleKey: "ranking.report", confirmSystemImage: "flag.fill",
+                confirmTitleKey: "ranking.report", confirmGlyph: .warning,
                 cancelTitleKey: "ranking.report.cancel",
                 acceptIdentifier: "ranking.report.confirm.yes", cancelIdentifier: "ranking.report.confirm.no",
                 onConfirm: {

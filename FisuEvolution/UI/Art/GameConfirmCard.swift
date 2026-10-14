@@ -12,7 +12,8 @@ struct GameConfirmCard: View {
     let titleKey: LocalizedStringKey
     let message: Text
     let confirmTitleKey: LocalizedStringKey
-    let confirmSystemImage: String
+    /// El ícono del medallón del botón de confirmar.
+    let confirmGlyph: GameGlyph
     /// Rosa para lo destructivo (despedir, resetear), como la firma de la casa.
     var confirmTint: Color = Color("PalettePink")
     let cancelTitleKey: LocalizedStringKey
@@ -48,12 +49,9 @@ struct GameConfirmCard: View {
                         .foregroundStyle(Color("PaletteInk").opacity(0.75))
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
-                    ActionPill(
-                        titleKey: confirmTitleKey,
-                        systemImage: confirmSystemImage,
-                        tint: confirmTint,
-                        identifier: acceptIdentifier,
-                        action: onConfirm
+                    GameButton(
+                        confirmTitleKey, role: .coins, medallion: .glyph(confirmGlyph), fullWidth: true,
+                        identifier: acceptIdentifier, action: onConfirm
                     )
                     // La salida silenciosa no compite con la acción: texto
                     // tinta pelado, como "Ahora no" en la tarjeta de compartir.

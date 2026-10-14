@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import FisuEvolution
 
-@Suite("La Tienda de ORO anima sólo el ícono del medio")
+@Suite("La Tienda de blue anima sólo el ícono del medio")
 @MainActor
 struct ShopIconFocusTests {
     private func pick(_ visible: [String], animatable: Set<String>? = nil) -> String? {
@@ -39,11 +39,11 @@ struct ShopIconFocusTests {
         #expect(pick(["a", "b"], animatable: []) == nil)
     }
 
-    @Test("cada ítem de oro_shop.json con clip en la tabla tiene su clip en el manifest")
+    @Test("cada ítem de blue_shop.json con clip en la tabla tiene su clip en el manifest")
     func tableResolves() throws {
         let manifest = try LoopsManifest.load(from: .main)
         let content = try GameContentLoader.load(from: .main)
-        let resolved = content.oroShop.items.filter { ArtClips.shopIcon(item: $0.id, in: manifest) != nil }
+        let resolved = content.blueShop.items.filter { ArtClips.shopIcon(item: $0.id, in: manifest) != nil }
         #expect(resolved.count == ArtClips.shopIconKeys.count)
     }
 }

@@ -258,14 +258,14 @@ struct LoopsManifestTests {
     @Test("cada ícono de la tienda tiene dueño: un ítem o una tarea pendiente, no los dos")
     func shopIconsHaveAnOwner() throws {
         let manifest = try LoopsManifest.load(from: .main)
-        let items = Set(try GameContentLoader.load(from: .main).oroShop.items.map(\.id))
+        let items = Set(try GameContentLoader.load(from: .main).blueShop.items.map(\.id))
         let mapped = Set(ArtClips.shopIconKeys.values)
         let pending = Set(ArtClips.pendingShopIcons.keys)
         for key in manifest.shopIcons.keys {
             #expect(mapped.contains(key) != pending.contains(key), "\(key): sin dueño, o con dos")
         }
         for (item, key) in ArtClips.shopIconKeys {
-            #expect(items.contains(item), "\(item): no es un ítem de oro_shop.json")
+            #expect(items.contains(item), "\(item): no es un ítem de blue_shop.json")
             #expect(manifest.shopIcons[key] != nil, "\(item) -> \(key): el clip no está en el manifest")
         }
         for key in pending {

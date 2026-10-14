@@ -58,13 +58,13 @@ final class GameState {
 
     // MARK: Prestigio, mejoras y logros (observado)
 
-    /// F7: reencarnación disponible = vas a ganar ≥1 ORO.
+    /// F7: reencarnación disponible = vas a ganar ≥1 blue.
     var prestigeAvailable = false
     /// El botón de reencarnar EXISTE desde el piso configurado
-    /// (`oro.prestigeTeaserFloorId`, hoy "lujo") aunque todavía no haya ORO
+    /// (`blue.prestigeTeaserFloorId`, hoy "lujo") aunque todavía no haya blue
     /// por cobrar: muestra el progreso hacia el próximo en vez de la ganancia.
     var prestigeTeaser = false
-    var oroText = "0"
+    var blueText = "0"
     /// RF-16: el antes/después del multiplicador. Lo escribe `+Prestige`.
     var prestigePreview = PrestigePreview.empty
     var ownedSkins: [String] = []
@@ -73,9 +73,9 @@ final class GameState {
     /// `refreshProjections` cotizando costos crudos — NO sale de
     /// `characterUpgradeRows`, que arma textos localizados por fila y es cara.
     var canAffordAnyUpgrade = false
-    /// Hay una mejora PERMANENTE (de ORO) pagable: la señal de la lección del
-    /// primer ORO.
-    var canAffordAnyOroUpgrade = false
+    /// Hay una mejora PERMANENTE (de blue) pagable: la señal de la lección del
+    /// primer blue.
+    var canAffordAnyBlueUpgrade = false
     /// Cuántos pisos están desbloqueados. La lección del ascensor espera al
     /// segundo: con uno solo, el mapa es una lista de candados.
     var unlockedFloorsCount = 0
@@ -439,14 +439,14 @@ final class GameState {
         self.injectedRepository = repository
     }
 
-    /// Los lugares extra del permanente de ORO (E6) agrandan TODOS los pisos en un
+    /// Los lugares extra del permanente de blue (E6) agrandan TODOS los pisos en un
     /// solo lugar: la tabla que leen la torre, el reconciliador, los pisos en
     /// marcha y la escena. Corre antes de reconstruir la torre (`reconcileTower`:
     /// la carga, el arranque, los fixtures y reencarnar); al comprar, la torre en
     /// pantalla se agranda en el lugar (`growTowerToTheExtraSlots`) sin reconstruirse.
     func applyExtraSlots() {
         guard var content, let player else { return }
-        let extra = OroShop.extraSlots(levels: player.meta.engagement.shop.levels, catalog: content.oroShop)
+        let extra = BlueShop.extraSlots(levels: player.meta.engagement.shop.levels, catalog: content.blueShop)
         let table = content.baseFloorTable.expanded(by: extra)
         guard table != content.floorTable else { return }
         content.floorTable = table

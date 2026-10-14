@@ -119,7 +119,7 @@ final class LaunchSmokeTests: XCTestCase {
     }
 
     @MainActor
-    func testUpgradesExposePermanentOroPurchase() throws {
+    func testUpgradesExposePermanentBluePurchase() throws {
         let app = XCUIApplication()
         app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial"]
         app.launch()
@@ -134,11 +134,11 @@ final class LaunchSmokeTests: XCTestCase {
 
         XCTAssertTrue(
             app.buttons["upgrades.permanent.income"].waitForExistence(timeout: 5),
-            "an ORO permanent upgrade must remain accessible by a stable identifier"
+            "a Blue permanent upgrade must remain accessible by a stable identifier"
         )
 
         let screenshot = XCTAttachment(screenshot: app.screenshot())
-        screenshot.name = "F7.4 permanent ORO upgrades"
+        screenshot.name = "F7.4 permanent blue upgrades"
         screenshot.lifetime = .keepAlways
         add(screenshot)
     }

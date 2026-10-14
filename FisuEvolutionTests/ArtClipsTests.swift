@@ -58,8 +58,8 @@ struct ArtClipsTests {
 
     @Test("los ítems de la tienda mapean a su clip; sin clip o sin entrada, póster")
     func shopIconMapsItems() throws {
-        let manifest = try Self.manifest(shopIcons: ["ui_oro_income_boost"])
-        #expect(ArtClips.shopIcon(item: "income_x3", in: manifest) == .shopIcon("ui_oro_income_boost"))
+        let manifest = try Self.manifest(shopIcons: ["ui_blue_income_boost"])
+        #expect(ArtClips.shopIcon(item: "income_x3", in: manifest) == .shopIcon("ui_blue_income_boost"))
         #expect(ArtClips.shopIcon(item: "skin_chest", in: manifest) == nil)
         #expect(ArtClips.shopIcon(item: "auto_tap", in: manifest) == nil, "mapeado, pero el clip falta")
     }

@@ -930,8 +930,8 @@
     }
   },
   "shopIcons": {
-    "ui_oro_autotap": {
-      "file": "icon_ui_oro_autotap.mov",
+    "ui_blue_autotap": {
+      "file": "icon_ui_blue_autotap.mov",
       "width": 256,
       "height": 256,
       "fps": 24,
@@ -942,8 +942,8 @@
       "keyColor": null,
       "odrTag": "anim-tienda"
     },
-    "ui_oro_better_supplier": {
-      "file": "icon_ui_oro_better_supplier.mov",
+    "ui_blue_better_supplier": {
+      "file": "icon_ui_blue_better_supplier.mov",
       "width": 256,
       "height": 256,
       "fps": 24,
@@ -954,8 +954,8 @@
       "keyColor": null,
       "odrTag": "anim-tienda"
     },
-    "ui_oro_daily_boost": {
-      "file": "icon_ui_oro_daily_boost.mov",
+    "ui_blue_daily_boost": {
+      "file": "icon_ui_blue_daily_boost.mov",
       "width": 256,
       "height": 256,
       "fps": 24,
@@ -966,8 +966,8 @@
       "keyColor": null,
       "odrTag": "anim-tienda"
     },
-    "ui_oro_extra_slots": {
-      "file": "icon_ui_oro_extra_slots.mov",
+    "ui_blue_extra_slots": {
+      "file": "icon_ui_blue_extra_slots.mov",
       "width": 256,
       "height": 256,
       "fps": 24,
@@ -978,8 +978,8 @@
       "keyColor": null,
       "odrTag": "anim-tienda"
     },
-    "ui_oro_extra_spins": {
-      "file": "icon_ui_oro_extra_spins.mov",
+    "ui_blue_extra_spins": {
+      "file": "icon_ui_blue_extra_spins.mov",
       "width": 256,
       "height": 256,
       "fps": 24,
@@ -990,8 +990,8 @@
       "keyColor": null,
       "odrTag": "anim-tienda"
     },
-    "ui_oro_income_boost": {
-      "file": "icon_ui_oro_income_boost.mov",
+    "ui_blue_income_boost": {
+      "file": "icon_ui_blue_income_boost.mov",
       "width": 256,
       "height": 256,
       "fps": 24,
@@ -1002,8 +1002,8 @@
       "keyColor": null,
       "odrTag": "anim-tienda"
     },
-    "ui_oro_merge_all": {
-      "file": "icon_ui_oro_merge_all.mov",
+    "ui_blue_merge_all": {
+      "file": "icon_ui_blue_merge_all.mov",
       "width": 256,
       "height": 256,
       "fps": 24,
@@ -1014,8 +1014,8 @@
       "keyColor": null,
       "odrTag": "anim-tienda"
     },
-    "ui_oro_offline_boost": {
-      "file": "icon_ui_oro_offline_boost.mov",
+    "ui_blue_offline_boost": {
+      "file": "icon_ui_blue_offline_boost.mov",
       "width": 256,
       "height": 256,
       "fps": 24,
@@ -1026,8 +1026,8 @@
       "keyColor": null,
       "odrTag": "anim-tienda"
     },
-    "ui_oro_package_rain": {
-      "file": "icon_ui_oro_package_rain.mov",
+    "ui_blue_package_rain": {
+      "file": "icon_ui_blue_package_rain.mov",
       "width": 256,
       "height": 256,
       "fps": 24,
@@ -1038,8 +1038,8 @@
       "keyColor": null,
       "odrTag": "anim-tienda"
     },
-    "ui_oro_time_skip": {
-      "file": "icon_ui_oro_time_skip.mov",
+    "ui_blue_time_skip": {
+      "file": "icon_ui_blue_time_skip.mov",
       "width": 256,
       "height": 256,
       "fps": 24,

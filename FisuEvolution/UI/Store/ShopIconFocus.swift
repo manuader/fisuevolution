@@ -1,4 +1,4 @@
-/// Cuál de las filas visibles de la Tienda de ORO anima su ícono: la del medio (spec E8, "anima
+/// Cuál de las filas visibles de la Tienda de blue anima su ícono: la del medio (spec E8, "anima
 /// sólo el que está centrado"). Si esa no tiene clip, la más cercana que sí; a igual distancia, la
 /// de arriba.
 enum ShopIconFocus {

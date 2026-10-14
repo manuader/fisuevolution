@@ -44,7 +44,7 @@ struct SkinCatalogRowsTests {
         let rows = rows(gameState, "homeless")
 
         // El Fisura tiene siete skins en el catálogo: una de reencarnación, una
-        // paga, las dos de material (oro y diamante) y las tres familias dibujadas,
+        // paga, las dos de material (dorada y diamante) y las tres familias dibujadas,
         // que existen para los 43. La base va delante de todas y no se persiste como id.
         #expect(rows.map(\.id) == [
             "base", "second_life", "mundialista", "oro", "diamante", "pijama", "gaucho", "dinosaurio",
@@ -199,7 +199,7 @@ struct SkinSilhouetteTests {
     private func enSilueta(_ state: SkinCatalogRow.State) -> Bool {
         switch state {
         case .equipped, .owned: false
-        case .milestoneLocked, .purchasable, .oroPurchasable: true
+        case .milestoneLocked, .purchasable, .bluePurchasable: true
         }
     }
 
@@ -212,7 +212,7 @@ struct SkinSilhouetteTests {
     @Test("lo que está a la venta también se esconde: es lo que se quiere vender")
     func loPagoSeEsconde() {
         #expect(enSilueta(.purchasable(productID: "com.fisuevolution.iap.skins_diamante")))
-        #expect(enSilueta(.oroPurchasable(price: 450)))
+        #expect(enSilueta(.bluePurchasable(price: 450)))
         #expect(enSilueta(.milestoneLocked(conditionText: "Maxeá todas las mejoras")))
     }
 }
@@ -234,7 +234,7 @@ struct SkinSilhouetteTests {
 /// 1. **Tener la pinta alcanza**, aunque nunca hayas visto al personaje.
 /// 2. **Lo visto sigue estando**, tengas pintas suyas o no: es una unión, no un
 ///    reemplazo.
-/// 3. **Una pinta que visten TODOS no trae a nadie.** `oro` y `diamante` están
+/// 3. **Una pinta que visten TODOS no trae a nadie.** la dorada y la de diamante están
 ///    en el catálogo una vez por personaje con el mismo id, así que un solo
 ///    paquete de diamante desplegaría los 43 y espoilearía la cadena entera
 ///    (RF-03) — que es justo lo que Pintas venía cuidando.
@@ -351,7 +351,7 @@ struct SkinnableTypesTests {
     ///
     /// ⚠️ En el carrusel, la versión ingenua del criterio —"me quedo con el
     /// PRIMER personaje que declara esta pinta"— es indistinguible de la buena:
-    /// el catálogo declara `oro` y `diamante` empezando por el Fisura, y al
+    /// el catálogo declara la dorada y la de diamante empezando por el Fisura, y al
     /// Fisura se lo ve siempre. El test de arriba pasaría con esa versión
     /// puesta, así que la pregunta hay que hacérsela al catálogo, que es quien
     /// sabe que una pinta repetida no es de nadie en particular.

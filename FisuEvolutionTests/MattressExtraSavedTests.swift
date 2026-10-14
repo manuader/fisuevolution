@@ -34,10 +34,10 @@ struct MattressExtraSavedTests {
         let second = try #require(gameState.mattressPopup?.outcome)
         #expect(second.extraOpensLeft == 0)
         let coins = gameState.player?.run.coins
-        let oro = gameState.player?.meta.oro
+        let blue = gameState.player?.meta.blue
         gameState.extraMattressVideoWatched()
         #expect(gameState.mattressPopup?.outcome == second)
-        #expect(gameState.player?.run.coins == coins && gameState.player?.meta.oro == oro, "el video paga una sola vez")
+        #expect(gameState.player?.run.coins == coins && gameState.player?.meta.blue == blue, "el video paga una sola vez")
         try relaunch(gameState)
         #expect(!gameState.prizeAccess.mattressExtraReady, "usado, no vuelve")
         #expect(gameState.sideRailTapped(.mattress) == .refused)

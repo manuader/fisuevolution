@@ -2,8 +2,8 @@ import Foundation
 import Testing
 @testable import FisuEvolution
 
-/// El azar con ORO se apaga en Bélgica y Australia (PLAN-v2 §2, loot boxes).
-@Suite("El azar con ORO, por tienda")
+/// El azar con blue se apaga en Bélgica y Australia (PLAN-v2 §2, loot boxes).
+@Suite("El azar con blue, por tienda")
 struct LootBoxGateTests {
     private func bundledConfig() throws -> AdsRemoteConfig {
         let loader = AdsRemoteConfigLoader(

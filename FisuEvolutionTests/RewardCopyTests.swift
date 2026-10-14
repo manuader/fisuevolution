@@ -11,7 +11,7 @@ struct RewardCopyTests {
     static func sample(_ kind: RewardSpec.Kind) -> RewardSpec {
         switch kind {
         case .coinsSeconds: .coinsSeconds(1800)
-        case .oro: .oro(3)
+        case .blue: .blue(3)
         case .package: .package(1)
         case .skinChest: .skinChest(2)
         case .modifier: .modifier(effect: .incomeMultiplier, magnitude: 3, seconds: 600)
@@ -38,10 +38,10 @@ struct RewardCopyTests {
     @Test("los minutos y los números salen del dato")
     func numbersComeFromTheData() {
         #expect(RewardCopy.title(.coinsSeconds(1800)).contains("30"))
-        #expect(RewardCopy.title(.oro(3)).contains("3"))
+        #expect(RewardCopy.title(.blue(3)).contains("3"))
         #expect(RewardCopy.slice(.coinsSeconds(2700)) == "45 min")
         #expect(RewardCopy.slice(.modifier(effect: .incomeMultiplier, magnitude: 3, seconds: 600)) == "×3")
-        #expect(RewardCopy.slice(.oro(3)) == "3")
+        #expect(RewardCopy.slice(.blue(3)) == "3")
         #expect(RewardCopy.slice(.package(1)) == nil, "el paquete se dice con el ícono")
     }
 

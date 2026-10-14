@@ -1,6 +1,6 @@
 import Foundation
 
-/// Una de las mejoras permanentes que se compran con ORO, vista por EconomyKit:
+/// Una de las mejoras permanentes que se compran con blue, vista por EconomyKit:
 /// sólo lo que la ECONOMÍA necesita para simularla.
 ///
 /// El catálogo canónico —`upgrades.json` + `UpgradesConfig`— vive en el app
@@ -11,7 +11,7 @@ import Foundation
 /// target desde su `UpgradesConfig`, `pacing-sim` desde el JSON— y se las pasa
 /// al bot.
 ///
-/// Es ORO por contrato: `UpgradesConfig` sabe de monedas y acá no hay `currency`
+/// Es blue por contrato: `UpgradesConfig` sabe de monedas y acá no hay `currency`
 /// justamente porque quien arma la lista es responsable de filtrar las líneas
 /// que se pagan con plata.
 public struct PermanentUpgradeLine: Sendable, Equatable, Identifiable {
@@ -81,7 +81,7 @@ public struct PermanentUpgradeLine: Sendable, Equatable, Identifiable {
 /// que lo era: desde adentro del paquete no hay forma de ver `UpgradeManager`,
 /// así que sólo prueba este lado contra líneas escritas a mano.
 public enum PermanentUpgrades {
-    /// Reconstruye `meta.derivedEffects` desde `meta.oroUpgradeLevels` × el
+    /// Reconstruye `meta.derivedEffects` desde `meta.blueUpgradeLevels` × el
     /// catálogo, y recalcula el `globalMultiplier` (que depende del
     /// `prestigeBonus` que acaba de cambiar) — igual que la app.
     ///
@@ -111,7 +111,7 @@ public enum PermanentUpgrades {
             // 25 a 10), y sin el clamp ese save cobraría ×5,0 de income donde el
             // tope es 3,0. Que el catálogo se achique no puede resucitar un
             // efecto que ya no existe.
-            let level = Double(min(state.meta.oroUpgradeLevels[line.id] ?? 0, line.maxLevel))
+            let level = Double(min(state.meta.blueUpgradeLevels[line.id] ?? 0, line.maxLevel))
             guard level > 0 else { continue }
             switch line.effect {
             case .incomeMultiplier: income += level * line.magnitudePerLevel
@@ -135,7 +135,7 @@ public enum PermanentUpgrades {
         state.meta.derivedEffects.spawnDiscount = spawnDiscount
         state.meta.derivedEffects.prestigeBonus = prestigeBonus
         state.meta.globalMultiplier = economy.globalMultiplier(
-            oroEarnedLifetime: state.meta.oroEarnedLifetime,
+            blueEarnedLifetime: state.meta.blueEarnedLifetime,
             prestigeBonus: prestigeBonus
         )
     }
@@ -151,7 +151,7 @@ public enum PermanentUpgrades {
         return lines.allSatisfy { (levels[$0.id] ?? 0) >= $0.maxLevel }
     }
 
-    /// Líneas que la 2.0 fundió (PLAN-v2 E13): "Pegarla" y "Toque de oro" son
+    /// Líneas que la 2.0 fundió (PLAN-v2 E13): "Pegarla" y "Toque dorado" son
     /// "Toque premiado". Es un hecho del save, no del catálogo: por eso vive acá.
     public static let mergedLines: [String: [String]] = ["lucky": ["crit", "golden"]]
 

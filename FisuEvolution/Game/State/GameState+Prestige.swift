@@ -1,27 +1,27 @@
 import EconomyKit
 import Foundation
 
-/// RF-16: el antes y el después de reencarnar. El popup decía cuánto ORO ganabas
-/// pero no que cada ORO vale +12% de multiplicador global, así que el jugador
+/// RF-16: el antes y el después de reencarnar. El popup decía cuánto blue ganabas
+/// pero no que cada blue vale +12% de multiplicador global, así que el jugador
 /// veía "ganás 14" sin forma de saber qué compra.
 ///
-/// ⚠️ `multiplierAfter` sale de `economy.globalMultiplier(oroEarnedLifetime:prestigeBonus:)`,
+/// ⚠️ `multiplierAfter` sale de `economy.globalMultiplier(blueEarnedLifetime:prestigeBonus:)`,
 /// la MISMA función que aplica `PrestigeCalculator.applyReincarnation`. Calcularlo
 /// aparte es exactamente cómo el popup termina mintiendo, y un popup que miente le
 /// enseña al jugador a no creerle. `PrestigePreviewTests` lo pinea.
 struct PrestigePreview: Equatable {
-    let oroGained: Int
+    let blueGained: Int
     let multiplierBefore: Double
     let multiplierAfter: Double
     /// Lo que muere: unidades en la torre, plata y mejoras de personaje.
     let unitsLost: Int
     let coinsLost: Double
-    /// El camino hasta el PRÓXIMO ORO, para el botón adelantado ("al llegar a
+    /// El camino hasta el PRÓXIMO blue, para el botón adelantado ("al llegar a
     /// lujo"): cuánta plata de lifetime falta y qué fracción ya está hecha.
-    /// Sale de la inversa de `oroTotal` — la misma cuenta que
+    /// Sale de la inversa de `blueTotal` — la misma cuenta que
     /// `giveEarningsForPrestigeTesting` usa del otro lado.
-    let coinsToNextOro: Double
-    let nextOroProgress: Double
+    let coinsToNextBlue: Double
+    let nextBlueProgress: Double
     /// Piso móvil: el tier al que hay que llegar para poder reencarnar, y el
     /// personaje de ese tier si es uno solo. `nil` en el tier = no se pide nada.
     let wallGoalTier: Int?
@@ -32,13 +32,13 @@ struct PrestigePreview: Equatable {
 
     /// Antes del bootstrap no hay economía ni jugador: multiplicador neutro.
     static let empty = PrestigePreview(
-        oroGained: 0,
+        blueGained: 0,
         multiplierBefore: 1,
         multiplierAfter: 1,
         unitsLost: 0,
         coinsLost: 0,
-        coinsToNextOro: 0,
-        nextOroProgress: 0,
+        coinsToNextBlue: 0,
+        nextBlueProgress: 0,
         wallGoalTier: nil,
         wallGoalName: nil,
         inheritedPassives: 0
@@ -66,9 +66,9 @@ struct PrestigePreview: Equatable {
         return String(localized: "prestige.wall.short_tier \(String(tier))")
     }
 
-    /// Reencarnar ahora cambia algo. Con 0 ORO por cobrar, el "después" es el
+    /// Reencarnar ahora cambia algo. Con 0 blue por cobrar, el "después" es el
     /// "antes" y la flecha no tiene nada que mostrar.
-    var isWorthIt: Bool { oroGained > 0 }
+    var isWorthIt: Bool { blueGained > 0 }
 
     /// "2,3". Un decimal mientras se lee de un vistazo y el abreviador de plata
     /// de ahí para arriba: el multiplicador escala como todo lo demás del juego.
@@ -83,7 +83,7 @@ struct PrestigePreview: Equatable {
     var coinsLostText: String { CoinFormatter.string(from: coinsLost) }
 }
 
-/// Reencarnación (F7: gate por ORO). Separado de `GameState.swift` para que el
+/// Reencarnación (F7: gate por blue). Separado de `GameState.swift` para que el
 /// frente de prestigio no comparta archivo con los otros cinco dominios.
 extension GameState {
     /// El cálculo en vivo, contra el `PlayerState` autoritativo. **No lo leas
@@ -92,28 +92,28 @@ extension GameState {
     /// que el test pueda comparar la proyección contra la verdad).
     var prestigePreviewNow: PrestigePreview {
         guard let economy, let content, let player else { return .empty }
-        let gained = PrestigeCalculator.oroGained(state: player, economy: economy)
+        let gained = PrestigeCalculator.blueGained(state: player, economy: economy)
         let prestigeBonus = player.meta.derivedEffects.prestigeBonus
-        // La inversa de `oroTotal`: con cuánto lifetime cae el ORO que sigue.
-        let curve = economy.config.oro
-        let earnedTotal = player.meta.oroEarnedLifetime + gained
-        let nextOroAt = curve.divisor * pow(Double(earnedTotal + 1), 1 / curve.exponent)
+        // La inversa de `blueTotal`: con cuánto lifetime cae el blue que sigue.
+        let curve = economy.config.blue
+        let earnedTotal = player.meta.blueEarnedLifetime + gained
+        let nextBlueAt = curve.divisor * pow(Double(earnedTotal + 1), 1 / curve.exponent)
         let lifetime = player.meta.lifetimeEarnings
         let wallGoal = PrestigeCalculator.lastRunWallGoal(state: player, economy: economy)
         return PrestigePreview(
-            oroGained: gained,
+            blueGained: gained,
             multiplierBefore: economy.globalMultiplier(
-                oroEarnedLifetime: player.meta.oroEarnedLifetime,
+                blueEarnedLifetime: player.meta.blueEarnedLifetime,
                 prestigeBonus: prestigeBonus
             ),
             multiplierAfter: economy.globalMultiplier(
-                oroEarnedLifetime: player.meta.oroEarnedLifetime + gained,
+                blueEarnedLifetime: player.meta.blueEarnedLifetime + gained,
                 prestigeBonus: prestigeBonus
             ),
             unitsLost: player.run.totalUnits,
             coinsLost: player.run.coins,
-            coinsToNextOro: max(0, nextOroAt - lifetime),
-            nextOroProgress: nextOroAt > 0 ? min(1, max(0, lifetime / nextOroAt)) : 0,
+            coinsToNextBlue: max(0, nextBlueAt - lifetime),
+            nextBlueProgress: nextBlueAt > 0 ? min(1, max(0, lifetime / nextBlueAt)) : 0,
             wallGoalTier: wallGoal,
             wallGoalName: wallGoal.flatMap { Self.wallGoalName(tier: $0, player: player, content: content) },
             inheritedPassives: PrestigeCalculator.inheritedPassiveUnlocks(state: player, economy: economy).count
@@ -137,11 +137,11 @@ extension GameState {
         if prestigePreview != preview { prestigePreview = preview }
     }
 
-    /// "+12%": cuánto multiplicador compra cada ORO. Sale de `economy.json`, no
+    /// "+12%": cuánto multiplicador compra cada blue. Sale de `economy.json`, no
     /// de un literal en la copia — el rebalance lo mueve por dato.
-    var prestigeMultiplierPerOroText: String {
-        let perOro = economy?.config.oro.globalMultiplierPerOro ?? 0
-        return perOro.formatted(.percent.precision(.fractionLength(0...1)))
+    var prestigeMultiplierPerBlueText: String {
+        let perBlue = economy?.config.blue.globalMultiplierPerBlue ?? 0
+        return perBlue.formatted(.percent.precision(.fractionLength(0...1)))
     }
 
     func confirmPrestige() {
@@ -187,7 +187,7 @@ extension GameState {
         evaluateAchievements()
         bumpBoard()
         Task { await persistNow() }
-        Log.economy.info("reincarnated: level \(player.meta.prestigeLevel), oro \(player.meta.oro)")
+        Log.economy.info("reincarnated: level \(player.meta.prestigeLevel), blue \(player.meta.blue)")
 
         // **El corte más natural del juego** (PLAN-v2 E7): el reset ya ocurrió y
         // la partida nueva todavía no arrancó. Si el cofre de la reencarnación (o la

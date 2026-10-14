@@ -10,7 +10,7 @@
       "maxLevel": 10,
       "baseCost": 2,
       "costGrowth": 1.1,
-      "currency": "oro"
+      "currency": "blue"
     },
     {
       "id": "spawn",
@@ -21,7 +21,7 @@
       "maxLevel": 10,
       "baseCost": 2,
       "costGrowth": 1.15,
-      "currency": "oro"
+      "currency": "blue"
     },
     {
       "id": "offline",
@@ -32,7 +32,7 @@
       "maxLevel": 10,
       "baseCost": 2,
       "costGrowth": 1.15,
-      "currency": "oro"
+      "currency": "blue"
     },
     {
       "id": "tap",
@@ -43,7 +43,7 @@
       "maxLevel": 10,
       "baseCost": 2,
       "costGrowth": 1.1,
-      "currency": "oro"
+      "currency": "blue"
     },
     {
       "id": "lucky",
@@ -55,7 +55,7 @@
       "maxLevel": 20,
       "baseCost": 2,
       "costGrowth": 1.09,
-      "currency": "oro"
+      "currency": "blue"
     },
     {
       "id": "prestige",
@@ -66,7 +66,7 @@
       "maxLevel": 10,
       "baseCost": 2,
       "costGrowth": 1.25,
-      "currency": "oro"
+      "currency": "blue"
     }
   ]
 }

@@ -37,8 +37,8 @@ public struct VisitorsState: Codable, Sendable, Equatable {
     /// El día calendario ("yyyy-MM-dd") de los dos contadores de abajo.
     public var day: String?
     public var visitsToday: [String: Int]
-    /// ORO que el del Arbolito ya te cambió hoy (tope diario del guion).
-    public var oroExchangedToday: Int
+    /// Blue que el del Arbolito ya te cambió hoy (tope diario del guion).
+    public var blueExchangedToday: Int
     /// Los que esperan en los pisos que no se miran, uno por piso (E14b B7).
     /// Ningún reloj los toca: sólo `VisitorScheduler.park`/`resume`.
     public var waiting: [FloorVisitor]
@@ -52,7 +52,7 @@ public struct VisitorsState: Codable, Sendable, Equatable {
         lastScriptByVisitor: [String: String] = [:],
         day: String? = nil,
         visitsToday: [String: Int] = [:],
-        oroExchangedToday: Int = 0,
+        blueExchangedToday: Int = 0,
         waiting: [FloorVisitor] = []
     ) {
         self.secondsUntilVisit = secondsUntilVisit
@@ -61,7 +61,7 @@ public struct VisitorsState: Codable, Sendable, Equatable {
         self.lastScriptByVisitor = lastScriptByVisitor
         self.day = day
         self.visitsToday = visitsToday
-        self.oroExchangedToday = oroExchangedToday
+        self.blueExchangedToday = blueExchangedToday
         self.waiting = waiting
     }
 
@@ -73,7 +73,8 @@ public struct VisitorsState: Codable, Sendable, Equatable {
         lastScriptByVisitor = try container.decodeIfPresent([String: String].self, forKey: .lastScriptByVisitor) ?? [:]
         day = try container.decodeIfPresent(String.self, forKey: .day)
         visitsToday = try container.decodeIfPresent([String: Int].self, forKey: .visitsToday) ?? [:]
-        oroExchangedToday = try container.decodeIfPresent(Int.self, forKey: .oroExchangedToday) ?? 0
+        blueExchangedToday = try container.decodeIfPresent(Int.self, forKey: .blueExchangedToday)
+            ?? decoder.container(keyedBy: LegacyKeys.self).decodeIfPresent(Int.self, forKey: .blueExchangedToday) ?? 0
         waiting = try container.decodeIfPresent([FloorVisitor].self, forKey: .waiting) ?? []
     }
 
@@ -84,7 +85,12 @@ public struct VisitorsState: Codable, Sendable, Equatable {
         guard winner.day != nil, winner.day == loser.day else { return winner }
         var resolved = winner
         resolved.visitsToday = winner.visitsToday.merging(loser.visitsToday, uniquingKeysWith: max)
-        resolved.oroExchangedToday = max(winner.oroExchangedToday, loser.oroExchangedToday)
+        resolved.blueExchangedToday = max(winner.blueExchangedToday, loser.blueExchangedToday)
         return resolved
+    }
+
+    /// La clave con que se guardaba hasta E14b B14 (ver `MetaState.LegacyKeys`). Sólo se lee.
+    private enum LegacyKeys: String, CodingKey {
+        case blueExchangedToday = "oroExchangedToday"
     }
 }

@@ -85,7 +85,7 @@ struct SimulatorFidelityTests {
         let report = try upSimulator(upgrades: upCheapLines()).run(maxDays: 5)
         #expect(report.reincarnations > 1)
         #expect(report.tierReachedPerRun.count == report.reincarnations + 1)
-        #expect(report.oroGainedPerReincarnation.count == report.reincarnations)
+        #expect(report.blueGainedPerReincarnation.count == report.reincarnations)
         #expect(report.actionSecondsBackToPreviousWall.count == report.secondsBackToPreviousWall.count)
         for (action, back) in zip(report.actionSecondsBackToPreviousWall, report.secondsBackToPreviousWall) {
             #expect(action > 0 && action <= back, "acción \(action) contra vuelta \(back)")
@@ -98,10 +98,10 @@ struct SimulatorFidelityTests {
         }
     }
 
-    @Test("el ORO al llegar a Dios cuenta el que había por reencarnar")
-    func oroAtGod() throws {
+    @Test("el blue al llegar a Dios cuenta el que había por reencarnar")
+    func blueAtGod() throws {
         let report = try upSimulator(upgrades: upCheapLines()).run(maxDays: 90)
-        let atGod = try #require(report.oroAtGod)
-        #expect(atGod >= report.oroGainedPerReincarnation.reduce(0, +))
+        let atGod = try #require(report.blueAtGod)
+        #expect(atGod >= report.blueGainedPerReincarnation.reduce(0, +))
     }
 }

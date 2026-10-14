@@ -17,8 +17,8 @@ enum TutorialTarget: String, Hashable, CaseIterable {
     case skins
     case gifts
     case store
-    /// La mitad "Gastar ORO" de la tienda (E6): la lección de la tienda de ORO (E9).
-    case oroShop
+    /// La mitad "Gastar blue" de la tienda (E6): la lección de la tienda de blue (E9).
+    case blueShop
     /// El chip de la oferta abierta (E6): la lección de las ofertas (E9).
     case offerChip
     case menu
@@ -59,7 +59,7 @@ enum TutorialTarget: String, Hashable, CaseIterable {
     case giftsChest
     /// El "+6 %" de la fila recomendada de FisuJobs.
     case jobsPriceStep
-    /// La tabla de probabilidades del cofre en "Gastar ORO".
+    /// La tabla de probabilidades del cofre en "Gastar blue".
     case storeOdds
     /// La primera pinta del estante de cosméticos.
     case storeCosmetics

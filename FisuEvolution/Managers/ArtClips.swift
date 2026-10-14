@@ -23,20 +23,20 @@ enum ArtClips {
         manifest.events[id] == nil ? nil : .event(id)
     }
 
-    /// Ítem de `oro_shop.json` → clave de `shopIcons`. Los nombres no coinciden: tabla fija.
+    /// Ítem de `blue_shop.json` → clave de `shopIcons`. Los nombres no coinciden: tabla fija.
     static let shopIconKeys: [String: String] = [
-        "income_x2": "ui_oro_income_boost",
-        "income_x3": "ui_oro_income_boost",
-        "auto_tap": "ui_oro_autotap",
-        "package_rain": "ui_oro_package_rain",
-        "time_jump_1h": "ui_oro_time_skip",
-        "time_jump_4h": "ui_oro_time_skip",
-        "offline_x3": "ui_oro_offline_boost",
-        "daily_x3": "ui_oro_daily_boost",
-        "merge_all": "ui_oro_merge_all",
-        "better_supplier": "ui_oro_better_supplier",
-        "wheel_spins": "ui_oro_extra_spins",
-        "extra_slots": "ui_oro_extra_slots",
+        "income_x2": "ui_blue_income_boost",
+        "income_x3": "ui_blue_income_boost",
+        "auto_tap": "ui_blue_autotap",
+        "package_rain": "ui_blue_package_rain",
+        "time_jump_1h": "ui_blue_time_skip",
+        "time_jump_4h": "ui_blue_time_skip",
+        "offline_x3": "ui_blue_offline_boost",
+        "daily_x3": "ui_blue_daily_boost",
+        "merge_all": "ui_blue_merge_all",
+        "better_supplier": "ui_blue_better_supplier",
+        "wheel_spins": "ui_blue_extra_spins",
+        "extra_slots": "ui_blue_extra_slots",
     ]
 
     /// Clips de la tienda que todavía no tienen ítem, con la tarea que lo estrena.

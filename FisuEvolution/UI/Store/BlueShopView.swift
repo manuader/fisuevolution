@@ -29,7 +29,7 @@ enum ChestOddsDisplay: Equatable {
 
     /// El único azar de este estante es el cofre de pintas; el giro extra lo
     /// vende la ruleta (E5a T8).
-    static func make(for item: OroShopCatalog.Item, odds: ChestOddsTable) -> ChestOddsDisplay {
+    static func make(for item: BlueShopCatalog.Item, odds: ChestOddsTable) -> ChestOddsDisplay {
         guard item.isChance else { return .notChance }
         guard case .skinChest? = item.rewards.first else { return .hidden }
         return make(for: odds)
@@ -54,17 +54,17 @@ struct PurchaseLatch: Equatable {
     }
 }
 
-/// Los estantes de `oro_shop.json` que se pagan con blue (PLAN-v2 E6, E14 C11):
+/// Los estantes de `blue_shop.json` que se pagan con blue (PLAN-v2 E6, E14 C11):
 /// la Tienda quedó para la plata de verdad y esto vive en Mejoras —los boosts y
 /// los permanentes del catálogo— y en Pintas —el cofre—. Cada hoja pide los
 /// estantes que le tocan; misma columna, mismas `GameCard` y el mismo `PricePill`
 /// que FisuJobs y Mejoras.
 ///
-/// La vista no decide nada: dibuja `oroShopRows` y llama a `buyOroShopItem`.
+/// La vista no decide nada: dibuja `blueShopRows` y llama a `buyBlueShopItem`.
 /// Ninguna animación es condición para cobrar ni para entregar.
-struct OroShopShelves: View {
+struct BlueShopShelves: View {
     @Environment(GameState.self) private var gameState
-    let shelves: [OroShopCatalog.Shelf]
+    let shelves: [BlueShopCatalog.Shelf]
     /// El azar pagado se vende en Pintas (`LootBoxGate` de E5a); lo resuelve la
     /// hoja y, hasta que conteste, está cerrado.
     let chanceAllowed: Bool
@@ -82,9 +82,9 @@ struct OroShopShelves: View {
 
     var body: some View {
         let _ = gameState.effectsVersion
-        let _ = gameState.oroText
+        let _ = gameState.blueText
         let odds = gameState.chestOdds
-        let rows = gameState.oroShopRows(chanceAllowed: chanceAllowed)
+        let rows = gameState.blueShopRows(chanceAllowed: chanceAllowed)
             .map { ($0, ChestOddsDisplay.make(for: $0.item, odds: odds)) }
             .filter { $0.1.isDrawn }
         let focused = focusedRow(in: rows.map(\.0))
@@ -93,12 +93,12 @@ struct OroShopShelves: View {
                 let shelfRows = Self.displayOrder(rows.filter { $0.0.item.shelf == shelf }, shelf: shelf)
                 if !shelfRows.isEmpty {
                     if titled {
-                        SectionHeader(LocalizedStringKey(OroShopCopy.shelfKey(shelf)))
+                        SectionHeader(LocalizedStringKey(BlueShopCopy.shelfKey(shelf)))
                             .frame(maxWidth: .infinity)
                             .padding(.top, Tokens.s8)
                     }
                     ForEach(Array(shelfRows.enumerated()), id: \.element.0.id) { offset, entry in
-                        OroShopItemRow(
+                        BlueShopItemRow(
                             row: entry.0, odds: entry.1, pendingNote: pendingNote(for: entry.0.item),
                             clip: entry.0.id == focused ? ArtClips.shopIcon(item: entry.0.id, in: loops) : nil
                         ) {
@@ -124,8 +124,8 @@ struct OroShopShelves: View {
     /// comprado al máximo se va al fondo con su tilde. Los permanentes conservan el
     /// orden del catálogo: lugares extra primero.
     static func displayOrder<Entry>(
-        _ entries: [(OroShopRow, Entry)], shelf: OroShopCatalog.Shelf
-    ) -> [(OroShopRow, Entry)] {
+        _ entries: [(BlueShopRow, Entry)], shelf: BlueShopCatalog.Shelf
+    ) -> [(BlueShopRow, Entry)] {
         let ordered = shelf == .permanents
             ? entries
             : entries.sorted { ($0.0.quote.price ?? $0.0.item.price ?? 0) < ($1.0.quote.price ?? $1.0.item.price ?? 0) }
@@ -140,21 +140,21 @@ struct OroShopShelves: View {
     }
 
     /// La fila que anima su ícono: la del medio de las visibles, en el orden en que se dibujan.
-    private func focusedRow(in rows: [OroShopRow]) -> String? {
-        let ordered = OroShopCatalog.Shelf.allCases.flatMap { shelf in rows.filter { $0.item.shelf == shelf } }
+    private func focusedRow(in rows: [BlueShopRow]) -> String? {
+        let ordered = BlueShopCatalog.Shelf.allCases.flatMap { shelf in rows.filter { $0.item.shelf == shelf } }
         let animatable = Set(ordered.map(\.id).filter { ArtClips.shopIcon(item: $0, in: loops) != nil })
         if let shopFocusItem, animatable.contains(shopFocusItem) { return shopFocusItem }
         return ShopIconFocus.pick(visibleInOrder: ordered.map(\.id).filter(visibleRows.contains), animatable: animatable)
     }
 
-    private func purchase(_ row: OroShopRow) {
+    private func purchase(_ row: BlueShopRow) {
         // Sin saldo o con tope no se cobra nada: no hace falta cerrojo.
         guard row.quote.blocker == nil else {
-            gameState.buyOroShopItem(id: row.id, chanceAllowed: chanceAllowed)
+            gameState.buyBlueShopItem(id: row.id, chanceAllowed: chanceAllowed)
             return
         }
         guard latch.claim() else { return }
-        gameState.buyOroShopItem(id: row.id, chanceAllowed: chanceAllowed)
+        gameState.buyBlueShopItem(id: row.id, chanceAllowed: chanceAllowed)
         Task {
             try? await Task.sleep(for: .seconds(Self.latchSeconds))
             latch.release()
@@ -162,17 +162,17 @@ struct OroShopShelves: View {
     }
 
     /// Los ×3 comprados esperan su momento: la fila dice a qué popup le toca.
-    private func pendingNote(for item: OroShopCatalog.Item) -> String? {
+    private func pendingNote(for item: BlueShopCatalog.Item) -> String? {
         guard let shop = gameState.player?.meta.engagement.shop else { return nil }
         for reward in item.rewards {
             switch reward {
             case .nextOfflineMultiplier:
                 if let multiplier = shop.pendingOfflineMultiplier {
-                    return String(localized: "oroShop.pending.offline \(Self.format(multiplier))")
+                    return String(localized: "blueShop.pending.offline \(Self.format(multiplier))")
                 }
             case .nextDailyMultiplier:
                 if let multiplier = shop.pendingDailyMultiplier {
-                    return String(localized: "oroShop.pending.daily \(Self.format(multiplier))")
+                    return String(localized: "blueShop.pending.daily \(Self.format(multiplier))")
                 }
             default: break
             }
@@ -185,15 +185,15 @@ struct OroShopShelves: View {
     }
 }
 
-/// El saldo de ORO, con el número como valor de accesibilidad para los tests.
-struct OroBalancePill: View {
+/// El saldo de blue, con el número como valor de accesibilidad para los tests.
+struct BlueBalancePill: View {
     let text: String
 
     var body: some View {
         HStack(spacing: Tokens.s4) {
-            OroIcon(size: 18)
+            BlueIcon(size: 18)
                 .accessibilityHidden(true)
-            Text("upgrades.oro_balance \(text)")
+            Text("upgrades.blue_balance \(text)")
                 .font(Tokens.body)
                 .monospacedDigit()
                 .foregroundStyle(Color("PaletteInk"))
@@ -208,7 +208,7 @@ struct OroBalancePill: View {
                 .overlay(Capsule().strokeBorder(Color("PaletteBrown").opacity(0.6), lineWidth: 2))
         }
         .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("oroShop.balance")
+        .accessibilityIdentifier("blueShop.balance")
         .accessibilityValue(Text(verbatim: text))
     }
 }
@@ -232,8 +232,8 @@ struct BlueCosmeticsShelf: View {
             SectionHeader("skins.blue.title")
                 .frame(maxWidth: .infinity)
                 .padding(.top, Tokens.s8)
-            OroBalancePill(text: gameState.oroText)
-            OroShopShelves(shelves: [.luck], chanceAllowed: chanceAllowed, titled: false)
+            BlueBalancePill(text: gameState.blueText)
+            BlueShopShelves(shelves: [.luck], chanceAllowed: chanceAllowed, titled: false)
             ForEach(cosmetics) { row in
                 CosmeticItemRow(row: row, preview: preview(for: row)) { purchaseSkin(row.id) }
                     .tutorialAnchor(.storeCosmetics, when: row.id == cosmetics.first?.id)
@@ -253,7 +253,7 @@ struct BlueCosmeticsShelf: View {
 
     private func purchaseSkin(_ skinID: String) {
         guard latch.claim() else { return }
-        gameState.buySkinWithOro(skinID: skinID)
+        gameState.buySkinWithBlue(skinID: skinID)
         Task {
             try? await Task.sleep(for: .seconds(Self.latchSeconds))
             latch.release()
@@ -263,15 +263,15 @@ struct BlueCosmeticsShelf: View {
 
 /// Una fila: ícono, nombre, qué da, cuántas van hoy (o el nivel) y el precio. La
 /// tarjeta informa, el botón cobra (el patrón de FisuJobs).
-struct OroShopItemRow: View {
-    let row: OroShopRow
+struct BlueShopItemRow: View {
+    let row: BlueShopRow
     let odds: ChestOddsDisplay
     let pendingNote: String?
     /// El clip del ícono si esta es la fila enfocada; `nil`, póster quieto.
     let clip: ArtClip?
     let buy: () -> Void
 
-    private var name: String { OroShopCopy.name(for: row.item) }
+    private var name: String { BlueShopCopy.name(for: row.item) }
 
     var body: some View {
         GameCard {
@@ -284,7 +284,7 @@ struct OroShopItemRow: View {
                             .foregroundStyle(Color("PaletteInk"))
                             .lineLimit(1)
                             .minimumScaleFactor(0.6)
-                        Text(verbatim: OroShopCopy.detail(for: row.item, level: row.quote.level))
+                        Text(verbatim: BlueShopCopy.detail(for: row.item, level: row.quote.level))
                             .font(Tokens.body)
                             .foregroundStyle(Color("PaletteBlue"))
                             .lineLimit(2)
@@ -295,14 +295,14 @@ struct OroShopItemRow: View {
                                 .font(Tokens.caption)
                                 .monospacedDigit()
                                 .foregroundStyle(Color("PaletteInk").opacity(0.65))
-                                .accessibilityIdentifier("oroShop.status.\(row.id)")
+                                .accessibilityIdentifier("blueShop.status.\(row.id)")
                         }
                         if let pendingNote {
                             Text(verbatim: pendingNote)
                                 .font(Tokens.caption)
                                 .foregroundStyle(Color("PaletteOrange"))
                                 .fixedSize(horizontal: false, vertical: true)
-                                .accessibilityIdentifier("oroShop.pending.\(row.id)")
+                                .accessibilityIdentifier("blueShop.pending.\(row.id)")
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -317,14 +317,14 @@ struct OroShopItemRow: View {
     @ViewBuilder private var disclosure: some View {
         switch odds {
         case .table(let rows):
-            OddsDisclosureView(titleKey: "oroShop.chest.odds", rows: rows, identifier: "oroShop.odds")
+            OddsDisclosureView(titleKey: "blueShop.chest.odds", rows: rows, identifier: "blueShop.odds")
                 .tutorialAnchor(.storeOdds)
         case .collectionComplete:
-            Text("oroShop.chest.coins")
+            Text("blueShop.chest.coins")
                 .font(Tokens.caption)
                 .foregroundStyle(Color("PaletteInk").opacity(0.7))
                 .fixedSize(horizontal: false, vertical: true)
-                .accessibilityIdentifier("oroShop.odds.coins")
+                .accessibilityIdentifier("blueShop.odds.coins")
                 .tutorialAnchor(.storeOdds)
         case .notChance, .hidden:
             EmptyView()
@@ -337,25 +337,25 @@ struct OroShopItemRow: View {
             return String(localized: "upgrades.level \(String(row.quote.level)) \(String(row.item.levels.count))")
         }
         guard let limit = row.item.dailyLimit else { return nil }
-        return String(localized: "oroShop.today \(String(row.quote.boughtToday)) \(String(limit))")
+        return String(localized: "blueShop.today \(String(row.quote.boughtToday)) \(String(limit))")
     }
 
     @ViewBuilder private var rail: some View {
         switch row.quote.blocker {
         case .maxed?:
             StateTag(state: .done, text: String(localized: "upgrades.maxed"))
-                .accessibilityIdentifier("oroShop.maxed.\(row.id)")
+                .accessibilityIdentifier("blueShop.maxed.\(row.id)")
         case .dailyLimitReached?, .alreadyPending?, .nothingToDo?:
             StateTag(state: .running, text: blockedText)
                 .frame(maxWidth: 130)
-                .accessibilityIdentifier("oroShop.blocked.\(row.id)")
+                .accessibilityIdentifier("blueShop.blocked.\(row.id)")
         case .cantAfford?, nil:
             PricePill(
                 text: String(row.quote.price ?? 0),
-                currency: .oro,
+                currency: .blue,
                 affordable: row.quote.blocker == nil,
-                identifier: "oroShop.buy.\(row.id)",
-                accessibilityPurpose: Text("oroShop.buy.ax \(name)")
+                identifier: "blueShop.buy.\(row.id)",
+                accessibilityPurpose: Text("blueShop.buy.ax \(name)")
             ) {
                 buy()
             }
@@ -364,9 +364,9 @@ struct OroShopItemRow: View {
 
     private var blockedText: String {
         switch row.quote.blocker {
-        case .dailyLimitReached?: String(localized: "oroShop.blocked.daily")
-        case .alreadyPending?: String(localized: "oroShop.blocked.pending")
-        default: String(localized: "oroShop.blocked.nothing")
+        case .dailyLimitReached?: String(localized: "blueShop.blocked.daily")
+        case .alreadyPending?: String(localized: "blueShop.blocked.pending")
+        default: String(localized: "blueShop.blocked.nothing")
         }
     }
 
@@ -397,7 +397,7 @@ struct OroShopItemRow: View {
     }
 }
 
-/// Una pinta de ORO del estante de Cosméticos. La tarjeta informa, el botón cobra.
+/// Una pinta de blue del estante de Cosméticos. La tarjeta informa, el botón cobra.
 private struct CosmeticItemRow: View {
     @Environment(GameState.self) private var gameState
     let row: CosmeticRow
@@ -410,9 +410,9 @@ private struct CosmeticItemRow: View {
 
     private var detail: String {
         switch row.kind {
-        case .family: String(localized: "oroShop.cosmetic.family")
+        case .family: String(localized: "blueShop.cosmetic.family")
         case .outfit(let typeID):
-            String(localized: "oroShop.cosmetic.outfit \(gameState.content?.tiers.type(id: typeID)?.localizedName ?? typeID)")
+            String(localized: "blueShop.cosmetic.outfit \(gameState.content?.tiers.type(id: typeID)?.localizedName ?? typeID)")
         }
     }
 
@@ -438,16 +438,16 @@ private struct CosmeticItemRow: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 if row.owned {
-                    StateTag(state: .done, text: String(localized: "oroShop.cosmetic.owned"))
+                    StateTag(state: .done, text: String(localized: "blueShop.cosmetic.owned"))
                         .frame(maxWidth: 130)
-                        .accessibilityIdentifier("oroShop.cosmetic.owned.\(row.id)")
+                        .accessibilityIdentifier("blueShop.cosmetic.owned.\(row.id)")
                 } else {
                     PricePill(
                         text: String(row.price),
-                        currency: .oro,
-                        affordable: (gameState.player?.meta.oro ?? 0) >= row.price,
-                        identifier: "oroShop.cosmetic.buy.\(row.id)",
-                        accessibilityPurpose: Text("oroShop.buy.ax \(name)"),
+                        currency: .blue,
+                        affordable: (gameState.player?.meta.blue ?? 0) >= row.price,
+                        identifier: "blueShop.cosmetic.buy.\(row.id)",
+                        accessibilityPurpose: Text("blueShop.buy.ax \(name)"),
                         action: buy
                     )
                     .layoutPriority(1)

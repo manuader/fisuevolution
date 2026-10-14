@@ -176,15 +176,15 @@ struct CoinIcon: View {
     }
 }
 
-/// Ícono de ORO, la moneda de reencarnación (`ui_oro`). Mismo patrón que
+/// Ícono de blue, la moneda de reencarnación (`ui_dolar_blue`). Mismo patrón que
 /// `CoinIcon`: usa el asset del pipeline cuando existe y cae a un vectorial
 /// teñido mientras no esté, así el arte puede entrar sin tocar la UI.
-struct OroIcon: View {
+struct BlueIcon: View {
     var size: CGFloat = 26
     var body: some View {
         Group {
-            if let oro = UIArt.image("ui_oro") {
-                oro.resizable().scaledToFit()
+            if let blue = UIArt.image("ui_dolar_blue") {
+                blue.resizable().scaledToFit()
             } else {
                 GameGlyphView(glyph: .blue, size: size)
             }

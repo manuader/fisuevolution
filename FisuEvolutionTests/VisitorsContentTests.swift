@@ -58,8 +58,8 @@ struct VisitorsContentTests {
         #expect(try mechanic("puntero_acto") == .take(
             pick: .lowestDuplicate, count: 3, rewards: [.package(1), .coinsSeconds(600)], minValueMultiplier: 1.5
         ))
-        #expect(try mechanic("arbolito_cambio") == .exchange(costSeconds: 5400, oro: 1, dailyOroCap: 3))
-        #expect(try mechanic("arbolito_blue") == .exchange(costSeconds: 3600, oro: 1, dailyOroCap: nil))
+        #expect(try mechanic("arbolito_cambio") == .exchange(costSeconds: 5400, blue: 1, dailyBlueCap: 3))
+        #expect(try mechanic("arbolito_blue") == .exchange(costSeconds: 3600, blue: 1, dailyBlueCap: nil))
         #expect(content.visitors.script(id: "arbolito_blue")?.eventOnly == true)
         #expect(try mechanic("vecina_favor") == .challenge(taps: 15, windowSeconds: 20, rewards: [.package(1)], videoDoubles: true))
         #expect(try mechanic("zombie_reto") == .challenge(

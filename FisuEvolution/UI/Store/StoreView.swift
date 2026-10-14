@@ -158,11 +158,11 @@ struct StoreView: View {
         let featured = products(.starterPack)
         let removeAds = products(.removeAds)
         let coins = products(.coins)
-        let oro = products(.oro)
+        let blue = products(.blue)
         let skins = products(.skin)
         let coinsBase = featured.count + removeAds.count
-        let oroBase = coinsBase + coins.count
-        let skinsBase = oroBase + oro.count
+        let blueBase = coinsBase + coins.count
+        let skinsBase = blueBase + blue.count
         if !featured.isEmpty || !removeAds.isEmpty {
             // Las dos van juntas —y no cada una con su cinta— porque se agrupan
             // por lo que ENTREGAN: el combo es `nonConsumable` igual que quitar
@@ -177,8 +177,8 @@ struct StoreView: View {
                     .staggeredAppearance(index: featured.count + offset)
             }
         }
-        shelf("store.section.coins", coins, glyph: .coins, base: coinsBase)
-        shelf("store.section.oro", oro, glyph: .oro, base: oroBase)
+        shelf("store.section.coins", coins, glyph: { _ in .coins }, base: coinsBase)
+        shelf("store.section.blue", blue, glyph: { bluePackGlyph($0, among: blue) }, base: blueBase)
         if !skins.isEmpty {
             shelfHeader("store.section.skins")
             ForEach(Array(skins.enumerated()), id: \.element.id) { offset, product in
@@ -192,13 +192,13 @@ struct StoreView: View {
     private func shelf(
         _ titleKey: LocalizedStringKey,
         _ products: [Product],
-        glyph: StoreProductCard.Glyph,
+        glyph: @escaping (Product) -> StoreProductCard.Glyph,
         base: Int
     ) -> some View {
         if !products.isEmpty {
             shelfHeader(titleKey)
             ForEach(Array(products.enumerated()), id: \.element.id) { offset, product in
-                card(product, format: .row, glyph: glyph)
+                card(product, format: .row, glyph: glyph(product))
                     .staggeredAppearance(index: base + offset)
             }
         }
@@ -396,6 +396,16 @@ struct StoreView: View {
         store.products.filter { store.entry(for: $0.id)?.entitlement == entitlement }
     }
 
+    /// El arte de los packs de blue, del más chico al más grande: cada pack se distingue por su tamaño.
+    private static let bluePackArtKeys = ["ui_blue_pack_small", "ui_blue_pack_medium", "ui_blue_pack_large"]
+
+    /// El plato de un pack de blue según su monto entre los packs a la venta (el de menor monto lleva el arte chico).
+    private func bluePackGlyph(_ product: Product, among packs: [Product]) -> StoreProductCard.Glyph {
+        let amounts = packs.compactMap { store.entry(for: $0.id)?.blueAmount }.sorted()
+        let rank = store.entry(for: product.id)?.blueAmount.flatMap { amounts.firstIndex(of: $0) } ?? 0
+        return .bluePack(Self.bluePackArtKeys[min(rank, Self.bluePackArtKeys.count - 1)])
+    }
+
     /// El preview de una skin paga: la textura del catálogo, buscada por el mismo
     /// camino que Pintas (producto → skin → personaje → atlas), porque el arte de
     /// una skin vive en el atlas de SU personaje.
@@ -437,7 +447,8 @@ private struct StoreProductCard: View {
     /// tercera ya no son el mismo juego.
     enum Glyph {
         case coins
-        case oro
+        /// Un pack de blue, con el arte de su tamaño.
+        case bluePack(String)
         case removeAds
         /// El combo de bienvenida.
         case bundle
@@ -581,8 +592,8 @@ private struct StoreProductCard: View {
         switch glyph {
         case .coins:
             CoinIcon(size: plateSide)
-        case .oro:
-            OroIcon(size: plateSide)
+        case .bluePack(let artKey):
+            GameIcon(artKey: artKey, size: plateSide) { BlueIcon(size: plateSide) }
         case .bundle:
             GameIcon(artKey: "ui_money", size: plateSide) { CoinIcon(size: plateSide) }
         case .removeAds:
@@ -640,7 +651,7 @@ private struct StoreProductCard: View {
                     // ⚠️ **Tres renglones y no dos.** Medido sobre la captura: la
                     // columna de datos de una fila mide ~127 pt (el plato y el
                     // precio se llevan el resto), y con dos renglones la línea
-                    // del ORO salía "Gives you 250 ORO to spend on perman…". Es
+                    // del blue salía "Gives you 250 blue to spend on perman…". Es
                     // el mismo defecto que la T8 cortó en los nombres de
                     // FisuJobs: truncar JUSTO la línea que dice qué estás
                     // comprando. Una fila más alta se lee como una fila más

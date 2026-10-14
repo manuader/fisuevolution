@@ -90,7 +90,7 @@ struct TutorialBootstrapTests {
     @Test("qué mecánicas conocía la v1: el conjunto es explícito, lo nuevo no entra")
     func veteranKnownLessonsAreExplicit() {
         #expect(GameState.TutorialLesson.veteranKnownLessons == [
-            "upgrades", "elevator", "skins", "achievements", "oroUpgrades", "gifts", "store", "prestige",
+            "upgrades", "elevator", "skins", "achievements", "blueUpgrades", "gifts", "store", "prestige",
             "passive", "orgChart", "floorSwipe", "floorFull", "boosts", "chests",
         ])
         #expect(GameState.TutorialLesson.quickHire.introducedIn == .v2)

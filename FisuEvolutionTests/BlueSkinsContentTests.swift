@@ -3,15 +3,15 @@ import Foundation
 import Testing
 @testable import FisuEvolution
 
-/// Las pintas de la v1 que dejaron el cofre y se venden con ORO (PLAN-v2 E6b T8).
+/// Las pintas de la v1 que dejaron el cofre y se venden con blue (PLAN-v2 E6b T8).
 ///
 /// La lista es del dueño y se cambia en dos lugares a la vez: `skins.json` (quitar
-/// `oroPrice`, devolver `chestRarity`) y `oroExclusives` de acá. El dueño no aprobó
+/// `bluePrice`, devolver `chestRarity`) y `blueExclusives` de acá. El dueño no aprobó
 /// ningún efecto de shader: el catálogo no vende nada de ese tipo.
-@Suite("Las exclusivas de ORO entre las pintas de la v1")
+@Suite("Las exclusivas de blue entre las pintas de la v1")
 @MainActor
-struct OroSkinsContentTests {
-    nonisolated static let oroExclusives: [String: Int] = [
+struct BlueSkinsContentTests {
+    nonisolated static let blueExclusives: [String: Int] = [
         "agujero_negro": 300, "dinastia": 300, "iluminado": 300, "titan": 300,
         "corona_solar": 150, "selenita": 150, "terraformador": 150, "moneda_propia": 150,
     ]
@@ -38,22 +38,22 @@ struct OroSkinsContentTests {
         #expect(content.skins.skins.allSatisfy { $0.characterType != "*" })
     }
 
-    @Test("cada exclusiva se vende con su precio y dejó el cofre y los hitos", arguments: Array(oroExclusives.keys.sorted()))
+    @Test("cada exclusiva se vende con su precio y dejó el cofre y los hitos", arguments: Array(blueExclusives.keys.sorted()))
     func exclusiveLeftTheChest(id: String) throws {
         let entries = content.skins.skins.filter { $0.id == id }
         #expect(entries.count == 1)
         let entry = try #require(entries.first)
         #expect(entry.chestRarity == nil)
         #expect(!entry.isMilestone)
-        #expect(entry.oroPrice == Self.oroExclusives[id])
-        #expect(content.skins.oroSkinIDs.contains(id))
+        #expect(entry.bluePrice == Self.blueExclusives[id])
+        #expect(content.skins.blueSkinIDs.contains(id))
         #expect(!content.skins.chestPool.contains { $0.id == id })
     }
 
     @Test("la tienda las lista como pinta de un solo personaje")
     func shelfListsThemAsOutfits() throws {
         let rows = CosmeticRow.rows(skins: content.skins, owned: [])
-        for (id, price) in Self.oroExclusives {
+        for (id, price) in Self.blueExclusives {
             let row = try #require(rows.first { $0.id == id }, "falta \(id)")
             #expect(row.price == price)
             #expect(!row.owned)
@@ -67,7 +67,7 @@ struct OroSkinsContentTests {
     @Test("el resto de la bolsa sigue entera: las demás pintas de la v1 siguen saliendo del cofre")
     func restOfThePoolIsIntact() {
         let pool = content.skins.chestPool
-        #expect(pool.count == 41 - Self.oroExclusives.count)
+        #expect(pool.count == 41 - Self.blueExclusives.count)
         #expect(pool.contains { $0.id == "oraculo" })
         #expect(pool.contains { $0.id == content.chests.welcomeSkinId })
         for rarity in SkinsConfig.Rarity.allCases {
@@ -88,7 +88,7 @@ struct OroSkinsContentTests {
             seen.insert(id)
             seenRarities.insert(rarity)
         }
-        #expect(seen.isDisjoint(with: Self.oroExclusives.keys), "salió \(seen.intersection(Self.oroExclusives.keys))")
+        #expect(seen.isDisjoint(with: Self.blueExclusives.keys), "salió \(seen.intersection(Self.blueExclusives.keys))")
         #expect(seen.count >= 25, "la prueba no es vacua: salen las demás (\(seen.count))")
         #expect(seenRarities == Set(SkinsConfig.Rarity.allCases))
     }
@@ -109,10 +109,10 @@ struct OroSkinsContentTests {
     func ownerKeepsIt() async throws {
         let gameState = await makeGameState()
         gameState.player?.meta.milestoneSkins = ["titan"]
-        gameState.player?.meta.oro = 5000
+        gameState.player?.meta.blue = 5000
         #expect(gameState.ownsSkin("titan"))
-        #expect(gameState.buySkinWithOro(skinID: "titan") == .unavailable)
-        #expect(gameState.player?.meta.oro == 5000, "no se cobra lo que ya es tuyo")
+        #expect(gameState.buySkinWithBlue(skinID: "titan") == .unavailable)
+        #expect(gameState.player?.meta.blue == 5000, "no se cobra lo que ya es tuyo")
         #expect(gameState.player?.meta.milestoneSkins.contains("titan") == true)
         let row = try #require(gameState.cosmeticRows.first { $0.id == "titan" })
         #expect(row.owned)
@@ -122,23 +122,23 @@ struct OroSkinsContentTests {
     @Test("quien no la tenía la ve con precio, la compra una vez y le cuesta lo del catálogo")
     func newcomerPaysOnce() async throws {
         let gameState = await makeGameState()
-        gameState.player?.meta.oro = 1000
+        gameState.player?.meta.blue = 1000
         let row = try #require(gameState.cosmeticRows.first { $0.id == "agujero_negro" })
         #expect(!row.owned)
         #expect(row.price == 300)
-        #expect(gameState.buySkinWithOro(skinID: "agujero_negro") == .bought)
-        #expect(gameState.buySkinWithOro(skinID: "agujero_negro") == .unavailable)
-        #expect(gameState.player?.meta.oro == 700, "cobra una sola vez")
+        #expect(gameState.buySkinWithBlue(skinID: "agujero_negro") == .bought)
+        #expect(gameState.buySkinWithBlue(skinID: "agujero_negro") == .unavailable)
+        #expect(gameState.player?.meta.blue == 700, "cobra una sola vez")
         #expect(gameState.ownsSkin("agujero_negro"))
         #expect(gameState.cosmeticRows.first { $0.id == "agujero_negro" }?.owned == true)
     }
 
-    @Test("sin ORO suficiente no cobra ni entrega")
+    @Test("sin blue suficiente no cobra ni entrega")
     func cannotAffordDoesNothing() async {
         let gameState = await makeGameState()
-        gameState.player?.meta.oro = 299
-        #expect(gameState.buySkinWithOro(skinID: "dinastia") == .refused(.cantAfford))
-        #expect(gameState.player?.meta.oro == 299)
+        gameState.player?.meta.blue = 299
+        #expect(gameState.buySkinWithBlue(skinID: "dinastia") == .refused(.cantAfford))
+        #expect(gameState.player?.meta.blue == 299)
         #expect(!gameState.ownsSkin("dinastia"))
     }
 }

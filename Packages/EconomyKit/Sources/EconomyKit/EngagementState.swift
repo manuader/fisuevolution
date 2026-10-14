@@ -37,7 +37,7 @@ public struct EngagementState: Codable, Sendable, Equatable {
     /// La ruleta: el día de los cupos, lo usado y los giros regalados (PLAN-v2 E5).
     public var wheel: WheelState
 
-    /// La tienda de ORO: topes del día, permanentes, ×3 pendientes y pintas de ORO (PLAN-v2 E6).
+    /// La tienda de blue: topes del día, permanentes, ×3 pendientes y pintas de blue (PLAN-v2 E6).
     public var shop: ShopState
 
     /// Las ofertas de 24 h (PLAN-v2 E6).

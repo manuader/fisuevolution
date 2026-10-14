@@ -59,7 +59,7 @@ struct RankingSaveTests {
         let future = try decoded { $0["ranking"] = ["phase": ["viaLactea": [String: Any]()], "lastName": "Ana"] as [String: Any] }
         #expect(future.meta.ranking.phase == .ineligible)
         #expect(future.meta.ranking.lastName == "Ana")
-        #expect(future.meta.oro == fxState().meta.oro, "el resto del save sigue intacto")
+        #expect(future.meta.blue == fxState().meta.blue, "el resto del save sigue intacto")
     }
 
     // MARK: - Conflicto

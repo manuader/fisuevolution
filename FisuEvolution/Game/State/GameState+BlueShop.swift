@@ -1,22 +1,22 @@
 import EconomyKit
 import Foundation
 
-/// Una fila de la tienda de ORO, ya cotizada: la vista no le pregunta nada más al estado.
-struct OroShopRow: Identifiable, Equatable {
-    let item: OroShopCatalog.Item
-    let quote: OroShop.Quote
+/// Una fila de la tienda de blue, ya cotizada: la vista no le pregunta nada más al estado.
+struct BlueShopRow: Identifiable, Equatable {
+    let item: BlueShopCatalog.Item
+    let quote: BlueShop.Quote
 
     var id: String { item.id }
 }
 
-enum OroShopOutcome: Equatable {
+enum BlueShopOutcome: Equatable {
     case bought
-    case refused(OroShop.Blocker)
+    case refused(BlueShop.Blocker)
     /// No se ofrece (tienda restringida, nada que entregar, sin contenido).
     case unavailable
 }
 
-/// La tienda de ORO en la partida (PLAN-v2 E6): comprar, los ×3 comprados que
+/// La tienda de blue en la partida (PLAN-v2 E6): comprar, los ×3 comprados que
 /// esperan su momento y el auto-tap.
 extension GameState {
     /// El ícono animado de la tienda cambió de fila: un brillo, muy bajo.
@@ -27,21 +27,21 @@ extension GameState {
     /// Lo que la tienda necesita saber de la partida, resuelto acá. `chanceAllowed`
     /// lo pone quien llama (`LootBoxGate`), para que un test no dependa del país
     /// de la máquina.
-    func oroShopContext(chanceAllowed: Bool, now: Date = Date()) -> OroShop.Context? {
+    func blueShopContext(chanceAllowed: Bool, now: Date = Date()) -> BlueShop.Context? {
         guard let content, let player, let tower else { return nil }
         let reached = Set(content.floorTable.floors.prefix(player.meta.stats.maxFloorOrdinalEver + 1).map(\.id))
         let pairs = mergeAllIsQueued ? 0 : BoardChangePlanner.planMergeAll(
             floorOrdinal: visibleFloorOrdinal, state: player, tower: tower, tiers: content.tiers,
-            floorTable: content.floorTable, config: content.economy, origin: .oroShop
+            floorTable: content.floorTable, config: content.economy, origin: .blueShop
         ).count
         let seconds = now.timeIntervalSince1970
         let coolingDown = content.boosts.boosts.contains {
             BoostManager.cooldownRemaining(of: $0, state: player, now: seconds) > 0
         }
-        var perks: Set<OroShopCatalog.Perk> = [.extraSlots]
+        var perks: Set<BlueShopCatalog.Perk> = [.extraSlots]
         if Self.grantableRewardKinds.contains(.package) { perks.insert(.bestSupplier) }
         if Self.grantableRewardKinds.contains(.wheelSpin) { perks.insert(.wheelDailySpins) }
-        return OroShop.Context(
+        return BlueShop.Context(
             today: DailyRewardManager.dayString(for: now, calendar: Self.gregorianCalendar),
             grantableKinds: Self.grantableRewardKinds,
             chanceAllowed: chanceAllowed,
@@ -83,34 +83,34 @@ extension GameState {
     }()
 
     /// Las filas de la tienda, en el orden del catálogo y ya cotizadas.
-    func oroShopRows(chanceAllowed: Bool, now: Date = Date()) -> [OroShopRow] {
-        guard let content, let player, let context = oroShopContext(chanceAllowed: chanceAllowed, now: now) else { return [] }
-        return OroShop.visibleItems(catalog: content.oroShop, context: context).filter(Self.canDeliver).map {
-            OroShopRow(item: $0, quote: OroShop.quote($0, state: player, context: context))
+    func blueShopRows(chanceAllowed: Bool, now: Date = Date()) -> [BlueShopRow] {
+        guard let content, let player, let context = blueShopContext(chanceAllowed: chanceAllowed, now: now) else { return [] }
+        return BlueShop.visibleItems(catalog: content.blueShop, context: context).filter(Self.canDeliver).map {
+            BlueShopRow(item: $0, quote: BlueShop.quote($0, state: player, context: context))
         }
     }
 
-    /// Compra un ítem: cobra por `OroShop.purchase` (`spendOro`, la única salida
-    /// de ORO) y entrega en el mismo paso, sobre la misma partida en memoria: o
+    /// Compra un ítem: cobra por `BlueShop.purchase` (`spendBlue`, la única salida
+    /// de blue) y entrega en el mismo paso, sobre la misma partida en memoria: o
     /// quedan las dos cosas o ninguna. Lo que no se puede aplicar no se cobra, y
     /// una segunda llamada ve el tope, el nivel o el pendiente de la primera.
     @discardableResult
-    func buyOroShopItem(id: String, chanceAllowed: Bool, now: Date = Date()) -> OroShopOutcome {
+    func buyBlueShopItem(id: String, chanceAllowed: Bool, now: Date = Date()) -> BlueShopOutcome {
         guard let content, let before = player,
-              let context = oroShopContext(chanceAllowed: chanceAllowed, now: now),
-              let item = content.oroShop.item(id: id), Self.canDeliver(item)
+              let context = blueShopContext(chanceAllowed: chanceAllowed, now: now),
+              let item = content.blueShop.item(id: id), Self.canDeliver(item)
         else { return .unavailable }
         var charged = before
-        let purchase: OroShop.Purchase
+        let purchase: BlueShop.Purchase
         do {
-            purchase = try OroShop.purchase(id, state: &charged, catalog: content.oroShop, context: context)
-        } catch OroShop.PurchaseError.blocked(let blocker) {
+            purchase = try BlueShop.purchase(id, state: &charged, catalog: content.blueShop, context: context)
+        } catch BlueShop.PurchaseError.blocked(let blocker) {
             return .refused(blocker)
         } catch {
             return .unavailable
         }
         player = charged
-        if item.action == .mergeAll, enqueueMergeAll(onFloor: visibleFloorOrdinal, origin: .oroShop) == 0 {
+        if item.action == .mergeAll, enqueueMergeAll(onFloor: visibleFloorOrdinal, origin: .blueShop) == 0 {
             player = before
             return .refused(.nothingToDo)
         }
@@ -125,7 +125,7 @@ extension GameState {
         saveTask?.cancel()
         saveTask = nil
         Task { await persistNow() }
-        Log.economy.info("oro shop: \(id) for \(purchase.price) ORO")
+        Log.economy.info("blue shop: \(id) for \(purchase.price) blue")
         return .bought
     }
 
@@ -148,7 +148,7 @@ extension GameState {
 
     /// Un ítem con un premio mal formado (magnitud o duración que no rinden, un
     /// ×3 que no multiplica) no se vende: mejor que no se cobre a que no entregue.
-    private static func canDeliver(_ item: OroShopCatalog.Item) -> Bool {
+    private static func canDeliver(_ item: BlueShopCatalog.Item) -> Bool {
         item.rewards.allSatisfy { reward in
             guard (try? reward.validate()) != nil else { return false }
             switch reward {
@@ -164,13 +164,13 @@ extension GameState {
     /// dato de E5 (`packages.json`); `openPackage()` lo lee de acá.
     var bestSupplierLevel: Int {
         guard let content, let player else { return 0 }
-        return OroShop.bestSupplierLevel(levels: player.meta.engagement.shop.levels, catalog: content.oroShop)
+        return BlueShop.bestSupplierLevel(levels: player.meta.engagement.shop.levels, catalog: content.blueShop)
     }
 
     /// Los giros por video de más por día del "abono a la ruleta".
     var bonusDailyWheelSpins: Int {
         guard let content, let player else { return 0 }
-        return OroShop.bonusDailyWheelSpins(levels: player.meta.engagement.shop.levels, catalog: content.oroShop)
+        return BlueShop.bonusDailyWheelSpins(levels: player.meta.engagement.shop.levels, catalog: content.blueShop)
     }
 
     /// La ruleta con el abono aplicado: el ÚNICO lugar donde el cupo de giros por
@@ -191,7 +191,7 @@ extension GameState {
         player.meta.lifetimeEarnings += extra
         player.meta.engagement.shop.pendingOfflineMultiplier = nil
         self.player = player
-        Log.economy.info("offline ×\(multiplier) from the oro shop: +\(extra)")
+        Log.economy.info("offline ×\(multiplier) from the blue shop: +\(extra)")
         return amount + extra
     }
 

@@ -15,7 +15,7 @@ struct FamilySkinsContentTests {
         content = try GameContentLoader.load(from: .main)
     }
 
-    @Test("cada familia viste a los 43, con el mismo id y 450 de ORO", arguments: families)
+    @Test("cada familia viste a los 43, con el mismo id y 450 de blue", arguments: families)
     func everyCharacter(family: String) {
         let entries = content.skins.skins.filter { $0.family == family }
         let concrete = content.tiers.concreteTypes.map(\.id)
@@ -23,14 +23,14 @@ struct FamilySkinsContentTests {
         #expect(entries.count == concrete.count)
         #expect(Set(entries.map(\.characterType)) == Set(concrete))
         #expect(entries.allSatisfy {
-            $0.id == family && $0.oroPrice == 450 && $0.textureAtlas == "fam_\(family)"
+            $0.id == family && $0.bluePrice == 450 && $0.textureAtlas == "fam_\(family)"
                 && $0.displayNameKey == "skin.name.\(family)"
         })
-        #expect(content.skins.oroPrice(of: family) == 450)
+        #expect(content.skins.bluePrice(of: family) == 450)
     }
 
     @Test("las familias no se reparten por cofre ni por hito", arguments: families)
-    func onlySoldForOro(family: String) {
+    func onlySoldForBlue(family: String) {
         let entries = content.skins.skins.filter { $0.family == family }
         #expect(entries.allSatisfy { $0.chestRarity == nil && !$0.isMilestone })
     }

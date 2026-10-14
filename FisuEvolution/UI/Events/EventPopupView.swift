@@ -75,7 +75,7 @@ struct EventPopupView: View {
     /// extra. El juego no inventa arte para el evento: usa el de lo que promociona (C4, C25).
     static func shopIllustrationKind(for offer: EventCatalog.ShopOffer) -> RewardKind {
         switch offer.destination {
-        case .store: offer.focus?.contains("oro") == true ? .blue : .coins
+        case .store: offer.focus.map { PurchasedBlueHistory.v1BlueAmountByProductID[$0] != nil } == true ? .blue : .coins
         case .boosts: .incomeBoost
         case .permanent: .freeUnit
         }

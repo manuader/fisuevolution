@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import EconomyKit
 
-/// La tienda de ORO y las ofertas de 24 h recuerdan en `meta.engagement`
+/// La tienda de blue y las ofertas de 24 h recuerdan en `meta.engagement`
 /// (PLAN-v2 E6), sin subir el schema del save.
 @Suite("EngagementState: tienda y ofertas")
 struct ShopOffersStateTests {

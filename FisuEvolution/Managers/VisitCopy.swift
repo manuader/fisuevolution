@@ -52,11 +52,11 @@ enum VisitCopy {
         case .payBail, .release, .payFine, .sell:
             return text(optionKey(option.kind), [amount], bundle: bundle)
         case .exchange:
-            let oro = option.rewards.reduce(0) { total, reward in
-                if case .oro(let amount) = reward { return total + amount }
+            let blue = option.rewards.reduce(0) { total, reward in
+                if case .blue(let amount) = reward { return total + amount }
                 return total
             }
-            return text(optionKey(.exchange), [amount, String(oro)], bundle: bundle)
+            return text(optionKey(.exchange), [amount, String(blue)], bundle: bundle)
         case .card:
             guard case .vendor(let cards) = script.mechanic,
                   let card = cards.first(where: { "card.\($0.id)" == option.id })
@@ -80,8 +80,8 @@ enum VisitCopy {
             return modifierArguments(rewards)
         case .fine(_, _, let stamp):
             return modifierArguments([stamp])
-        case .exchange(_, _, let dailyOroCap):
-            return dailyOroCap.map { [String($0)] } ?? []
+        case .exchange(_, _, let dailyBlueCap):
+            return dailyBlueCap.map { [String($0)] } ?? []
         case let .challenge(taps, windowSeconds, rewards, _):
             return [String(taps), String(Int(windowSeconds))] + modifierArguments(rewards)
         case .vendor, .gossip:
@@ -99,7 +99,7 @@ enum VisitCopy {
         case .arrest, .sale, .take: return 2
         case .gift(let rewards, _): return modifiers(rewards)
         case .fine: return 2
-        case .exchange(_, _, let dailyOroCap): return dailyOroCap == nil ? 0 : 1
+        case .exchange(_, _, let dailyBlueCap): return dailyBlueCap == nil ? 0 : 1
         case .challenge(_, _, let rewards, _): return 2 + modifiers(rewards)
         case .vendor, .gossip: return 0
         }

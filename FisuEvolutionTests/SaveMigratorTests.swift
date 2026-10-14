@@ -81,10 +81,10 @@ struct SaveMigratorTests {
     /// DESPUÉS del rebalance de pacing. Hasta v5 no hacía falta: v4 era la
     /// versión corriente y se decodificaba derecho, sin cruzar el migrador.
     ///
-    /// `oroUpgradeLevels` va por parámetro porque es lo único que v4→v5 mira:
+    /// `blueUpgradeLevels` va por parámetro porque es lo único que v4→v5 mira:
     /// los tests del reescalado cambian esa clave y ninguna otra.
     private func v4Fixture(
-        oroUpgradeLevels: [String: Int] = ["offline": 2, "tap": 3],
+        blueUpgradeLevels: [String: Int] = ["offline": 2, "tap": 3],
         unlockedFloors: [String] = ["alley", "urban"]
     ) -> [String: Any] {
         [
@@ -115,7 +115,7 @@ struct SaveMigratorTests {
                 "oro": 12,
                 "oroEarnedLifetime": 12,
                 "prestigeLevel": 2,
-                "oroUpgradeLevels": oroUpgradeLevels,
+                "oroUpgradeLevels": blueUpgradeLevels,
                 "derivedEffects": [
                     "offlineEfficiency": 0.5,
                     "tapMultiplier": 2.0,
@@ -210,10 +210,10 @@ struct SaveMigratorTests {
             ),
         ]
         state.meta.lifetimeEarnings = 0.1 + 0.2
-        state.meta.oro = 12
-        state.meta.oroEarnedLifetime = 40
+        state.meta.blue = 12
+        state.meta.blueEarnedLifetime = 40
         state.meta.prestigeLevel = 2
-        state.meta.oroUpgradeLevels = ["offline": 2, "tap": 3]
+        state.meta.blueUpgradeLevels = ["offline": 2, "tap": 3]
         state.meta.derivedEffects = UpgradeState(
             offlineEfficiency: 0.5, tapMultiplier: 2.0, critChance: 0.25,
             incomeMultiplier: 1.5, goldenChance: 0.125, spawnDiscount: 0.25, prestigeBonus: 0.5
@@ -250,9 +250,9 @@ struct SaveMigratorTests {
         var meta = try #require(object["meta"] as? [String: Any])
         var stats = try #require(meta["stats"] as? [String: Any])
         for key in ["revealedTier", "priceRelief"] { run.removeValue(forKey: key) }
-        for key in ["oroPurchases", "revokedPurchases", "purchasedOroReconstructed", "lastRunMaxTier",
+        for key in ["bluePurchases", "revokedPurchases", "purchasedBlueReconstructed", "lastRunMaxTier",
                     "quickHirePinnedTypeId", "unlockedTabs", "engagement", "ranking"] { meta.removeValue(forKey: key) }
-        stats.removeValue(forKey: "oroSpentEver")
+        stats.removeValue(forKey: "blueSpentEver")
         meta["stats"] = stats
         object["run"] = run
         object["meta"] = meta
@@ -279,7 +279,7 @@ struct SaveMigratorTests {
         #expect(maxeado == ["income": 10, "tap": 10, "crit": 10, "spawn": 10])
 
         // El que apenas la empezó NO: con la curva vieja (3 × 2,5ⁿ) crit 10
-        // costaba ~19.100 ORO de 1,776e10, el 0,0001 % de la línea. Un clamp lo
+        // costaba ~19.100 blue de 1,776e10, el 0,0001 % de la línea. Un clamp lo
         // habría dejado en 10 —al tope— y le habría regalado las skins.
         let apenas = SaveMigrator.rescaleUpgradeLevelsForRebalance(["crit": 10, "income": 12])
         #expect(apenas["crit"] == 4)
@@ -354,7 +354,7 @@ struct SaveMigratorTests {
         #expect(migrated.run.chosenCareerPath == nil)
         // Defaults sanos que aportó cada eslabón de la cadena:
         #expect(migrated.run.activeModifiers.isEmpty) // v1→v2
-        #expect(migrated.meta.oroUpgradeLevels.isEmpty) // v2→v3
+        #expect(migrated.meta.blueUpgradeLevels.isEmpty) // v2→v3
         #expect(migrated.meta.boostActivations.isEmpty) // v2→v3
         #expect(migrated.meta.daily.cycleDay == 1) // v2→v3
         #expect(migrated.meta.sharesCompleted == 0) // v2→v3
@@ -369,7 +369,7 @@ struct SaveMigratorTests {
         // v5→v6 y v6→v7: los últimos eslabones también corren en la cadena larga.
         #expect(migrated.schemaVersion == 7)
         #expect(migrated.meta.unlockedTabs == Set(SaveMigrator.v1Tabs))
-        #expect(!migrated.meta.purchasedOroReconstructed)
+        #expect(!migrated.meta.purchasedBlueReconstructed)
     }
 
     // MARK: - v3 → v4 campo a campo (la migración grande de F7)
@@ -402,14 +402,14 @@ struct SaveMigratorTests {
         #expect(modifier.expiresAt == 1_900_000_000)
         #expect(modifier.sourceKey == "boost.mate")
 
-        // META — soul points → ORO 1:1 (balance Y earned).
+        // META — soul points → blue 1:1 (balance Y earned).
         #expect(migrated.meta.lifetimeEarnings == 7_500_000)
-        #expect(migrated.meta.oro == 12)
-        #expect(migrated.meta.oroEarnedLifetime == 12)
+        #expect(migrated.meta.blue == 12)
+        #expect(migrated.meta.blueEarnedLifetime == 12)
         #expect(migrated.meta.prestigeLevel == 2)
         // `tap: 3` del fixture → 2: 3/20 × 10 = 1,5, redondeado. `offline` no
         // está en `rebalanceLevelCaps` (su tope no cambió) y pasa intacto.
-        #expect(migrated.meta.oroUpgradeLevels == ["offline": 2, "tap": 2])
+        #expect(migrated.meta.blueUpgradeLevels == ["offline": 2, "tap": 2])
         #expect(migrated.meta.derivedEffects == UpgradeState(
             offlineEfficiency: 0.5,
             tapMultiplier: 2.0,
@@ -475,10 +475,10 @@ struct SaveMigratorTests {
         // Y la partida entera sobrevive, que es de lo que se trata.
         #expect(migrated.run.coins == 123_456.5)
         #expect(migrated.run.units == ["homeless": 3, "oficinista": 2, "junior_programmer": 1])
-        #expect(migrated.meta.oro == 12)
+        #expect(migrated.meta.blue == 12)
         // La fuente de verdad de esos efectos también: se pueden recalcular, y
         // llegan REESCALADOS (`tap: 3` → 2).
-        #expect(migrated.meta.oroUpgradeLevels == ["offline": 2, "tap": 2])
+        #expect(migrated.meta.blueUpgradeLevels == ["offline": 2, "tap": 2])
     }
 
     /// El extremo del mismo camino: un v3 SIN la clave `upgrades`.
@@ -495,7 +495,7 @@ struct SaveMigratorTests {
             offlineEfficiency: 0, tapMultiplier: 1.0, critChance: 0
         ))
         #expect(migrated.run.coins == 123_456.5)
-        #expect(migrated.meta.oro == 12)
+        #expect(migrated.meta.blue == 12)
     }
 
     /// Gotcha real: un v3 guardado antes de elegir carrera serializa
@@ -510,7 +510,7 @@ struct SaveMigratorTests {
         #expect(migrated.run.chosenCareerPath == nil)
         // Y el resto de la migración salió entera igual.
         #expect(migrated.run.units == ["homeless": 3, "oficinista": 2, "junior_programmer": 1])
-        #expect(migrated.meta.oro == 12)
+        #expect(migrated.meta.blue == 12)
     }
 
     // MARK: - v4 → v5 (los cofres, y el arreglo de las skins doradas)
@@ -539,10 +539,10 @@ struct SaveMigratorTests {
         // back-fill de la torre es lo único que el decoder no inventa.
         #expect(state.schemaVersion == PlayerState.currentSchemaVersion)
         // Y un save post-rebalance no tiene nada que reescalar: pasa intacto.
-        #expect(state.meta.oroUpgradeLevels == ["offline": 2, "tap": 3])
+        #expect(state.meta.blueUpgradeLevels == ["offline": 2, "tap": 3])
         // La partida entera cruza, que es de lo que se trata.
         #expect(state.run.coins == 123_456.5)
-        #expect(state.meta.oro == 12)
+        #expect(state.meta.blue == 12)
         // Los contadores de compra del v4 son enteros en el JSON: llegan como Double.
         #expect(state.run.hireCounts == ["alley": 4])
         #expect(state.run.hireCountsByType == ["homeless": 4])
@@ -595,25 +595,25 @@ struct SaveMigratorTests {
     @Test("un v4 pre-rebalance con niveles arriba del tope de hoy se reescala y NO cuenta como maxeado")
     func preRebalanceV4LosesTheFakeMaxOut() throws {
         let maxeado = try SaveMigrator.migrate(
-            JSONSerialization.data(withJSONObject: v4Fixture(oroUpgradeLevels: ["income": 20, "tap": 20, "crit": 24]))
+            JSONSerialization.data(withJSONObject: v4Fixture(blueUpgradeLevels: ["income": 20, "tap": 20, "crit": 24]))
         )
-        #expect(maxeado.meta.oroUpgradeLevels["lucky"] == 10) // 24/25 × 10 ≈ 10, y crit ya es "Toque premiado"
-        #expect(maxeado.meta.oroUpgradeLevels["income"] == 10) // 20/20 × 10 = 10
+        #expect(maxeado.meta.blueUpgradeLevels["lucky"] == 10) // 24/25 × 10 ≈ 10, y crit ya es "Toque premiado"
+        #expect(maxeado.meta.blueUpgradeLevels["income"] == 10) // 20/20 × 10 = 10
 
         // El que SÍ tenía poco no se lleva nada regalado:
         let flojo = try SaveMigrator.migrate(
-            JSONSerialization.data(withJSONObject: v4Fixture(oroUpgradeLevels: ["income": 20, "tap": 20, "crit": 12]))
+            JSONSerialization.data(withJSONObject: v4Fixture(blueUpgradeLevels: ["income": 20, "tap": 20, "crit": 12]))
         )
-        #expect(flojo.meta.oroUpgradeLevels["lucky"] == 5) // 12/25 × 10 = 4,8 → 5
+        #expect(flojo.meta.blueUpgradeLevels["lucky"] == 5) // 12/25 × 10 = 4,8 → 5
     }
 
-    @Test("un save con Pegarla y Toque de oro llega con los niveles sumados y el ORO intacto")
+    @Test("un save con Pegarla y Toque dorado llega con los niveles sumados y el blue intacto")
     func theTwoMergedLinesArriveFolded() throws {
         let state = try SaveMigrator.migrate(
-            JSONSerialization.data(withJSONObject: v4Fixture(oroUpgradeLevels: ["crit": 7, "golden": 4, "income": 5]))
+            JSONSerialization.data(withJSONObject: v4Fixture(blueUpgradeLevels: ["crit": 7, "golden": 4, "income": 5]))
         )
-        #expect(state.meta.oroUpgradeLevels == ["lucky": 11, "income": 5])
-        #expect(state.meta.oro == 12)
+        #expect(state.meta.blueUpgradeLevels == ["lucky": 11, "income": 5])
+        #expect(state.meta.blue == 12)
     }
 
     /// El save que CRUZA el rebalance, y la decisión del dueño sobre él: se
@@ -626,16 +626,16 @@ struct SaveMigratorTests {
     @Test("en un save que cruza el rebalance sólo se reescala la línea que está arriba del tope")
     func onlyTheLinesAboveTodaysCapAreRescaled() throws {
         let state = try SaveMigrator.migrate(
-            JSONSerialization.data(withJSONObject: v4Fixture(oroUpgradeLevels: ["crit": 24, "income": 10, "offline": 2]))
+            JSONSerialization.data(withJSONObject: v4Fixture(blueUpgradeLevels: ["crit": 24, "income": 10, "offline": 2]))
         )
         // La pre-rebalance sí: 24 no puede existir con el tope de hoy.
-        #expect(state.meta.oroUpgradeLevels["lucky"] == 10)
+        #expect(state.meta.blueUpgradeLevels["lucky"] == 10)
         // La comprada con la curva nueva NO se toca. Pasando el diccionario
         // entero habría caído a 5 (10/20 × 10) y el jugador habría perdido siete
         // niveles pagados: es exactamente lo que el dueño no quiere.
-        #expect(state.meta.oroUpgradeLevels["income"] == 10)
+        #expect(state.meta.blueUpgradeLevels["income"] == 10)
         // Y la línea cuyo tope nunca cambió tampoco entra: no está en `rebalanceLevelCaps`.
-        #expect(state.meta.oroUpgradeLevels["offline"] == 2)
+        #expect(state.meta.blueUpgradeLevels["offline"] == 2)
     }
 
     // MARK: - v5 → v6 (la 2.0)
@@ -646,7 +646,7 @@ struct SaveMigratorTests {
         #expect(state.schemaVersion == 7)
         #expect(state.run.revealedTier == 14)
         #expect(state.meta.unlockedTabs == ["jobs", "upgrades", "skins", "gifts", "store", "menu"])
-        #expect(!state.meta.purchasedOroReconstructed)
+        #expect(!state.meta.purchasedBlueReconstructed)
     }
 
     /// Un v5 es CUALQUIER partida de la 1.x: pasa por `JSONSerialization` y de
@@ -660,7 +660,7 @@ struct SaveMigratorTests {
         var expected = original
         expected.run.revealedTier = 9
         expected.meta.unlockedTabs = Set(SaveMigrator.v1Tabs)
-        expected.meta.purchasedOroReconstructed = false
+        expected.meta.purchasedBlueReconstructed = false
         expected.meta.ranking = .legacy
         #expect(migrated == expected)
     }
@@ -692,18 +692,18 @@ struct SaveMigratorTests {
         state.run.revealedTier = 7
         state.run.priceRelief = 0.8
         state.meta.unlockedTabs = ["jobs"]
-        state.meta.purchasedOroReconstructed = true
-        state.meta.recordOroPurchase(transactionID: "tx_550", amount: 550)
+        state.meta.purchasedBlueReconstructed = true
+        state.meta.recordBluePurchase(transactionID: "tx_550", amount: 550)
         state.meta.lastRunMaxTier = 6
         state.meta.quickHirePinnedTypeId = "homeless"
-        state.meta.stats.oroSpentEver = 30
+        state.meta.stats.blueSpentEver = 30
 
         let migrated = try SaveMigrator.migrate(JSONEncoder().encode(state))
 
         #expect(migrated == state)
         #expect(migrated.run.revealedTier == 7, "la migración no pisa la red de seguridad de un v7")
         #expect(migrated.meta.unlockedTabs == ["jobs"], "ni vuelve a regalar las seis pestañas")
-        #expect(migrated.meta.purchasedOroReconstructed, "ni reabre la reconstrucción")
+        #expect(migrated.meta.purchasedBlueReconstructed, "ni reabre la reconstrucción")
     }
 
     // MARK: - v6 → v7 (E14 C17: el Fast Food al tier 7, el Chofer al 8)
@@ -841,13 +841,13 @@ struct SaveMigratorTests {
             #expect(migrated.run.revealedTier == migrated.run.maxTierReached, "v\(version): nunca una lluvia de revelaciones")
             #expect(migrated.run.priceRelief == 1, "v\(version)")
             #expect(migrated.meta.unlockedTabs == Set(SaveMigrator.v1Tabs), "v\(version)")
-            #expect(!migrated.meta.purchasedOroReconstructed, "v\(version)")
-            #expect(migrated.meta.oroPurchasedLifetime == 0, "v\(version)")
+            #expect(!migrated.meta.purchasedBlueReconstructed, "v\(version)")
+            #expect(migrated.meta.bluePurchasedLifetime == 0, "v\(version)")
             #expect(migrated.meta.lastRunMaxTier == 0, "v\(version)")
             #expect(migrated.meta.quickHirePinnedTypeId == nil, "v\(version)")
             #expect(migrated.meta.engagement == .initial, "v\(version)")
             #expect(migrated.meta.ranking.phase == .ineligible, "v\(version): las partidas de antes no compiten")
-            #expect(migrated.meta.stats.oroSpentEver == 0, "v\(version)")
+            #expect(migrated.meta.stats.blueSpentEver == 0, "v\(version)")
 
             let resaved = try SaveMigrator.migrate(JSONEncoder().encode(migrated))
             #expect(resaved == migrated, "v\(version): guardar y volver a cargar no cambia nada")

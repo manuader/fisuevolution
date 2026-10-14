@@ -19,8 +19,8 @@ struct SkinCatalogRow: Identifiable, Equatable {
         /// de StoreKit — la vista le pide el precio a `StoreManager`, porque el
         /// precio real depende de la tienda del jugador y no puede vivir acá.
         case purchasable(productID: String)
-        /// Skin que se compra con ORO (`oroPrice` en `skins.json`) y todavía no tenés.
-        case oroPurchasable(price: Int)
+        /// Skin que se compra con blue (`bluePrice` en `skins.json`) y todavía no tenés.
+        case bluePurchasable(price: Int)
     }
 
     /// El id de la skin del catálogo, o `"base"` para la apariencia original.
@@ -60,7 +60,7 @@ extension GameState {
     /// (RF-03). Acá no se compra nada: se elige entre lo que ya es tuyo. Dos
     /// pantallas, dos criterios.
     ///
-    /// ⚠️ **Una pinta que visten TODOS no trae a nadie.** `oro` y `diamante`
+    /// ⚠️ **Una pinta que visten TODOS no trae a nadie.** la dorada y la de diamante
     /// están en el catálogo una vez por personaje y con el MISMO id, porque la
     /// propiedad se guarda por id: un solo paquete de diamante desplegaría los
     /// 43 y espoilearía justo lo que este filtro cuida. Quién es el dueño
@@ -162,7 +162,7 @@ extension GameState {
 
     private func packSize(of entry: SkinsConfig.Entry, state: SkinCatalogRow.State, in content: GameContent) -> Int? {
         switch state {
-        case .purchasable, .oroPurchasable: break
+        case .purchasable, .bluePurchasable: break
         default: return nil
         }
         let size = content.skins.skins.filter { $0.id == entry.id }.count
@@ -192,8 +192,8 @@ extension GameState {
         if let condition = milestoneConditionText(for: entry) {
             return .milestoneLocked(conditionText: condition)
         }
-        if let price = content?.skins.oroPrice(of: entry.id) {
-            return .oroPurchasable(price: price)
+        if let price = content?.skins.bluePrice(of: entry.id) {
+            return .bluePurchasable(price: price)
         }
         if let productID = SkinProductIndex.productIDBySkinID[entry.id] {
             return .purchasable(productID: productID)
@@ -222,7 +222,7 @@ extension GameState {
             return String(localized: "skins.unlock.floor \(floorDisplayName(for: floorID))")
         }
         if entry.upgradesMaxed == true {
-            // El oro no se vende: el texto genérico ("todavía no está a la
+            // El blue no se vende: el texto genérico ("todavía no está a la
             // venta") decía justo lo contrario de su única vía.
             return String(localized: "skins.unlock.upgrades_maxed")
         }
@@ -277,12 +277,12 @@ extension GameState {
             player.run.coins += amount
             player.meta.lifetimeEarnings += amount
             announceCoins(amount)
-        case .oro:
-            guard let amount = entry.oroAmount else { return false }
-            // Sólo el balance. `oroEarnedLifetime` es lo que alimenta el
+        case .blue:
+            guard let amount = entry.blueAmount else { return false }
+            // Sólo el balance. `blueEarnedLifetime` es lo que alimenta el
             // multiplicador global y sube únicamente al reencarnar.
-            player.meta.oro += amount
-            player.meta.recordOroPurchase(transactionID: transactionID, amount: amount)
+            player.meta.blue += amount
+            player.meta.recordBluePurchase(transactionID: transactionID, amount: amount)
             announceBlue(amount)
         case .offer:
             // Lo pagado se entrega siempre: fuera de la ventana, en una tienda
@@ -306,29 +306,29 @@ extension GameState {
         return true
     }
 
-    var needsPurchasedOroReconstruction: Bool {
-        player.map { !$0.meta.purchasedOroReconstructed } ?? false
+    var needsPurchasedBlueReconstruction: Bool {
+        player.map { !$0.meta.purchasedBlueReconstructed } ?? false
     }
 
-    func completePurchasedOroReconstruction(records: [PurchasedOroHistory.Record]) {
-        guard var player, !player.meta.purchasedOroReconstructed else { return }
-        let history = PurchasedOroHistory.reconstruct(
+    func completePurchasedBlueReconstruction(records: [PurchasedBlueHistory.Record]) {
+        guard var player, !player.meta.purchasedBlueReconstructed else { return }
+        let history = PurchasedBlueHistory.reconstruct(
             records: records, creditedTransactionIDs: player.meta.creditedPurchases
         )
         // La v1 no sabe de las compras de la v2: lo que ya está anotado conserva
         // el monto con que se acreditó.
-        for (transactionID, amount) in history.purchases where player.meta.oroPurchases[transactionID] == nil {
-            player.meta.recordOroPurchase(transactionID: transactionID, amount: amount)
+        for (transactionID, amount) in history.purchases where player.meta.bluePurchases[transactionID] == nil {
+            player.meta.recordBluePurchase(transactionID: transactionID, amount: amount)
         }
         for transactionID in history.revoked {
             player.meta.revokePurchase(transactionID: transactionID)
         }
-        player.meta.purchasedOroReconstructed = true
+        player.meta.purchasedBlueReconstructed = true
         self.player = player
         scheduleSave()
     }
 
-    /// Un reembolso de ORO: la transacción deja de contar como comprada. El
+    /// Un reembolso de blue: la transacción deja de contar como comprada. El
     /// saldo no se toca; el reset de E9 conserva `min(saldo, comprado)`.
     /// `false` si no se pudo anotar ahora (se está reseteando): el reembolso queda sin finalizar.
     @discardableResult
@@ -353,11 +353,11 @@ extension GameState {
             guard let minutes = entry.coinMinutes else { return nil }
             let amount = Self.coinPayout(minutes: minutes, player: player, content: content)
             return String(localized: "store.pack.coins \(CoinFormatter.string(from: amount))")
-        case .oro:
-            guard let amount = entry.oroAmount else { return nil }
+        case .blue:
+            guard let amount = entry.blueAmount else { return nil }
             // `String(amount)`: interpolar un Int en un `%@` manda `%lld` y el
             // lookup falla, y en pantalla queda la clave cruda (trampa 5).
-            return String(localized: "store.pack.oro \(String(amount))")
+            return String(localized: "store.pack.blue \(String(amount))")
         case .starterPack:
             guard let minutes = entry.coinMinutes else { return nil }
             let amount = Self.coinPayout(minutes: minutes, player: player, content: content)
@@ -394,16 +394,16 @@ extension GameState {
         player?.meta.activeSkinByType.isEmpty == false
     }
 
-    /// Compra con ORO una pinta de `skins.json`: cobra y entrega en un solo paso
+    /// Compra con blue una pinta de `skins.json`: cobra y entrega en un solo paso
     /// sobre la partida en memoria, con un solo guardado. Una segunda llamada ve
     /// la primera (`alreadyOwned`) y no cobra. Se equipa en Pintas o en la ficha,
     /// como cualquier otra: la tienda vende, no viste.
     @discardableResult
-    func buySkinWithOro(skinID: String) -> OroShopOutcome {
-        guard let content, var player, let price = content.skins.oroPrice(of: skinID) else { return .unavailable }
+    func buySkinWithBlue(skinID: String) -> BlueShopOutcome {
+        guard let content, var player, let price = content.skins.bluePrice(of: skinID) else { return .unavailable }
         do {
-            try OroShop.purchaseSkin(skinID, price: price, state: &player)
-        } catch OroShop.SkinPurchaseError.cantAfford {
+            try BlueShop.purchaseSkin(skinID, price: price, state: &player)
+        } catch BlueShop.SkinPurchaseError.cantAfford {
             return .refused(.cantAfford)
         } catch {
             return .unavailable
@@ -417,7 +417,7 @@ extension GameState {
         saveTask?.cancel()
         saveTask = nil
         Task { await persistNow() }
-        Log.economy.info("oro shop: skin \(skinID) for \(price) ORO")
+        Log.economy.info("blue shop: skin \(skinID) for \(price) blue")
         return .bought
     }
 

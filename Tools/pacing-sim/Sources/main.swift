@@ -14,7 +14,7 @@ import Foundation
 ///         [--prestige-discount | --no-prestige-discount]
 ///         [--merge-refund r] [--growth g] [--price-relief K] [--staffed x] [--wall] [--inherit]
 ///         [--capacity n] [--bands "8:1.45,13:1.6,25:1.7"] [--growth-step "0.01@luxury"]
-///         [--oro-divisor d] [--oro-exponent e] [--shop slots,supplier,spins]
+///         [--blue-divisor d] [--blue-exponent e] [--shop slots,supplier,spins]
 ///
 /// Sin `--upgrades` busca el catálogo real al lado de `economy.json` (ver
 /// `resolveUpgradesURL`). Sin catálogo el bot NO compra mejoras permanentes, o
@@ -38,7 +38,7 @@ struct SimArguments {
     /// conviene o si el óptimo es esperar a la pared; `--no-reincarnation`
     /// apaga la reencarnación entera, que es la partida de la queja del dueño
     /// del 2026-08-22 y que **ningún múltiplo puede expresar** (el umbral se
-    /// calcula sobre el ORO histórico, que arranca en cero).
+    /// calcula sobre el blue histórico, que arranca en cero).
     let reincarnation: PacingSimulator.ReincarnationPolicy
     let profile: PacingProfile
     /// Dónde están `packages.json`, `boosts.json`… `nil` = no se encontró.
@@ -51,7 +51,7 @@ struct SimArguments {
     /// cualquier perfil que no sea `.bare` va solo.
     let contract: Bool
     /// `--shop lugares,proveedor,giros`: los permanentes de la tienda a mano, para
-    /// medir `.max` mientras `oro_shop.json` no esté en el árbol.
+    /// medir `.max` mientras `blue_shop.json` no esté en el árbol.
     let shop: ShopPermanents?
 }
 
@@ -116,8 +116,8 @@ func parseArguments() throws -> SimArguments {
             }
             knobs.costGrowthStepPerFloor = step
             knobs.costGrowthStepFromFloorId = String(parts[1])
-        case "--oro-divisor": knobs.oroDivisor = try number(iterator.next(), for: argument)
-        case "--oro-exponent": knobs.oroExponent = try number(iterator.next(), for: argument)
+        case "--blue-divisor": knobs.blueDivisor = try number(iterator.next(), for: argument)
+        case "--blue-exponent": knobs.blueExponent = try number(iterator.next(), for: argument)
         case "--prestige-discount": prestigeDiscount = true
         case "--no-prestige-discount": prestigeDiscount = false
         case "--contract": contract = true
@@ -140,7 +140,7 @@ func parseArguments() throws -> SimArguments {
         upgradesURL: upgradesPath.map { URL(fileURLWithPath: $0) } ?? resolveUpgradesURL(nextTo: economyURL),
         maxDays: maxDays,
         csvURL: csvPath.map { URL(fileURLWithPath: $0) },
-        reincarnation: noReincarnation ? .never : .whenOroMultiplies(prestigeThreshold),
+        reincarnation: noReincarnation ? .never : .whenBlueMultiplies(prestigeThreshold),
         profile: profile,
         sourcesURL: sourcesPath.map { URL(fileURLWithPath: $0) } ?? resolveSourcesURL(nextTo: economyURL),
         seedFraction: seedFraction,
@@ -190,13 +190,13 @@ struct UpgradesFile: Decodable {
 
     let upgrades: [Line]
 
-    /// Sólo las líneas que se pagan con ORO: son las que desbloquean las skins
-    /// doradas y las únicas que el bot puede comprar (el ORO es lo único que le
+    /// Sólo las líneas que se pagan con blue: son las que desbloquean las skins
+    /// doradas y las únicas que el bot puede comprar (el blue es lo único que le
     /// entra al reencarnar). Las de plata, si algún día vuelven, compiten con
     /// las compras de la run y son otra política.
     var permanentLines: [PermanentUpgradeLine] {
         upgrades
-            .filter { ($0.currency ?? "coins") == "oro" }
+            .filter { ($0.currency ?? "coins") == "blue" }
             .map {
                 PermanentUpgradeLine(
                     id: $0.id,
@@ -256,7 +256,7 @@ do {
         loaded = loadSources(from: sourcesURL, requireDiscount: arguments.prestigeDiscount)
         if let shop = arguments.shop {
             loaded.sources.shop = shop
-            loaded.warnings.removeAll { $0.contains("oro_shop.json") }
+            loaded.warnings.removeAll { $0.contains("blue_shop.json") }
         }
     }
     if arguments.prestigeDiscount, loaded.prestigeUnlocks == nil {
@@ -281,9 +281,9 @@ do {
         printProfileHeader(arguments: arguments, loaded: loaded)
     }
     if let upgradesURL = arguments.upgradesURL, !upgradeLines.isEmpty {
-        print("   mejoras permanentes: \(upgradeLines.count) líneas de ORO (\(upgradesURL.lastPathComponent))")
+        print("   mejoras permanentes: \(upgradeLines.count) líneas de blue (\(upgradesURL.lastPathComponent))")
     } else {
-        print("   ⚠️ SIN catálogo de mejoras permanentes: el bot no gasta ORO y")
+        print("   ⚠️ SIN catálogo de mejoras permanentes: el bot no gasta blue y")
         print("      derivedEffects viaja en cero. Pasá --upgrades <upgrades.json>.")
     }
     // "entrar" es lo que cuesta el tier base DE ESE PISO; "más comprado" es el
@@ -317,7 +317,7 @@ do {
     print("\n-- Hitos --")
     let politica: String
     switch arguments.reincarnation {
-    case .whenOroMultiplies(let multiple): politica = "umbral ×\(multiple) del ORO histórico"
+    case .whenBlueMultiplies(let multiple): politica = "umbral ×\(multiple) del blue histórico"
     case .never: politica = "SIN REENCARNAR"
     }
     print("  reencarnaciones: \(report.reincarnations)  (\(politica))")
@@ -423,8 +423,8 @@ do {
             ("yieldGrowthPerTier", config.yieldGrowthPerTier),
             ("hire_defaultCostMultiplier", config.hire.defaultCostMultiplier),
             ("hire_defaultCostGrowth", config.hire.defaultCostGrowth),
-            ("oro_divisor", config.oro.divisor),
-            ("oro_globalMultiplierPerOro", config.oro.globalMultiplierPerOro),
+            ("blue_divisor", config.blue.divisor),
+            ("blue_globalMultiplierPerBlue", config.blue.globalMultiplierPerBlue),
             ("offlineEfficiencyBase", config.offlineEfficiencyBase),
         ].sorted(by: { $0.0 < $1.0 }) {
             rows.append("knob,\(key),\(value),")

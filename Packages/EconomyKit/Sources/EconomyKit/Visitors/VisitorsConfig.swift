@@ -55,8 +55,8 @@ public struct VisitorsConfig: Codable, Sendable, Equatable {
         /// Multa de `seconds` de producción con tope en una fracción de la caja.
         /// Pagarla da `stamp`; un video la perdona; ignorarla no cobra nada.
         case fine(seconds: Double, capFraction: Double, stamp: RewardSpec)
-        /// ORO por plata. `dailyOroCap` nil = sin tope (el blue del Cepo).
-        case exchange(costSeconds: Double, oro: Int, dailyOroCap: Int?)
+        /// Blue por plata. `dailyBlueCap` nil = sin tope (el blue del Cepo).
+        case exchange(costSeconds: Double, blue: Int, dailyBlueCap: Int?)
         /// Compra un duplicado hasta `tiersBelowFrontier` abajo de tu frontera.
         case sale(pick: UnitPick, priceMultiplier: Double, tiersBelowFrontier: Int)
         /// Se lleva `count` y deja `rewards`, con la plata llevada a por lo menos
@@ -77,8 +77,8 @@ public struct VisitorsConfig: Codable, Sendable, Equatable {
                 rewards
             case .fine(_, _, let stamp):
                 [stamp]
-            case .exchange(_, let oro, _):
-                [.oro(oro)]
+            case .exchange(_, let blue, _):
+                [.blue(blue)]
             case .vendor(let cards):
                 cards.map(\.reward)
             case .arrest, .sale:
@@ -207,8 +207,8 @@ public struct VisitorsConfig: Codable, Sendable, Equatable {
                 guard bail > 0, release > 1 else { throw fail("el arresto indemniza más de lo que cuesta reponer") }
             case let .fine(seconds, capFraction, _):
                 guard seconds > 0, capFraction > 0, capFraction <= 1 else { throw fail("multa") }
-            case let .exchange(costSeconds, oro, dailyOroCap):
-                guard costSeconds > 0, oro > 0, (dailyOroCap ?? 1) > 0 else { throw fail("cambio") }
+            case let .exchange(costSeconds, blue, dailyBlueCap):
+                guard costSeconds > 0, blue > 0, (dailyBlueCap ?? 1) > 0 else { throw fail("cambio") }
             case let .sale(_, priceMultiplier, tiersBelowFrontier):
                 guard priceMultiplier > 1, tiersBelowFrontier >= 0 else { throw fail("la compra paga más de lo que vale") }
             case let .take(_, count, rewards, minValueMultiplier):
@@ -229,7 +229,7 @@ public struct VisitorsConfig: Codable, Sendable, Equatable {
 extension VisitorsConfig.Mechanic: Codable {
     private enum CodingKeys: String, CodingKey {
         case kind, rewards, videoDoubles, pick, bailMultiplier, releaseMultiplier, seconds, capFraction, stamp
-        case costSeconds, oro, dailyOroCap, priceMultiplier, tiersBelowFrontier, count, minValueMultiplier
+        case costSeconds, blue, dailyBlueCap, priceMultiplier, tiersBelowFrontier, count, minValueMultiplier
         case taps, windowSeconds, cards
     }
 
@@ -253,8 +253,8 @@ extension VisitorsConfig.Mechanic: Codable {
                          stamp: try c.decode(RewardSpec.self, forKey: .stamp))
         case .exchange:
             self = .exchange(costSeconds: try c.decode(Double.self, forKey: .costSeconds),
-                             oro: try c.decode(Int.self, forKey: .oro),
-                             dailyOroCap: try c.decodeIfPresent(Int.self, forKey: .dailyOroCap))
+                             blue: try c.decode(Int.self, forKey: .blue),
+                             dailyBlueCap: try c.decodeIfPresent(Int.self, forKey: .dailyBlueCap))
         case .sale:
             self = .sale(pick: try c.decode(VisitorsConfig.UnitPick.self, forKey: .pick),
                          priceMultiplier: try c.decode(Double.self, forKey: .priceMultiplier),
@@ -293,11 +293,11 @@ extension VisitorsConfig.Mechanic: Codable {
             try c.encode(seconds, forKey: .seconds)
             try c.encode(capFraction, forKey: .capFraction)
             try c.encode(stamp, forKey: .stamp)
-        case let .exchange(costSeconds, oro, dailyOroCap):
+        case let .exchange(costSeconds, blue, dailyBlueCap):
             try c.encode(Kind.exchange, forKey: .kind)
             try c.encode(costSeconds, forKey: .costSeconds)
-            try c.encode(oro, forKey: .oro)
-            try c.encodeIfPresent(dailyOroCap, forKey: .dailyOroCap)
+            try c.encode(blue, forKey: .blue)
+            try c.encodeIfPresent(dailyBlueCap, forKey: .dailyBlueCap)
         case let .sale(pick, priceMultiplier, tiersBelowFrontier):
             try c.encode(Kind.sale, forKey: .kind)
             try c.encode(pick, forKey: .pick)

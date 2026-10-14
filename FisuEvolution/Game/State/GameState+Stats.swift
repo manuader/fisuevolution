@@ -18,8 +18,8 @@ import Foundation
 struct StatsSnapshot: Equatable {
     // Producción
     let lifetimeEarnings: String
-    let oro: String
-    let oroLifetime: String
+    let blue: String
+    let blueLifetime: String
     let incomePerSecond: String
     // Carrera
     let prestigeLevel: String
@@ -49,7 +49,7 @@ struct StatsSnapshot: Equatable {
     /// pantalla no se abre en ese estado (vive detrás de `phase == .ready`), y un
     /// "—" obligaría a cada fila a distinguir "no cargó" de "vale cero".
     static let empty = StatsSnapshot(
-        lifetimeEarnings: "0", oro: "0", oroLifetime: "0", incomePerSecond: "0",
+        lifetimeEarnings: "0", blue: "0", blueLifetime: "0", incomePerSecond: "0",
         prestigeLevel: "0", maxFloorName: "", maxTier: "0", floorsUnlocked: "0/0",
         unitCount: "0", seenTypes: "0/0", skins: "0/0", specials: "0/0",
         totalMerges: "0", totalHires: "0", totalTaps: "0",
@@ -114,8 +114,8 @@ extension GameState {
         let stats = player.meta.stats
         return StatsSnapshot(
             lifetimeEarnings: CoinFormatter.string(from: player.meta.lifetimeEarnings),
-            oro: String(player.meta.oro),
-            oroLifetime: String(player.meta.oroEarnedLifetime),
+            blue: String(player.meta.blue),
+            blueLifetime: String(player.meta.blueEarnedLifetime),
             // El texto del HUD, no un formateo paralelo (ver el docstring del tipo).
             incomePerSecond: towerIncomePerSecondText,
             prestigeLevel: String(player.meta.prestigeLevel),
@@ -156,7 +156,7 @@ extension GameState {
     /// Existe por lo mismo que `prestigeLevelText`, y la trampa es peor: la forma
     /// "obvia" de conseguir este número —`prestigePreview.multiplierBeforeText`—
     /// ata la pantalla a una proyección que `refreshProjections` **reescribe a
-    /// 8 Hz**. `PrestigePreview` lleva adentro `coinsLost` y `oroGained`, que se
+    /// 8 Hz**. `PrestigePreview` lleva adentro `coinsLost` y `blueGained`, que se
     /// mueven con cada tick mientras la torre produce, así que el `==` que
     /// protege al resto de las proyecciones ahí nunca da igual: con el
     /// organigrama abierto, los 43 nodos se recotizaban ocho veces por segundo.
@@ -174,7 +174,7 @@ extension GameState {
         guard let economy, let player else { return PrestigePreview.empty.multiplierBeforeText }
         return PrestigePreview.multiplierText(
             economy.globalMultiplier(
-                oroEarnedLifetime: player.meta.oroEarnedLifetime,
+                blueEarnedLifetime: player.meta.blueEarnedLifetime,
                 prestigeBonus: player.meta.derivedEffects.prestigeBonus
             )
         )

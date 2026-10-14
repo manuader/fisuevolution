@@ -2,7 +2,7 @@ import XCTest
 
 /// Gastar blue (PLAN-v2 E6, E14 C11): vive en Mejoras —Permanentes y Boosts—, no en
 /// la Tienda. Todo por identifier: el runner corre en inglés (trampa 6).
-final class OroShopUITests: XCTestCase {
+final class BlueShopUITests: XCTestCase {
     override func setUp() {
         continueAfterFailure = false
     }
@@ -20,13 +20,13 @@ final class OroShopUITests: XCTestCase {
 
     @MainActor
     private func openTab(_ tab: String, _ extra: [String] = []) -> (app: XCUIApplication, balance: XCUIElement) {
-        let app = openUpgrades(["--uitest-oro=500"] + extra)
+        let app = openUpgrades(["--uitest-blue=500"] + extra)
         let button = app.buttons["upgrades.tab.\(tab)"]
         XCTAssertTrue(button.waitForExistence(timeout: 10))
         button.tap()
         // `descendants(.any)`: la píldora combina ícono y texto, y el tipo del
         // elemento combinado no está garantizado.
-        let balance = app.descendants(matching: .any)["oroShop.balance"]
+        let balance = app.descendants(matching: .any)["blueShop.balance"]
         XCTAssertTrue(balance.waitForExistence(timeout: 10))
         return (app, balance)
     }
@@ -49,7 +49,7 @@ final class OroShopUITests: XCTestCase {
             XCTAssertTrue(app.buttons["upgrades.tab.\(tab)"].exists, "falta la pestaña \(tab)")
         }
         XCTAssertTrue(
-            app.buttons["oroShop.buy.extra_slots"].waitForExistence(timeout: 5),
+            app.buttons["blueShop.buy.extra_slots"].waitForExistence(timeout: 5),
             "los lugares extra de la torre viven en Permanentes"
         )
         XCTAssertTrue(app.buttons["upgrades.permanent.income"].exists, "y las siete globales, debajo")
@@ -57,15 +57,15 @@ final class OroShopUITests: XCTestCase {
             app.descendants(matching: .any)["upgrades.goal.bar"].exists,
             "con 500 blue falta para los 600 de la meta: la barra de ahorro"
         )
-        XCTAssertFalse(app.buttons["oroShop.buy.income_x2"].exists, "los boosts no se mezclan con los permanentes")
+        XCTAssertFalse(app.buttons["blueShop.buy.income_x2"].exists, "los boosts no se mezclan con los permanentes")
         attach(app, named: "E14 T19 Permanentes")
     }
 
     @MainActor
     func testTheGoalBecomesTheBuyButtonAndChargesOnce() throws {
-        let app = openUpgrades(["--uitest-oro=700"])
+        let app = openUpgrades(["--uitest-blue=700"])
         app.buttons["upgrades.tab.permanent"].tap()
-        let balance = app.descendants(matching: .any)["oroShop.balance"]
+        let balance = app.descendants(matching: .any)["blueShop.balance"]
         XCTAssertTrue(balance.waitForExistence(timeout: 10))
         let buy = app.buttons["upgrades.goal.buy"]
         XCTAssertTrue(buy.waitForExistence(timeout: 5), "con 700 blue la meta alcanza: el botón reemplaza a la barra")
@@ -79,8 +79,8 @@ final class OroShopUITests: XCTestCase {
     @MainActor
     func testBoostsTabHoldsBoostsAndShortcutsAndNoTheShop() throws {
         let (app, _) = openSpendSide()
-        XCTAssertTrue(app.buttons["oroShop.buy.income_x2"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.buttons["oroShop.buy.extra_slots"].exists)
+        XCTAssertTrue(app.buttons["blueShop.buy.income_x2"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["blueShop.buy.extra_slots"].exists)
         XCTAssertFalse(app.buttons["store.restore"].exists, "la Tienda es otra hoja")
     }
 
@@ -94,17 +94,17 @@ final class OroShopUITests: XCTestCase {
     }
 
     @MainActor
-    func testTheOroShopChargesAndCountsTheDay() throws {
+    func testTheBlueShopChargesAndCountsTheDay() throws {
         let (app, balance) = openSpendSide()
         XCTAssertEqual(balance.value as? String, "500")
 
-        let buy = app.buttons["oroShop.buy.income_x2"]
+        let buy = app.buttons["blueShop.buy.income_x2"]
         XCTAssertTrue(buy.waitForExistence(timeout: 5))
-        attach(app, named: "E6 la tienda de ORO")
+        attach(app, named: "E6 la tienda de blue")
         buy.tap()
 
         waitForBalance(balance, "470")
-        XCTAssertTrue(app.staticTexts["oroShop.status.income_x2"].exists, "la fila dice cuántos van hoy")
+        XCTAssertTrue(app.staticTexts["blueShop.status.income_x2"].exists, "la fila dice cuántos van hoy")
         attach(app, named: "E6 después de comprar")
     }
 
@@ -112,18 +112,18 @@ final class OroShopUITests: XCTestCase {
     func testEveryShelfIsThere() throws {
         let (app, _) = openSpendSide()
         for id in ["income_x2", "time_jump_1h", "offline_x3"] {
-            XCTAssertTrue(app.buttons["oroShop.buy.\(id)"].waitForExistence(timeout: 5), "\(id) no se ofrece")
+            XCTAssertTrue(app.buttons["blueShop.buy.\(id)"].waitForExistence(timeout: 5), "\(id) no se ofrece")
         }
-        XCTAssertTrue(app.staticTexts["oroShop.footer.reincarnate"].exists, "los boosts avisan que se pierden al reencarnar")
+        XCTAssertTrue(app.staticTexts["blueShop.footer.reincarnate"].exists, "los boosts avisan que se pierden al reencarnar")
     }
 
     /// Un toque cobra una vez, con el saldo esperado. El cerrojo contra el doble
-    /// toque se prueba sin reloj en `OroShopScreenTests.latch`: dos `tap()` de
+    /// toque se prueba sin reloj en `BlueShopScreenTests.latch`: dos `tap()` de
     /// XCUITest esperan a que la app quede quieta y pueden caer fuera de su ventana.
     @MainActor
     func testOneTapChargesOnce() throws {
         let (app, balance) = openSpendSide()
-        let buy = app.buttons["oroShop.buy.income_x2"]
+        let buy = app.buttons["blueShop.buy.income_x2"]
         XCTAssertTrue(buy.waitForExistence(timeout: 5))
         buy.tap()
         waitForBalance(balance, "470")
@@ -134,18 +134,18 @@ final class OroShopUITests: XCTestCase {
     @MainActor
     func testAPendingTripleSaysItComesTripled() throws {
         let (app, balance) = openSpendSide()
-        let buy = app.buttons["oroShop.buy.offline_x3"]
+        let buy = app.buttons["blueShop.buy.offline_x3"]
         XCTAssertTrue(buy.waitForExistence(timeout: 5))
         buy.tap()
         waitForBalance(balance, "380")
-        XCTAssertTrue(app.staticTexts["oroShop.pending.offline_x3"].waitForExistence(timeout: 5), "la fila avisa que el popup viene ×3")
-        XCTAssertTrue(app.descendants(matching: .any)["oroShop.blocked.offline_x3"].exists, "no se vende otro mientras hay uno esperando")
+        XCTAssertTrue(app.staticTexts["blueShop.pending.offline_x3"].waitForExistence(timeout: 5), "la fila avisa que el popup viene ×3")
+        XCTAssertTrue(app.descendants(matching: .any)["blueShop.blocked.offline_x3"].exists, "no se vende otro mientras hay uno esperando")
     }
 
     @MainActor
     func testReduceMotionStillCharges() throws {
         let (app, balance) = openSpendSide(["-UIAccessibilityReduceMotionEnabled", "YES"])
-        let buy = app.buttons["oroShop.buy.income_x2"]
+        let buy = app.buttons["blueShop.buy.income_x2"]
         XCTAssertTrue(buy.waitForExistence(timeout: 5))
         buy.tap()
         waitForBalance(balance, "470")

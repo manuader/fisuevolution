@@ -144,12 +144,12 @@ func loadSources(from directory: URL, requireDiscount: Bool) -> LoadedSources {
         packageRain: rewardedAds?.sideRail?.packageRain
     )
 
-    if let catalog = read("oro_shop.json", as: OroShopCatalog.self) {
+    if let catalog = read("blue_shop.json", as: BlueShopCatalog.self) {
         let top = Dictionary(uniqueKeysWithValues: catalog.items.filter(\.isPermanent).map { ($0.id, $0.levels.count) })
         result.sources.shop = ShopPermanents(
-            extraSlots: OroShop.extraSlots(levels: top, catalog: catalog),
-            bestSupplierLevel: OroShop.bestSupplierLevel(levels: top, catalog: catalog),
-            bonusDailyWheelSpins: OroShop.bonusDailyWheelSpins(levels: top, catalog: catalog)
+            extraSlots: BlueShop.extraSlots(levels: top, catalog: catalog),
+            bestSupplierLevel: BlueShop.bestSupplierLevel(levels: top, catalog: catalog),
+            bonusDailyWheelSpins: BlueShop.bonusDailyWheelSpins(levels: top, catalog: catalog)
         )
     }
     return result

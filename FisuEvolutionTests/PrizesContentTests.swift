@@ -25,34 +25,34 @@ struct PrizesContentTests {
         #expect(top.probability > 0.05 && top.probability < 0.08, "§2: el tope sale ~5–8 %")
     }
 
-    /// 2.0 (E2b T14): cada 12 min y no cada 8, y el ORO con peso 5 y no 15. Es
+    /// 2.0 (E2b T14): cada 12 min y no cada 8, y el blue con peso 5 y no 15. Es
     /// lo que deja a `.ads` en ≥ 65 % de lo que tarda `.free` (contrato de 45 h,
     /// punto 9; `Docs/balance-run-v2-e2b-candidata.md` §4).
-    @Test("el colchón: cada 12 min de juego, uno solo, y plata 20 min / un Paquete / 2 ORO")
+    @Test("el colchón: cada 12 min de juego, uno solo, y plata 20 min / un Paquete / 2 blue")
     func treasures() {
         let treasures = content.treasures
         #expect(treasures.spawnIntervalSeconds == 720)
         #expect(treasures.prizes.map(\.weight) == [60, 25, 5])
         #expect(treasures.extraOpensPerTreasure == 1)
         #expect(treasures.giftOneIn == 4, "1 de cada 4 llega de regalo (E14b B6, D4)")
-        #expect(treasures.prizes.map(\.id) == ["coins", "package", "oro"])
+        #expect(treasures.prizes.map(\.id) == ["coins", "package", "blue"])
         #expect(treasures.prizes[0].rewards == [.coinsSeconds(1200)])
         #expect(treasures.prizes[1].rewards == [.package(1)])
-        #expect(treasures.prizes[2].rewards == [.oro(2)])
+        #expect(treasures.prizes[2].rewards == [.blue(2)])
     }
 
-    @Test("la ruleta: 10 segmentos que suman 100, 6 por video, 12 ORO con tope 6 y 3,8 s de giro")
+    @Test("la ruleta: 10 segmentos que suman 100, 6 por video, 12 blue con tope 6 y 3,8 s de giro")
     func wheel() {
         let wheel = content.wheel
         #expect(wheel.segments.count == 10)
         #expect(wheel.segments.map(\.weight).reduce(0, +) == 100)
         #expect(wheel.videoSpinsPerDay == 6)
-        #expect(wheel.oroSpinCost == 12)
-        #expect(wheel.oroSpinsPerDay == 6)
+        #expect(wheel.blueSpinCost == 12)
+        #expect(wheel.blueSpinsPerDay == 6)
         #expect(wheel.spinSeconds == 3.8)
     }
 
-    @Test("la ruleta da lo que dice E2a: plata 30–60 min, ×2/×3/×5 por 10 min, ORO 1–3, paquete y cofre")
+    @Test("la ruleta da lo que dice E2a: plata 30–60 min, ×2/×3/×5 por 10 min, blue 1–3, paquete y cofre")
     func wheelPrizes() {
         var kinds: Set<RewardSpec.Kind> = []
         for segment in content.wheel.segments {
@@ -64,7 +64,7 @@ struct PrizesContentTests {
                 #expect(effect == .incomeMultiplier)
                 #expect([2, 3, 5].contains(magnitude))
                 #expect(seconds == 600)
-            case .oro(let amount):
+            case .blue(let amount):
                 #expect((1...3).contains(amount))
             case .package(let count), .skinChest(let count):
                 #expect(count == 1)
@@ -72,7 +72,7 @@ struct PrizesContentTests {
                 Issue.record("\(segment.id): la ruleta no da \(segment.reward.kind)")
             }
         }
-        #expect(kinds == [.coinsSeconds, .modifier, .oro, .package, .skinChest])
+        #expect(kinds == [.coinsSeconds, .modifier, .blue, .package, .skinChest])
         #expect(content.wheel.chestFallbackSegmentId == "coins_30")
     }
 
@@ -137,8 +137,8 @@ struct PrizesContentTests {
 
         let wheel = content.wheel
         let endlessSpin = WheelConfig(
-            schemaVersion: 1, videoSpinsPerDay: wheel.videoSpinsPerDay, oroSpinCost: wheel.oroSpinCost,
-            oroSpinsPerDay: wheel.oroSpinsPerDay, spinSeconds: .infinity,
+            schemaVersion: 1, videoSpinsPerDay: wheel.videoSpinsPerDay, blueSpinCost: wheel.blueSpinCost,
+            blueSpinsPerDay: wheel.blueSpinsPerDay, spinSeconds: .infinity,
             chestFallbackSegmentId: wheel.chestFallbackSegmentId, segments: wheel.segments
         )
         #expect(throws: WheelConfig.ValidationError.self) { try endlessSpin.validate() }

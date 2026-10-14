@@ -22,7 +22,7 @@ PLAN-v2 E8, "Pipeline de video". Estas clases de pieza:
   512x512 con alfa, `vis_<id>` en `Resources/Loops/`.
 - **Eventos**: las ilustraciones de los eventos, en loop. 512x512 con alfa,
   `ev_<id>` en `Resources/Loops/`.
-- **Iconos**: las mejoras de la tienda de ORO, en loop. 256x256 con alfa,
+- **Iconos**: las mejoras de la tienda de blue, en loop. 256x256 con alfa,
   `icon_<id>` en `Resources/Loops/`.
 
 **On-Demand Resources.** Lo pesado de la segunda tanda (especiales, poses,
@@ -39,8 +39,8 @@ blanco de adentro del dibujo. El verde croma, con el keying del cofre
 las ventanas por donde el codigo muestra el piso.
 
 `Resources/Data/loops_manifest.json` es EL contrato con el runtime: una pieza
-con entrada ahi se reproduce, una sin entrada cae al arte quieto (la regla de
-oro de `assets_manifest.json`). Lo pinea `test_video_assets` y, del lado del
+con entrada ahi se reproduce, una sin entrada cae al arte quieto (la regla
+principal de `assets_manifest.json`). Lo pinea `test_video_assets` y, del lado del
 juego, un test en Swift.
 
 **El verde del key se mide en cada master, no se fija a mano.** El del cofre se
@@ -241,7 +241,7 @@ EVENT_IDS = (
     "aguinaldo", "blanqueo", "home_banking", "corralito", "devaluacion",
     "inversion_alienigena", "plan_platita", "startup_comprada",
 )
-ICON_IDS = tuple(f"ui_oro_{n}" for n in (
+ICON_IDS = tuple(f"ui_blue_{n}" for n in (
     "autotap", "better_supplier", "daily_boost", "extra_slots", "extra_spins",
     "income_boost", "merge_all", "offline_boost", "package_rain", "time_skip",
 ))

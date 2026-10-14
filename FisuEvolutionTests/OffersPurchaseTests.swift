@@ -10,7 +10,7 @@ struct OffersPurchaseTests {
         try #require(try ProductCatalog.load(from: .main).products.first { $0.offerId == offerId })
     }
 
-    @Test("Renacer entrega su ORO como comprado, sus 4 h y su ×3")
+    @Test("Renacer entrega su blue como comprado, sus 4 h y su ×3")
     func rebirthDelivers() async throws {
         let gameState = await makeGameState()
         let content = try #require(gameState.content)
@@ -19,9 +19,9 @@ struct OffersPurchaseTests {
         let production = GameState.coinReward(seconds: 14_400, player: before, content: content, economy: economy)
         gameState.creditStorePurchase(try entry("renacer"), transactionID: "offer-1")
         let after = try #require(gameState.player)
-        #expect(after.meta.oro == before.meta.oro + 300)
-        #expect(after.meta.oroPurchasedLifetime == before.meta.oroPurchasedLifetime + 300)
-        #expect(after.meta.oroEarnedLifetime == before.meta.oroEarnedLifetime, "lo comprado no es multiplicador")
+        #expect(after.meta.blue == before.meta.blue + 300)
+        #expect(after.meta.bluePurchasedLifetime == before.meta.bluePurchasedLifetime + 300)
+        #expect(after.meta.blueEarnedLifetime == before.meta.blueEarnedLifetime, "lo comprado no es multiplicador")
         #expect(abs(after.run.coins - before.run.coins - production) < 1e-6 * max(1, production))
         let boost = try #require(after.run.activeModifiers.first { $0.sourceKey == "offer.renacer" })
         #expect(boost.effect == .incomeMultiplier)
@@ -35,7 +35,7 @@ struct OffersPurchaseTests {
         let chests = try #require(gameState.player?.meta.chestsPending)
         gameState.creditStorePurchase(try entry("bienvenida"), transactionID: "offer-2")
         #expect(gameState.player?.meta.chestsPending == chests + 1)
-        #expect(gameState.player?.meta.oroPurchasedLifetime == 120)
+        #expect(gameState.player?.meta.bluePurchasedLifetime == 120)
     }
 
     @Test("la misma transacción no se acredita dos veces")
@@ -49,8 +49,8 @@ struct OffersPurchaseTests {
         gameState.creditStorePurchase(renacer, transactionID: "offer-3")
         gameState.creditStorePurchase(renacer, transactionID: "offer-3")
         let player = try #require(gameState.player)
-        #expect(player.meta.oroPurchasedLifetime == 300)
-        #expect(player.meta.oro == 300)
+        #expect(player.meta.bluePurchasedLifetime == 300)
+        #expect(player.meta.blue == 300)
         #expect(player.meta.engagement.offers.purchases["renacer"] == 1)
         #expect(player.run.activeModifiers.filter { $0.sourceKey == "offer.renacer" }.count == 1)
         #expect(abs(player.run.coins - production) < 1e-6 * max(1, production), "la plata, una sola vez")
@@ -64,9 +64,9 @@ struct OffersPurchaseTests {
         ghost.offerId = "fantasma"
         gameState.creditStorePurchase(ghost, transactionID: "offer-6")
         #expect(gameState.player?.meta.creditedPurchases.contains("offer-6") == false)
-        #expect(gameState.player?.meta.oro == before.meta.oro)
+        #expect(gameState.player?.meta.blue == before.meta.blue)
         gameState.creditStorePurchase(try entry("renacer"), transactionID: "offer-6")
-        #expect(gameState.player?.meta.oro == before.meta.oro + 300)
+        #expect(gameState.player?.meta.blue == before.meta.blue + 300)
     }
 
     @Test("una oferta comprada en el dispositivo que pierde entra una sola vez al cruzar los saves")
@@ -79,10 +79,10 @@ struct OffersPurchaseTests {
         var winner = base
         winner.meta.lifetimeEarnings = base.meta.lifetimeEarnings + 1_000
         let resolved = SaveConflictResolver.resolve(local: winner, remote: loser)
-        #expect(resolved.meta.oro == winner.meta.oro + 300)
-        #expect(resolved.meta.oroPurchasedLifetime == 300)
+        #expect(resolved.meta.blue == winner.meta.blue + 300)
+        #expect(resolved.meta.bluePurchasedLifetime == 300)
         let again = SaveConflictResolver.resolve(local: resolved, remote: loser)
-        #expect(again.meta.oro == resolved.meta.oro)
+        #expect(again.meta.blue == resolved.meta.blue)
         #expect(again.meta.engagement.offers.purchases["renacer"] == 1)
     }
 
@@ -96,10 +96,10 @@ struct OffersPurchaseTests {
         gameState.player = player
         gameState.creditStorePurchase(try entry("mudanza"), transactionID: "offer-4")
         #expect(gameState.player?.meta.engagement.offers.active.isEmpty == true)
-        #expect(gameState.player?.meta.oro == 500)
+        #expect(gameState.player?.meta.blue == 500)
         // Ya cerrada (y en enfriamiento), otra transacción también se entrega.
         gameState.creditStorePurchase(try entry("mudanza"), transactionID: "offer-5")
-        #expect(gameState.player?.meta.oro == 1000)
+        #expect(gameState.player?.meta.blue == 1000)
         #expect(gameState.player?.meta.engagement.offers.purchases["mudanza"] == 2)
         #expect(gameState.player?.meta.engagement.offers.lastClosedAt["mudanza"] != nil, "la compra arranca el enfriamiento")
     }

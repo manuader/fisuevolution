@@ -45,8 +45,8 @@ extension PacingSimulator {
         /// Videos mirados al volver de una ausencia: su tiempo sale de la sesión
         /// que arranca.
         var pendingVideoSeconds = 0.0
-        /// Entró ORO de una fuente y el bot todavía no lo gastó en líneas.
-        var hasUnspentOro = false
+        /// Entró blue de una fuente y el bot todavía no lo gastó en líneas.
+        var hasUnspentBlue = false
 
         init(nextPackageAt: Double, seedFraction: Double, ads: AdsSources? = nil) {
             self.nextPackageAt = nextPackageAt
@@ -116,7 +116,7 @@ extension PacingSimulator {
         }
         if let ads {
             videoSeconds += drainSpins(ads, state: &state, clocks: &clocks, report: &report)
-            settleOro(state: &state, clocks: &clocks, report: &report, wall: wall, active: active)
+            settleBlue(state: &state, clocks: &clocks, report: &report, wall: wall, active: active)
         }
         return videoSeconds
     }
@@ -273,7 +273,7 @@ extension PacingSimulator {
         }
 
         seconds += drainSpins(ads, state: &state, clocks: &clocks, report: &report)
-        settleOro(state: &state, clocks: &clocks, report: &report, wall: wall, active: active)
+        settleBlue(state: &state, clocks: &clocks, report: &report, wall: wall, active: active)
         return seconds
     }
 
@@ -311,12 +311,12 @@ extension PacingSimulator {
         return seconds
     }
 
-    /// El ORO que entró de una fuente se gasta en líneas en el acto.
-    private func settleOro(
+    /// El blue que entró de una fuente se gasta en líneas en el acto.
+    private func settleBlue(
         state: inout PlayerState, clocks: inout SourceClocks, report: inout Report, wall: Double, active: Double
     ) {
-        guard clocks.hasUnspentOro else { return }
-        clocks.hasUnspentOro = false
+        guard clocks.hasUnspentBlue else { return }
+        clocks.hasUnspentBlue = false
         buyPermanentUpgrades(state: &state, report: &report, wall: wall, active: active)
     }
 
@@ -343,13 +343,13 @@ extension PacingSimulator {
             default:
                 break
             }
-        case .oro(let amount):
-            let whole = clocks.draws.add(Double(amount) * probability, to: "oro")
+        case .blue(let amount):
+            let whole = clocks.draws.add(Double(amount) * probability, to: "blue")
             guard whole > 0 else { return }
-            // Sólo el balance, como `grant(.oro)` en la app: `oroEarnedLifetime` lo gana el prestigio.
-            state.meta.oro += whole
-            report.sourceTotals["oro.fromSources", default: 0] += Double(whole)
-            clocks.hasUnspentOro = true
+            // Sólo el balance, como `grant(.blue)` en la app: `blueEarnedLifetime` lo gana el prestigio.
+            state.meta.blue += whole
+            report.sourceTotals["blue.fromSources", default: 0] += Double(whole)
+            clocks.hasUnspentBlue = true
         case .package(let count):
             clocks.waitingPackages += clocks.draws.add(Double(count) * probability, to: "pkg.extra")
         case .nextOfflineMultiplier(let multiplier):

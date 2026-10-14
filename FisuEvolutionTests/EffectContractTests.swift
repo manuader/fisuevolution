@@ -154,7 +154,7 @@ struct EffectContractTests {
                 case .callVisitor(let script):
                     #expect(content.visitors.script(id: script) != nil)
                 case .openShop:
-                    #expect(after.run.coins == before.run.coins && after.meta.oro == before.meta.oro, "sólo ofrece")
+                    #expect(after.run.coins == before.run.coins && after.meta.blue == before.meta.blue, "sólo ofrece")
                     #expect(gameState.stageRuntime.pendingShopOffer == event.id)
                 }
             }
@@ -225,7 +225,7 @@ struct EffectContractTests {
         for effect in UpgradesConfig.EffectType.allCases {
             guard let line = lines.first(where: { $0.effectType == effect }) else { continue }
             var app = try producing().state
-            app.meta.oroUpgradeLevels[line.id] = 2
+            app.meta.blueUpgradeLevels[line.id] = 2
             var kit = app
             UpgradeManager.recomputeDerivedEffects(state: &app, config: content.upgradesConfig, specials: content.specials,
                                                    viral: content.viral, boosts: content.boosts, economy: economy)

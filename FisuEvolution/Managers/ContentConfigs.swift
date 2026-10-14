@@ -33,7 +33,7 @@ struct SpecialsConfig: Codable, Sendable, Equatable {
 struct UpgradesConfig: Codable, Sendable, Equatable {
     enum Currency: String, Codable, Sendable {
         case coins
-        case oro
+        case blue
     }
     /// `CaseIterable` no es cosmético: es lo que le deja a
     /// `EffectDescriptorTests` recorrer todos los tipos y verificar que ninguno
@@ -246,8 +246,8 @@ struct AchievementsConfig: Codable, Sendable, Equatable {
         /// Aguinaldo: el premio es **tiempo de tu producción de hoy**, así que
         /// nunca queda ni de lingote ni de polvo (ver `GameState.coinReward`).
         case coins
-        /// `amount` de ORO al BALANCE. Nunca a `oroEarnedLifetime`.
-        case oro
+        /// `amount` de blue al BALANCE. Nunca a `blueEarnedLifetime`.
+        case blue
         /// Un boost regalado que no consume su cooldown (premio del Médico).
         case freeBoost
     }

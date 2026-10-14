@@ -64,7 +64,7 @@ enum SaveMigrator {
     /// abajo). Con un clamp, cualquier save con `crit` ≥ 10 pasaría a contar como
     /// "las siete al tope" y se llevaría las skins doradas de "ganarlo al
     /// máximo" — y con la curva vieja (`3 × 2,5ⁿ`) llegar a crit 10 costaba
-    /// ~19.100 ORO de los 1,776e10 que valía maxear esa línea: el 0,0001 %.
+    /// ~19.100 blue de los 1,776e10 que valía maxear esa línea: el 0,0001 %.
     ///
     /// Así, `crit 25/25` → `10/10` conserva el logro del que sí maxeó y
     /// `crit 10/25` → `4/10` no le regala nada al que no.
@@ -131,7 +131,7 @@ enum SaveMigrator {
     }
 
     /// v3 → v4 (F7 "La Torre"): split Run/Meta, board→units por tipo, soul
-    /// points→ORO 1:1, skins global→por tipo. `unlockedFloors` queda vacío y el
+    /// points→blue 1:1, skins global→por tipo. `unlockedFloors` queda vacío y el
     /// `TowerReconciler` lo puebla en la carga (corre en TODO load).
     private static func migrateV3toV4(_ data: Data) throws -> Data {
         guard let old = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
@@ -180,7 +180,7 @@ enum SaveMigrator {
 
         let meta: [String: Any] = [
             "lifetimeEarnings": old["lifetimeEarnings"] as? Double ?? 0,
-            // Soul points → ORO 1:1 (balance y earned — decisión ⚠️3).
+            // Soul points → blue 1:1 (balance y earned — decisión ⚠️3).
             "oro": soulPoints,
             "oroEarnedLifetime": soulPoints,
             "prestigeLevel": old["prestigeLevel"] as? Int ?? 0,
@@ -218,7 +218,7 @@ enum SaveMigrator {
     /// ⚠️ **Lo que arregla.** Hasta v4 no había forma de distinguir un save
     /// escrito ANTES del rebalance de pacing de uno escrito después, así que uno
     /// pre-rebalance con `crit` entre 10 y 24 pasaba el `nivel >= maxLevel` de
-    /// `awardEligibleMilestoneSkins` y se llevaba las 43 skins de oro sin
+    /// `awardEligibleMilestoneSkins` y se llevaba las 43 skins doradas sin
     /// haberlas ganado (deuda declarada en
     /// `Docs/PROMPT-merge-con-rebalance-pacing.md` §6, aceptada justamente a la
     /// espera de este bump). La huella detectable es un nivel POR ENCIMA del

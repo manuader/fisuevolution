@@ -6,7 +6,7 @@ public struct WheelState: Codable, Sendable, Equatable {
     /// "yyyy-MM-dd" en el huso del dispositivo, como el diario.
     public var day: String?
     public var videoSpinsUsed: Int
-    public var oroSpinsUsed: Int
+    public var blueSpinsUsed: Int
     /// Giros que alguien regaló (el Conductor, un visitante, una oferta). No
     /// piden video y no vencen con el día.
     public var bonusSpins: Int
@@ -17,18 +17,18 @@ public struct WheelState: Codable, Sendable, Equatable {
 
     /// Lo gastado hoy del cupo único (video y blue juntos). Un contador
     /// negativo en el dato no devuelve giros.
-    public var dailySpinsUsed: Int { max(0, videoSpinsUsed) + max(0, oroSpinsUsed) }
+    public var dailySpinsUsed: Int { max(0, videoSpinsUsed) + max(0, blueSpinsUsed) }
 
     public init(
         day: String? = nil,
         videoSpinsUsed: Int = 0,
-        oroSpinsUsed: Int = 0,
+        blueSpinsUsed: Int = 0,
         bonusSpins: Int = 0,
         repeatableSegmentId: String? = nil
     ) {
         self.day = day
         self.videoSpinsUsed = videoSpinsUsed
-        self.oroSpinsUsed = oroSpinsUsed
+        self.blueSpinsUsed = blueSpinsUsed
         self.bonusSpins = bonusSpins
         self.repeatableSegmentId = repeatableSegmentId
     }
@@ -37,10 +37,21 @@ public struct WheelState: Codable, Sendable, Equatable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         day = try container.decodeIfPresent(String.self, forKey: .day)
         videoSpinsUsed = try container.decodeIfPresent(Int.self, forKey: .videoSpinsUsed) ?? 0
-        oroSpinsUsed = try container.decodeIfPresent(Int.self, forKey: .oroSpinsUsed) ?? 0
+        let legacy = try decoder.container(keyedBy: LegacyKeys.self)
+        blueSpinsUsed = try container.decodeIfPresent(Int.self, forKey: .blueSpinsUsed)
+            ?? legacy.decodeIfPresent(Int.self, forKey: .blueSpinsUsed) ?? 0
         bonusSpins = try container.decodeIfPresent(Int.self, forKey: .bonusSpins) ?? 0
         repeatableSegmentId = try container.decodeIfPresent(String.self, forKey: .repeatableSegmentId)
+            .map { Self.legacySegmentIds[$0] ?? $0 }
     }
+
+    /// Lo que se guardaba hasta E14b B14, cuando la moneda tenía otro nombre (ver
+    /// `MetaState.LegacyKeys`): la clave del cupo y los ids de sus dos premios. Sólo se leen.
+    private enum LegacyKeys: String, CodingKey {
+        case blueSpinsUsed = "oroSpinsUsed"
+    }
+
+    static let legacySegmentIds = ["oro_1": "blue_1", "oro_3": "blue_3"]
 
     /// El mismo estado pasado a `today`: en otro día los cupos vuelven a cero
     /// y el "repetir" se pierde; los regalados se quedan.
@@ -55,7 +66,7 @@ public struct WheelState: Codable, Sendable, Equatable {
         guard winner.day != nil, winner.day == loser.day else { return winner }
         var resolved = winner
         resolved.videoSpinsUsed = max(winner.videoSpinsUsed, loser.videoSpinsUsed)
-        resolved.oroSpinsUsed = max(winner.oroSpinsUsed, loser.oroSpinsUsed)
+        resolved.blueSpinsUsed = max(winner.blueSpinsUsed, loser.blueSpinsUsed)
         return resolved
     }
 }

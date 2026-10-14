@@ -3,7 +3,7 @@ import Foundation
 import Testing
 @testable import FisuEvolution
 
-/// Los packs consumibles de la tienda (RF-02b): plata, ORO y el starter pack.
+/// Los packs consumibles de la tienda (RF-02b): plata, blue y el starter pack.
 ///
 /// La diferencia con `StoreManagerTests` es de capa: allá se prueba StoreKit
 /// contra el `.storekit`; acá se prueba **qué acredita** cada pack, que es la
@@ -31,7 +31,7 @@ struct StorePacksTests {
             entitlement: .coins,
             skinId: nil,
             coinMinutes: minutes,
-            oroAmount: nil
+            blueAmount: nil
         )
     }
 
@@ -42,18 +42,18 @@ struct StorePacksTests {
             entitlement: .starterPack,
             skinId: "mundialista",
             coinMinutes: 240,
-            oroAmount: nil
+            blueAmount: nil
         )
     }
 
-    private func oroPack(id: String = "pack.oro", amount: Int) -> ProductCatalog.Entry {
+    private func bluePack(id: String = "pack.blue", amount: Int) -> ProductCatalog.Entry {
         ProductCatalog.Entry(
             id: id,
             type: "consumable",
-            entitlement: .oro,
+            entitlement: .blue,
             skinId: nil,
             coinMinutes: nil,
-            oroAmount: amount
+            blueAmount: amount
         )
     }
 
@@ -72,26 +72,26 @@ struct StorePacksTests {
 
         let after = try #require(gameState.player)
         #expect(after.run.coins == before.run.coins + expected)
-        // La plata comprada cuenta para el ORO, igual que la del cofre.
+        // La plata comprada cuenta para el blue, igual que la del cofre.
         #expect(after.meta.lifetimeEarnings == before.meta.lifetimeEarnings + expected)
     }
 
-    /// **Decisión del dueño (2026-08-07)**: el ORO se compra para GASTARLO, no
+    /// **Decisión del dueño (2026-08-07)**: el blue se compra para GASTARLO, no
     /// para saltearse el juego. El multiplicador global sale únicamente de
-    /// reencarnar, y por eso se computa sobre `oroEarnedLifetime` y no sobre el
+    /// reencarnar, y por eso se computa sobre `blueEarnedLifetime` y no sobre el
     /// balance. Este test es lo que impide que un pack lo mueva sin querer:
-    /// `globalMultiplierPerOro` es el knob que la Ola 3 midió como el más
+    /// `globalMultiplierPerBlue` es el knob que la Ola 3 midió como el más
     /// peligroso de la economía (a 0,25 el colapso de ×1,00 vuelve entero).
-    @Test("un pack de ORO da saldo gastable y no toca el multiplicador global")
-    func oroPackDoesNotMoveTheGlobalMultiplier() async throws {
+    @Test("un pack de blue da saldo gastable y no toca el multiplicador global")
+    func bluePackDoesNotMoveTheGlobalMultiplier() async throws {
         let gameState = await makeGameState()
         let before = try #require(gameState.player)
 
-        gameState.creditStorePurchase(oroPack(amount: 250), transactionID: "1")
+        gameState.creditStorePurchase(bluePack(amount: 250), transactionID: "1")
 
         let after = try #require(gameState.player)
-        #expect(after.meta.oro == before.meta.oro + 250)
-        #expect(after.meta.oroEarnedLifetime == before.meta.oroEarnedLifetime)
+        #expect(after.meta.blue == before.meta.blue + 250)
+        #expect(after.meta.blueEarnedLifetime == before.meta.blueEarnedLifetime)
         #expect(after.meta.globalMultiplier == before.meta.globalMultiplier)
     }
 
@@ -106,11 +106,11 @@ struct StorePacksTests {
         let gameState = await makeGameState()
         let before = try #require(gameState.player)
 
-        gameState.creditStorePurchase(oroPack(amount: 250), transactionID: "42")
-        gameState.creditStorePurchase(oroPack(amount: 250), transactionID: "42")
+        gameState.creditStorePurchase(bluePack(amount: 250), transactionID: "42")
+        gameState.creditStorePurchase(bluePack(amount: 250), transactionID: "42")
 
         let after = try #require(gameState.player)
-        #expect(after.meta.oro == before.meta.oro + 250)
+        #expect(after.meta.blue == before.meta.blue + 250)
     }
 
     /// Y la guarda es por TRANSACCIÓN, no por producto: comprar dos veces el
@@ -120,11 +120,11 @@ struct StorePacksTests {
         let gameState = await makeGameState()
         let before = try #require(gameState.player)
 
-        gameState.creditStorePurchase(oroPack(amount: 250), transactionID: "42")
-        gameState.creditStorePurchase(oroPack(amount: 250), transactionID: "43")
+        gameState.creditStorePurchase(bluePack(amount: 250), transactionID: "42")
+        gameState.creditStorePurchase(bluePack(amount: 250), transactionID: "43")
 
         let after = try #require(gameState.player)
-        #expect(after.meta.oro == before.meta.oro + 500)
+        #expect(after.meta.blue == before.meta.blue + 500)
     }
 
     /// El caso que hace que la guarda tenga que vivir en el save y no en
@@ -135,14 +135,14 @@ struct StorePacksTests {
         let repository = makeRepository()
         let first = await makeGameState(repository: repository)
         let before = try #require(first.player)
-        first.creditStorePurchase(oroPack(amount: 250), transactionID: "42")
+        first.creditStorePurchase(bluePack(amount: 250), transactionID: "42")
         await first.persistNow()
 
         let reopened = await makeGameState(repository: repository)
-        reopened.creditStorePurchase(oroPack(amount: 250), transactionID: "42")
+        reopened.creditStorePurchase(bluePack(amount: 250), transactionID: "42")
 
         let after = try #require(reopened.player)
-        #expect(after.meta.oro == before.meta.oro + 250)
+        #expect(after.meta.blue == before.meta.blue + 250)
     }
 
     /// El starter pack es lo único que reparte por dos caminos a la vez: la
@@ -180,39 +180,39 @@ struct StorePacksTests {
         #expect(!text.contains("store.pack"), "quedó la clave de localización cruda en pantalla")
     }
 
-    @Test("los packs de ORO son los de la 2.0, con los mismos IDs, y la foto de la v1 no los siguió")
-    func oroPacksAreThe2_0Amounts() throws {
+    @Test("los packs de blue son los de la 2.0, con los mismos IDs, y la foto de la v1 no los siguió")
+    func bluePacksAreThe2_0Amounts() throws {
         let catalog = try ProductCatalog.load(from: .main)
         let amounts = Dictionary(uniqueKeysWithValues: catalog.products.compactMap { entry in
-            entry.oroAmount.map { (entry.id, $0) }
+            entry.blueAmount.map { (entry.id, $0) }
         })
         #expect(amounts == [
             "com.fisuevolution.iap.oro_small": 160,
             "com.fisuevolution.iap.oro_medium": 550,
             "com.fisuevolution.iap.oro_large": 1400,
         ])
-        #expect(Set(amounts.keys) == Set(PurchasedOroHistory.v1OroAmountByProductID.keys), "los IDs no cambian")
-        #expect(PurchasedOroHistory.v1OroAmountByProductID["com.fisuevolution.iap.oro_small"] == 250,
+        #expect(Set(amounts.keys) == Set(PurchasedBlueHistory.v1BlueAmountByProductID.keys), "los IDs no cambian")
+        #expect(PurchasedBlueHistory.v1BlueAmountByProductID["com.fisuevolution.iap.oro_small"] == 250,
                 "lo comprado en la v1 se reconstruye con lo que la v1 acreditaba")
     }
 
-    @Test("un pack de la 2.0 suma al ORO comprado lo que dice products.json")
+    @Test("un pack de la 2.0 suma al blue comprado lo que dice products.json")
     func newPackCountsAsPurchased() async throws {
         let gameState = await makeGameState()
         let entry = try #require(try ProductCatalog.load(from: .main).products.first { $0.id == "com.fisuevolution.iap.oro_small" })
         let before = try #require(gameState.player?.meta)
         gameState.creditStorePurchase(entry, transactionID: "2.0-1")
         let after = try #require(gameState.player?.meta)
-        #expect(after.oro == before.oro + 160)
-        #expect(after.oroPurchasedLifetime == before.oroPurchasedLifetime + 160)
-        #expect(after.oroEarnedLifetime == before.oroEarnedLifetime)
+        #expect(after.blue == before.blue + 160)
+        #expect(after.bluePurchasedLifetime == before.bluePurchasedLifetime + 160)
+        #expect(after.blueEarnedLifetime == before.blueEarnedLifetime)
     }
 
-    @Test("la fila del pack de ORO dice cuánto ORO te da")
-    func oroPackRowSaysHowMuchItGives() async throws {
+    @Test("la fila del pack de blue dice cuánto blue te da")
+    func bluePackRowSaysHowMuchItGives() async throws {
         let gameState = await makeGameState()
 
-        let text = try #require(gameState.packRewardText(for: oroPack(amount: 750)))
+        let text = try #require(gameState.packRewardText(for: bluePack(amount: 750)))
 
         #expect(text.contains("750"))
         #expect(!text.contains("store.pack"), "quedó la clave de localización cruda en pantalla")
@@ -229,7 +229,7 @@ struct StorePacksTests {
             entitlement: .removeAds,
             skinId: nil,
             coinMinutes: nil,
-            oroAmount: nil
+            blueAmount: nil
         )
 
         #expect(gameState.packRewardText(for: removeAds) == nil)

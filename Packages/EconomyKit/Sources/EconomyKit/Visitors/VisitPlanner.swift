@@ -164,9 +164,9 @@ public enum VisitPlanner {
                 option("video", .forgiveWithVideo, video: true),
             ])
 
-        case let .exchange(costSeconds, oro, dailyOroCap):
-            if let dailyOroCap, state.meta.engagement.visitors.oroExchangedToday + oro > dailyOroCap { return nil }
-            return make([option("exchange", .exchange, coins: -costSeconds * coinsPerSecond, rewards: [.oro(oro)])])
+        case let .exchange(costSeconds, blue, dailyBlueCap):
+            if let dailyBlueCap, state.meta.engagement.visitors.blueExchangedToday + blue > dailyBlueCap { return nil }
+            return make([option("exchange", .exchange, coins: -costSeconds * coinsPerSecond, rewards: [.blue(blue)])])
 
         case let .sale(unitPick, priceMultiplier, tiersBelowFrontier):
             guard let unit = pick(unitPick, count: 1, maxTier: state.run.maxTierReached - tiersBelowFrontier),

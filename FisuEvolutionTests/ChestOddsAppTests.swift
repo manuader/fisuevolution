@@ -31,12 +31,12 @@ struct ChestOddsAppTests {
     func pendingChestsCountAgainstStock() async throws {
         let gameState = await makeGameState()
         gameState.debugUnlockFloors(throughTier: 12)
-        #expect(try #require(gameState.oroShopContext(chanceAllowed: true)).chestHasSomethingToGive)
+        #expect(try #require(gameState.blueShopContext(chanceAllowed: true)).chestHasSomethingToGive)
         gameState.player?.meta.chestsPending = 10_000
-        #expect(try !#require(gameState.oroShopContext(chanceAllowed: true)).chestHasSomethingToGive)
+        #expect(try !#require(gameState.blueShopContext(chanceAllowed: true)).chestHasSomethingToGive)
         gameState.player?.meta.chestsPending = 0
         gameState.player?.meta.prestigeChestsPending = 10_000
-        #expect(try !#require(gameState.oroShopContext(chanceAllowed: true)).chestHasSomethingToGive)
+        #expect(try !#require(gameState.blueShopContext(chanceAllowed: true)).chestHasSomethingToGive)
     }
 
     @Test("con la colección completa el cofre sigue vendiéndose, y paga plata")
@@ -46,7 +46,7 @@ struct ChestOddsAppTests {
         let all = try #require(gameState.content).skins.chestPool.map(\.id)
         gameState.player?.meta.ownedSkins.append(contentsOf: all)
         gameState.player?.meta.chestsPending = 3
-        #expect(try #require(gameState.oroShopContext(chanceAllowed: true)).chestHasSomethingToGive)
+        #expect(try #require(gameState.blueShopContext(chanceAllowed: true)).chestHasSomethingToGive)
         #expect(gameState.chestOdds == .coins)
     }
 }

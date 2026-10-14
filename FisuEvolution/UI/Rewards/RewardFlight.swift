@@ -62,7 +62,7 @@ enum RewardFlightPlan {
         switch reward {
         case .coinsSeconds, .extraSlots:
             return nil
-        case .oro(let amount):
+        case .blue(let amount):
             return amount > 0 ? RewardFlightItem(kind: .blue, destination: .blue, amount: Double(amount)) : nil
         case .skinChest(let count):
             return RewardFlightItem(kind: .chest, destination: .seals, amount: Double(count))

@@ -9,7 +9,7 @@ struct BlueBalanceHeader: View {
 
     var body: some View {
         HStack(spacing: Tokens.s8) {
-            OroBalancePill(text: text)
+            BlueBalancePill(text: text)
             Button(action: onStore) {
                 Text(verbatim: "+")
                     .font(.system(size: 24, weight: .black, design: .rounded))

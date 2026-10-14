@@ -21,10 +21,10 @@ public struct WheelConfig: Codable, Sendable, Equatable {
     public let schemaVersion: Int
     /// El cupo diario único: lo gastan los giros por video y los de blue.
     public let videoSpinsPerDay: Int
-    public let oroSpinCost: Int
+    public let blueSpinCost: Int
     /// Sólo un interruptor: 0 apaga el giro con blue en todas las tiendas. Con
     /// otro valor no suma giros aparte: el de blue gasta `videoSpinsPerDay`.
-    public let oroSpinsPerDay: Int
+    public let blueSpinsPerDay: Int
     /// Lo que dura la animación del giro (la usa la vista).
     public let spinSeconds: Double
     /// A qué segmento de plata va el peso del cofre cuando el cofre no tiene
@@ -35,16 +35,16 @@ public struct WheelConfig: Codable, Sendable, Equatable {
     public init(
         schemaVersion: Int,
         videoSpinsPerDay: Int,
-        oroSpinCost: Int,
-        oroSpinsPerDay: Int,
+        blueSpinCost: Int,
+        blueSpinsPerDay: Int,
         spinSeconds: Double,
         chestFallbackSegmentId: String,
         segments: [Segment]
     ) {
         self.schemaVersion = schemaVersion
         self.videoSpinsPerDay = videoSpinsPerDay
-        self.oroSpinCost = oroSpinCost
-        self.oroSpinsPerDay = oroSpinsPerDay
+        self.blueSpinCost = blueSpinCost
+        self.blueSpinsPerDay = blueSpinsPerDay
         self.spinSeconds = spinSeconds
         self.chestFallbackSegmentId = chestFallbackSegmentId
         self.segments = segments
@@ -81,8 +81,8 @@ public struct WheelConfig: Codable, Sendable, Equatable {
 
     public func validate() throws {
         guard videoSpinsPerDay > 0 else { throw ValidationError.outOfRange("videoSpinsPerDay") }
-        guard oroSpinCost > 0 else { throw ValidationError.outOfRange("oroSpinCost") }
-        guard oroSpinsPerDay >= 0 else { throw ValidationError.outOfRange("oroSpinsPerDay") }
+        guard blueSpinCost > 0 else { throw ValidationError.outOfRange("blueSpinCost") }
+        guard blueSpinsPerDay >= 0 else { throw ValidationError.outOfRange("blueSpinsPerDay") }
         guard spinSeconds > 0, spinSeconds.isFinite else { throw ValidationError.outOfRange("spinSeconds") }
         var ids: Set<String> = []
         for segment in segments {

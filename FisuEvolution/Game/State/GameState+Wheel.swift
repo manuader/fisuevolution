@@ -19,14 +19,14 @@ struct WheelAvailability: Equatable {
     let videoLeft: Int
     /// El mismo cupo, visto desde el botón de blue: 0 donde la tienda no
     /// permite azar con blue.
-    let oroLeft: Int
-    let oroCost: Int
-    let canPayOro: Bool
+    let blueLeft: Int
+    let blueCost: Int
+    let canPayBlue: Bool
     let canRepeat: Bool
 
     var hasFreeSpin: Bool { bonus > 0 || videoLeft > 0 }
 
-    static let none = WheelAvailability(bonus: 0, videoLeft: 0, oroLeft: 0, oroCost: 0, canPayOro: false, canRepeat: false)
+    static let none = WheelAvailability(bonus: 0, videoLeft: 0, blueLeft: 0, blueCost: 0, canPayBlue: false, canRepeat: false)
 }
 
 /// La Ruleta en la partida (PLAN-v2 E5).
@@ -52,20 +52,20 @@ extension GameState {
     func wheelAvailability(storefrontAllows: Bool, now: TimeInterval = Date().timeIntervalSince1970) -> WheelAvailability {
         guard let content, let wheelConfig = effectiveWheel, let player else { return .none }
         let state = Self.wheelState(player.meta.engagement.wheel, at: now)
-        let oroLeft = storefrontAllows ? WheelRoller.spinsLeft(.oro, state: state, config: wheelConfig) : 0
+        let blueLeft = storefrontAllows ? WheelRoller.spinsLeft(.blue, state: state, config: wheelConfig) : 0
         return WheelAvailability(
             bonus: WheelRoller.spinsLeft(.bonus, state: state, config: wheelConfig),
             videoLeft: WheelRoller.spinsLeft(.video, state: state, config: wheelConfig),
-            oroLeft: oroLeft,
-            oroCost: content.wheel.oroSpinCost,
-            canPayOro: oroLeft > 0 && player.meta.oro >= content.wheel.oroSpinCost,
+            blueLeft: blueLeft,
+            blueCost: content.wheel.blueSpinCost,
+            canPayBlue: blueLeft > 0 && player.meta.blue >= content.wheel.blueSpinCost,
             canRepeat: state.repeatableSegmentId != nil
         )
     }
 
     /// Gira. El premio se sortea y se acredita acá, y se guarda en el acto: si
     /// matan la app en medio de la animación, el giro ya se gastó y el premio ya
-    /// es del jugador. El video ya se vio antes de llamar; el ORO se cobra acá,
+    /// es del jugador. El video ya se vio antes de llamar; el blue se cobra acá,
     /// y sólo si el giro sale.
     @discardableResult
     func spinWheel(
@@ -75,9 +75,9 @@ extension GameState {
     ) -> WheelSpinOutcome? {
         guard let content, let wheelConfig = effectiveWheel, var player else { return nil }
         var wheel = Self.wheelState(player.meta.engagement.wheel, at: now)
-        if source == .oro {
-            guard storefrontAllows, WheelRoller.spinsLeft(.oro, state: wheel, config: wheelConfig) > 0,
-                  player.meta.spendOro(content.wheel.oroSpinCost)
+        if source == .blue {
+            guard storefrontAllows, WheelRoller.spinsLeft(.blue, state: wheel, config: wheelConfig) > 0,
+                  player.meta.spendBlue(content.wheel.blueSpinCost)
             else { return nil }
         }
         let segments = wheelSegments
@@ -96,7 +96,7 @@ extension GameState {
     }
 
     /// Lo que llama la vista: el cerrojo corta el segundo toque ANTES de cobrar
-    /// (el giro por ORO descuenta al instante) y se suelta si el giro no sale.
+    /// (el giro por blue descuenta al instante) y se suelta si el giro no sale.
     /// Quien lo tomó lo suelta al terminar la animación.
     @discardableResult
     func beginWheelSpin(

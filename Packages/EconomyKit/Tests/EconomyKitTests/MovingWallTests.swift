@@ -4,7 +4,7 @@ import Testing
 
 @Suite("Piso móvil para reencarnar")
 struct MovingWallTests {
-    /// Con mucho ORO por cobrar: lo único que puede frenar es la pared.
+    /// Con mucho blue por cobrar: lo único que puede frenar es la pared.
     private func ready(lastWall: Int, frontier: Int) -> PlayerState {
         var state = fxState()
         state.meta.lifetimeEarnings = 1e12
@@ -17,7 +17,7 @@ struct MovingWallTests {
         StandardEconomy(config: try fxConfig().tuned(EconomyKnobs(requiresLastRunWall: true)))
     }
 
-    @Test("sin la perilla, reencarnar sigue pidiendo sólo ORO: la v1")
+    @Test("sin la perilla, reencarnar sigue pidiendo sólo blue: la v1")
     func offIsV1() {
         let state = ready(lastWall: 4, frontier: 2)
         #expect(PrestigeCalculator.canReincarnate(state: state, economy: fxEconomy()))
@@ -38,7 +38,7 @@ struct MovingWallTests {
         #expect(PrestigeCalculator.canReincarnate(state: ready(lastWall: 0, frontier: 1), economy: try walled()))
     }
 
-    @Test("llegar a la pared no alcanza sin ORO")
+    @Test("llegar a la pared no alcanza sin blue")
     func theWallAloneIsNotEnough() throws {
         var state = ready(lastWall: 2, frontier: 2)
         state.meta.lifetimeEarnings = 0

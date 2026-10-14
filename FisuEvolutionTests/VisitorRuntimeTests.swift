@@ -107,7 +107,7 @@ struct VisitorRuntimeTests {
         let after = try #require(gameState.player)
         #expect(after.run.coins == before.run.coins, "no cobra ni paga")
         #expect(after.run.activeModifiers == before.run.activeModifiers, "no da nada")
-        #expect(after.meta.oro == before.meta.oro)
+        #expect(after.meta.blue == before.meta.blue)
         #expect(gameState.tower == beforeTower, "no se lleva a nadie ni deja paquetes")
         #expect(after.meta.engagement.visitors.visitsToday[scriptId] == 1, "la visita cuenta como hecha")
         #expect(after.meta.engagement.visitors.lastVisitor == visit.actorId)
@@ -259,21 +259,21 @@ struct VisitorRuntimeTests {
         #expect(gameState.stageRuntime.calledScript == nil)
     }
 
-    @Test("cambiar ORO con el Arbolito cuenta para el tope del día; el blue, no")
+    @Test("el cambio con tope del Arbolito cuenta para el tope del día; el de «arbolito_blue», no")
     func exchangesCountTowardsTheDailyCap() async throws {
         let gameState = await world()
         gameState.player?.meta.ownedSpecials.append("sp_arbolito")
         gameState.player?.run.coins = 1e30
         try arrive(gameState, "arbolito_cambio")
-        let oro = gameState.player?.meta.oro ?? 0
+        let blue = gameState.player?.meta.blue ?? 0
         #expect(gameState.chooseVisitOption("exchange"))
-        #expect(gameState.player?.meta.oro == oro + 1)
-        #expect(gameState.player?.meta.engagement.visitors.oroExchangedToday == 1)
+        #expect(gameState.player?.meta.blue == blue + 1)
+        #expect(gameState.player?.meta.engagement.visitors.blueExchangedToday == 1)
         gameState.sendStageActorAway()
         gameState.stageActorLeft(id: try #require(gameState.stageVisit?.id))
         try arrive(gameState, "arbolito_blue")
         #expect(gameState.chooseVisitOption("exchange"))
-        #expect(gameState.player?.meta.engagement.visitors.oroExchangedToday == 1)
+        #expect(gameState.player?.meta.engagement.visitors.blueExchangedToday == 1)
     }
 
     @Test("con alguien en escena nadie más entra, ni a la fuerza")
@@ -321,7 +321,7 @@ struct VisitorRuntimeTests {
         try arrive(gameState, "coach_reto")
         #expect(gameState.chooseVisitOption("challenge"))
         gameState.stageRuntime.calledScript = "arbolito_blue"
-        gameState.giveEarningsForPrestigeTesting(oro: 3)
+        gameState.giveEarningsForPrestigeTesting(blue: 3)
         gameState.confirmPrestige()
         #expect(gameState.stageChallenge == nil)
         #expect(gameState.stageRuntime.calledScript == nil)

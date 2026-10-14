@@ -6,7 +6,7 @@ struct GameContent: Sendable {
     var economy: EconomyConfig
     let tiers: TierRepository
     /// La Torre (F7): mapeo tier→piso validado, derivado de `economy.floors`, CON
-    /// los lugares extra del permanente de ORO aplicados (`GameState.applyExtraSlots`).
+    /// los lugares extra del permanente de blue aplicados (`GameState.applyExtraSlots`).
     /// Es lo que leen la torre, el reconciliador, el mapa y la escena.
     var floorTable: FloorTable
     /// La misma tabla tal como la declara `economy.json`, sin lugares extra.
@@ -38,8 +38,8 @@ struct GameContent: Sendable {
     let wheel: WheelConfig
     /// Las ofertas de 24 h (PLAN-v2 E6).
     let offers: OffersCatalog
-    /// La tienda de ORO: consumibles, permanentes y suerte (PLAN-v2 E6).
-    let oroShop: OroShopCatalog
+    /// La tienda de blue: consumibles, permanentes y suerte (PLAN-v2 E6).
+    let blueShop: BlueShopCatalog
 }
 
 /// Decodes and validates the bundled JSON content. Any failure produces a typed
@@ -71,7 +71,7 @@ enum GameContentLoader {
         let treasures: TreasuresConfig = try decode("treasures", from: bundle)
         let wheel: WheelConfig = try decode("wheel", from: bundle)
         let offers: OffersCatalog = try decode("offers", from: bundle)
-        let oroShop: OroShopCatalog = try decode("oro_shop", from: bundle)
+        let blueShop: BlueShopCatalog = try decode("blue_shop", from: bundle)
 
         let tiers: TierRepository
         do {
@@ -143,7 +143,7 @@ enum GameContentLoader {
         try validatePrize(treasures.validate, file: "treasures.json")
         try validatePrize(wheel.validate, file: "wheel.json")
         try validatePrize(offers.validate, file: "offers.json")
-        try validatePrize({ try validate(oroShop: oroShop, floorIDs: floorIDs, packages: packages) }, file: "oro_shop.json")
+        try validatePrize({ try validate(blueShop: blueShop, floorIDs: floorIDs, packages: packages) }, file: "blue_shop.json")
 
         return GameContent(
             economy: economy,
@@ -172,7 +172,7 @@ enum GameContentLoader {
             treasures: treasures,
             wheel: wheel,
             offers: offers,
-            oroShop: oroShop
+            blueShop: blueShop
         )
     }
 
@@ -219,9 +219,9 @@ enum GameContentLoader {
                 guard let seconds = achievement.reward.seconds, seconds > 0 else {
                     throw fail("\(achievement.id): coins necesita seconds > 0")
                 }
-            case .oro:
+            case .blue:
                 guard let amount = achievement.reward.amount, amount > 0 else {
-                    throw fail("\(achievement.id): oro necesita amount > 0")
+                    throw fail("\(achievement.id): blue necesita amount > 0")
                 }
             case .freeBoost:
                 guard let boostID = achievement.reward.boostId,
@@ -280,25 +280,25 @@ enum GameContentLoader {
 
     /// Además de lo que valida el catálogo: un número que no es finito no se cobra ni se
     /// muestra, y un nivel de "mejor proveedor" que `packages.json` no conoce no se vende.
-    static func validate(oroShop: OroShopCatalog, floorIDs: Set<String>, packages: PackagesConfig) throws {
-        try oroShop.validate(floorIDs: floorIDs)
-        for item in oroShop.items {
+    static func validate(blueShop: BlueShopCatalog, floorIDs: Set<String>, packages: PackagesConfig) throws {
+        try blueShop.validate(floorIDs: floorIDs)
+        for item in blueShop.items {
             if let growth = item.priceGrowthPerPurchase, !growth.isFinite {
-                throw OroShopContentError.notFinite(item.id)
+                throw BlueShopContentError.notFinite(item.id)
             }
             if item.levels.contains(where: { !$0.value.isFinite }) {
-                throw OroShopContentError.notFinite(item.id)
+                throw BlueShopContentError.notFinite(item.id)
             }
             if item.perk == .extraSlots, item.levels.contains(where: { $0.value < 1 || $0.value != $0.value.rounded() }) {
-                throw OroShopContentError.extraSlotsNotWholeNumber(item.id)
+                throw BlueShopContentError.extraSlotsNotWholeNumber(item.id)
             }
             if item.perk == .bestSupplier, item.levels.contains(where: { $0.value >= Double(packages.tierRatioByBestSupplierLevel.count) }) {
-                throw OroShopContentError.supplierLevelUnknown(item.id)
+                throw BlueShopContentError.supplierLevelUnknown(item.id)
             }
         }
     }
 
-    enum OroShopContentError: Error, Equatable {
+    enum BlueShopContentError: Error, Equatable {
         case notFinite(String)
         case supplierLevelUnknown(String)
         case extraSlotsNotWholeNumber(String)

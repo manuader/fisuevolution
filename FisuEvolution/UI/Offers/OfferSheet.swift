@@ -136,9 +136,9 @@ struct OfferSheet: View {
     @ViewBuilder private var chestOdds: some View {
         switch ChestOddsDisplay.make(for: gameState.chestOdds) {
         case .table(let rows):
-            OddsDisclosureView(titleKey: "oroShop.chest.odds", rows: rows, identifier: "offer.odds")
+            OddsDisclosureView(titleKey: "blueShop.chest.odds", rows: rows, identifier: "offer.odds")
         case .collectionComplete:
-            Text("oroShop.chest.coins")
+            Text("blueShop.chest.coins")
                 .font(Tokens.caption)
                 .foregroundStyle(Color("PaletteInk").opacity(0.7))
                 .multilineTextAlignment(.center)

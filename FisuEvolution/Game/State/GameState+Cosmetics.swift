@@ -1,7 +1,7 @@
 import EconomyKit
 import Foundation
 
-/// Una fila del estante de Cosméticos: una pinta de ORO de `skins.json`.
+/// Una fila del estante de Cosméticos: una pinta de blue de `skins.json`.
 struct CosmeticRow: Identifiable, Equatable {
     enum Kind: Equatable {
         /// Una familia dibujada para los 43.
@@ -16,8 +16,8 @@ struct CosmeticRow: Identifiable, Equatable {
     let owned: Bool
 
     static func rows(skins: SkinsConfig, owned: Set<String>) -> [CosmeticRow] {
-        skins.oroSkinIDs.compactMap { id in
-            guard let entry = skins.entry(id: id), let price = entry.oroPrice else { return nil }
+        skins.blueSkinIDs.compactMap { id in
+            guard let entry = skins.entry(id: id), let price = entry.bluePrice else { return nil }
             let kind: Kind = entry.family.map(Kind.family(name:)) ?? .outfit(characterType: entry.characterType)
             return CosmeticRow(id: id, kind: kind, price: price, owned: owned.contains(id))
         }

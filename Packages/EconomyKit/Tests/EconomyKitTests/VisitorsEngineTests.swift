@@ -45,7 +45,7 @@ func fxVisitors(scripts: [VisitorsConfig.Script]? = nil, coinsSecondsScale: Doub
                       reward: .modifier(effect: .spawnCostMultiplier, magnitude: 0.7, seconds: 90)),
             ])),
             fxScript("blue", visitor: "sp_cryptobro", eventOnly: true,
-                     mechanic: .exchange(costSeconds: 3600, oro: 1, dailyOroCap: nil)),
+                     mechanic: .exchange(costSeconds: 3600, blue: 1, dailyBlueCap: nil)),
         ]
     )
 }
@@ -71,7 +71,7 @@ struct VisitorsConfigTests {
            "mechanic": {"kind": "fine", "seconds": 180, "capFraction": 0.08,
                         "stamp": {"kind": "modifier", "effect": "incomeMultiplier", "magnitude": 1.25, "seconds": 180}}},
           {"id": "e", "visitor": "npc_comisario", "weight": 1, "minTier": 1, "dailyCap": 1, "eventOnly": true,
-           "mechanic": {"kind": "exchange", "costSeconds": 3600, "oro": 1}},
+           "mechanic": {"kind": "exchange", "costSeconds": 3600, "blue": 1}},
           {"id": "s", "visitor": "npc_comisario", "weight": 1, "minTier": 1, "dailyCap": 1,
            "mechanic": {"kind": "sale", "pick": "highestDuplicate", "priceMultiplier": 4, "tiersBelowFrontier": 2}},
           {"id": "t", "visitor": "npc_comisario", "weight": 1, "minTier": 1, "dailyCap": 1,
@@ -91,7 +91,7 @@ struct VisitorsConfigTests {
         try config.validate()
         #expect(config.script(id: "g")?.eventOnly == false)
         #expect(config.script(id: "e")?.eventOnly == true)
-        #expect(config.script(id: "e")?.mechanic == .exchange(costSeconds: 3600, oro: 1, dailyOroCap: nil))
+        #expect(config.script(id: "e")?.mechanic == .exchange(costSeconds: 3600, blue: 1, dailyBlueCap: nil))
         #expect(config.script(id: "c")?.mechanic == .challenge(
             taps: 40, windowSeconds: 30,
             rewards: [.modifier(effect: .incomeMultiplier, magnitude: 2, seconds: 90)], videoDoubles: false

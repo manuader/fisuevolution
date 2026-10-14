@@ -170,7 +170,7 @@ extension GameState {
             announceReward(
                 checked.rewards, coins: max(0, checked.coins) + grant(checked.rewards, source: source, now: now)
             )
-            noteOroExchanged(checked, scriptId: offer.scriptId)
+            noteBlueExchanged(checked, scriptId: offer.scriptId)
             // La plata ya está; la salida, a la vista y en su turno (E1). Si al
             // llegar su turno ya no es válida se descarta y la plata queda: el
             // trato se cerró con lo que había (duda 6 de E4a).
@@ -250,14 +250,14 @@ extension GameState {
         finishVisit(saying: "visit.gossip.next", [VisitCopy.text(event.titleKey)])
     }
 
-    /// El tope diario de ORO es del cambio con tope (el Arbolito de siempre); el
-    /// blue del Cepo no lo usa ni lo gasta.
-    private func noteOroExchanged(_ option: VisitOption, scriptId: String) {
+    /// El tope diario de blue es del cambio con tope (el Arbolito de siempre); el
+    /// Blue del Cepo no lo usa ni lo gasta.
+    private func noteBlueExchanged(_ option: VisitOption, scriptId: String) {
         guard option.kind == .exchange, var player,
               case .exchange(_, _, let cap?) = content?.visitors.script(id: scriptId)?.mechanic, cap > 0
         else { return }
-        player.meta.engagement.visitors.oroExchangedToday += option.rewards.reduce(0) { total, reward in
-            if case .oro(let amount) = reward { return total + amount }
+        player.meta.engagement.visitors.blueExchangedToday += option.rewards.reduce(0) { total, reward in
+            if case .blue(let amount) = reward { return total + amount }
             return total
         }
         self.player = player

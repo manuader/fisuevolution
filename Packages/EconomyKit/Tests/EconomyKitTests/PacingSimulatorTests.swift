@@ -6,7 +6,7 @@ import Testing
 
 /// Escalera larga a propósito. Con la fixture chica (4 tiers) el bot llega a
 /// dios en la primera sesión y `run` corta ahí, o sea ANTES de la primera
-/// reencarnación — que es el único momento en el que entra ORO y justo lo que
+/// reencarnación — que es el único momento en el que entra blue y justo lo que
 /// estos tests miden.
 func upTiers(maxTier: Int = 20) throws -> TierRepository {
     let types = (1...maxTier).map { tier in
@@ -20,8 +20,8 @@ func upTiers(maxTier: Int = 20) throws -> TierRepository {
     return try TierRepository(types: types)
 }
 
-/// Espejo chico de `economy.json`: las mismas fórmulas con un `oro.divisor`
-/// bajísimo, para que el ORO llegue dentro del horizonte del test (con el
+/// Espejo chico de `economy.json`: las mismas fórmulas con un `blue.divisor`
+/// bajísimo, para que el blue llegue dentro del horizonte del test (con el
 /// divisor real harían falta cientos de días simulados por assert).
 ///
 /// La compuerta va con la distancia REAL del juego: el bot la consume
@@ -50,7 +50,7 @@ func upConfig(maxTier: Int = 20, gateTierDistance: Int = 5, capacity: Int = 10) 
         hire: .init(defaultCostMultiplier: 600, defaultCostGrowth: 1.2,
                     priceGrowthPerTier: 1.5, gateTierDistance: gateTierDistance),
         charUpgrades: .init(baseCostMultiplier: 50, costGrowth: 4.0, effectStepPerLevel: 1.0, maxLevel: 19),
-        oro: .init(divisor: 1000, exponent: 0.45, globalMultiplierPerOro: 0.18),
+        blue: .init(divisor: 1000, exponent: 0.45, globalMultiplierPerBlue: 0.18),
         critChanceBase: 0,
         critMultiplier: 5,
         offlineEfficiencyBase: 0.35,
@@ -73,7 +73,7 @@ func upCheapLines() -> [PermanentUpgradeLine] {
     ]
 }
 
-/// Catálogo inalcanzable: un solo nivel que cuesta más ORO del que la economía
+/// Catálogo inalcanzable: un solo nivel que cuesta más blue del que la economía
 /// entera produce en el horizonte.
 func upUnreachableLines() -> [PermanentUpgradeLine] {
     [
@@ -177,7 +177,7 @@ extension PacingSimulatorKnobTests {
     }
 }
 
-/// El bot compra las siete mejoras permanentes con ORO. Sin esto todo
+/// El bot compra las siete mejoras permanentes con blue. Sin esto todo
 /// `derivedEffects` viajaba en cero durante la simulación entera —le faltaban el
 /// **tap ×6,0** y el **income ×3,0** que el jugador real sí tiene— y calibrar
 /// knobs contra ese bot era tunear contra una ficción
@@ -189,10 +189,10 @@ extension PacingSimulatorKnobTests {
 /// frase.
 @Suite("PacingSimulator: las mejoras permanentes")
 struct PacingSimulatorUpgradeTests {
-    @Test("el bot gasta el ORO de la reencarnación en mejoras permanentes")
+    @Test("el bot gasta el blue de la reencarnación en mejoras permanentes")
     func botBuysPermanentUpgrades() throws {
         let report = try upSimulator(upgrades: upCheapLines()).run(maxDays: 5)
-        #expect(report.reincarnations > 0, "sin reencarnación no hay ORO que gastar")
+        #expect(report.reincarnations > 0, "sin reencarnación no hay blue que gastar")
         let levels = report.finalPermanentUpgradeLevels
         #expect(levels.values.reduce(0, +) > 0, "niveles comprados: \(levels)")
     }
@@ -224,7 +224,7 @@ struct PacingSimulatorUpgradeTests {
     @Test("maxedUpgradesActiveSeconds es nil mientras no estén las siete al tope")
     func maxedIsNilWhenUnreachable() throws {
         let report = try upSimulator(upgrades: upUnreachableLines()).run(maxDays: 5)
-        #expect(report.reincarnations > 0, "el bot tiene que haber tenido ORO y no haberle alcanzado")
+        #expect(report.reincarnations > 0, "el bot tiene que haber tenido blue y no haberle alcanzado")
         #expect(report.maxedUpgradesActiveSeconds == nil)
         #expect(report.maxedUpgradesWall == nil)
         #expect(report.reincarnationsAtMaxedUpgrades == nil)
@@ -258,7 +258,7 @@ struct PacingSimulatorUpgradeTests {
 struct PacingSimulatorInstrumentTests {
     @Test("la política de reencarnación por defecto es duplicar, como siempre")
     func defaultPolicyIsDoubling() {
-        #expect(PacingSimulator.HumanModel().reincarnation == .whenOroMultiplies(1))
+        #expect(PacingSimulator.HumanModel().reincarnation == .whenBlueMultiplies(1))
     }
 
     @Test("subir el umbral hace que el bot reencarne menos veces")
@@ -267,7 +267,7 @@ struct PacingSimulatorInstrumentTests {
         let atTheWall = try PacingSimulator(
             config: upConfig(),
             tiers: upTiers(),
-            human: .init(reincarnation: .whenOroMultiplies(1_000)),
+            human: .init(reincarnation: .whenBlueMultiplies(1_000)),
             upgrades: upCheapLines()
         ).run(maxDays: 5)
         #expect(
@@ -278,7 +278,7 @@ struct PacingSimulatorInstrumentTests {
 
     /// La queja del dueño del 2026-08-22 —"en menos de una hora llegué de fisura
     /// a dios SIN REINICIAR"— es una política que el simulador no podía correr:
-    /// subir el umbral no alcanza, porque el múltiplo se aplica sobre el ORO
+    /// subir el umbral no alcanza, porque el múltiplo se aplica sobre el blue
     /// histórico y ése arranca en CERO. `N × 0 = 0` para cualquier N finito, así
     /// que la primera reencarnación caía igual con umbral 1 que con 1.000 y la
     /// corrida "sin reencarnar" era inexpresable.
@@ -294,7 +294,7 @@ struct PacingSimulatorInstrumentTests {
         #expect(sinReencarnar.reincarnations == 0)
         #expect(sinReencarnar.reincarnationActiveSeconds.isEmpty)
         #expect(sinReencarnar.firstReincarnationWall == nil)
-        // Sin reencarnar no entra ORO, y sin ORO no hay mejoras permanentes: es
+        // Sin reencarnar no entra blue, y sin blue no hay mejoras permanentes: es
         // exactamente el jugador del que se queja el dueño.
         #expect(sinReencarnar.finalPermanentUpgradeLevels.isEmpty)
         #expect(sinReencarnar.maxedUpgradesActiveSeconds == nil)
@@ -568,7 +568,7 @@ struct PermanentUpgradesTests {
     @Test("cada línea suma su efecto por nivel")
     func everyLineAddsItsEffect() {
         var state = fxState()
-        state.meta.oroUpgradeLevels = [
+        state.meta.blueUpgradeLevels = [
             "income": 4, "tap": 2, "offline": 3, "spawn": 5, "crit": 6, "golden": 2, "prestige": 4,
         ]
         PermanentUpgrades.recomputeDerivedEffects(state: &state, lines: lines(), economy: fxEconomy())
@@ -587,8 +587,8 @@ struct PermanentUpgradesTests {
     @Test("el bonus de prestigio recalcula el multiplicador global")
     func prestigeBonusFeedsTheGlobalMultiplier() {
         var state = fxState()
-        state.meta.oroEarnedLifetime = 100
-        state.meta.oroUpgradeLevels = ["prestige": 4]
+        state.meta.blueEarnedLifetime = 100
+        state.meta.blueUpgradeLevels = ["prestige": 4]
         PermanentUpgrades.recomputeDerivedEffects(state: &state, lines: lines(), economy: fxEconomy())
         // 1 + 100 × 0,02 × (1 + 0,02)
         #expect(abs(state.meta.globalMultiplier - 3.04) < 1e-9)
@@ -627,7 +627,7 @@ struct PermanentUpgradesTests {
             .init(id: "crit", effect: .critChance, magnitudePerLevel: 0.025, maxLevel: 10, baseCost: 1, costGrowth: 1.2),
         ]
         var viejo = fxState()
-        viejo.meta.oroUpgradeLevels = ["income": 20, "tap": 20, "crit": 25]
+        viejo.meta.blueUpgradeLevels = ["income": 20, "tap": 20, "crit": 25]
         PermanentUpgrades.recomputeDerivedEffects(state: &viejo, lines: catalogoNuevo, economy: fxEconomy())
         #expect(abs(viejo.meta.derivedEffects.incomeMultiplier - 3.0) < 1e-9)
         #expect(abs(viejo.meta.derivedEffects.tapMultiplier - 6.0) < 1e-9)
@@ -636,7 +636,7 @@ struct PermanentUpgradesTests {
         // Y da exactamente lo mismo que un save al tope nuevo: el save viejo no
         // puede quedar ni mejor ni peor que el que compró las diez.
         var alTope = fxState()
-        alTope.meta.oroUpgradeLevels = ["income": 10, "tap": 10, "crit": 10]
+        alTope.meta.blueUpgradeLevels = ["income": 10, "tap": 10, "crit": 10]
         PermanentUpgrades.recomputeDerivedEffects(state: &alTope, lines: catalogoNuevo, economy: fxEconomy())
         #expect(viejo.meta.derivedEffects == alTope.meta.derivedEffects)
     }

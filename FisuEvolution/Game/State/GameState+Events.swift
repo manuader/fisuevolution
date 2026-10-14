@@ -349,7 +349,7 @@ extension GameState {
         if destination == .store { return true }
         guard unlockedTabsInBarOrder.contains(.upgrades) else { return false }
         guard let focus else { return true }
-        return oroShopRows(chanceAllowed: false).first { $0.id == focus }.map { $0.quote.blocker != .maxed } ?? false
+        return blueShopRows(chanceAllowed: false).first { $0.id == focus }.map { $0.quote.blocker != .maxed } ?? false
     }
 
     /// La compra con plata real se acreditó: durante las próximas horas el evento de la Tienda no sale.

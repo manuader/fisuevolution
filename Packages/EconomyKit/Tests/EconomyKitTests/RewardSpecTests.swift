@@ -9,7 +9,7 @@ struct RewardSpecTests {
     static func sample(_ kind: RewardSpec.Kind) -> RewardSpec {
         switch kind {
         case .coinsSeconds: .coinsSeconds(900)
-        case .oro: .oro(3)
+        case .blue: .blue(3)
         case .package: .package(1)
         case .skinChest: .skinChest(1)
         case .modifier: .modifier(effect: .incomeMultiplier, magnitude: 1.5, seconds: 600)
@@ -38,7 +38,7 @@ struct RewardSpecTests {
           {"kind": "coinsSeconds", "seconds": 900},
           {"kind": "modifier", "effect": "spawnCostMultiplier", "magnitude": 0.7, "seconds": 90},
           {"kind": "package", "count": 1},
-          {"kind": "oro", "amount": 1},
+          {"kind": "blue", "amount": 1},
           {"kind": "clearBoostCooldowns"}
         ]
         """
@@ -47,7 +47,7 @@ struct RewardSpecTests {
             .coinsSeconds(900),
             .modifier(effect: .spawnCostMultiplier, magnitude: 0.7, seconds: 90),
             .package(1),
-            .oro(1),
+            .blue(1),
             .clearBoostCooldowns,
         ])
     }
@@ -63,7 +63,7 @@ struct RewardSpecTests {
     func videoDoublesAmountsAndDurations() {
         #expect(RewardSpec.coinsSeconds(900).scaled(by: 2) == .coinsSeconds(1800))
         #expect(RewardSpec.package(1).scaled(by: 2) == .package(2))
-        #expect(RewardSpec.oro(1).scaled(by: 2) == .oro(2))
+        #expect(RewardSpec.blue(1).scaled(by: 2) == .blue(2))
         #expect(RewardSpec.wheelSpin(1).scaled(by: 2) == .wheelSpin(2))
         // Un −30 % al doble sería un −60 % que nadie diseñó: lo que crece es el tiempo.
         #expect(RewardSpec.modifier(effect: .spawnCostMultiplier, magnitude: 0.7, seconds: 60).scaled(by: 2)

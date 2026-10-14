@@ -14,8 +14,8 @@ public struct EconomyKnobs: Codable, Sendable, Equatable {
     public var costGrowthStepFromFloorId: String?
     public var inheritsPassiveUnlocks: Bool?
     public var floorCapacity: Int?
-    public var oroDivisor: Double?
-    public var oroExponent: Double?
+    public var blueDivisor: Double?
+    public var blueExponent: Double?
 
     public init(
         defaultCostGrowth: Double? = nil,
@@ -28,8 +28,8 @@ public struct EconomyKnobs: Codable, Sendable, Equatable {
         costGrowthStepFromFloorId: String? = nil,
         inheritsPassiveUnlocks: Bool? = nil,
         floorCapacity: Int? = nil,
-        oroDivisor: Double? = nil,
-        oroExponent: Double? = nil
+        blueDivisor: Double? = nil,
+        blueExponent: Double? = nil
     ) {
         self.requiresLastRunWall = requiresLastRunWall
         self.staffedFloorBonus = staffedFloorBonus
@@ -41,8 +41,8 @@ public struct EconomyKnobs: Codable, Sendable, Equatable {
         self.costGrowthStepFromFloorId = costGrowthStepFromFloorId
         self.inheritsPassiveUnlocks = inheritsPassiveUnlocks
         self.floorCapacity = floorCapacity
-        self.oroDivisor = oroDivisor
-        self.oroExponent = oroExponent
+        self.blueDivisor = blueDivisor
+        self.blueExponent = blueExponent
     }
 }
 
@@ -58,7 +58,7 @@ extension EconomyConfig {
     public func tuned(_ knobs: EconomyKnobs) throws -> EconomyConfig {
         guard var root = try JSONSerialization.jsonObject(with: JSONEncoder().encode(self)) as? [String: Any],
               var hire = root["hire"] as? [String: Any],
-              var oro = root["oro"] as? [String: Any]
+              var blue = root["blue"] as? [String: Any]
         else { throw EconomyKnobsError.notAnObject }
         if let value = knobs.defaultCostGrowth { hire["defaultCostGrowth"] = value }
         if let value = knobs.mergeRefundCounts { hire["mergeRefundCounts"] = value }
@@ -69,10 +69,10 @@ extension EconomyConfig {
         if let value = knobs.costGrowthStepPerFloor { hire["costGrowthStepPerFloor"] = value }
         if let value = knobs.costGrowthStepFromFloorId { hire["costGrowthStepFromFloorId"] = value }
         if let value = knobs.staffedFloorBonus { root["staffedFloorBonus"] = value }
-        if let value = knobs.requiresLastRunWall { oro["requiresLastRunWall"] = value }
-        if let value = knobs.inheritsPassiveUnlocks { oro["inheritsPassiveUnlocks"] = value }
-        if let value = knobs.oroDivisor { oro["divisor"] = value }
-        if let value = knobs.oroExponent { oro["exponent"] = value }
+        if let value = knobs.requiresLastRunWall { blue["requiresLastRunWall"] = value }
+        if let value = knobs.inheritsPassiveUnlocks { blue["inheritsPassiveUnlocks"] = value }
+        if let value = knobs.blueDivisor { blue["divisor"] = value }
+        if let value = knobs.blueExponent { blue["exponent"] = value }
         if let capacity = knobs.floorCapacity, let floors = root["floors"] as? [[String: Any]] {
             root["floors"] = floors.map { floor in
                 var floor = floor
@@ -81,7 +81,7 @@ extension EconomyConfig {
             }
         }
         root["hire"] = hire
-        root["oro"] = oro
+        root["blue"] = blue
         return try JSONDecoder().decode(EconomyConfig.self, from: JSONSerialization.data(withJSONObject: root))
     }
 }

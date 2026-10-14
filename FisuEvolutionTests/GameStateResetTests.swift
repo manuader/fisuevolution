@@ -28,10 +28,10 @@ struct GameStateResetTests {
         return World(gameState: gameState, backups: backups, repository: repository)
     }
 
-    private func oroPack(amount: Int) -> ProductCatalog.Entry {
+    private func bluePack(amount: Int) -> ProductCatalog.Entry {
         ProductCatalog.Entry(
-            id: "pack.oro", type: "consumable", entitlement: .oro,
-            skinId: nil, coinMinutes: nil, oroAmount: amount
+            id: "pack.blue", type: "consumable", entitlement: .blue,
+            skinId: nil, coinMinutes: nil, blueAmount: amount
         )
     }
 
@@ -42,40 +42,40 @@ struct GameStateResetTests {
 
     // MARK: Lo comprado
 
-    @Test("el ORO comprado que no se gastó sobrevive entero; el ganado no")
-    func unspentPurchasedOroSurvives() async throws {
+    @Test("el blue comprado que no se gastó sobrevive entero; el ganado no")
+    func unspentPurchasedBlueSurvives() async throws {
         let world = await makeWorld()
         let gameState = world.gameState
-        gameState.creditStorePurchase(oroPack(amount: 250), transactionID: "tx-1")
-        gameState.player?.meta.oro += 100  // ORO ganado jugando
+        gameState.creditStorePurchase(bluePack(amount: 250), transactionID: "tx-1")
+        gameState.player?.meta.blue += 100  // Blue ganado jugando
         let plan = try #require(gameState.resetPlan())
         let outcome = await gameState.resetGame(plan, repushEntitlements: {})
         #expect(outcome == .done)
-        #expect(gameState.player?.meta.oro == 250, "min(350, 250)")
-        #expect(gameState.player?.meta.oroPurchasedLifetime == 250, "lo comprado sigue contando")
+        #expect(gameState.player?.meta.blue == 250, "min(350, 250)")
+        #expect(gameState.player?.meta.bluePurchasedLifetime == 250, "lo comprado sigue contando")
     }
 
-    @Test("el ORO comprado que se gastó no se resucita: oro = min(saldo, comprado)")
-    func spentPurchasedOroStaysSpent() async throws {
+    @Test("el blue comprado que se gastó no se resucita: blue = min(saldo, comprado)")
+    func spentPurchasedBlueStaysSpent() async throws {
         let world = await makeWorld()
         let gameState = world.gameState
-        gameState.creditStorePurchase(oroPack(amount: 250), transactionID: "tx-1")
-        #expect(gameState.player?.meta.spendOro(200) == true)
+        gameState.creditStorePurchase(bluePack(amount: 250), transactionID: "tx-1")
+        #expect(gameState.player?.meta.spendBlue(200) == true)
         let plan = try #require(gameState.resetPlan())
         await gameState.resetGame(plan, repushEntitlements: {})
-        #expect(gameState.player?.meta.oro == 50, "min(50, 250)")
+        #expect(gameState.player?.meta.blue == 50, "min(50, 250)")
     }
 
     @Test("una compra re-entregada después del reset no se acredita dos veces")
     func noDoubleCredit() async throws {
         let world = await makeWorld()
         let gameState = world.gameState
-        gameState.creditStorePurchase(oroPack(amount: 250), transactionID: "tx-1")
+        gameState.creditStorePurchase(bluePack(amount: 250), transactionID: "tx-1")
         let plan = try #require(gameState.resetPlan())
         await gameState.resetGame(plan, repushEntitlements: {})
-        #expect(gameState.player?.meta.oro == 250)
-        gameState.creditStorePurchase(oroPack(amount: 250), transactionID: "tx-1")
-        #expect(gameState.player?.meta.oro == 250, "la transacción ya estaba acreditada")
+        #expect(gameState.player?.meta.blue == 250)
+        gameState.creditStorePurchase(bluePack(amount: 250), transactionID: "tx-1")
+        #expect(gameState.player?.meta.blue == 250, "la transacción ya estaba acreditada")
     }
 
     @Test("sin anuncios y las skins compradas sobreviven, y los entitlements se re-empujan")
@@ -110,13 +110,13 @@ struct GameStateResetTests {
     func backupHoldsTheOldGame() async throws {
         let world = await makeWorld()
         let gameState = world.gameState
-        gameState.creditStorePurchase(oroPack(amount: 250), transactionID: "tx-1")
-        gameState.player?.meta.oro += 77
+        gameState.creditStorePurchase(bluePack(amount: 250), transactionID: "tx-1")
+        gameState.player?.meta.blue += 77
         let plan = try #require(gameState.resetPlan())
         await gameState.resetGame(plan, repushEntitlements: {})
         let file = try #require(resetFiles(in: world.backups).first)
         let saved = try JSONDecoder().decode(PlayerState.self, from: Data(contentsOf: world.backups.appending(path: file)))
-        #expect(saved.meta.oro == 327, "la copia es la de antes del reset, no la nueva")
+        #expect(saved.meta.blue == 327, "la copia es la de antes del reset, no la nueva")
         #expect(saved.meta.resetEpoch == 0)
     }
 
@@ -124,7 +124,7 @@ struct GameStateResetTests {
     func noBackupNoReset() async throws {
         let world = await makeWorld()
         let gameState = world.gameState
-        gameState.creditStorePurchase(oroPack(amount: 250), transactionID: "tx-1")
+        gameState.creditStorePurchase(bluePack(amount: 250), transactionID: "tx-1")
         gameState.repository = PlayerStateRepository(
             persistence: PersistenceController(inMemory: true),
             snapshotURL: world.repository.snapshotURL,
@@ -143,8 +143,8 @@ struct GameStateResetTests {
             .appending(path: "no-existe-\(UUID().uuidString)/save.json")
         let world = await makeWorld(snapshotURL: unwritable)
         let gameState = world.gameState
-        gameState.creditStorePurchase(oroPack(amount: 250), transactionID: "tx-1")
-        gameState.player?.meta.oro += 100
+        gameState.creditStorePurchase(bluePack(amount: 250), transactionID: "tx-1")
+        gameState.player?.meta.blue += 100
         await world.repository.save(try #require(gameState.player))  // CoreData con la de antes
         let before = try #require(gameState.player)
         let plan = try #require(gameState.resetPlan())
@@ -181,30 +181,30 @@ struct GameStateResetTests {
     func executesThePlan() async throws {
         let world = await makeWorld()
         let gameState = world.gameState
-        gameState.creditStorePurchase(oroPack(amount: 120), transactionID: "tx-1")
+        gameState.creditStorePurchase(bluePack(amount: 120), transactionID: "tx-1")
         let plan = try #require(gameState.resetPlan())
         await gameState.resetGame(plan, repushEntitlements: {})
         // La torre se reconcilia al arrancar (abre sus pestañas): se compara lo que el plan decide.
-        #expect(gameState.player?.meta.oro == plan.result.meta.oro)
+        #expect(gameState.player?.meta.blue == plan.result.meta.blue)
         #expect(gameState.player?.meta.resetEpoch == plan.result.meta.resetEpoch)
-        #expect(gameState.player?.meta.oroPurchases == plan.result.meta.oroPurchases)
+        #expect(gameState.player?.meta.bluePurchases == plan.result.meta.bluePurchases)
         #expect(gameState.player?.meta.creditedPurchases == plan.result.meta.creditedPurchases)
         #expect(gameState.player?.run.units == plan.result.run.units)
     }
 
-    // MARK: Pintas compradas con ORO
+    // MARK: Pintas compradas con blue
 
     private func skinPrice(_ gameState: GameState) throws -> Int {
-        try #require(gameState.content?.skins.oroPrice(of: "pijama"))
+        try #require(gameState.content?.skins.bluePrice(of: "pijama"))
     }
 
-    @Test("la pinta comprada con ORO sobrevive al reset, sigue puesta y la tienda no la cobra de nuevo")
-    func oroSkinSurvivesReset() async throws {
+    @Test("la pinta comprada con blue sobrevive al reset, sigue puesta y la tienda no la cobra de nuevo")
+    func blueSkinSurvivesReset() async throws {
         let world = await makeWorld()
         let gameState = world.gameState
         let cost = try skinPrice(gameState)
-        gameState.creditStorePurchase(oroPack(amount: cost * 3), transactionID: "tx-1")
-        #expect(gameState.buySkinWithOro(skinID: "pijama") == .bought)
+        gameState.creditStorePurchase(bluePack(amount: cost * 3), transactionID: "tx-1")
+        #expect(gameState.buySkinWithBlue(skinID: "pijama") == .bought)
         gameState.equipSkin(id: "pijama", forCharacterType: "homeless")
         gameState.player?.meta.milestoneSkins = ["de_cofre"]
         let plan = try #require(gameState.resetPlan())
@@ -216,20 +216,20 @@ struct GameStateResetTests {
         #expect(gameState.ownsSkin("pijama"))
         #expect(gameState.activeSkinID(forCharacterType: "homeless") == "pijama")
         #expect(gameState.player?.meta.milestoneSkins.isEmpty == true)
-        let oro = gameState.player?.meta.oro
-        #expect(gameState.buySkinWithOro(skinID: "pijama") == .unavailable)
-        #expect(gameState.player?.meta.oro == oro, "no se cobra dos veces")
-        #expect(gameState.player?.meta.oroPurchasedLifetime == cost * 3, "el ORO comprado se conserva igual")
+        let blue = gameState.player?.meta.blue
+        #expect(gameState.buySkinWithBlue(skinID: "pijama") == .unavailable)
+        #expect(gameState.player?.meta.blue == blue, "no se cobra dos veces")
+        #expect(gameState.player?.meta.bluePurchasedLifetime == cost * 3, "el blue comprado se conserva igual")
     }
 
-    @Test("una pinta de ORO comprada entre armar el plan y confirmar lo deja viejo, y el nuevo la conserva")
+    @Test("una pinta de blue comprada entre armar el plan y confirmar lo deja viejo, y el nuevo la conserva")
     func skinBoughtAfterPlanIsStaleThenKept() async throws {
         let world = await makeWorld()
         let gameState = world.gameState
         let cost = try skinPrice(gameState)
-        gameState.creditStorePurchase(oroPack(amount: cost * 2), transactionID: "tx-1")
+        gameState.creditStorePurchase(bluePack(amount: cost * 2), transactionID: "tx-1")
         let stale = try #require(gameState.resetPlan())
-        #expect(gameState.buySkinWithOro(skinID: "pijama") == .bought)
+        #expect(gameState.buySkinWithBlue(skinID: "pijama") == .bought)
 
         #expect(await gameState.resetGame(stale, repushEntitlements: {}) == .stale)
         #expect(gameState.ownsSkin("pijama"), "el plan viejo no se la lleva")
@@ -245,34 +245,34 @@ struct GameStateResetTests {
     func stalePlanIsRejected() async throws {
         let world = await makeWorld()
         let gameState = world.gameState
-        gameState.creditStorePurchase(oroPack(amount: 250), transactionID: "tx-1")
+        gameState.creditStorePurchase(bluePack(amount: 250), transactionID: "tx-1")
         let plan = try #require(gameState.resetPlan())
-        #expect(gameState.creditStorePurchase(oroPack(amount: 100), transactionID: "tx-2"))
+        #expect(gameState.creditStorePurchase(bluePack(amount: 100), transactionID: "tx-2"))
 
         let outcome = await gameState.resetGame(plan, repushEntitlements: {})
 
         #expect(outcome == .stale)
         #expect(gameState.player?.meta.creditedPurchases.contains("tx-2") == true, "la compra nueva sigue ahí")
-        #expect(gameState.player?.meta.oro == 350)
+        #expect(gameState.player?.meta.blue == 350)
         #expect(gameState.player?.meta.resetEpoch == 0)
         #expect(resetFiles(in: world.backups).isEmpty, "ni siquiera se hizo la copia")
         let fresh = try #require(gameState.resetPlan())
         #expect(await gameState.resetGame(fresh, repushEntitlements: {}) == .done)
-        #expect(gameState.player?.meta.oro == 350, "con el plan nuevo, las dos compras se conservan")
+        #expect(gameState.player?.meta.blue == 350, "con el plan nuevo, las dos compras se conservan")
     }
 
     @Test("una compra que llega mientras se escribe la partida nueva no se pierde: espera y se acredita después")
     func purchaseDuringTheWriteIsNotLost() async throws {
         let world = await makeWorld()
         let gameState = world.gameState
-        gameState.creditStorePurchase(oroPack(amount: 250), transactionID: "tx-1")
+        gameState.creditStorePurchase(bluePack(amount: 250), transactionID: "tx-1")
         let plan = try #require(gameState.resetPlan())
 
         let reset = Task { @MainActor in await gameState.resetGame(plan, repushEntitlements: {}) }
         await Task.yield()
         try #require(gameState.isResetting, "fixture: el reset sigue escribiendo")
 
-        let credited = gameState.creditStorePurchase(oroPack(amount: 100), transactionID: "tx-2")
+        let credited = gameState.creditStorePurchase(bluePack(amount: 100), transactionID: "tx-2")
         let revoked = gameState.revokeStorePurchase(transactionID: "tx-1")
         #expect(!credited, "StoreKit la deja sin finalizar")
         #expect(!revoked)
@@ -280,9 +280,9 @@ struct GameStateResetTests {
         #expect(await reset.value == .done)
         #expect(!gameState.isResetting)
         #expect(gameState.player?.meta.creditedPurchases.contains("tx-2") == false, "todavía no entró")
-        #expect(gameState.creditStorePurchase(oroPack(amount: 100), transactionID: "tx-2"), "el reintento sí")
-        #expect(gameState.player?.meta.oro == 350)
-        #expect(gameState.player?.meta.oroPurchasedLifetime == 350)
+        #expect(gameState.creditStorePurchase(bluePack(amount: 100), transactionID: "tx-2"), "el reintento sí")
+        #expect(gameState.player?.meta.blue == 350)
+        #expect(gameState.player?.meta.bluePurchasedLifetime == 350)
     }
 
     // MARK: El doble toque
@@ -291,7 +291,7 @@ struct GameStateResetTests {
     func doubleTapRunsOnce() async throws {
         let world = await makeWorld()
         let gameState = world.gameState
-        gameState.creditStorePurchase(oroPack(amount: 250), transactionID: "tx-1")
+        gameState.creditStorePurchase(bluePack(amount: 250), transactionID: "tx-1")
         let plan = try #require(gameState.resetPlan())
 
         async let first = gameState.resetGame(plan, repushEntitlements: {})
@@ -302,7 +302,7 @@ struct GameStateResetTests {
         #expect(results.filter { $0 == .stale }.count == 1)
         #expect(gameState.player?.meta.resetEpoch == 1, "la época sube una vez, no dos")
         #expect(resetFiles(in: world.backups).count == 1, "y una sola copia")
-        #expect(gameState.player?.meta.oro == 250)
+        #expect(gameState.player?.meta.blue == 250)
     }
 
     @Test("repetir el plan ya ejecutado no hace nada")

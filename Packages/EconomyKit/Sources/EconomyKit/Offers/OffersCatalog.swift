@@ -24,10 +24,10 @@ public struct OffersCatalog: Codable, Sendable, Equatable {
         public let symbol: String
         public let rewards: [RewardSpec]
 
-        /// El ORO que trae: es ORO **comprado** (`oroPurchasedLifetime`).
-        public var oroAmount: Int {
+        /// El blue que trae: es blue **comprado** (`bluePurchasedLifetime`).
+        public var blueAmount: Int {
             rewards.reduce(0) { total, reward in
-                guard case .oro(let amount) = reward else { return total }
+                guard case .blue(let amount) = reward else { return total }
                 return total + amount
             }
         }

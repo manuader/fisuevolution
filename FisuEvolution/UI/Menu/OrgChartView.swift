@@ -26,7 +26,7 @@ struct OrgChartView: View {
         // la pantalla se invalide contra ELLAS: contratar y fusionar mueven los
         // ×N, y reencarnar mueve el multiplicador del Jefe — las dos pasan por
         // `bumpBoard()`, o sea `boardVersion`—; comprar una mejora permanente de
-        // ORO mueve el `prestigeBonus`, que entra en el mismo multiplicador y
+        // Blue mueve el `prestigeBonus`, que entra en el mismo multiplicador y
         // avisa por `effectsVersion`. `player` es `@ObservationIgnored`, así que
         // el tick de 60 Hz no recompone esto.
         let _ = gameState.boardVersion
@@ -40,7 +40,7 @@ struct OrgChartView: View {
         // (`globalMultiplierText`, `prestigeLevelText`) y no de las proyecciones
         // que los traen de garrón. `statsSnapshot` arrastra
         // `towerIncomePerSecondText` y `prestigePreview` arrastra `coinsLost` y
-        // `oroGained`: los tres se mueven solos mientras la torre produce, y
+        // `blueGained`: los tres se mueven solos mientras la torre produce, y
         // cualquiera de los dos atajos "obvios" rearmaría los 43 nodos ocho veces
         // por segundo. Los accesores leen `player`/`economy` directo, que no
         // disparan observación.

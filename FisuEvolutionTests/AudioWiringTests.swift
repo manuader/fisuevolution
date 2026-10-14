@@ -4,7 +4,7 @@ import Testing
 
 /// `sfx_error` venía en el bundle desde el primer día y no lo disparaba ningún
 /// call site: cinco acciones —contratar sin plata, mergear a un piso lleno,
-/// comprar un pasivo, una mejora de personaje y una de ORO— vibraban y no
+/// comprar un pasivo, una mejora de personaje y una de blue— vibraban y no
 /// sonaban. Este test es el que impide que vuelva a pasar: si alguien agrega un
 /// caso al enum y no lo cablea, falla acá y no en una queja de playtest.
 ///
@@ -162,10 +162,10 @@ import Testing
 
     @Test("el parser cuenta un ternario como cableado, no como huérfano")
     func ternariesCountAsWired() {
-        let sample = "audio?.play(isCrit || isGolden ? .coin : .tap)\nplayer.meta.oro += 1"
+        let sample = "audio?.play(isCrit || isGolden ? .coin : .tap)\nplayer.meta.blue += 1"
         let arguments = Self.playArguments(receiver: "audio", in: sample)
         #expect(arguments == ["isCrit || isGolden ? .coin : .tap"])
-        // `meta` y `oro` son accesos a miembro: no son casos del enum.
+        // `meta` y `blue` son accesos a miembro: no son casos del enum.
         #expect(Self.enumCases(in: arguments[0]) == ["coin", "tap"])
     }
 

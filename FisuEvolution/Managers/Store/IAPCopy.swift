@@ -28,7 +28,7 @@ enum IAPCopy {
     /// La descripción del producto, o `fallback` si el catálogo no la tiene.
     ///
     /// `quantity` es el número del que habla la descripción (ver `quantity(for:skins:)`).
-    /// Va interpolado desde los datos y no escrito en el texto: los packs de ORO
+    /// Va interpolado desde los datos y no escrito en el texto: los packs de blue
     /// cambian de monto en la 2.0 y un número escrito a mano en dos idiomas se
     /// queda viejo en silencio.
     static func description(
@@ -48,13 +48,13 @@ enum IAPCopy {
     /// El número que interpola la descripción de un producto, o `nil` si su
     /// texto no habla de ninguno.
     ///
-    /// - ORO: el monto del pack, de `products.json`.
+    /// - blue: el monto del pack, de `products.json`.
     /// - Un paquete de skins (las de Diamante): cuántos personajes trae, contados
     ///   en `skins.json`. Una skin suelta no lleva número.
     static func quantity(for entry: ProductCatalog.Entry, skins: SkinsConfig?) -> Int? {
         switch entry.entitlement {
-        case .oro:
-            return entry.oroAmount
+        case .blue:
+            return entry.blueAmount
         case .skin:
             guard let skinID = entry.skinId, let skins else { return nil }
             let count = skins.skins.filter { $0.id == skinID }.count

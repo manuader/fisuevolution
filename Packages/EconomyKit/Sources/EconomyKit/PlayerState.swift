@@ -1,7 +1,7 @@
 import Foundation
 
 /// Derived upgrade effects cached in the save (recomputed by UpgradeManager
-/// from `meta.oroUpgradeLevels` × upgrades.json; bible §2.2 + las 7 líneas del plan).
+/// from `meta.blueUpgradeLevels` × upgrades.json; bible §2.2 + las 7 líneas del plan).
 public struct UpgradeState: Codable, Sendable, Equatable {
     public var offlineEfficiency: Double
     public var tapMultiplier: Double
@@ -12,7 +12,7 @@ public struct UpgradeState: Codable, Sendable, Equatable {
     public var goldenChance: Double
     /// Descuento de hire de la línea "spawn", 0…1 (v3).
     public var spawnDiscount: Double
-    /// Bonus sobre el multiplicador por ORO de la línea "prestige" (v3).
+    /// Bonus sobre el multiplicador por blue de la línea "prestige" (v3).
     public var prestigeBonus: Double
 
     public init(
@@ -45,7 +45,7 @@ public struct UpgradeState: Codable, Sendable, Equatable {
     /// fresh" y el jugador perdía la partida entera por un diccionario.
     ///
     /// Los siete van con `decodeIfPresent` y no sólo los cuatro de v3: son
-    /// **efectos derivados** —la fuente de verdad es `meta.oroUpgradeLevels`, y
+    /// **efectos derivados** —la fuente de verdad es `meta.blueUpgradeLevels`, y
     /// `UpgradeManager.recomputeDerivedEffects` los reconstruye desde ahí en
     /// cuanto el jugador compra algo—, así que caer al valor neutro es
     /// recuperable y perder el save no.
@@ -259,8 +259,8 @@ public struct MetaStats: Codable, Sendable, Equatable {
     public var videosWatchedEver: Int
     /// Boosts activados en toda la historia de la cuenta.
     public var boostsActivatedEver: Int
-    /// ORO gastado en toda la historia de la cuenta. Sólo lo mueve `MetaState.spendOro`.
-    public var oroSpentEver: Int
+    /// Blue gastado en toda la historia de la cuenta. Sólo lo mueve `MetaState.spendBlue`.
+    public var blueSpentEver: Int
 
     public init(
         maxFloorOrdinalEver: Int = 0,
@@ -269,7 +269,7 @@ public struct MetaStats: Codable, Sendable, Equatable {
         totalTapsEver: Int = 0,
         videosWatchedEver: Int = 0,
         boostsActivatedEver: Int = 0,
-        oroSpentEver: Int = 0
+        blueSpentEver: Int = 0
     ) {
         self.maxFloorOrdinalEver = maxFloorOrdinalEver
         self.totalMergesEver = totalMergesEver
@@ -277,7 +277,7 @@ public struct MetaStats: Codable, Sendable, Equatable {
         self.totalTapsEver = totalTapsEver
         self.videosWatchedEver = videosWatchedEver
         self.boostsActivatedEver = boostsActivatedEver
-        self.oroSpentEver = oroSpentEver
+        self.blueSpentEver = blueSpentEver
     }
 
     /// Decodificador a mano por lo mismo que el de `MetaState`: los saves v4 ya
@@ -291,28 +291,34 @@ public struct MetaStats: Codable, Sendable, Equatable {
         totalTapsEver = try container.decodeIfPresent(Int.self, forKey: .totalTapsEver) ?? 0
         videosWatchedEver = try container.decodeIfPresent(Int.self, forKey: .videosWatchedEver) ?? 0
         boostsActivatedEver = try container.decodeIfPresent(Int.self, forKey: .boostsActivatedEver) ?? 0
-        oroSpentEver = try container.decodeIfPresent(Int.self, forKey: .oroSpentEver) ?? 0
+        blueSpentEver = try container.decodeIfPresent(Int.self, forKey: .blueSpentEver)
+            ?? decoder.container(keyedBy: LegacyKeys.self).decodeIfPresent(Int.self, forKey: .blueSpentEver) ?? 0
+    }
+
+    /// La clave con que se guardaba hasta E14b B14 (ver `MetaState.LegacyKeys`). Sólo se lee.
+    private enum LegacyKeys: String, CodingKey {
+        case blueSpentEver = "oroSpentEver"
     }
 }
 
-/// Lo que SOBREVIVE a la reencarnación (F7 §6.2): ORO, mejoras permanentes,
+/// Lo que SOBREVIVE a la reencarnación (F7 §6.2): blue, mejoras permanentes,
 /// skins, entitlements, daily, stats.
 public struct MetaState: Codable, Sendable, Equatable {
     /// Monotonically increasing across the whole account — never reset, not even by
-    /// reincarnation. Drives ORO and CloudKit conflict resolution.
+    /// reincarnation. Drives blue and CloudKit conflict resolution.
     public var lifetimeEarnings: Double
-    /// Balance gastable de ORO (moneda de prestigio).
-    public var oro: Int
-    /// ORO ganado en la historia de la cuenta (monótono). El multiplicador global
-    /// se computa sobre ESTO, no sobre el balance: gastar ORO nunca nerfea.
-    public var oroEarnedLifetime: Int
+    /// Balance gastable de blue (moneda de prestigio).
+    public var blue: Int
+    /// Blue ganado en la historia de la cuenta (monótono). El multiplicador global
+    /// se computa sobre ESTO, no sobre el balance: gastar blue nunca nerfea.
+    public var blueEarnedLifetime: Int
     /// Cantidad de reencarnaciones.
     public var prestigeLevel: Int
-    /// Niveles comprados por línea de mejora PERMANENTE (upgrades.json, en ORO).
-    public var oroUpgradeLevels: [String: Int]
+    /// Niveles comprados por línea de mejora PERMANENTE (upgrades.json, en blue).
+    public var blueUpgradeLevels: [String: Int]
     /// Efectos derivados cacheados (recomputados por UpgradeManager en bootstrap).
     public var derivedEffects: UpgradeState
-    /// 1 + oroEarnedLifetime × perOro × (1 + prestigeBonus). Cacheado.
+    /// 1 + blueEarnedLifetime × perBlue × (1 + prestigeBonus). Cacheado.
     public var globalMultiplier: Double
     public var ownedSpecials: [String]
     /// Sin escritores desde E4b: los especiales viven en el Álbum. Se decodifica
@@ -363,18 +369,18 @@ public struct MetaState: Codable, Sendable, Equatable {
     /// `floorsPerChest` pisos abiertos en una misma partida). Vive en `meta`:
     /// volver a subir después de reencarnar no vuelve a pagar (PLAN-v2 E13).
     public var floorChestsAwarded: Int
-    /// ORO comprado con plata real, por transacción (id → ORO). Sólo crece: la
-    /// única puerta es `recordOroPurchase`, y es un mapa y no un contador para
+    /// Blue comprado con plata real, por transacción (id → blue). Sólo crece: la
+    /// única puerta es `recordBluePurchase`, y es un mapa y no un contador para
     /// que dos devices con compras distintas se unan sin contar de más ni de menos.
-    public internal(set) var oroPurchases: [String: Int]
-    /// Transacciones de ORO reembolsadas. Sólo crece, y excluye del total aun a
+    public internal(set) var bluePurchases: [String: Int]
+    /// Transacciones de blue reembolsadas. Sólo crece, y excluye del total aun a
     /// una compra que todavía no se anotó (el reembolso puede llegar primero).
     public internal(set) var revokedPurchases: Set<String>
-    /// Si ya se reconstruyó `oroPurchases` desde el historial de compras. Un
+    /// Si ya se reconstruyó `bluePurchases` desde el historial de compras. Un
     /// save que no trae la clave cuenta como ya resuelto. Sólo
     /// `SaveMigrator.migrateV5toV6` lo deja en `false`; reconstruir es
     /// idempotente, así que repetirlo no suma de más.
-    public var purchasedOroReconstructed: Bool
+    public var purchasedBlueReconstructed: Bool
     /// Tier máximo de la última run que reencarnó: el piso móvil que exige la
     /// siguiente. 0 = sin requisito.
     public var lastRunMaxTier: Int
@@ -399,10 +405,10 @@ public struct MetaState: Codable, Sendable, Equatable {
 
     public init(
         lifetimeEarnings: Double,
-        oro: Int,
-        oroEarnedLifetime: Int,
+        blue: Int,
+        blueEarnedLifetime: Int,
         prestigeLevel: Int,
-        oroUpgradeLevels: [String: Int],
+        blueUpgradeLevels: [String: Int],
         derivedEffects: UpgradeState,
         globalMultiplier: Double,
         ownedSpecials: [String],
@@ -424,9 +430,9 @@ public struct MetaState: Codable, Sendable, Equatable {
         prestigeChestsPending: Int = 0,
         welcomeChestGiven: Bool = false,
         floorChestsAwarded: Int = 0,
-        oroPurchases: [String: Int] = [:],
+        bluePurchases: [String: Int] = [:],
         revokedPurchases: Set<String> = [],
-        purchasedOroReconstructed: Bool = true,
+        purchasedBlueReconstructed: Bool = true,
         lastRunMaxTier: Int = 0,
         quickHirePinnedTypeId: String? = nil,
         quickHireMode: QuickHireMode? = nil,
@@ -436,10 +442,10 @@ public struct MetaState: Codable, Sendable, Equatable {
         ranking: RankingState = .newGame
     ) {
         self.lifetimeEarnings = lifetimeEarnings
-        self.oro = oro
-        self.oroEarnedLifetime = oroEarnedLifetime
+        self.blue = blue
+        self.blueEarnedLifetime = blueEarnedLifetime
         self.prestigeLevel = prestigeLevel
-        self.oroUpgradeLevels = oroUpgradeLevels
+        self.blueUpgradeLevels = blueUpgradeLevels
         self.derivedEffects = derivedEffects
         self.globalMultiplier = globalMultiplier
         self.ownedSpecials = ownedSpecials
@@ -461,9 +467,9 @@ public struct MetaState: Codable, Sendable, Equatable {
         self.prestigeChestsPending = prestigeChestsPending
         self.welcomeChestGiven = welcomeChestGiven
         self.floorChestsAwarded = floorChestsAwarded
-        self.oroPurchases = oroPurchases
+        self.bluePurchases = bluePurchases
         self.revokedPurchases = revokedPurchases
-        self.purchasedOroReconstructed = purchasedOroReconstructed
+        self.purchasedBlueReconstructed = purchasedBlueReconstructed
         self.lastRunMaxTier = lastRunMaxTier
         self.quickHirePinnedTypeId = quickHirePinnedTypeId
         self.quickHireMode = quickHireMode
@@ -486,15 +492,21 @@ public struct MetaState: Codable, Sendable, Equatable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         lifetimeEarnings = try container.decode(Double.self, forKey: .lifetimeEarnings)
-        oro = try container.decode(Int.self, forKey: .oro)
-        oroEarnedLifetime = try container.decode(Int.self, forKey: .oroEarnedLifetime)
+        // Un save anterior a E14b B14 trae el blue con sus claves viejas (`LegacyKeys`): se leen
+        // si falta la nueva y al guardar ya sale con la nueva.
+        let legacy = try decoder.container(keyedBy: LegacyKeys.self)
+        blue = try container.decodeIfPresent(Int.self, forKey: .blue)
+            ?? legacy.decode(Int.self, forKey: .blue)
+        blueEarnedLifetime = try container.decodeIfPresent(Int.self, forKey: .blueEarnedLifetime)
+            ?? legacy.decode(Int.self, forKey: .blueEarnedLifetime)
         prestigeLevel = try container.decode(Int.self, forKey: .prestigeLevel)
-        oroUpgradeLevels = PermanentUpgrades.foldingMergedLines(
-            try container.decode([String: Int].self, forKey: .oroUpgradeLevels)
+        blueUpgradeLevels = PermanentUpgrades.foldingMergedLines(
+            try container.decodeIfPresent([String: Int].self, forKey: .blueUpgradeLevels)
+                ?? legacy.decode([String: Int].self, forKey: .blueUpgradeLevels)
         )
         // ⚠️ `decodeIfPresent` por la misma razón que las siete claves de
         // `UpgradeState`, un nivel más arriba: son **efectos derivados**. La
-        // fuente de verdad es `oroUpgradeLevels` —que se decodifica acá al
+        // fuente de verdad es `blueUpgradeLevels` —que se decodifica acá al
         // lado— y `UpgradeManager.recomputeDerivedEffects` los reconstruye
         // desde ahí en cuanto el jugador compra algo. Exigir la clave hacía
         // que un sobre sin ella (un v4 escrito por otra versión, un blob
@@ -526,16 +538,17 @@ public struct MetaState: Codable, Sendable, Equatable {
         prestigeChestsPending = try container.decodeIfPresent(Int.self, forKey: .prestigeChestsPending) ?? 0
         welcomeChestGiven = try container.decodeIfPresent(Bool.self, forKey: .welcomeChestGiven) ?? false
         floorChestsAwarded = try container.decodeIfPresent(Int.self, forKey: .floorChestsAwarded) ?? 0
-        oroPurchases = try container.decodeIfPresent([String: Int].self, forKey: .oroPurchases) ?? [:]
+        bluePurchases = try container.decodeIfPresent([String: Int].self, forKey: .bluePurchases)
+            ?? legacy.decodeIfPresent([String: Int].self, forKey: .bluePurchases) ?? [:]
         revokedPurchases = try container.decodeIfPresent(Set<String>.self, forKey: .revokedPurchases) ?? []
-        purchasedOroReconstructed = try container.decodeIfPresent(Bool.self, forKey: .purchasedOroReconstructed) ?? true
+        purchasedBlueReconstructed = try container.decodeIfPresent(Bool.self, forKey: .purchasedBlueReconstructed)
+            ?? legacy.decodeIfPresent(Bool.self, forKey: .purchasedBlueReconstructed) ?? true
         // Los builds de desarrollo anteriores guardaban el total como un solo
         // número, sin ids: no hay cómo saber qué transacciones contó. Se ignora y
         // se reabre la reconstrucción, que rehace la cuenta desde StoreKit.
-        let legacy = try decoder.container(keyedBy: LegacyKeys.self)
-        let legacyTotal = try legacy.decodeIfPresent(Int.self, forKey: .oroPurchasedLifetime) ?? 0
-        if oroPurchases.isEmpty, legacyTotal > 0 {
-            purchasedOroReconstructed = false
+        let legacyTotal = try legacy.decodeIfPresent(Int.self, forKey: .bluePurchasedLifetime) ?? 0
+        if bluePurchases.isEmpty, legacyTotal > 0 {
+            purchasedBlueReconstructed = false
         }
         lastRunMaxTier = try container.decodeIfPresent(Int.self, forKey: .lastRunMaxTier) ?? 0
         quickHirePinnedTypeId = try container.decodeIfPresent(String.self, forKey: .quickHirePinnedTypeId)
@@ -549,21 +562,29 @@ public struct MetaState: Codable, Sendable, Equatable {
         ranking = (try? container.decodeIfPresent(RankingState.self, forKey: .ranking)) ?? .legacy
     }
 
+    /// Las claves con que se guardaba el blue hasta E14b B14, cuando la moneda tenía otro nombre.
+    /// Sólo se leen (excepción documentada en `Tools/v2/cero_rastro.py`).
     private enum LegacyKeys: String, CodingKey {
-        case oroPurchasedLifetime
+        case blue = "oro"
+        case blueEarnedLifetime = "oroEarnedLifetime"
+        case blueUpgradeLevels = "oroUpgradeLevels"
+        case bluePurchases = "oroPurchases"
+        case purchasedBlueReconstructed = "purchasedOroReconstructed"
+        /// Los builds de desarrollo anteriores guardaban el total comprado como un solo número.
+        case bluePurchasedLifetime = "oroPurchasedLifetime"
     }
 
-    /// ORO comprado con plata real en la historia de la cuenta: la suma de las
+    /// Blue comprado con plata real en la historia de la cuenta: la suma de las
     /// transacciones anotadas y no revocadas, cada id una sola vez. El reset de
     /// E9 conserva lo comprado.
-    public var oroPurchasedLifetime: Int {
-        oroPurchases.reduce(0) { revokedPurchases.contains($1.key) ? $0 : $0 + $1.value }
+    public var bluePurchasedLifetime: Int {
+        bluePurchases.reduce(0) { revokedPurchases.contains($1.key) ? $0 : $0 + $1.value }
     }
 
-    /// La única puerta para acreditar ORO comprado. Anotar de nuevo el mismo id
+    /// La única puerta para acreditar blue comprado. Anotar de nuevo el mismo id
     /// no suma; si dos builds vieron montos distintos para él, queda el mayor.
-    public mutating func recordOroPurchase(transactionID: String, amount: Int) {
-        oroPurchases[transactionID] = max(oroPurchases[transactionID] ?? 0, amount)
+    public mutating func recordBluePurchase(transactionID: String, amount: Int) {
+        bluePurchases[transactionID] = max(bluePurchases[transactionID] ?? 0, amount)
     }
 
     /// Un reembolso. La transacción deja de contar aunque todavía no se haya anotado.
@@ -571,13 +592,13 @@ public struct MetaState: Codable, Sendable, Equatable {
         revokedPurchases.insert(transactionID)
     }
 
-    /// La única salida de ORO. El reset de E9 conserva `min(saldo, comprado)`:
-    /// eso equivale a gastar primero el ORO ganado, sin llevar dos saldos.
+    /// La única salida de blue. El reset de E9 conserva `min(saldo, comprado)`:
+    /// eso equivale a gastar primero el blue ganado, sin llevar dos saldos.
     @discardableResult
-    public mutating func spendOro(_ amount: Int) -> Bool {
-        guard amount >= 0, oro >= amount else { return false }
-        oro -= amount
-        stats.oroSpentEver += amount
+    public mutating func spendBlue(_ amount: Int) -> Bool {
+        guard amount >= 0, blue >= amount else { return false }
+        blue -= amount
+        stats.blueSpentEver += amount
         return true
     }
 
@@ -585,10 +606,10 @@ public struct MetaState: Codable, Sendable, Equatable {
     public static func fresh(offlineEfficiencyBase: Double, critChanceBase: Double, now: TimeInterval) -> MetaState {
         MetaState(
             lifetimeEarnings: 0,
-            oro: 0,
-            oroEarnedLifetime: 0,
+            blue: 0,
+            blueEarnedLifetime: 0,
             prestigeLevel: 0,
-            oroUpgradeLevels: [:],
+            blueUpgradeLevels: [:],
             derivedEffects: UpgradeState(
                 offlineEfficiency: offlineEfficiencyBase,
                 tapMultiplier: 1.0,
@@ -610,8 +631,8 @@ public struct MetaState: Codable, Sendable, Equatable {
         )
     }
 
-    /// Todas las skins que el jugador posee: IAP ∪ milestones ∪ compradas con ORO.
-    /// Las de ORO viven en `engagement.shop` porque `ownedSkins` es la caché de
+    /// Todas las skins que el jugador posee: IAP ∪ milestones ∪ compradas con blue.
+    /// Las de blue viven en `engagement.shop` porque `ownedSkins` es la caché de
     /// StoreKit y se reescribe entera en cada sincronización.
     public var allOwnedSkins: Set<String> {
         Set(ownedSkins).union(milestoneSkins).union(engagement.shop.skins)

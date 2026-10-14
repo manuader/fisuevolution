@@ -102,7 +102,7 @@ struct TutorialDirectorTests {
         let gameState = await makeGameState()
         gameState.debugGrantCoins()
         gameState.refreshProjections()
-        let oro = gameState.player?.meta.oro
+        let blue = gameState.player?.meta.blue
         let coins = gameState.player?.run.coins
         gameState.advanceTutorial(delta: 179)
         gameState.refreshProjections()
@@ -112,7 +112,7 @@ struct TutorialDirectorTests {
         #expect(gameState.tutorialRun == nil)
         #expect(gameState.showing != .tutorialTip)
         #expect(gameState.isLessonDone(.upgrades))
-        #expect(gameState.player?.meta.oro == oro)
+        #expect(gameState.player?.meta.blue == blue)
         #expect(gameState.player?.run.coins == coins)
     }
 

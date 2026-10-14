@@ -3,11 +3,11 @@ import Foundation
 import Testing
 @testable import FisuEvolution
 
-@Suite("La pantalla de la tienda de ORO: lo que se dice del azar y el cerrojo del cobro")
+@Suite("La pantalla de la tienda de blue: lo que se dice del azar y el cerrojo del cobro")
 @MainActor
-struct OroShopScreenTests {
-    private func chestRow(_ gameState: GameState, chanceAllowed: Bool) -> OroShopRow? {
-        gameState.oroShopRows(chanceAllowed: chanceAllowed).first { $0.id == "skin_chest" }
+struct BlueShopScreenTests {
+    private func chestRow(_ gameState: GameState, chanceAllowed: Bool) -> BlueShopRow? {
+        gameState.blueShopRows(chanceAllowed: chanceAllowed).first { $0.id == "skin_chest" }
     }
 
     @Test("la tabla del cofre llega entera: las rarezas que se sortean, sumando uno")
@@ -44,21 +44,21 @@ struct OroShopScreenTests {
         }
     }
 
-    @Test("el azar cerrado no se vende, ni con ORO de sobra")
+    @Test("el azar cerrado no se vende, ni con blue de sobra")
     func closedChanceHidesTheChest() async {
         let gameState = await makeGameState()
         gameState.debugUnlockFloors(throughTier: 12)
-        gameState.player?.meta.oro = 10_000
+        gameState.player?.meta.blue = 10_000
         #expect(chestRow(gameState, chanceAllowed: false) == nil)
-        #expect(gameState.buyOroShopItem(id: "skin_chest", chanceAllowed: false) == .unavailable)
-        #expect(gameState.player?.meta.oro == 10_000)
+        #expect(gameState.buyBlueShopItem(id: "skin_chest", chanceAllowed: false) == .unavailable)
+        #expect(gameState.player?.meta.blue == 10_000)
     }
 
     @Test("lo que no es azar no lleva tabla")
     func plainRowsHaveNoTable() async throws {
         let gameState = await makeGameState()
-        gameState.player?.meta.oro = 500
-        let item = try #require(gameState.oroShopRows(chanceAllowed: false).first { $0.id == "income_x2" }).item
+        gameState.player?.meta.blue = 500
+        let item = try #require(gameState.blueShopRows(chanceAllowed: false).first { $0.id == "income_x2" }).item
         #expect(ChestOddsDisplay.make(for: item, odds: gameState.chestOdds) == .notChance)
     }
 
@@ -78,11 +78,11 @@ struct OroShopScreenTests {
     @Test("cobrar y entregar son un paso sincrónico: ninguna animación es condición")
     func purchaseDoesNotWaitForTheView() async throws {
         let gameState = await makeGameState()
-        gameState.player?.meta.oro = 500
-        #expect(gameState.buyOroShopItem(id: "offline_x3", chanceAllowed: false) == .bought)
-        #expect(gameState.player?.meta.oro == 380)
+        gameState.player?.meta.blue = 500
+        #expect(gameState.buyBlueShopItem(id: "offline_x3", chanceAllowed: false) == .bought)
+        #expect(gameState.player?.meta.blue == 380)
         #expect(gameState.player?.meta.engagement.shop.pendingOfflineMultiplier == 3, "el ×3 queda esperando su popup")
-        #expect(gameState.buyOroShopItem(id: "offline_x3", chanceAllowed: false) == .refused(.alreadyPending))
-        #expect(gameState.player?.meta.oro == 380)
+        #expect(gameState.buyBlueShopItem(id: "offline_x3", chanceAllowed: false) == .refused(.alreadyPending))
+        #expect(gameState.player?.meta.blue == 380)
     }
 }

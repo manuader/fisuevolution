@@ -127,15 +127,15 @@ extension GameState {
         if prestigeAvailable != canReincarnate { prestigeAvailable = canReincarnate }
 
         let teaser = economy.map { eco -> Bool in
-            guard let floorId = eco.config.oro.prestigeTeaserFloorId,
+            guard let floorId = eco.config.blue.prestigeTeaserFloorId,
                   let ordinal = content.floorTable.floors.firstIndex(where: { $0.id == floorId })
             else { return false }
             return player.run.unlockedFloors.count > ordinal
         } ?? false
         if prestigeTeaser != teaser { prestigeTeaser = teaser }
 
-        let oro = String(player.meta.oro)
-        if oroText != oro { oroText = oro }
+        let blue = String(player.meta.blue)
+        if blueText != blue { blueText = blue }
 
         refreshPrestigePreview()
     }
@@ -166,8 +166,8 @@ extension GameState {
         let affordsUpgrade = computeCanAffordAnyUpgrade(player: player, content: content)
         if canAffordAnyUpgrade != affordsUpgrade { canAffordAnyUpgrade = affordsUpgrade }
 
-        let affordsOro = computeCanAffordAnyOroUpgrade(player: player, content: content)
-        if canAffordAnyOroUpgrade != affordsOro { canAffordAnyOroUpgrade = affordsOro }
+        let affordsBlue = computeCanAffordAnyBlueUpgrade(player: player, content: content)
+        if canAffordAnyBlueUpgrade != affordsBlue { canAffordAnyBlueUpgrade = affordsBlue }
 
         let floors = player.run.unlockedFloors.count
         if unlockedFloorsCount != floors { unlockedFloorsCount = floors }

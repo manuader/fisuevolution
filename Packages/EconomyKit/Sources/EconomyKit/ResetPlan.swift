@@ -1,19 +1,19 @@
 import Foundation
 
 /// "Resetear partida" (PLAN-v2 E9), puro: la pantalla muestra `summary` y el juego escribe
-/// `result`, los dos salidos de la misma cuenta. Se conserva lo comprado con plata; el ORO
+/// `result`, los dos salidos de la misma cuenta. Se conserva lo comprado con plata; el blue
 /// comprado sólo si no se gastó (`min(saldo, comprado)`), y las pintas pagadas con plata
-/// (`ownedSkins`). De `shop.skins` se conservan TODAS las pintas de ORO, sea el ORO comprado
-/// o ganado: no se distingue el origen, así que gastar ORO ganado en pintas antes de resetear
+/// (`ownedSkins`). De `shop.skins` se conservan TODAS las pintas de blue, sea el blue comprado
+/// o ganado: no se distingue el origen, así que gastar blue ganado en pintas antes de resetear
 /// es legal y es la forma de llevárselo. Lo demás es la partida nueva que
 /// recibe. De las ofertas queda lo ya usado y lo pagado (no se vuelven a vender las de una
 /// vez); las abiertas se cierran.
 public struct ResetPlan: Sendable, Equatable {
     public struct Summary: Sendable, Equatable {
-        public let oroBalance: Int
-        public let oroPurchased: Int
-        public let oroEarned: Int
-        public let oroKept: Int
+        public let blueBalance: Int
+        public let bluePurchased: Int
+        public let blueEarned: Int
+        public let blueKept: Int
         public let prestigeLevel: Int
         public let unitsOnBoard: Int
         public let achievements: Int
@@ -29,18 +29,18 @@ public struct ResetPlan: Sendable, Equatable {
 
     public static func make(current: PlayerState, fresh: PlayerState) -> ResetPlan {
         let old = current.meta
-        let kept = max(0, min(old.oro, old.oroPurchasedLifetime))
+        let kept = max(0, min(old.blue, old.bluePurchasedLifetime))
         var result = fresh
-        result.meta.oro = kept
+        result.meta.blue = kept
         result.meta.removedAds = old.removedAds
         result.meta.ownedSkins = old.ownedSkins
         result.meta.engagement.shop.skins = old.engagement.shop.skins
         let keptSkins = Set(old.ownedSkins).union(old.engagement.shop.skins)
         result.meta.activeSkinByType = old.activeSkinByType.filter { keptSkins.contains($0.value) }
         result.meta.creditedPurchases = old.creditedPurchases
-        for (id, amount) in old.oroPurchases { result.meta.recordOroPurchase(transactionID: id, amount: amount) }
+        for (id, amount) in old.bluePurchases { result.meta.recordBluePurchase(transactionID: id, amount: amount) }
         for id in old.revokedPurchases { result.meta.revokePurchase(transactionID: id) }
-        result.meta.purchasedOroReconstructed = old.purchasedOroReconstructed
+        result.meta.purchasedBlueReconstructed = old.purchasedBlueReconstructed
         result.meta.engagement.seenCinematics = old.engagement.seenCinematics
         result.meta.engagement.offers.everOpened = old.engagement.offers.everOpened
         result.meta.engagement.offers.purchases = old.engagement.offers.purchases
@@ -51,10 +51,10 @@ public struct ResetPlan: Sendable, Equatable {
 
         let lostSkins = old.allOwnedSkins.subtracting(keptSkins)
         let summary = Summary(
-            oroBalance: old.oro,
-            oroPurchased: old.oroPurchasedLifetime,
-            oroEarned: max(0, old.oro - kept),
-            oroKept: kept,
+            blueBalance: old.blue,
+            bluePurchased: old.bluePurchasedLifetime,
+            blueEarned: max(0, old.blue - kept),
+            blueKept: kept,
             prestigeLevel: old.prestigeLevel,
             unitsOnBoard: current.run.totalUnits,
             achievements: old.unlockedAchievements.count,

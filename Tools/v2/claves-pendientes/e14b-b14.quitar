@@ -1,0 +1,56 @@
+ach.reward.oro %@
+character.skin.oro_shop
+oroShop.blocked.daily
+oroShop.blocked.nothing
+oroShop.blocked.pending
+oroShop.buy.ax %@
+oroShop.chest.coins
+oroShop.chest.odds
+oroShop.cosmetic.family
+oroShop.cosmetic.outfit %@
+oroShop.cosmetic.owned
+oroShop.footer.reincarnate
+oroShop.item.auto_tap.name
+oroShop.item.better_supplier.desc
+oroShop.item.better_supplier.name
+oroShop.item.daily_x3.name
+oroShop.item.extra_slots.desc
+oroShop.item.extra_slots.name
+oroShop.item.income_x2.name
+oroShop.item.income_x3.name
+oroShop.item.merge_all.desc
+oroShop.item.merge_all.name
+oroShop.item.offline_x3.name
+oroShop.item.package_rain.name
+oroShop.item.skin_chest.name
+oroShop.item.skip_cooldowns.name
+oroShop.item.time_jump_1h.name
+oroShop.item.time_jump_4h.name
+oroShop.item.wheel_spins.desc
+oroShop.item.wheel_spins.name
+oroShop.pending.daily %@
+oroShop.pending.offline %@
+oroShop.shelf.boosts
+oroShop.shelf.cosmetics
+oroShop.shelf.luck
+oroShop.shelf.permanents
+oroShop.shelf.shortcuts
+oroShop.today %@ %@
+prestige.oro.gain %@
+prestige.oro.next %@
+price.ax.oro %@
+reset.summary.oro %@ %@ %@ %@
+reward.title.oro
+skin.name.oro
+stats.row.oro
+stats.row.oro_lifetime
+store.pack.oro %@
+store.section.oro
+tutorial.oro_shop.caps
+tutorial.oro_shop.open
+tutorial.oro_shop.spend
+tutorial.prestige.oro
+tutorial.tip.oro
+upgrades.flavor.lucky
+upgrades.oro_balance %@
+wheel.spin.oro.ax

@@ -10,7 +10,7 @@ final class ShopEventUITests: XCTestCase {
     @MainActor
     private func launch(event: String) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-oro=500", "--uitest-event=\(event)"]
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-blue=500", "--uitest-event=\(event)"]
         app.launch()
         return app
     }
@@ -34,7 +34,7 @@ final class ShopEventUITests: XCTestCase {
         let boosts = app.buttons["upgrades.tab.boosts"]
         XCTAssertTrue(boosts.waitForExistence(timeout: 10), "se abrió Mejoras")
         XCTAssertTrue(boosts.isSelected, "en la pestaña de los boosts")
-        XCTAssertTrue(app.buttons["oroShop.buy.income_x2"].waitForExistence(timeout: 10), "el ×2 de ingresos a la vista")
+        XCTAssertTrue(app.buttons["blueShop.buy.income_x2"].waitForExistence(timeout: 10), "el ×2 de ingresos a la vista")
         sleep(1)
         attach(app, "2-mejoras-boosts-en-foco")
     }

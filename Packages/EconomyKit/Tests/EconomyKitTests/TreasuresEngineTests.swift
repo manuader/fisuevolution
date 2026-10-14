@@ -11,7 +11,7 @@ func fxTreasures(
     prizes: [TreasuresConfig.Prize] = [
         .init(id: "coins", weight: 60, rewards: [.coinsSeconds(1200)]),
         .init(id: "package", weight: 25, rewards: [.package(1)]),
-        .init(id: "oro", weight: 15, rewards: [.oro(2)]),
+        .init(id: "blue", weight: 15, rewards: [.blue(2)]),
     ]
 ) -> TreasuresConfig {
     TreasuresConfig(
@@ -192,7 +192,7 @@ struct TreasureStateMigrationTests {
 
     @Test("el dato sin `giftOneIn` carga sin regalos; con un valor negativo no carga")
     func theGiftKnob() throws {
-        let json = #"{"schemaVersion":1,"spawnIntervalSeconds":720,"firstTreasureAfterSeconds":480,"extraOpensPerTreasure":1,"prizes":[{"id":"x","weight":1,"rewards":[{"kind":"oro","amount":1}]}]}"#
+        let json = #"{"schemaVersion":1,"spawnIntervalSeconds":720,"firstTreasureAfterSeconds":480,"extraOpensPerTreasure":1,"prizes":[{"id":"x","weight":1,"rewards":[{"kind":"blue","amount":1}]}]}"#
         let config = try JSONDecoder().decode(TreasuresConfig.self, from: Data(json.utf8))
         #expect(config.giftOneIn == 0)
         #expect(config.giftShare == 0)
@@ -211,7 +211,7 @@ struct TreasureRollerTests {
     @Test("la tabla visible es la del sorteo")
     func theVisibleTableIsTheDrawnOne() {
         let odds = fxTreasures().odds
-        #expect(odds.map(\.id) == ["coins", "package", "oro"])
+        #expect(odds.map(\.id) == ["coins", "package", "blue"])
         #expect(odds.map(\.probability) == [0.6, 0.25, 0.15])
     }
 
@@ -256,16 +256,16 @@ struct TreasuresConfigTests {
     func prizesAreChecked() {
         #expect(throws: TreasuresConfig.ValidationError.noPrizes) { try fxTreasures(prizes: []).validate() }
         #expect(throws: TreasuresConfig.ValidationError.badWeight("x")) {
-            try fxTreasures(prizes: [.init(id: "x", weight: 0, rewards: [.oro(1)])]).validate()
+            try fxTreasures(prizes: [.init(id: "x", weight: 0, rewards: [.blue(1)])]).validate()
         }
         #expect(throws: TreasuresConfig.ValidationError.badWeight("x")) {
-            try fxTreasures(prizes: [.init(id: "x", weight: -3, rewards: [.oro(1)])]).validate()
+            try fxTreasures(prizes: [.init(id: "x", weight: -3, rewards: [.blue(1)])]).validate()
         }
         #expect(throws: TreasuresConfig.ValidationError.emptyPrize("x")) {
             try fxTreasures(prizes: [.init(id: "x", weight: 1, rewards: [])]).validate()
         }
         #expect(throws: TreasuresConfig.ValidationError.duplicatePrize("x")) {
-            try fxTreasures(prizes: [.init(id: "x", weight: 1, rewards: [.oro(1)]), .init(id: "x", weight: 1, rewards: [.oro(2)])]).validate()
+            try fxTreasures(prizes: [.init(id: "x", weight: 1, rewards: [.blue(1)]), .init(id: "x", weight: 1, rewards: [.blue(2)])]).validate()
         }
         #expect(throws: TreasuresConfig.ValidationError.invalidReward("x")) {
             try fxTreasures(prizes: [.init(id: "x", weight: 1, rewards: [.coinsSeconds(0)])]).validate()
@@ -341,7 +341,7 @@ struct TreasureRollerPointsTests {
     @Test("cada punto del sorteo cae en su premio (60 / 25 / 15)")
     func eachPointLandsOnItsPrize() throws {
         let config = fxTreasures()
-        for (fraction, expected) in [(0.0, "coins"), (0.3, "coins"), (0.7, "package"), (0.99, "oro")] {
+        for (fraction, expected) in [(0.0, "coins"), (0.3, "coins"), (0.7, "package"), (0.99, "blue")] {
             var rng = FixedPointRNG(fraction: fraction)
             #expect(try #require(TreasureRoller.roll(config, using: &rng)).id == expected, "en \(fraction)")
         }
@@ -374,7 +374,7 @@ struct TreasuresConfigEdgesTests {
 
     @Test("un premio con varias recompensas las valida a todas, no sólo la primera")
     func everyRewardOfAPrizeIsChecked() {
-        let prize = TreasuresConfig.Prize(id: "x", weight: 1, rewards: [.oro(1), .coinsSeconds(0)])
+        let prize = TreasuresConfig.Prize(id: "x", weight: 1, rewards: [.blue(1), .coinsSeconds(0)])
         #expect(throws: TreasuresConfig.ValidationError.invalidReward("x")) {
             try fxTreasures(prizes: [prize]).validate()
         }
@@ -383,9 +383,9 @@ struct TreasuresConfigEdgesTests {
     @Test("un premio repetido se rechaza aunque el resto esté bien")
     func aRepeatedPrizeIsRejectedAmongOthers() {
         let prizes: [TreasuresConfig.Prize] = [
-            .init(id: "a", weight: 1, rewards: [.oro(1)]),
-            .init(id: "b", weight: 1, rewards: [.oro(1)]),
-            .init(id: "a", weight: 1, rewards: [.oro(1)]),
+            .init(id: "a", weight: 1, rewards: [.blue(1)]),
+            .init(id: "b", weight: 1, rewards: [.blue(1)]),
+            .init(id: "a", weight: 1, rewards: [.blue(1)]),
         ]
         #expect(throws: TreasuresConfig.ValidationError.duplicatePrize("a")) {
             try fxTreasures(prizes: prizes).validate()

@@ -54,9 +54,9 @@ struct ContentSystemsTests {
 
     // MARK: Upgrades
 
-    @Test func oroUpgradePurchaseAppliesDerivedEffectWithoutSpendingCoins() throws {
+    @Test func blueUpgradePurchaseAppliesDerivedEffectWithoutSpendingCoins() throws {
         var state = makeState(coins: 10_000)
-        state.meta.oro = 10
+        state.meta.blue = 10
         try UpgradeManager.purchase(
             lineId: "tap",
             state: &state,
@@ -67,12 +67,12 @@ struct ContentSystemsTests {
             economy: economy,
             now: 0
         )
-        #expect(state.meta.oroUpgradeLevels["tap"] == 1)
+        #expect(state.meta.blueUpgradeLevels["tap"] == 1)
         // La línea `tap` pasó de 20 niveles × 0,25 a 10 × 0,5 en el rebalance
         // (mismo efecto TOTAL al tope, +5,0): un nivel ahora vale 0,5.
         #expect(abs(state.meta.derivedEffects.tapMultiplier - 1.5) < 1e-9)
-        // El primer nivel cuesta 2 ORO desde la 2.0 (`baseCost` 2, E2b T14).
-        #expect(state.meta.oro == 8)
+        // El primer nivel cuesta 2 blue desde la 2.0 (`baseCost` 2, E2b T14).
+        #expect(state.meta.blue == 8)
         #expect(state.run.coins == 10_000)
     }
 
@@ -87,17 +87,17 @@ struct ContentSystemsTests {
         #expect(UpgradeManager.cost(of: line, level: 2) > UpgradeManager.cost(of: line, level: 1))
     }
 
-    @Test func oroUpgradeRespectsMaxLevelAndBalance() throws {
+    @Test func blueUpgradeRespectsMaxLevelAndBalance() throws {
         var state = makeState(coins: 100)
-        #expect(throws: UpgradeManager.PurchaseError.insufficientOro) {
+        #expect(throws: UpgradeManager.PurchaseError.insufficientBlue) {
             try UpgradeManager.purchase(lineId: "income", state: &state, config: content.upgradesConfig, specials: content.specials, viral: content.viral, boosts: content.boosts, economy: economy, now: 0)
         }
         // El tope sale del catálogo y no de un literal: el rebalance de pacing
         // bajó `income` de 20 niveles a 10, y un 20 hardcodeado acá seguía
         // "pasando" por estar POR ENCIMA del tope en vez de EN el tope.
         let income = try #require(content.upgradesConfig.upgrades.first { $0.id == "income" })
-        state.meta.oroUpgradeLevels["income"] = income.maxLevel
-        state.meta.oro = 1_000
+        state.meta.blueUpgradeLevels["income"] = income.maxLevel
+        state.meta.blue = 1_000
         #expect(throws: UpgradeManager.PurchaseError.maxLevelReached) {
             try UpgradeManager.purchase(lineId: "income", state: &state, config: content.upgradesConfig, specials: content.specials, viral: content.viral, boosts: content.boosts, economy: economy, now: 0)
         }
@@ -126,9 +126,9 @@ struct ContentSystemsTests {
         }
         #expect(throws: UpgradeManager.PurchaseError.spendingFrozen) { try buy(at: 50) }
         #expect(state.run.coins == 1_000_000)
-        #expect(state.meta.oroUpgradeLevels["income"] == nil)
+        #expect(state.meta.blueUpgradeLevels["income"] == nil)
         try buy(at: 150)
-        #expect(state.meta.oroUpgradeLevels["income"] == 1)
+        #expect(state.meta.blueUpgradeLevels["income"] == 1)
     }
 
     @Test func sharesAddCappedIncomeBonus() {

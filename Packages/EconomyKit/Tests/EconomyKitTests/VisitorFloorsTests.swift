@@ -64,7 +64,7 @@ struct VisitorFloorsTests {
         VisitorScheduler.park(turista(floor: 4, patience: 9.5), state: &state)
         let data = try JSONEncoder().encode(state)
         #expect(try JSONDecoder().decode(VisitorsState.self, from: data) == state)
-        let old = Data(#"{"secondsUntilVisit": 12, "visitorBag": [], "lastScriptByVisitor": {}, "visitsToday": {}, "oroExchangedToday": 0}"#.utf8)
+        let old = Data(#"{"secondsUntilVisit": 12, "visitorBag": [], "lastScriptByVisitor": {}, "visitsToday": {}, "blueExchangedToday": 0}"#.utf8)
         #expect(try JSONDecoder().decode(VisitorsState.self, from: old).waiting.isEmpty)
     }
 

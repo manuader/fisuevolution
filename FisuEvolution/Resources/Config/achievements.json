@@ -123,7 +123,7 @@
         "floorId": "god_realm"
       },
       "reward": {
-        "kind": "oro",
+        "kind": "blue",
         "amount": 4
       }
     },
@@ -179,7 +179,7 @@
         "value": 10000
       },
       "reward": {
-        "kind": "oro",
+        "kind": "blue",
         "amount": 6
       }
     },
@@ -221,7 +221,7 @@
         "value": 1000
       },
       "reward": {
-        "kind": "oro",
+        "kind": "blue",
         "amount": 4
       }
     },
@@ -263,7 +263,7 @@
         "value": 37
       },
       "reward": {
-        "kind": "oro",
+        "kind": "blue",
         "amount": 10
       }
     },
@@ -291,7 +291,7 @@
         "value": 3
       },
       "reward": {
-        "kind": "oro",
+        "kind": "blue",
         "amount": 4
       }
     },
@@ -305,7 +305,7 @@
         "value": 8
       },
       "reward": {
-        "kind": "oro",
+        "kind": "blue",
         "amount": 8
       }
     },
@@ -333,7 +333,7 @@
         "value": 20
       },
       "reward": {
-        "kind": "oro",
+        "kind": "blue",
         "amount": 2
       }
     },
@@ -346,7 +346,7 @@
         "type": "skinsAll"
       },
       "reward": {
-        "kind": "oro",
+        "kind": "blue",
         "amount": 12
       }
     },
@@ -374,7 +374,7 @@
         "value": 10
       },
       "reward": {
-        "kind": "oro",
+        "kind": "blue",
         "amount": 4
       }
     },
@@ -486,7 +486,7 @@
         "value": 1000000000.0
       },
       "reward": {
-        "kind": "oro",
+        "kind": "blue",
         "amount": 2
       }
     },
@@ -500,7 +500,7 @@
         "value": 1000000000000000.0
       },
       "reward": {
-        "kind": "oro",
+        "kind": "blue",
         "amount": 6
       }
     },
@@ -513,7 +513,7 @@
         "type": "seenAllTypes"
       },
       "reward": {
-        "kind": "oro",
+        "kind": "blue",
         "amount": 4
       }
     },

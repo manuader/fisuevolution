@@ -54,11 +54,11 @@ struct WheelReadyNotificationTests {
     }
 
     @Test("un giro con blue gasta el mismo cupo (D11): los giros vuelven a la medianoche")
-    func anOroSpinTodayMeansMidnight() async throws {
+    func anBlueSpinTodayMeansMidnight() async throws {
         let gameState = await makeGameState()
         let now = Date().timeIntervalSince1970
-        gameState.player?.meta.oro = 100
-        _ = try #require(gameState.spinWheel(.oro, storefrontAllows: true, now: now))
+        gameState.player?.meta.blue = 100
+        _ = try #require(gameState.spinWheel(.blue, storefrontAllows: true, now: now))
         #expect(gameState.wheelSpinsReadyAt(now: now) == (try midnight(after: 1, from: now)))
     }
 

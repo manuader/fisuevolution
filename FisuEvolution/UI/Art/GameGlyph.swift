@@ -11,7 +11,7 @@ enum GameGlyph: Equatable, Sendable {
     case lock
     case check
     case coin
-    /// El dólar blue (C8). Hasta que entre `ui_dolar_blue`, el ORO de siempre.
+    /// El dólar blue (C8). Hasta que entre `ui_dolar_blue`, el blue de siempre.
     case blue
     case gift
     case chest
@@ -58,7 +58,7 @@ enum GameGlyph: Equatable, Sendable {
         case .lock: ["ui_icon_lock"]
         case .check: ["ui_icon_check"]
         case .coin: ["ui_coin"]
-        case .blue: ["ui_dolar_blue", "ui_oro"]
+        case .blue: ["ui_dolar_blue"]
         case .gift: ["ui_gift_bow"]
         case .chest: ["ui_chest_closed"]
         case .wheel: ["wheel_icon"]
@@ -205,7 +205,7 @@ private struct CheckVector: View {
     }
 }
 
-/// El billete celeste del dólar blue, mientras no haya `ui_dolar_blue` ni ORO.
+/// El billete celeste del dólar blue, mientras no haya `ui_dolar_blue` ni blue.
 private struct BlueNoteVector: View {
     var body: some View {
         ZStack {

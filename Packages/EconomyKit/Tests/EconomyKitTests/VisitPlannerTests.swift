@@ -128,13 +128,13 @@ struct VisitPlannerTests {
     @Test("el cambio cotiza su costo y respeta el tope del día")
     func exchangeCap() throws {
         var fx = try world(["a": 1])
-        let exchange = VisitorsConfig.Mechanic.exchange(costSeconds: 5400, oro: 1, dailyOroCap: 3)
+        let exchange = VisitorsConfig.Mechanic.exchange(costSeconds: 5400, blue: 1, dailyBlueCap: 3)
         let open = try #require(plan(exchange, in: fx)?.option(id: "exchange"))
         #expect(open.coins == -54000)
-        #expect(open.rewards == [.oro(1)])
-        fx.state.meta.engagement.visitors.oroExchangedToday = 3
+        #expect(open.rewards == [.blue(1)])
+        fx.state.meta.engagement.visitors.blueExchangedToday = 3
         #expect(plan(exchange, in: fx) == nil)
-        let blue = VisitorsConfig.Mechanic.exchange(costSeconds: 3600, oro: 1, dailyOroCap: nil)
+        let blue = VisitorsConfig.Mechanic.exchange(costSeconds: 3600, blue: 1, dailyBlueCap: nil)
         #expect(plan(blue, in: fx) != nil, "el blue no tiene tope")
     }
 
@@ -163,7 +163,7 @@ struct VisitPlannerTests {
             .gift(rewards: [.coinsSeconds(900)], videoDoubles: true),
             arrest,
             .fine(seconds: 180, capFraction: 0.08, stamp: stamp),
-            .exchange(costSeconds: 5400, oro: 1, dailyOroCap: 3),
+            .exchange(costSeconds: 5400, blue: 1, dailyBlueCap: 3),
             .sale(pick: .highestDuplicate, priceMultiplier: 4, tiersBelowFrontier: 2),
             .take(pick: .lowestDuplicate, count: 3, rewards: [.coinsSeconds(600)], minValueMultiplier: 1.5),
             .gossip(rewards: [.coinsSeconds(300)]),

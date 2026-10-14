@@ -207,7 +207,7 @@
       "treatment": "texture",
       "textureKey": "trillonario_idle__moneda_propia",
       "displayNameKey": "skin.name.moneda_propia",
-      "oroPrice": 150
+      "bluePrice": 150
     },
     {
       "id": "selenita",
@@ -215,7 +215,7 @@
       "treatment": "texture",
       "textureKey": "dueno_luna_idle__selenita",
       "displayNameKey": "skin.name.selenita",
-      "oroPrice": 150
+      "bluePrice": 150
     },
     {
       "id": "terraformador",
@@ -223,7 +223,7 @@
       "treatment": "texture",
       "textureKey": "dueno_marte_idle__terraformador",
       "displayNameKey": "skin.name.terraformador",
-      "oroPrice": 150
+      "bluePrice": 150
     },
     {
       "id": "corona_solar",
@@ -231,7 +231,7 @@
       "treatment": "texture",
       "textureKey": "magnate_solar_idle__corona_solar",
       "displayNameKey": "skin.name.corona_solar",
-      "oroPrice": 150
+      "bluePrice": 150
     },
     {
       "id": "agujero_negro",
@@ -239,7 +239,7 @@
       "treatment": "texture",
       "textureKey": "senor_galaxia_idle__agujero_negro",
       "displayNameKey": "skin.name.agujero_negro",
-      "oroPrice": 300
+      "bluePrice": 300
     },
     {
       "id": "dinastia",
@@ -247,7 +247,7 @@
       "treatment": "texture",
       "textureKey": "emperador_cosmico_idle__dinastia",
       "displayNameKey": "skin.name.dinastia",
-      "oroPrice": 300
+      "bluePrice": 300
     },
     {
       "id": "iluminado",
@@ -255,7 +255,7 @@
       "treatment": "texture",
       "textureKey": "ser_ascendido_idle__iluminado",
       "displayNameKey": "skin.name.iluminado",
-      "oroPrice": 300
+      "bluePrice": 300
     },
     {
       "id": "titan",
@@ -263,7 +263,7 @@
       "treatment": "texture",
       "textureKey": "semidios_idle__titan",
       "displayNameKey": "skin.name.titan",
-      "oroPrice": 300
+      "bluePrice": 300
     },
     {
       "id": "oraculo",
@@ -1012,7 +1012,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1022,7 +1022,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1032,7 +1032,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1042,7 +1042,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1052,7 +1052,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1062,7 +1062,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1072,7 +1072,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1082,7 +1082,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1092,7 +1092,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1102,7 +1102,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1112,7 +1112,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1122,7 +1122,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1132,7 +1132,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1142,7 +1142,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1152,7 +1152,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1162,7 +1162,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1172,7 +1172,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1182,7 +1182,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1192,7 +1192,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1202,7 +1202,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1212,7 +1212,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1222,7 +1222,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1232,7 +1232,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1242,7 +1242,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1252,7 +1252,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1262,7 +1262,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1272,7 +1272,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1282,7 +1282,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1292,7 +1292,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1302,7 +1302,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1312,7 +1312,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1322,7 +1322,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1332,7 +1332,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1342,7 +1342,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1352,7 +1352,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1362,7 +1362,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1372,7 +1372,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1382,7 +1382,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1392,7 +1392,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1402,7 +1402,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1412,7 +1412,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1422,7 +1422,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "pijama",
@@ -1432,7 +1432,7 @@
       "displayNameKey": "skin.name.pijama",
       "textureAtlas": "fam_pijama",
       "family": "pijama",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1442,7 +1442,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1452,7 +1452,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1462,7 +1462,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1472,7 +1472,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1482,7 +1482,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1492,7 +1492,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1502,7 +1502,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1512,7 +1512,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1522,7 +1522,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1532,7 +1532,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1542,7 +1542,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1552,7 +1552,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1562,7 +1562,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1572,7 +1572,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1582,7 +1582,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1592,7 +1592,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1602,7 +1602,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1612,7 +1612,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1622,7 +1622,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1632,7 +1632,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1642,7 +1642,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1652,7 +1652,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1662,7 +1662,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1672,7 +1672,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1682,7 +1682,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1692,7 +1692,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1702,7 +1702,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1712,7 +1712,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1722,7 +1722,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1732,7 +1732,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1742,7 +1742,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1752,7 +1752,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1762,7 +1762,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1772,7 +1772,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1782,7 +1782,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1792,7 +1792,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1802,7 +1802,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1812,7 +1812,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1822,7 +1822,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1832,7 +1832,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1842,7 +1842,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1852,7 +1852,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "gaucho",
@@ -1862,7 +1862,7 @@
       "displayNameKey": "skin.name.gaucho",
       "textureAtlas": "fam_gaucho",
       "family": "gaucho",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -1872,7 +1872,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -1882,7 +1882,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -1892,7 +1892,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -1902,7 +1902,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -1912,7 +1912,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -1922,7 +1922,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -1932,7 +1932,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -1942,7 +1942,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -1952,7 +1952,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -1962,7 +1962,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -1972,7 +1972,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -1982,7 +1982,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -1992,7 +1992,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2002,7 +2002,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2012,7 +2012,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2022,7 +2022,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2032,7 +2032,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2042,7 +2042,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2052,7 +2052,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2062,7 +2062,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2072,7 +2072,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2082,7 +2082,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2092,7 +2092,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2102,7 +2102,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2112,7 +2112,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2122,7 +2122,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2132,7 +2132,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2142,7 +2142,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2152,7 +2152,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2162,7 +2162,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2172,7 +2172,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2182,7 +2182,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2192,7 +2192,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2202,7 +2202,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2212,7 +2212,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2222,7 +2222,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2232,7 +2232,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2242,7 +2242,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2252,7 +2252,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2262,7 +2262,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2272,7 +2272,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2282,7 +2282,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     },
     {
       "id": "dinosaurio",
@@ -2292,7 +2292,7 @@
       "displayNameKey": "skin.name.dinosaurio",
       "textureAtlas": "fam_dinosaurio",
       "family": "dinosaurio",
-      "oroPrice": 450
+      "bluePrice": 450
     }
   ]
 }

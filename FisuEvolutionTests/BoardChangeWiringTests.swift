@@ -185,7 +185,7 @@ struct BoardChangeWiringTests {
     @Test("reencarnar asienta lo pendiente de la run que se va")
     func prestigeSettlesThePendingChanges() async throws {
         let gameState = try await gameWithPlannedMerge()
-        gameState.giveEarningsForPrestigeTesting(oro: 3)
+        gameState.giveEarningsForPrestigeTesting(blue: 3)
         gameState.confirmPrestige()
         #expect(gameState.pendingBoardChanges.isEmpty)
         #expect(gameState.inFlightBoardChange == nil)

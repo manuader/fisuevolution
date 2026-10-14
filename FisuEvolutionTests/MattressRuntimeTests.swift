@@ -52,7 +52,7 @@ struct MattressRuntimeTests {
         switch outcome.prizeId {
         case "coins": #expect(after.run.coins > before.run.coins && outcome.coins > 0)
         case "package": #expect(after.meta.engagement.packages.waiting == before.meta.engagement.packages.waiting + 1)
-        case "oro": #expect(after.meta.oro == before.meta.oro + 2)
+        case "blue": #expect(after.meta.blue == before.meta.blue + 2)
         default: Issue.record("premio desconocido: \(outcome.prizeId)")
         }
     }

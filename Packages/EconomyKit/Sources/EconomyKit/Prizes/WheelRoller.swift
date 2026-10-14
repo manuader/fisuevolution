@@ -8,7 +8,7 @@ public enum WheelSpinSource: String, Sendable, Equatable, CaseIterable {
     case video
     /// Uno pagado con blue: gasta el mismo cupo diario que el video (apagado
     /// donde la tienda no lo permite: lo decide la app).
-    case oro
+    case blue
 }
 
 /// Los cupos y el sorteo de la ruleta. El estado que recibe ya está pasado al
@@ -22,7 +22,7 @@ public enum WheelRoller {
         switch source {
         case .bonus: max(0, state.bonusSpins)
         case .video: dailySpinsLeft(state: state, config: config)
-        case .oro: config.oroSpinsPerDay > 0 ? dailySpinsLeft(state: state, config: config) : 0
+        case .blue: config.blueSpinsPerDay > 0 ? dailySpinsLeft(state: state, config: config) : 0
         }
     }
 
@@ -38,7 +38,7 @@ public enum WheelRoller {
         switch source {
         case .bonus: state.bonusSpins -= 1
         case .video: state.videoSpinsUsed += 1
-        case .oro: state.oroSpinsUsed += 1
+        case .blue: state.blueSpinsUsed += 1
         }
         return true
     }

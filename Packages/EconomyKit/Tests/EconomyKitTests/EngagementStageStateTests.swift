@@ -35,7 +35,7 @@ struct EngagementStageStateTests {
         var player = fxState()
         player.meta.engagement.visitors = VisitorsState(
             secondsUntilVisit: 120, visitorBag: ["npc_vecina", "npc_vendedor"], lastVisitor: "npc_turista",
-            lastScriptByVisitor: ["npc_turista": "turista_propina"], day: "2026-10-07", visitsToday: ["turista_propina": 1], oroExchangedToday: 2
+            lastScriptByVisitor: ["npc_turista": "turista_propina"], day: "2026-10-07", visitsToday: ["turista_propina": 1], blueExchangedToday: 2
         )
         player.meta.engagement.events = EventsState(
             clock: 1234, secondsUntilNext: 600, lastFiredAt: ["devaluacion": 1000], upcomingId: "apagon"
@@ -54,7 +54,7 @@ struct EngagementStageStateTests {
         #expect(state.secondsUntilVisit == 42, "el reloj sigue: no vuelve a esperar la primera visita")
         #expect(state.day == "2026-10-12")
         #expect(state.visitsToday == ["vendedor_ofertas": 9, "turista_propina": 1])
-        #expect(state.oroExchangedToday == 2)
+        #expect(state.blueExchangedToday == 2)
         #expect(state.visitorBag.isEmpty, "la bolsa se baraja en la próxima visita")
         #expect(state.lastVisitor == nil)
         #expect(state.lastScriptByVisitor.isEmpty)
@@ -66,18 +66,18 @@ struct EngagementStageStateTests {
 
     @Test("al resolver un conflicto, el cupo del mismo día no se duplica")
     func resolveKeepsTheDailyCaps() {
-        let winner = VisitorsState(secondsUntilVisit: 10, day: "2026-10-07", visitsToday: ["a": 1], oroExchangedToday: 1)
-        let loser = VisitorsState(secondsUntilVisit: 99, day: "2026-10-07", visitsToday: ["a": 2, "b": 1], oroExchangedToday: 3)
+        let winner = VisitorsState(secondsUntilVisit: 10, day: "2026-10-07", visitsToday: ["a": 1], blueExchangedToday: 1)
+        let loser = VisitorsState(secondsUntilVisit: 99, day: "2026-10-07", visitsToday: ["a": 2, "b": 1], blueExchangedToday: 3)
         let resolved = VisitorsState.resolve(winner: winner, loser: loser)
         #expect(resolved.secondsUntilVisit == 10, "los relojes viajan con el ganador")
         #expect(resolved.visitsToday == ["a": 2, "b": 1])
-        #expect(resolved.oroExchangedToday == 3)
+        #expect(resolved.blueExchangedToday == 3)
     }
 
     @Test("el cupo de otro día no cuenta")
     func resolveIgnoresAnotherDay() {
         let winner = VisitorsState(day: "2026-10-08", visitsToday: ["a": 1])
-        let loser = VisitorsState(day: "2026-10-07", visitsToday: ["a": 3], oroExchangedToday: 3)
+        let loser = VisitorsState(day: "2026-10-07", visitsToday: ["a": 3], blueExchangedToday: 3)
         #expect(VisitorsState.resolve(winner: winner, loser: loser) == winner)
     }
 

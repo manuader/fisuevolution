@@ -100,7 +100,7 @@ final class PrizesUITests: XCTestCase {
         XCTAssertTrue(result.waitForExistence(timeout: 10), "abierto en el tablero, sale el pop-up del premio")
         XCTAssertFalse(app.buttons["mattress.tap"].exists, "la animación ya se vio en el tablero")
         snap(app, "colchon 3 despues")
-        XCTAssertTrue(["coins", "package", "oro"].contains(result.value as? String ?? ""))
+        XCTAssertTrue(["coins", "package", "blue"].contains(result.value as? String ?? ""))
 
         let extra = app.buttons["mattress.extra"]
         XCTAssertTrue(extra.waitForExistence(timeout: 3))
@@ -155,7 +155,7 @@ final class PrizesUITests: XCTestCase {
         tapTheMattressOpen(app)
         let result = app.descendants(matching: .any)["mattress.result"]
         XCTAssertTrue(result.waitForExistence(timeout: 8), "el video pagó")
-        XCTAssertTrue(["coins", "package", "oro"].contains(result.value as? String ?? ""))
+        XCTAssertTrue(["coins", "package", "blue"].contains(result.value as? String ?? ""))
         XCTAssertTrue(extra.waitForNonExistence(timeout: 8), "otro colchón es uno solo")
         app.buttons["mattress.collect"].tap()
         XCTAssertTrue(app.buttons["mattress.collect"].waitForNonExistence(timeout: 5))

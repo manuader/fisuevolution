@@ -3,12 +3,12 @@ import Foundation
 import Testing
 @testable import FisuEvolution
 
-/// La tabla de la tienda de ORO que aprobó el dueño (PLAN-v2 §4 E6; la escala
-/// es 1 h de producción ≈ 90 ORO). Los números finales los mueve el simulador
-/// en E2b: si cambia uno, se cambia acá y en `oro_shop.json` en el mismo commit.
-@Suite("oro_shop.json: la tabla aprobada")
+/// La tabla de la tienda de blue que aprobó el dueño (PLAN-v2 §4 E6; la escala
+/// es 1 h de producción ≈ 90 blue). Los números finales los mueve el simulador
+/// en E2b: si cambia uno, se cambia acá y en `blue_shop.json` en el mismo commit.
+@Suite("blue_shop.json: la tabla aprobada")
 @MainActor
-struct OroShopContentTests {
+struct BlueShopContentTests {
     let content: GameContent
 
     init() throws {
@@ -28,14 +28,14 @@ struct OroShopContentTests {
         "time_jump_1h": 2, "time_jump_4h": 1, "daily_x3": 1, "skip_cooldowns": 3, "merge_all": 5,
     ]
 
-    private func item(_ id: String) throws -> OroShopCatalog.Item {
-        try #require(content.oroShop.item(id: id), "falta \(id)")
+    private func item(_ id: String) throws -> BlueShopCatalog.Item {
+        try #require(content.blueShop.item(id: id), "falta \(id)")
     }
 
     @Test("los precios y los topes son los aprobados")
     func pricesAndCaps() throws {
-        #expect(Set(content.oroShop.items.map(\.id)) == Set(Self.approvedPrices.keys))
-        for item in content.oroShop.items {
+        #expect(Set(content.blueShop.items.map(\.id)) == Set(Self.approvedPrices.keys))
+        for item in content.blueShop.items {
             let prices = item.isPermanent ? item.levels.map(\.price) : [item.price ?? 0]
             #expect(prices == Self.approvedPrices[item.id], "\(item.id)")
             #expect(item.dailyLimit == Self.approvedDailyLimits[item.id], "\(item.id)")
@@ -71,10 +71,10 @@ struct OroShopContentTests {
         #expect(levels.map { content.packages.tierRatio(bestSupplierLevel: $0) } == [1.8, 1.6, 1.4])
     }
 
-    @Test("el azar con ORO que vende la tienda es exactamente el cofre (Apple 3.1.1); el giro extra es de la ruleta")
+    @Test("el azar con blue que vende la tienda es exactamente el cofre (Apple 3.1.1); el giro extra es de la ruleta")
     func chanceItems() {
-        #expect(Set(content.oroShop.items.filter(\.isChance).map(\.id)) == ["skin_chest"])
-        #expect(!content.oroShop.items.contains { $0.rewards.contains(.wheelSpin(1)) })
+        #expect(Set(content.blueShop.items.filter(\.isChance).map(\.id)) == ["skin_chest"])
+        #expect(!content.blueShop.items.contains { $0.rewards.contains(.wheelSpin(1)) })
     }
 
     @Test("cada ítem y cada estante tienen nombre en los dos idiomas; lo propio, también descripción",
@@ -82,23 +82,23 @@ struct OroShopContentTests {
     func copyInBothLanguages(language: String) throws {
         let path = try #require(Bundle.main.path(forResource: language, ofType: "lproj"))
         let bundle = try #require(Bundle(path: path))
-        for item in content.oroShop.items {
-            #expect(OroShopCopy.name(for: item, bundle: bundle) != OroShopCopy.nameKey(item.id), "\(item.id): sin nombre en \(language)")
-            guard OroShopCopy.hasOwnDescription(item) else { continue }
-            let detail = OroShopCopy.detail(for: item, level: 0, bundle: bundle)
-            #expect(detail != OroShopCopy.descriptionKey(item.id), "\(item.id): sin descripción en \(language)")
+        for item in content.blueShop.items {
+            #expect(BlueShopCopy.name(for: item, bundle: bundle) != BlueShopCopy.nameKey(item.id), "\(item.id): sin nombre en \(language)")
+            guard BlueShopCopy.hasOwnDescription(item) else { continue }
+            let detail = BlueShopCopy.detail(for: item, level: 0, bundle: bundle)
+            #expect(detail != BlueShopCopy.descriptionKey(item.id), "\(item.id): sin descripción en \(language)")
             #expect(!detail.contains("%"), "\(item.id): quedó un placeholder sin llenar en \(language)")
         }
-        for shelf in OroShopCatalog.Shelf.allCases {
-            let key = OroShopCopy.shelfKey(shelf)
+        for shelf in BlueShopCatalog.Shelf.allCases {
+            let key = BlueShopCopy.shelfKey(shelf)
             #expect(bundle.localizedString(forKey: key, value: "(falta)", table: nil) != "(falta)", "\(key) en \(language)")
         }
     }
 
     @Test("lo que da un consumible se dice como cualquier premio (RewardCopy)")
     func consumablesSayTheirReward() throws {
-        for item in content.oroShop.items where !item.rewards.isEmpty {
-            #expect(OroShopCopy.detail(for: item, level: 0) == item.rewards.map(RewardCopy.title).joined(separator: " + "))
+        for item in content.blueShop.items where !item.rewards.isEmpty {
+            #expect(BlueShopCopy.detail(for: item, level: 0) == item.rewards.map(RewardCopy.title).joined(separator: " + "))
         }
     }
 
@@ -109,10 +109,10 @@ struct OroShopContentTests {
           {"id": "better_supplier", "shelf": "permanents", "iconKey": "x", "symbol": "x",
            "perk": "bestSupplier", "levels": [{"price": 150, "value": 9}]}]}
         """
-        let shop = try JSONDecoder().decode(OroShopCatalog.self, from: Data(json.utf8))
+        let shop = try JSONDecoder().decode(BlueShopCatalog.self, from: Data(json.utf8))
         let floorIDs = Set(content.floorTable.floors.map(\.id))
-        #expect(throws: GameContentLoader.OroShopContentError.supplierLevelUnknown("better_supplier")) {
-            try GameContentLoader.validate(oroShop: shop, floorIDs: floorIDs, packages: content.packages)
+        #expect(throws: GameContentLoader.BlueShopContentError.supplierLevelUnknown("better_supplier")) {
+            try GameContentLoader.validate(blueShop: shop, floorIDs: floorIDs, packages: content.packages)
         }
     }
 }

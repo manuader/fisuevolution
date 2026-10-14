@@ -72,8 +72,8 @@ private func series<T>(_ values: [T], _ format: (T) -> String) -> String {
 
 /// Lo que el contrato mira y el reporte viejo no imprimía.
 func printContractMilestones(report: PacingSimulator.Report) {
-    print("  oro al llegar a dios: \(report.oroAtGod.map(String.init) ?? "—")")
-    print("  ORO por reencarnación: \(series(report.oroGainedPerReincarnation) { String($0) })")
+    print("  blue al llegar a dios: \(report.blueAtGod.map(String.init) ?? "—")")
+    print("  blue por reencarnación: \(series(report.blueGainedPerReincarnation) { String($0) })")
     print("  pasivos comprados por run: \(series(report.passiveUnlocksPerRun) { String($0) })")
     print("  pisos en marcha (máx / en dios): \(report.maxStaffedFloors) / \(report.staffedFloorsAtGod.map(String.init) ?? "—")")
     print("  el techo del prestigio por run: \(series(report.prestigeCeilingPerRun) { String(format: "%.0f%%", $0 * 100) })")
@@ -142,15 +142,15 @@ func printContract(report: PacingSimulator.Report, floorTable: FloorTable) {
     print("    \(mark(inRange(godMinutes, godRange))) \(pad("Dios", 10)) "
         + "\(godMinutes.map { String(format: "%7.1f", $0) } ?? "      —")  (2600–2800)")
     print("  — 8 sin reencarnar no se llega a Dios · 9 .ads ≥ 65 % y .max ≥ 55 % de .free: los mide PacingContractTests")
-    print("  \(mark(inRange(report.oroAtGod.map(Double.init), 5000...12000))) guarda del ORO al llegar a Dios 5.000–12.000: "
-        + (report.oroAtGod.map(String.init) ?? "—"))
+    print("  \(mark(inRange(report.blueAtGod.map(Double.init), 5000...12000))) guarda del blue al llegar a Dios 5.000–12.000: "
+        + (report.blueAtGod.map(String.init) ?? "—"))
 }
 
 /// Las series del contrato y las perillas de la corrida, para comparar CSVs.
 func contractCSVRows(report: PacingSimulator.Report, arguments: SimArguments, config: EconomyConfig) -> [String] {
-    var rows = ["hito,oro_al_llegar_a_dios,\(report.oroAtGod.map(String.init) ?? ""),ORO"]
-    for (index, oro) in report.oroGainedPerReincarnation.enumerated() {
-        rows.append("oro,reencarnacion_\(index + 1),\(oro),ORO")
+    var rows = ["hito,blue_al_llegar_a_dios,\(report.blueAtGod.map(String.init) ?? ""),blue"]
+    for (index, blue) in report.blueGainedPerReincarnation.enumerated() {
+        rows.append("blue,reencarnacion_\(index + 1),\(blue),blue")
     }
     for (index, count) in report.passiveUnlocksPerRun.enumerated() {
         rows.append("pasivos,run_\(index + 1),\(count),comprados")
@@ -169,7 +169,7 @@ func contractCSVRows(report: PacingSimulator.Report, arguments: SimArguments, co
     rows.append("corrida,seed_fraction,\(arguments.seedFraction),")
     rows.append("corrida,descuento_de_prestigio,\(arguments.prestigeDiscount),")
     rows.append("knob,floor_capacity,\(config.floors.first?.capacity ?? 0),")
-    rows.append("knob,oro_exponent,\(config.oro.exponent),")
+    rows.append("knob,blue_exponent,\(config.blue.exponent),")
     rows.append("knob,hire_mergeRefundCounts,\(config.hire.mergeRefundCounts),")
     rows.append("knob,hire_priceReliefPurchases,\(config.hire.priceReliefPurchases),")
     rows.append("knob,staffedBonusPerFloor,\(config.staffedBonusPerFloor),")

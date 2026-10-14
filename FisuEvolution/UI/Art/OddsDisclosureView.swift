@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Las probabilidades a la vista (Apple 3.1.1): la ruleta, el colchón y —en E6—
-/// el cofre por ORO las muestran con esto, y siempre es la tabla con la que se
+/// el cofre por blue las muestran con esto, y siempre es la tabla con la que se
 /// sortea.
 struct OddsDisclosureView: View {
     struct Row: Identifiable, Equatable {

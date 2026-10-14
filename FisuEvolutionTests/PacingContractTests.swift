@@ -160,9 +160,9 @@ struct PacingContractTests {
         #expect(max >= 0.55 * free, ".max \(max / free)")
     }
 
-    @Test("la escala del ORO: un jugador gratis junta 5.000–12.000 hasta Dios")
-    func oroScale() throws {
-        let oro = try #require(try free().oroAtGod)
-        #expect(oro >= 5000 && oro <= 12000, "\(oro) ORO")
+    @Test("la escala del blue: un jugador gratis junta 5.000–12.000 hasta Dios")
+    func blueScale() throws {
+        let blue = try #require(try free().blueAtGod)
+        #expect(blue >= 5000 && blue <= 12000, "\(blue) blue")
     }
 }

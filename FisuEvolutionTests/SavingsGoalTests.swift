@@ -10,10 +10,10 @@ struct SavingsGoalTests {
         PermanentOffer(source: .shop(id: id), price: price)
     }
 
-    private func player(oro: Int) async -> GameState {
+    private func player(blue: Int) async -> GameState {
         let gameState = await makeGameState()
         gameState.flagDefaults = UserDefaults(suiteName: "savings-goal-\(UUID().uuidString)") ?? .standard
-        gameState.player?.meta.oro = oro
+        gameState.player?.meta.blue = blue
         return gameState
     }
 
@@ -48,7 +48,7 @@ struct SavingsGoalTests {
 
     @Test("los lugares extra de la torre van primero; después el catálogo y las siete globales")
     func extraSlotsComeFirst() async throws {
-        let gameState = await player(oro: 0)
+        let gameState = await player(blue: 0)
         let offers = gameState.permanentOffers
         #expect(offers.first?.source == .shop(id: "extra_slots"))
         let lines = try #require(gameState.content).upgradesConfig.upgrades.map(\.id)
@@ -62,26 +62,26 @@ struct SavingsGoalTests {
 
     @Test("la meta por defecto son los lugares extra, y con el saldo justo se compra por su estante")
     func buyingTheGoalChargesTheShelfPrice() async throws {
-        let gameState = await player(oro: 599)
+        let gameState = await player(blue: 599)
         var goal = try #require(gameState.savingsGoal)
         #expect(goal.offer.source == .shop(id: "extra_slots"))
         #expect(goal.offer.price == 600)
         #expect(!goal.isReady)
         gameState.buyPermanentOffer(goal.offer)
-        #expect(gameState.player?.meta.oro == 599, "sin saldo no se cobra")
+        #expect(gameState.player?.meta.blue == 599, "sin saldo no se cobra")
 
-        gameState.player?.meta.oro = 600
+        gameState.player?.meta.blue = 600
         goal = try #require(gameState.savingsGoal)
         #expect(goal.isReady)
         gameState.buyPermanentOffer(goal.offer)
-        #expect(gameState.player?.meta.oro == 0)
+        #expect(gameState.player?.meta.blue == 0)
         #expect(gameState.player?.meta.engagement.shop.levels["extra_slots"] == 1)
         #expect(gameState.savingsGoal?.offer.price == 1500, "la meta sigue: el segundo nivel de lugares")
     }
 
     @Test("fijar otra meta la deja elegida y comprar una global la cobra por su línea")
     func cyclingPinsTheNextOne() async throws {
-        let gameState = await player(oro: 10_000)
+        let gameState = await player(blue: 10_000)
         let first = try #require(gameState.savingsGoal).offer
         gameState.cycleSavingsGoal()
         let second = try #require(gameState.savingsGoal).offer
@@ -89,14 +89,14 @@ struct SavingsGoalTests {
         #expect(gameState.savingsGoal?.offer == second, "queda fijada")
 
         let line = try #require(gameState.permanentOffers.first { if case .line = $0.source { true } else { false } })
-        let before = try #require(gameState.player?.meta.oro)
+        let before = try #require(gameState.player?.meta.blue)
         gameState.buyPermanentOffer(line)
-        #expect(gameState.player?.meta.oro == before - line.price)
+        #expect(gameState.player?.meta.blue == before - line.price)
     }
 
     @Test("lo comprado al máximo sale de las ofertas")
     func maxedOffersLeave() async throws {
-        let gameState = await player(oro: 100_000)
+        let gameState = await player(blue: 100_000)
         for _ in 0..<2 { gameState.buyPermanentOffer(offer("extra_slots", 0)) }
         #expect(!gameState.permanentOffers.contains { $0.source == .shop(id: "extra_slots") })
     }

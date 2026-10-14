@@ -232,7 +232,7 @@ struct TutorialLessonsTests {
         gameState.refreshProjections()
         #expect(!gameState.isEligible(.prestigeGate))
         gameState.economy = StandardEconomy(config: try content.economy.tuned(EconomyKnobs(requiresLastRunWall: true)))
-        gameState.giveEarningsForPrestigeTesting(oro: 9)
+        gameState.giveEarningsForPrestigeTesting(blue: 9)
         gameState.player?.meta.lastRunMaxTier = 13
         _ = gameState.player?.run.raiseFrontier(to: 9)
         gameState.refreshProjections()
@@ -241,13 +241,13 @@ struct TutorialLessonsTests {
         #expect(GameState.TutorialLesson.prestigeGate.steps.first?.target == .prestige)
     }
 
-    @Test("reencarnar: el ORO se explica y después se pide tocar")
+    @Test("reencarnar: el blue se explica y después se pide tocar")
     func prestigeExplainsThenAsks() async {
         let gameState = await makeGameState()
         only(.prestige, in: gameState)
-        gameState.giveEarningsForPrestigeTesting(oro: 3)
+        gameState.giveEarningsForPrestigeTesting(blue: 3)
         gameState.refreshProjections()
-        #expect(gameState.tutorialRun?.steps.map(\.id) == ["prestige.oro", "prestige.open"])
+        #expect(gameState.tutorialRun?.steps.map(\.id) == ["prestige.blue", "prestige.open"])
         #expect(gameState.tutorialRun?.step?.clockKind == .explain)
     }
 
@@ -398,25 +398,25 @@ struct TutorialLessonsTests {
         #expect(gameState.tutorialRun?.steps.map(\.id) == ["new_tabs.explain"])
     }
 
-    // MARK: La tienda de ORO
+    // MARK: La tienda de blue
 
-    @Test("la tienda de ORO pasa por la pestaña Boosts de Mejoras")
-    func oroShopNeedsTheSpendHalf() async throws {
+    @Test("la tienda de blue pasa por la pestaña Boosts de Mejoras")
+    func blueShopNeedsTheSpendHalf() async throws {
         let gameState = await makeGameState()
-        only(.oroShop, in: gameState)
+        only(.blueShop, in: gameState)
         gameState.refreshProjections()
-        #expect(gameState.tutorialRun == nil, "sin ORO no hay qué gastar")
-        let cheapest = try #require(gameState.cheapestOroShopPrice())
-        gameState.player?.meta.oro = cheapest - 1
-        #expect(!gameState.isEligible(.oroShop), "le falta uno")
-        gameState.player?.meta.oro = cheapest
+        #expect(gameState.tutorialRun == nil, "sin blue no hay qué gastar")
+        let cheapest = try #require(gameState.cheapestBlueShopPrice())
+        gameState.player?.meta.blue = cheapest - 1
+        #expect(!gameState.isEligible(.blueShop), "le falta uno")
+        gameState.player?.meta.blue = cheapest
         gameState.refreshProjections()
-        #expect(gameState.tutorialRun?.steps.map(\.id) == ["oro_shop.open", "oro_shop.spend", "oro_shop.caps"])
+        #expect(gameState.tutorialRun?.steps.map(\.id) == ["blue_shop.open", "blue_shop.spend", "blue_shop.caps"])
 
         gameState.menuDidOpen(at: .upgrades)
-        #expect(gameState.tutorialRun?.step?.id == "oro_shop.spend", "abrir Mejoras no basta")
-        gameState.oroShopSpendChosen()
-        #expect(gameState.tutorialRun?.step?.id == "oro_shop.caps")
+        #expect(gameState.tutorialRun?.step?.id == "blue_shop.spend", "abrir Mejoras no basta")
+        gameState.blueShopSpendChosen()
+        #expect(gameState.tutorialRun?.step?.id == "blue_shop.caps")
     }
 
     @Test("abrir la pestaña Boosts no cumple el paso de otra lección")
@@ -426,37 +426,37 @@ struct TutorialLessonsTests {
         gameState.startTutorialRun(.lesson("prestige"), steps: GameState.TutorialLesson.prestige.steps)
         gameState.tutorialSignal(.lessonAction("prestige.open"))
         let before = gameState.tutorialRun?.step?.id
-        gameState.oroShopSpendChosen()
+        gameState.blueShopSpendChosen()
         #expect(gameState.tutorialRun?.step?.id == before)
     }
 
-    @Test("la suerte: nace con la puerta del azar abierta y la tienda de ORO aprendida")
+    @Test("la suerte: nace con la puerta del azar abierta y la tienda de blue aprendida")
     func luckNeedsTheChanceGateOpen() async {
         let gameState = await makeGameState()
         only(.luck, in: gameState)
         gameState.debugUnlockFloors(throughTier: 12)
-        gameState.flagDefaults.removeObject(forKey: GameState.TutorialLesson.oroShop.defaultsKey)
-        #expect(!gameState.luckMomentIsOn(chanceAllowed: true), "la tienda de ORO todavía no se enseñó")
-        gameState.markLessonDone(.oroShop)
+        gameState.flagDefaults.removeObject(forKey: GameState.TutorialLesson.blueShop.defaultsKey)
+        #expect(!gameState.luckMomentIsOn(chanceAllowed: true), "la tienda de blue todavía no se enseñó")
+        gameState.markLessonDone(.blueShop)
         #expect(gameState.luckMomentIsOn(chanceAllowed: true))
         #expect(!gameState.luckMomentIsOn(chanceAllowed: false), "en una tienda restringida no se vende azar")
         #expect(!gameState.isEligible(.luck), "la puerta arranca cerrada hasta que StoreKit contesta")
         #expect(GameState.TutorialLesson.luck.steps.map(\.id) == ["luck.open", "luck.odds"])
     }
 
-    @Test("los cosméticos: nacen con una pinta de ORO que el saldo alcanza y la tienda aprendida")
+    @Test("los cosméticos: nacen con una pinta de blue que el saldo alcanza y la tienda aprendida")
     func cosmeticsNeedAnAffordableOutfit() async throws {
         let gameState = await makeGameState()
         only(.cosmetics, in: gameState)
-        gameState.flagDefaults.removeObject(forKey: GameState.TutorialLesson.oroShop.defaultsKey)
+        gameState.flagDefaults.removeObject(forKey: GameState.TutorialLesson.blueShop.defaultsKey)
         let cheapest = try #require(gameState.cheapestCosmeticPrice())
-        gameState.player?.meta.oro = cheapest
-        #expect(!gameState.isEligible(.cosmetics), "la tienda de ORO todavía no se enseñó")
-        gameState.markLessonDone(.oroShop)
+        gameState.player?.meta.blue = cheapest
+        #expect(!gameState.isEligible(.cosmetics), "la tienda de blue todavía no se enseñó")
+        gameState.markLessonDone(.blueShop)
         #expect(gameState.isEligible(.cosmetics))
-        gameState.player?.meta.oro = cheapest - 1
+        gameState.player?.meta.blue = cheapest - 1
         #expect(!gameState.isEligible(.cosmetics))
-        gameState.player?.meta.oro = cheapest
+        gameState.player?.meta.blue = cheapest
         gameState.refreshProjections()
         #expect(gameState.tutorialRun?.steps.map(\.id) == ["cosmetics.open", "cosmetics.where"])
         #expect(gameState.tutorialRun?.steps.last?.target == .storeCosmetics)
@@ -466,13 +466,13 @@ struct TutorialLessonsTests {
     func cheapestPriceSkipsWhatIsNotOnSale() async throws {
         let gameState = await makeGameState()
         let content = try #require(gameState.content)
-        func price(_ item: OroShopCatalog.Item) -> Int? { item.price ?? item.levels.first?.price }
-        let onSale = content.oroShop.items.filter { item in
+        func price(_ item: BlueShopCatalog.Item) -> Int? { item.price ?? item.levels.first?.price }
+        let onSale = content.blueShop.items.filter { item in
             !item.isChance && item.unlockFloorId.map { content.floorTable.ordinal(of: $0) == 0 } ?? true
         }
-        let hidden = content.oroShop.items.filter { !onSale.contains($0) }
+        let hidden = content.blueShop.items.filter { !onSale.contains($0) }
         #expect(!hidden.isEmpty, "el catálogo tiene algo que hoy no se vende")
-        #expect(gameState.cheapestOroShopPrice() == onSale.compactMap(price).min())
+        #expect(gameState.cheapestBlueShopPrice() == onSale.compactMap(price).min())
     }
 
     // MARK: Lo que corre bajo el HUD
@@ -542,7 +542,7 @@ struct TutorialLessonsTests {
     @Test("las de T2 declaran su versión")
     func declaredReleaseT2() {
         for lesson in [GameState.TutorialLesson.boosts, .chests] { #expect(lesson.introducedIn == .v1, "\(lesson)") }
-        let v2: [GameState.TutorialLesson] = [.hirePriceStep, .menuSwipe, .newTabs, .oroShop, .luck, .cosmetics,
+        let v2: [GameState.TutorialLesson] = [.hirePriceStep, .menuSwipe, .newTabs, .blueShop, .luck, .cosmetics,
                                                .pendingTriple, .autoTap, .offers, .extraSlots]
         for lesson in v2 { #expect(lesson.introducedIn == .v2, "\(lesson)") }
     }
@@ -551,7 +551,7 @@ struct TutorialLessonsTests {
     func theT2GapsAreCovered() {
         let expected: [TutorialMechanic: GameState.TutorialLesson] = [
             .boosts: .boosts, .chests: .chests, .hirePriceStep: .hirePriceStep, .menuSwipe: .menuSwipe,
-            .newTabs: .newTabs, .oroShopShelf: .oroShop, .luckOdds: .luck, .cosmetics: .cosmetics,
+            .newTabs: .newTabs, .blueShopShelf: .blueShop, .luckOdds: .luck, .cosmetics: .cosmetics,
             .pendingTriple: .pendingTriple, .autoTap: .autoTap, .offers: .offers, .extraSlots: .extraSlots,
         ]
         for (mechanic, lesson) in expected {
@@ -580,8 +580,8 @@ struct TutorialLessonsTests {
         #expect(index(.newTabs) < index(.menuSwipe))
         #expect(index(.elevator) < index(.elevatorKeypad))
         #expect(index(.elevator) < index(.floorSwipe))
-        #expect(index(.oroShop) < index(.luck))
-        #expect(index(.oroShop) < index(.cosmetics))
+        #expect(index(.blueShop) < index(.luck))
+        #expect(index(.blueShop) < index(.cosmetics))
         #expect(index(.sideRail) < index(.packages))
         #expect(index(.sideRail) < index(.mattress))
         #expect(index(.sideRail) < index(.wheel))
@@ -612,7 +612,7 @@ struct TutorialLessonsTests {
             (.elevatorKeypad, .lessonAction, .map, "tutorial.tip.elevator.hold"),
             (.skins, .screenOpened(.skins), .skins, "tutorial.tip.skins"),
             (.achievements, .screenOpened(.menu), .menu, "tutorial.tip.achievements"),
-            (.oroUpgrades, .screenOpened(.upgrades), .upgrades, "tutorial.tip.oro"),
+            (.blueUpgrades, .screenOpened(.upgrades), .upgrades, "tutorial.tip.blue"),
             (.gifts, .screenOpened(.gifts), .gifts, "tutorial.tip.gifts"),
             (.store, .screenOpened(.store), .store, "tutorial.tip.store"),
         ]

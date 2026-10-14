@@ -148,11 +148,11 @@ struct ResetGameFlowView: View {
                     if summary.keepsRemoveAds { row("reset.summary.no_ads") }
                     row("reset.summary.iap_skins \(String(summary.keptSkins))")
                     RowDivider()
-                    Text("reset.summary.oro \(summary.oroBalance.formatted()) \(summary.oroPurchased.formatted()) \(summary.oroEarned.formatted()) \(summary.oroKept.formatted())")
+                    Text("reset.summary.blue \(summary.blueBalance.formatted()) \(summary.bluePurchased.formatted()) \(summary.blueEarned.formatted()) \(summary.blueKept.formatted())")
                         .font(Tokens.body)
                         .foregroundStyle(Color("PaletteInk"))
                         .fixedSize(horizontal: false, vertical: true)
-                        .accessibilityIdentifier("reset.summary.oro")
+                        .accessibilityIdentifier("reset.summary.blue")
                     row("reset.summary.refund")
                     understandToggle
                     nextButton()

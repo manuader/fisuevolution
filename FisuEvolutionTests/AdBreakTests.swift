@@ -219,11 +219,11 @@ struct AdBreakTests {
         #expect(pacer.adBreakPrize(in: []) == nil)
         pacer.advanceAdBreakPrize(count: 0)
         #expect(pacer.pacing.adBreakPrizeIndex == 0)
-        let prizes: [RewardSpec] = [.oro(1), .oro(2)]
+        let prizes: [RewardSpec] = [.blue(1), .blue(2)]
         pacer.advanceAdBreakPrize(count: 1)
-        #expect(pacer.adBreakPrize(in: prizes) == .oro(1), "un patrón de uno solo siempre vuelve al primero")
+        #expect(pacer.adBreakPrize(in: prizes) == .blue(1), "un patrón de uno solo siempre vuelve al primero")
         pacer.advanceAdBreakPrize(count: 2)
-        #expect(pacer.adBreakPrize(in: prizes) == .oro(2))
+        #expect(pacer.adBreakPrize(in: prizes) == .blue(2))
     }
 
     /// El mismo montaje, con el comprador de `remove_ads` si se pide.
@@ -248,10 +248,10 @@ struct AdBreakTests {
 
     @Test("la pantalla previa tiene piso de 5 s aunque el JSON pida menos")
     func introHasAFloor() {
-        let short = RewardedAdsConfig.AdBreak(introSeconds: 0, prizes: [.oro(1)])
+        let short = RewardedAdsConfig.AdBreak(introSeconds: 0, prizes: [.blue(1)])
         let config = RewardedAdsConfig(schemaVersion: 2, rewards: [], compensationSeconds: 1, adBreak: short)
         #expect(config.effectiveAdBreak.introSeconds == 5)
-        #expect(RewardedAdsConfig.AdBreak(introSeconds: 9, prizes: [.oro(1)]).introSeconds == 9)
+        #expect(RewardedAdsConfig.AdBreak(introSeconds: 9, prizes: [.blue(1)]).introSeconds == 9)
     }
 
     @Test("sin premios la pausa no se elige, y con premios sí")

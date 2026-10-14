@@ -351,7 +351,7 @@ final class TutorialUITests: XCTestCase {
     }
 
     /// La lección de Mejoras: nace sólo cuando hay una mejora PAGABLE (la regla
-    /// de oro del gating), señala el tab con el scrim de las lecciones —tocar el
+    /// principal del gating), señala el tab con el scrim de las lecciones —tocar el
     /// tablero no la saltea—, pide comprar un nivel adentro de la hoja y cierra
     /// en el tablero; dada, no vuelve.
     @MainActor

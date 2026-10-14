@@ -38,21 +38,21 @@ struct EconomyEngineTests {
         }
     }
 
-    @Test("oroTotal: floor((lifetime/divisor)^exponent), 0 bajo el divisor")
-    func oroTotalSigueLaFormula() {
-        #expect(economy.oroTotal(lifetimeEarnings: 0) == 0)
-        #expect(economy.oroTotal(lifetimeEarnings: -5) == 0)
-        #expect(economy.oroTotal(lifetimeEarnings: 999_999) == 0)
-        #expect(economy.oroTotal(lifetimeEarnings: 1_000_000) == 1)
-        #expect(economy.oroTotal(lifetimeEarnings: 4_000_000) == 2)
-        #expect(economy.oroTotal(lifetimeEarnings: 9_000_000) == 3)
-        #expect(economy.oroTotal(lifetimeEarnings: 1e12) == 1000)
+    @Test("blueTotal: floor((lifetime/divisor)^exponent), 0 bajo el divisor")
+    func blueTotalSigueLaFormula() {
+        #expect(economy.blueTotal(lifetimeEarnings: 0) == 0)
+        #expect(economy.blueTotal(lifetimeEarnings: -5) == 0)
+        #expect(economy.blueTotal(lifetimeEarnings: 999_999) == 0)
+        #expect(economy.blueTotal(lifetimeEarnings: 1_000_000) == 1)
+        #expect(economy.blueTotal(lifetimeEarnings: 4_000_000) == 2)
+        #expect(economy.blueTotal(lifetimeEarnings: 9_000_000) == 3)
+        #expect(economy.blueTotal(lifetimeEarnings: 1e12) == 1000)
     }
 
-    @Test("oroTotal clampea en vez de trapear con magnitudes idle")
-    func oroTotalClampeaSinTrapear() {
+    @Test("blueTotal clampea en vez de trapear con magnitudes idle")
+    func blueTotalClampeaSinTrapear() {
         // Int(Double) trapea desde 2^63; un idle llega ahí sin despeinarse.
-        #expect(economy.oroTotal(lifetimeEarnings: .greatestFiniteMagnitude) == .max)
+        #expect(economy.blueTotal(lifetimeEarnings: .greatestFiniteMagnitude) == .max)
         #expect(StandardEconomy.clampedFloor(.infinity) == .max)
         #expect(StandardEconomy.clampedFloor(.nan) == .max)
         #expect(StandardEconomy.clampedFloor(9.2e18) == .max)
@@ -62,13 +62,13 @@ struct EconomyEngineTests {
         #expect(StandardEconomy.clampedFloor(3.7) == 3)
     }
 
-    @Test("globalMultiplier: 1 + oro × 0.02 × (1 + prestigeBonus)")
-    func globalMultiplierPorOro() {
-        #expect(economy.globalMultiplier(oroEarnedLifetime: 0, prestigeBonus: 0) == 1.0)
-        #expect(abs(economy.globalMultiplier(oroEarnedLifetime: 50, prestigeBonus: 0) - 2.0) < 1e-12)
-        // El bonus de prestigio amplifica el aporte del ORO, no el 1 base.
-        #expect(abs(economy.globalMultiplier(oroEarnedLifetime: 50, prestigeBonus: 0.5) - 2.5) < 1e-12)
-        #expect(abs(economy.globalMultiplier(oroEarnedLifetime: 10, prestigeBonus: 1.0) - 1.4) < 1e-12)
+    @Test("globalMultiplier: 1 + blue × 0.02 × (1 + prestigeBonus)")
+    func globalMultiplierPorBlue() {
+        #expect(economy.globalMultiplier(blueEarnedLifetime: 0, prestigeBonus: 0) == 1.0)
+        #expect(abs(economy.globalMultiplier(blueEarnedLifetime: 50, prestigeBonus: 0) - 2.0) < 1e-12)
+        // El bonus de prestigio amplifica el aporte del blue, no el 1 base.
+        #expect(abs(economy.globalMultiplier(blueEarnedLifetime: 50, prestigeBonus: 0.5) - 2.5) < 1e-12)
+        #expect(abs(economy.globalMultiplier(blueEarnedLifetime: 10, prestigeBonus: 1.0) - 1.4) < 1e-12)
     }
 }
 

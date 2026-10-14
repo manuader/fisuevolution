@@ -29,6 +29,20 @@ struct TutorialFlagsTests {
                 "la segunda vez no hace nada")
     }
 
+    @Test("una lección del blue hecha con su bandera vieja sigue hecha y no se repite")
+    @MainActor func legacyBlueLessonsStayDone() {
+        let defaults = scratch()
+        for (lesson, legacy) in TutorialFlags.legacyLessonIDs {
+            #expect(!TutorialFlags.isLessonDone(lesson, in: defaults))
+            defaults.set(true, forKey: TutorialFlags.lessonKey(legacy))
+            #expect(TutorialFlags.isLessonDone(lesson, in: defaults), "\(lesson)")
+        }
+        #expect(Set(TutorialFlags.legacyLessonIDs.keys)
+            .isSubset(of: GameState.TutorialLesson.allCases.map(\.rawValue)))
+        TutorialFlags.wipeGameFlags(in: defaults)
+        #expect(TutorialFlags.legacyLessonIDs.keys.allSatisfy { !TutorialFlags.isLessonDone($0, in: defaults) })
+    }
+
     @Test("borrar la partida se lleva las banderas de juego y deja las del dispositivo")
     func wipeKeepsDeviceFlags() {
         let defaults = scratch()

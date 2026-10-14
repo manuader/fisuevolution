@@ -239,18 +239,18 @@ struct GameContentValidationTests {
         // +1 · +3 y a los saltos; con 1e10 corre +1 · +1 · +2 · +2 · +2, parejo,
         // y maxear entra en la banda de 20-30 h. Medido en `balance-log.md`.
         // 2.0 (E2b T14): 8e11. Atrasa la 1ª reencarnación a 1,67 h activas
-        // (contrato de 45 h: 1–2 h) y deja ~6.000 ORO al llegar a Dios, adentro
+        // (contrato de 45 h: 1–2 h) y deja ~6.000 blue al llegar a Dios, adentro
         // de la guarda de 5.000–12.000.
-        #expect(economy.oro.divisor == 800_000_000_000)
+        #expect(economy.blue.divisor == 800_000_000_000)
         // Piso móvil y herencia de pasivos (PLAN-v2 §2): decisiones del dueño.
-        #expect(economy.oro.requiresWall)
-        #expect(economy.oro.inheritsPassives)
+        #expect(economy.blue.requiresWall)
+        #expect(economy.blue.inheritsPassives)
         // RF-07 (Ola 3) lo había bajado de 0.5 a 0.45; el rebalance lo baja a
         // 0.25 porque con 0,45 hacen falta ×4,65 de ganancias por duplicar el
-        // ORO y las 8 entregas entraban en 1,3 h activas. Con 0,25 hacen falta
+        // Blue y las 8 entregas entraban en 1,3 h activas. Con 0,25 hacen falta
         // ×16 y las 8 se reparten en 25 h. Ver Docs/balance-log.md.
-        #expect(economy.oro.exponent == 0.25)
-        #expect(economy.oro.globalMultiplierPerOro == 0.18)
+        #expect(economy.blue.exponent == 0.25)
+        #expect(economy.blue.globalMultiplierPerBlue == 0.18)
         #expect(economy.critChanceBase == 0.0)
         #expect(economy.critMultiplier == 5.0)
         #expect(economy.offlineEfficiencyBase == 0.35)
@@ -301,10 +301,10 @@ struct GameContentValidationTests {
     }
 
     /// Pin del catálogo de las seis líneas. `economy.json` tiene el suyo desde
-    /// F7 y `upgrades.json` no tenía ninguno — y sobre estos 348 ORO descansa
+    /// F7 y `upgrades.json` no tenía ninguno — y sobre estos 348 blue descansa
     /// el punto 3 del contrato de la 2.0 (las líneas al tope antes del 80 % de
     /// Dios y no antes de la 5ª reencarnación). La ley es la de la política ×5:
-    /// el bot reencarna cuando su ORO histórico se multiplica por 5, así que
+    /// el bot reencarna cuando su blue histórico se multiplica por 5, así que
     /// junta 1 · 5 · 25 · 125 · 625… y **con 348 la 5ª reencarnación es la
     /// primera que maxea** (E2b T14: `baseCost` 1 → 2; con 1 eran 192 y
     /// maxeaba la 4ª). Las líneas son SEIS, no siete: con el redondeo para
@@ -330,12 +330,12 @@ struct GameContentValidationTests {
             #expect(line.effectType != .luckyTouch || abs(line.goldenPerLevel - 0.0025) < 1e-12, "\(line.id).goldenPerLevel")
             #expect(abs(line.baseCost - pin.base) < 1e-12, "\(line.id).baseCost")
             #expect(abs(line.costGrowth - pin.growth) < 1e-12, "\(line.id).costGrowth")
-            #expect(line.currency == .oro, "\(line.id) tiene que pagarse con ORO")
+            #expect(line.currency == .blue, "\(line.id) tiene que pagarse con blue")
             // El precio de cada nivel se redondea para arriba a entero
             // (`UpgradeManager.purchase`), así que el total se suma así.
             total += (0..<line.maxLevel).reduce(0) { $0 + Int(UpgradeManager.cost(of: line, level: $1).rounded(.up)) }
         }
-        #expect(total == 348, "maxear las seis cuesta \(total) ORO")
+        #expect(total == 348, "maxear las seis cuesta \(total) blue")
         // Y ninguna línea puede volver a ser el 99,99% del costo de ganar, que
         // es lo que `crit` era antes del rebalance (1,776e10 de 1,778e10).
         let porNivel = lineas.map { line in
@@ -347,43 +347,43 @@ struct GameContentValidationTests {
         #expect(masCara / masBarata < 2.0, "\(masCara) vs \(masBarata)")
     }
 
-    /// Pin de los DOCE logros que pagan ORO fijo, contra los 348 que cuesta
+    /// Pin de los DOCE logros que pagan blue fijo, contra los 348 que cuesta
     /// maxear las seis líneas (2.0, E2b T14: las líneas pasaron de 192 a 348 y
     /// los doce montos se duplicaron, 33 → 66, para seguir en la banda:
     /// 66/348 = 19,0 %).
     ///
     /// Existe porque la calibración del rebalance dejó una regla en pie que
-    /// nadie estaba midiendo: los doce sumaban **620 ORO** contra un camino de
+    /// nadie estaba midiendo: los doce sumaban **620 blue** contra un camino de
     /// 193, o sea que juntar logros **ganaba el juego 3,2 veces** y las siete
     /// líneas dejaban de ser el objetivo. La decisión del dueño (2026-08-21) fue
     /// re-escalarlos a **montos fijos** —no a un porcentaje del costo, que es
     /// menos legible en la ficha del logro— para que los logros **aporten** el
     /// camino en vez de reemplazarlo: **15-20 %**.
     ///
-    /// La regla del re-escalado, para que el próximo logro de ORO tenga de dónde
+    /// La regla del re-escalado, para que el próximo logro de blue tenga de dónde
     /// salir en vez de inventarse: **el monto viejo dividido 20, redondeado para
     /// arriba, con piso en 1**, y desde la 2.0 **por 2**. Conserva el orden entero del catálogo (el más
     /// caro sigue siendo `ach_skins_all`) y ningún logro pasa a pagar cero.
     ///
     /// El assert que importa es el TOTAL, no los doce montos: los montos son
     /// tuning y el total es la regla de diseño.
-    @Test func fixedOroAchievementsFundAFifthOfTheRun() {
-        let deOro = content.achievements.achievements.filter { $0.reward.rewardKind == .oro }
-        #expect(deOro.count == 12)
+    @Test func fixedBlueAchievementsFundAFifthOfTheRun() {
+        let deBlue = content.achievements.achievements.filter { $0.reward.rewardKind == .blue }
+        #expect(deBlue.count == 12)
 
         var total = 0
-        for logro in deOro {
+        for logro in deBlue {
             let monto = logro.reward.amount ?? 0
-            #expect(monto > 0, "\(logro.id) paga \(monto) de ORO: un logro que no paga nada")
+            #expect(monto > 0, "\(logro.id) paga \(monto) de blue: un logro que no paga nada")
             total += monto
         }
-        #expect(total == 66, "los doce logros de ORO suman \(total)")
+        #expect(total == 66, "los doce logros de blue suman \(total)")
 
         // Contra el costo REAL de maxear, derivado del catálogo y no un literal:
         // si mañana `upgrades.json` se encarece, esta proporción se mueve sola y
         // el test lo dice.
         let maxear = content.upgradesConfig.upgrades
-            .filter { $0.currency == .oro }
+            .filter { $0.currency == .blue }
             .reduce(0) { acumulado, line in
                 acumulado + (0..<line.maxLevel).reduce(0) { $0 + Int(UpgradeManager.cost(of: line, level: $1).rounded(.up)) }
             }
@@ -757,7 +757,7 @@ struct GameContentValidationTests {
     }
 
     /// El arte entra por tandas: cada entrada del manifest debe apuntar a un
-    /// tipo real; los tipos sin entrada renderizan placeholder (regla de oro).
+    /// tipo real; los tipos sin entrada renderizan placeholder (regla principal).
     @Test func manifestEntriesReferenceRealTypes() {
         // Una entrada de personaje debe apuntar a un tier real O a un special
         // real (los specials tienen arte propio en specials.atlas, no son tiers).
@@ -795,7 +795,7 @@ struct GameContentValidationTests {
 
         // Lo que ataja de verdad una migración a medias es esto: una entrada que
         // se quedó con `floorReached` no entra a la bolsa y el conteo se cae.
-        // 41 de la v1 menos las 8 que pasaron a venderse con ORO (`OroSkinsContentTests`).
+        // 41 de la v1 menos las 8 que pasaron a venderse con blue (`BlueSkinsContentTests`).
         #expect(pool.count == 33)
         // Las dos de acá abajo NO pueden fallar, y quedan como documentación del
         // invariante: el `init()` de la suite carga con `GameContentLoader`, que

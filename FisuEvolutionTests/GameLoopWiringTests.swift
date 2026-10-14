@@ -222,8 +222,8 @@ struct GameLoopWiringTests {
     func prestigeAwardsItsMilestoneSkinAndQueuesTheSheet() async throws {
         let gameState = await makeGameState()
         #expect(gameState.player?.meta.milestoneSkins.isEmpty == true, "se arranca sin ninguna")
-        // El gate es ≥1 ORO y el divisor del rebalance no se alcanza sumando
-        // monedas: se pide el ORO derivado de la config, como el test de prestigio.
+        // El gate es ≥1 blue y el divisor del rebalance no se alcanza sumando
+        // monedas: se pide el blue derivado de la config, como el test de prestigio.
         gameState.giveEarningsForPrestigeTesting()
         #expect(gameState.prestigeAvailable)
 
@@ -536,9 +536,9 @@ struct GameLoopWiringTests {
         #expect(gameState.activeSkinID(forCharacterType: "homeless") == "second_life")
         #expect(gameState.activeSkinID(forCharacterType: "cartonero") == nil)
 
-        // El gate es ≥1 ORO. Antes se llegaba sumando `debugGrantCoins()` hasta
+        // El gate es ≥1 blue. Antes se llegaba sumando `debugGrantCoins()` hasta
         // 64 veces; con el divisor del rebalance (3e12) esa suma ya no alcanza,
-        // así que se pide el ORO derivado de la config y no monedas a ojo.
+        // así que se pide el blue derivado de la config y no monedas a ojo.
         gameState.giveEarningsForPrestigeTesting()
         #expect(gameState.prestigeAvailable)
         gameState.confirmPrestige()
@@ -575,25 +575,25 @@ struct GameLoopWiringTests {
         #expect(abs(reward.amount - expected) < 1.0)
     }
 
-    // MARK: Reencarnación (F7: gate por ORO, no por tier)
+    // MARK: Reencarnación (F7: gate por blue, no por tier)
 
     @Test func prestigeFlowResetsRunAndKeepsMeta() async throws {
         let gameState = await makeGameState()
-        let divisor = try #require(gameState.content?.economy.oro.divisor)
+        let divisor = try #require(gameState.content?.economy.blue.divisor)
         let fisura = try #require(gameState.content?.tiers.type(id: "homeless"))
         gameState.debugGrantCoins()
         let coinsBeforeCharacterUpgrade = try #require(gameState.player?.run.coins)
         gameState.buyCharacterUpgrade(typeID: fisura.id)
         #expect(gameState.characterUpgradeLevel(of: fisura.id) == 1)
         #expect((gameState.player?.run.coins ?? coinsBeforeCharacterUpgrade) < coinsBeforeCharacterUpgrade)
-        // Gate: reencarnar ⟺ ganar ≥1 ORO ⟺ lifetimeEarnings alcanza el divisor.
-        // El gate es ≥1 ORO. Antes se llegaba sumando `debugGrantCoins()` hasta
+        // Gate: reencarnar ⟺ ganar ≥1 blue ⟺ lifetimeEarnings alcanza el divisor.
+        // El gate es ≥1 blue. Antes se llegaba sumando `debugGrantCoins()` hasta
         // 64 veces; con el divisor del rebalance (3e12) esa suma ya no alcanza,
-        // así que se pide el ORO derivado de la config y no monedas a ojo.
+        // así que se pide el blue derivado de la config y no monedas a ojo.
         gameState.giveEarningsForPrestigeTesting()
         #expect(gameState.prestigeAvailable)
         #expect((gameState.player?.meta.lifetimeEarnings ?? 0) >= divisor)
-        #expect(gameState.prestigePreviewNow.oroGained > 0)
+        #expect(gameState.prestigePreviewNow.blueGained > 0)
 
         gameState.confirmPrestige()
         // La run murió entera…
@@ -603,7 +603,7 @@ struct GameLoopWiringTests {
         #expect(gameState.player?.run.unlockedFloors == ["alley"])
         // …y la meta cobró.
         #expect(gameState.player?.meta.prestigeLevel == 1)
-        #expect((gameState.player?.meta.oro ?? 0) > 0)
+        #expect((gameState.player?.meta.blue ?? 0) > 0)
         #expect((gameState.player?.meta.globalMultiplier ?? 0) > 1.0)
         #expect(gameState.prestigeAvailable == false)
         // Torre reconciliada: una fisura sola en el alley.
@@ -617,9 +617,9 @@ struct GameLoopWiringTests {
         let gameState = await makeGameState()
         let baseCost = try #require(gameState.spawnQuote?.cost)
 
-        // El gate es ≥1 ORO. Antes se llegaba sumando `debugGrantCoins()` hasta
+        // El gate es ≥1 blue. Antes se llegaba sumando `debugGrantCoins()` hasta
         // 64 veces; con el divisor del rebalance (3e12) esa suma ya no alcanza,
-        // así que se pide el ORO derivado de la config y no monedas a ojo.
+        // así que se pide el blue derivado de la config y no monedas a ojo.
         gameState.giveEarningsForPrestigeTesting()
         gameState.confirmPrestige()
 

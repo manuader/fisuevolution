@@ -229,11 +229,9 @@ struct CustomizationView: View {
                 image.resizable().scaledToFit()
             }
         } else {
-            Image(systemName: "person.fill")
-                .resizable()
-                .scaledToFit()
-                .padding(10)
-                .foregroundStyle(Color("PaletteInk").opacity(unknown ? 1 : 0.35))
+            GameGlyphView(glyph: .person, size: 44)
+                .brightness(unknown ? -1 : 0)
+                .opacity(unknown ? 1 : 0.5)
         }
     }
 
@@ -511,11 +509,9 @@ private struct SkinCard: View {
                 image.resizable().scaledToFit()
             }
         } else {
-            Image(systemName: "person.fill")
-                .resizable()
-                .scaledToFit()
-                .padding(18)
-                .foregroundStyle(Color("PaletteInk").opacity(isSilhouette ? 1 : 0.35))
+            GameGlyphView(glyph: .person, size: 72)
+                .brightness(isSilhouette ? -1 : 0)
+                .opacity(isSilhouette ? 1 : 0.5)
         }
     }
 
@@ -540,15 +536,14 @@ private struct SkinCard: View {
         case .equipped:
             StateBadge(
                 text: String(localized: "skins.equipped"),
-                systemImage: "checkmark.circle.fill",
+                glyph: .check,
                 textAlignment: .center,
                 muted: false
             )
             .accessibilityHidden(true)
         case .owned:
-            ActionPill(
-                titleKey: "skins.equip",
-                systemImage: "tshirt.fill",
+            GameButton(
+                "skins.equip", role: .free, medallion: .glyph(.shirt), size: .compact, fullWidth: true,
                 // El id lleva el id de la skin porque en la grilla todos los
                 // botones dicen "Ponérsela": sin esto no hay test de UI que pueda
                 // apretar UNO. Es un `String` y no una clave de localización, así
@@ -561,7 +556,7 @@ private struct SkinCard: View {
                 action: equip
             )
         case .milestoneLocked(let conditionText):
-            StateBadge(text: conditionText, systemImage: "lock.fill", textAlignment: .center, muted: true)
+            StateBadge(text: conditionText, glyph: .lock, textAlignment: .center, muted: true)
                 .accessibilityHidden(true)
         case .oroPurchasable(let price):
             PricePill(

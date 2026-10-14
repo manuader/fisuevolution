@@ -30,7 +30,7 @@ struct EngagementPrizesStateTests {
         var player = fxState()
         player.meta.engagement.packages = PackagesState(secondsUntilNext: 33, waiting: 3)
         player.meta.engagement.treasures = TreasuresState(secondsUntilNext: 200, phase: .onBoard, extraOpensLeft: 1)
-        player.meta.engagement.wheel = WheelState(day: "2026-10-07", videoSpinsUsed: 2, oroSpinsUsed: 1, bonusSpins: 1, repeatableSegmentId: "oro_3")
+        player.meta.engagement.wheel = WheelState(day: "2026-10-07", videoSpinsUsed: 2, blueSpinsUsed: 1, bonusSpins: 1, repeatableSegmentId: "blue_3")
         let decoded = try JSONDecoder().decode(PlayerState.self, from: JSONEncoder().encode(player))
         #expect(decoded.meta.engagement == player.meta.engagement)
     }

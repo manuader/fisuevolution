@@ -46,14 +46,14 @@ struct TutorialCoverageTests {
         }
     }
 
-    @Test("cada ítem de la tienda de ORO es una mecánica con lección")
+    @Test("cada ítem de la tienda de blue es una mecánica con lección")
     func everyShopItemIsTaught() throws {
         let content = try GameContentLoader.load(from: .main)
-        #expect(!content.oroShop.items.isEmpty)
-        if case .lesson(let lesson) = TutorialMechanic.oroShopShelf.coverage {
+        #expect(!content.blueShop.items.isEmpty)
+        if case .lesson(let lesson) = TutorialMechanic.blueShopShelf.coverage {
             #expect(!lesson.steps.isEmpty)
         } else {
-            #expect(TutorialMechanic.knownGaps.contains(.oroShopShelf), "la tienda de ORO necesita su lección")
+            #expect(TutorialMechanic.knownGaps.contains(.blueShopShelf), "la tienda de blue necesita su lección")
         }
     }
 

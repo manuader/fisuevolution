@@ -25,13 +25,13 @@ struct OffersContentTests {
         #expect(welcome.trigger == .secondDay)
         #expect(welcome.oncePerAccount)
         #expect(welcome.isChance)
-        #expect(welcome.rewards == [.oro(120), .coinsSeconds(7200), .skinChest(1)])
+        #expect(welcome.rewards == [.blue(120), .coinsSeconds(7200), .skinChest(1)])
         let rebirth = try #require(offers.offer(id: "renacer"))
         #expect(rebirth.trigger == .reincarnation)
-        #expect(rebirth.rewards == [.oro(300), .coinsSeconds(14_400), .modifier(effect: .incomeMultiplier, magnitude: 3, seconds: 1800)])
+        #expect(rebirth.rewards == [.blue(300), .coinsSeconds(14_400), .modifier(effect: .incomeMultiplier, magnitude: 3, seconds: 1800)])
         let moving = try #require(offers.offer(id: "mudanza"))
         #expect(moving.trigger == .newFloor)
-        #expect(moving.rewards == [.oro(500), .coinsSeconds(28_800), .package(3)])
+        #expect(moving.rewards == [.blue(500), .coinsSeconds(28_800), .package(3)])
     }
 
     @Test("cada oferta tiene su consumible y cada consumible de oferta, su oferta")

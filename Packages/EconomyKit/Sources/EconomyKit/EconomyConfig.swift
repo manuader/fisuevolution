@@ -5,7 +5,7 @@ import Foundation
 /// Every number the game uses derives from this file — nothing is hardcoded.
 /// v2 (F7 "La Torre"): floors[] reemplaza al board único y a la tabla de stages
 /// hardcodeada; `hire` (contratación contextual al piso, precio punitivo) reemplaza
-/// al spawn progresivo por tierOffset; `oro` reemplaza a `prestige` (soul points).
+/// al spawn progresivo por tierOffset; `blue` reemplaza a `prestige` (soul points).
 public struct EconomyConfig: Codable, Sendable, Equatable {
     /// Contratación contextual al piso (spec F7 §3.3, decisión cerrada con el dueño):
     /// el botón contrata el TIER BASE del piso visible.
@@ -306,20 +306,20 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         }
     }
 
-    /// ORO: moneda de prestigio (F7 §3.7). Ganancia al reencarnar:
-    /// `floor((lifetimeEarnings / divisor) ^ exponent) − oroEarnedLifetime`.
-    /// El multiplicador global se calcula sobre `oroEarnedLifetime` (monótono:
-    /// gastar ORO nunca nerfea).
-    public struct OroConfig: Codable, Sendable, Equatable {
+    /// Blue: moneda de prestigio (F7 §3.7). Ganancia al reencarnar:
+    /// `floor((lifetimeEarnings / divisor) ^ exponent) − blueEarnedLifetime`.
+    /// El multiplicador global se calcula sobre `blueEarnedLifetime` (monótono:
+    /// gastar blue nunca nerfea).
+    public struct BlueConfig: Codable, Sendable, Equatable {
         public let divisor: Double
         public let exponent: Double
-        public let globalMultiplierPerOro: Double
+        public let globalMultiplierPerBlue: Double
         /// Desde qué piso el botón de reencarnar EXISTE aunque todavía no haya
-        /// ORO por cobrar (muestra el progreso hacia el próximo): id de
+        /// Blue por cobrar (muestra el progreso hacia el próximo): id de
         /// `floors[]`, decisión del dueño 2026-08-28 ("al llegar a lujo").
         /// Opcional por la misma razón que `tapFloorMultiplierExponent`: un
         /// `economy.json` viejo o una fixture sin la clave siguen decodificando
-        /// y sin ella el botón se comporta como siempre (aparece con el ORO).
+        /// y sin ella el botón se comporta como siempre (aparece con el blue).
         /// [TUNEABLE]
         public let prestigeTeaserFloorId: String?
 
@@ -339,14 +339,14 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         public init(
             divisor: Double,
             exponent: Double,
-            globalMultiplierPerOro: Double,
+            globalMultiplierPerBlue: Double,
             prestigeTeaserFloorId: String? = nil,
             requiresLastRunWall: Bool? = nil,
             inheritsPassiveUnlocks: Bool? = nil
         ) {
             self.divisor = divisor
             self.exponent = exponent
-            self.globalMultiplierPerOro = globalMultiplierPerOro
+            self.globalMultiplierPerBlue = globalMultiplierPerBlue
             self.prestigeTeaserFloorId = prestigeTeaserFloorId
             self.requiresLastRunWall = requiresLastRunWall
             self.inheritsPassiveUnlocks = inheritsPassiveUnlocks
@@ -380,7 +380,7 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
     public let tapFloorMultiplierExponent: Double?
     public let hire: HireConfig
     public let charUpgrades: CharUpgradesConfig
-    public let oro: OroConfig
+    public let blue: BlueConfig
     public let critChanceBase: Double
     public let critMultiplier: Double
     public let offlineEfficiencyBase: Double
@@ -410,7 +410,7 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         tapFloorMultiplierExponent: Double? = nil,
         hire: HireConfig,
         charUpgrades: CharUpgradesConfig,
-        oro: OroConfig,
+        blue: BlueConfig,
         critChanceBase: Double,
         critMultiplier: Double,
         offlineEfficiencyBase: Double,
@@ -427,7 +427,7 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         self.tapFloorMultiplierExponent = tapFloorMultiplierExponent
         self.hire = hire
         self.charUpgrades = charUpgrades
-        self.oro = oro
+        self.blue = blue
         self.critChanceBase = critChanceBase
         self.critMultiplier = critMultiplier
         self.offlineEfficiencyBase = offlineEfficiencyBase

@@ -1,7 +1,7 @@
 import EconomyKit
 import Foundation
 
-/// Mejoras (F5; pasan a ORO en F7.4) y mejoras por personaje.
+/// Mejoras (F5; pasan a blue en F7.4) y mejoras por personaje.
 /// Separado de `GameState.swift` para que el frente del menú de mejoras no
 /// comparta archivo con los otros cinco dominios.
 extension GameState {
@@ -40,7 +40,7 @@ extension GameState {
     /// "próximo nivel" saldría de una potencia que no existe. Es la misma regla
     /// que `CharUpgrades.multiplier` y que las dos derivaciones de efectos.
     func upgradeLevel(of lineId: String) -> Int {
-        let stored = player?.meta.oroUpgradeLevels[lineId] ?? 0
+        let stored = player?.meta.blueUpgradeLevels[lineId] ?? 0
         guard let line = content?.upgradesConfig.upgrades.first(where: { $0.id == lineId }) else { return stored }
         return min(stored, line.maxLevel)
     }
@@ -103,8 +103,8 @@ extension GameState {
             let total = config.offlineEfficiencyBase + step.value
             return EffectAmount(unit: .chance, value: min(total, EffectCaps.offline), isCapped: step.isCapped)
         case .prestigeBonusPerSoulPoint:
-            let perOro = config.oro.globalMultiplierPerOro
-            return EffectAmount(unit: step.unit, value: perOro * (1 + step.value), isCapped: false)
+            let perBlue = config.blue.globalMultiplierPerBlue
+            return EffectAmount(unit: step.unit, value: perBlue * (1 + step.value), isCapped: false)
         case .incomeMultiplier, .tapMultiplier, .spawnCostDiscount, .critChance, .goldenTouchChance, .luckyTouch:
             return step
         }

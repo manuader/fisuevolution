@@ -24,8 +24,8 @@ struct StatsSnapshotTests {
         let snapshot = gameState.statsSnapshot
 
         #expect(snapshot.lifetimeEarnings == "0")
-        #expect(snapshot.oro == "0")
-        #expect(snapshot.oroLifetime == "0")
+        #expect(snapshot.blue == "0")
+        #expect(snapshot.blueLifetime == "0")
         #expect(snapshot.prestigeLevel == "0")
         #expect(snapshot.maxTier == "1")
         #expect(snapshot.unitCount == "1", "la partida arranca con un Fisura en el callejón")
@@ -99,7 +99,7 @@ struct StatsSnapshotTests {
         gameState.player = player
         #expect(gameState.statsSnapshot.maxTier == "12", "antes de reencarnar, el tier es el de la run vigente")
 
-        gameState.giveEarningsForPrestigeTesting(oro: 9)
+        gameState.giveEarningsForPrestigeTesting(blue: 9)
         gameState.confirmPrestige()
 
         let snapshot = gameState.statsSnapshot
@@ -110,7 +110,7 @@ struct StatsSnapshotTests {
         #expect(snapshot.shares == "2")
         #expect(snapshot.prestigeLevel == "1")
         #expect(snapshot.unitCount == "1", "reencarnar deja un solo Fisura")
-        #expect(snapshot.oroLifetime != "0", "el ORO ganado es histórico")
+        #expect(snapshot.blueLifetime != "0", "el blue ganado es histórico")
         // ⚠️ `maxTier` es el que NO sobrevive, y va acá justamente por eso: vive
         // entre dos filas históricas en pantalla y es el único del grupo Carrera
         // que vuelve a cero. Si algún día se agrega un `maxTierEver` a `MetaStats`,
@@ -126,7 +126,7 @@ struct StatsSnapshotTests {
     }
 
     /// El multiplicador del Jefe **no** puede salir de `prestigePreview`: esa
-    /// proyección lleva `coinsLost` y `oroGained` adentro y `refreshProjections`
+    /// proyección lleva `coinsLost` y `blueGained` adentro y `refreshProjections`
     /// la reescribe a 8 Hz mientras la torre produce, así que leerla desde el
     /// organigrama recotiza los 43 nodos ocho veces por segundo. El accesor
     /// estrecho tiene que decir exactamente lo mismo que el popup, o la tarjeta
@@ -137,13 +137,13 @@ struct StatsSnapshotTests {
         #expect(gameState.globalMultiplierText == gameState.prestigePreview.multiplierBeforeText,
                 "partida nueva: el multiplicador neutro")
 
-        gameState.giveEarningsForPrestigeTesting(oro: 9)
+        gameState.giveEarningsForPrestigeTesting(blue: 9)
         gameState.confirmPrestige()
 
         #expect(gameState.globalMultiplierText == gameState.prestigePreview.multiplierBeforeText,
-                "con ORO cobrado tampoco pueden divergir")
+                "con blue cobrado tampoco pueden divergir")
         #expect(gameState.globalMultiplierText != PrestigePreview.empty.multiplierBeforeText,
-                "reencarnar con 9 ORO tiene que mover el multiplicador")
+                "reencarnar con 9 blue tiene que mover el multiplicador")
     }
 
     // MARK: orgChartRows

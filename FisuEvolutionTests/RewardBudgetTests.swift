@@ -179,9 +179,9 @@ struct EngagementBudgetTests {
         #expect(spent <= left, "visitantes y eventos regalan \(spent) min/día; quedan \(left)")
     }
 
-    @Test("los consumibles de ORO respetan el ancla: 1 h de producción vale 45 a 135 ORO")
+    @Test("los consumibles de blue respetan el ancla: 1 h de producción vale 45 a 135 blue")
     func consumablesFollowTheAnchor() {
-        for item in content.oroShop.items where !item.isPermanent {
+        for item in content.blueShop.items where !item.isPermanent {
             guard let price = item.price else { continue }
             let hours = item.rewards.reduce(0.0) { total, reward in
                 switch reward {
@@ -194,7 +194,7 @@ struct EngagementBudgetTests {
             }
             guard hours > 0 else { continue }
             let perHour = Double(price) / hours
-            #expect(perHour >= 45 && perHour <= 135, "\(item.id): \(perHour) ORO por hora de producción")
+            #expect(perHour >= 45 && perHour <= 135, "\(item.id): \(perHour) blue por hora de producción")
         }
     }
 }

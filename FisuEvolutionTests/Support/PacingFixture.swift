@@ -7,7 +7,7 @@ import Testing
 /// lugar donde la app arma `PacingSources`; el CLI tiene su espejo
 /// (`Tools/pacing-sim/Sources/SourcesLoader.swift`) y E2b T14 compara las dos salidas.
 enum PacingFixture {
-    static let contractPolicy = PacingSimulator.ReincarnationPolicy.whenOroMultiplies(4)
+    static let contractPolicy = PacingSimulator.ReincarnationPolicy.whenBlueMultiplies(4)
 
     /// Lo que cuesta mirar un video en segundos de sesión del bot.
     private static let videoSeconds = 30.0
@@ -30,12 +30,12 @@ enum PacingFixture {
             packageRain: rail.packageRain
         )
         let topLevels = Dictionary(
-            uniqueKeysWithValues: content.oroShop.items.filter(\.isPermanent).map { ($0.id, $0.levels.count) }
+            uniqueKeysWithValues: content.blueShop.items.filter(\.isPermanent).map { ($0.id, $0.levels.count) }
         )
         sources.shop = ShopPermanents(
-            extraSlots: OroShop.extraSlots(levels: topLevels, catalog: content.oroShop),
-            bestSupplierLevel: OroShop.bestSupplierLevel(levels: topLevels, catalog: content.oroShop),
-            bonusDailyWheelSpins: OroShop.bonusDailyWheelSpins(levels: topLevels, catalog: content.oroShop)
+            extraSlots: BlueShop.extraSlots(levels: topLevels, catalog: content.blueShop),
+            bestSupplierLevel: BlueShop.bestSupplierLevel(levels: topLevels, catalog: content.blueShop),
+            bonusDailyWheelSpins: BlueShop.bonusDailyWheelSpins(levels: topLevels, catalog: content.blueShop)
         )
         return sources
     }

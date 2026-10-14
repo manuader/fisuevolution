@@ -29,7 +29,7 @@ final class PrestigeIndicatorUITests: XCTestCase {
         app.launch()
 
         // El indicador es PERMANENTE y muestra el antes → después mientras haya
-        // ORO por cobrar.
+        // Blue por cobrar.
         let indicator = app.otherElements["hud.prestige.multiplier"]
         XCTAssertTrue(indicator.waitForExistence(timeout: 15), "el indicador del HUD nunca apareció")
         let firstLife = indicator.value as? String ?? ""
@@ -49,7 +49,7 @@ final class PrestigeIndicatorUITests: XCTestCase {
         app.buttons["prestige.confirm"].tap()
 
         // Confirmado: el "después" que prometía el popup ya es el multiplicador
-        // vigente, y sin ORO por cobrar la flecha se retira.
+        // vigente, y sin blue por cobrar la flecha se retira.
         let settled = XCTNSPredicateExpectation(
             predicate: NSPredicate(format: "value != %@", firstLife), object: indicator
         )
@@ -65,7 +65,7 @@ final class PrestigeIndicatorUITests: XCTestCase {
         app.launch()
         XCTAssertTrue(indicator.waitForExistence(timeout: 15))
         let secondLife = indicator.value as? String ?? ""
-        XCTAssertTrue(secondLife.contains("→"), "la segunda vida vuelve a tener ORO por cobrar")
+        XCTAssertTrue(secondLife.contains("→"), "la segunda vida vuelve a tener blue por cobrar")
         XCTAssertFalse(secondLife.hasPrefix("×1,0 "), "el antes ya no puede ser ×1: \(secondLife)")
 
         prestige.tap()

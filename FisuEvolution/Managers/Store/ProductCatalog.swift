@@ -9,9 +9,9 @@ struct ProductCatalog: Codable, Sendable, Equatable {
             case skin
             /// Consumible: plata de la run, en proporción a dónde estás parado.
             case coins
-            /// Consumible: saldo de ORO gastable. NO mueve el multiplicador
+            /// Consumible: saldo de blue gastable. NO mueve el multiplicador
             /// global, que sigue saliendo sólo de reencarnar.
-            case oro
+            case blue
             /// El combo de bienvenida: plata + quitar los ads + una skin. Es
             /// `nonConsumable` porque dos de las tres cosas son restaurables.
             case starterPack
@@ -28,9 +28,9 @@ struct ProductCatalog: Codable, Sendable, Equatable {
         /// 1 h, 6 h y 24 h; el starter 4 h). Un monto fijo envejece mal en un
         /// idle exponencial.
         let coinMinutes: Double?
-        /// `oro`: monto fijo. Acá sí es fijo porque los sinks de ORO
+        /// `blue`: monto fijo. Acá sí es fijo porque los sinks de blue
         /// (`upgrades.json`) tienen costos fijos, no exponenciales en la run.
-        let oroAmount: Int?
+        let blueAmount: Int?
         /// `offer`: el id de la oferta en `offers.json`.
         var offerId: String? = nil
 
@@ -40,7 +40,7 @@ struct ProductCatalog: Codable, Sendable, Equatable {
         /// El starter pack no entra: dos de sus tres cosas son restaurables.
         var isConsumable: Bool {
             switch entitlement {
-            case .coins, .oro, .offer: true
+            case .coins, .blue, .offer: true
             case .removeAds, .skin, .starterPack: false
             }
         }

@@ -43,7 +43,7 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
         /// Reencarnaciones acumuladas que desbloquean esta skin de milestone.
         public let reincarnations: Int?
         /// Se desbloquea al tener TODAS las líneas de mejora permanente en su
-        /// nivel máximo. Es la vía gratuita de las skins de oro; la de pago es
+        /// nivel máximo. Es la vía gratuita de las skins doradas; la de pago es
         /// el paquete, que las entrega por `ownedSkins`.
         public let upgradesMaxed: Bool?
         /// Rareza si esta skin sale de un cofre. Excluyente con los tres criterios
@@ -54,11 +54,11 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
         /// ella la ficha muestra el id embellecido, que alcanza para una skin
         /// de prueba pero no para una que se shippea.
         public let displayNameKey: String?
-        /// Se compra con ORO en la tienda (E6). Excluyente con el cofre y con los
+        /// Se compra con blue en la tienda (E6). Excluyente con el cofre y con los
         /// milestones: una pinta tiene una sola vía.
-        public let oroPrice: Int?
+        public let bluePrice: Int?
         /// La familia dibujada a la que pertenece (pijama, gaucho, dinosaurio): el
-        /// mismo id repetido en los 43, como `oro` y `diamante`.
+        /// mismo id repetido en los 43, como la dorada y la de diamante.
         public let family: String?
         /// El atlas de su textura cuando no es el del personaje (`fam_<familia>`).
         public let textureAtlas: String?
@@ -77,7 +77,7 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
             upgradesMaxed: Bool? = nil,
             chestRarity: Rarity? = nil,
             displayNameKey: String? = nil,
-            oroPrice: Int? = nil,
+            bluePrice: Int? = nil,
             family: String? = nil,
             textureAtlas: String? = nil
         ) {
@@ -91,7 +91,7 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
             self.upgradesMaxed = upgradesMaxed
             self.chestRarity = chestRarity
             self.displayNameKey = displayNameKey
-            self.oroPrice = oroPrice
+            self.bluePrice = bluePrice
             self.family = family
             self.textureAtlas = textureAtlas
         }
@@ -109,10 +109,10 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
         case missingTexture(String)
         case invalidReincarnations(String)
         case chestAndMilestone(String)
-        case nonPositiveOroPrice(String)
-        case oroAndChest(String)
-        case oroAndMilestone(String)
-        case inconsistentOroPrice(String)
+        case nonPositiveBluePrice(String)
+        case blueAndChest(String)
+        case blueAndMilestone(String)
+        case inconsistentBluePrice(String)
         case familyWithoutAtlas(String)
     }
 
@@ -133,7 +133,7 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
     /// ⚠️ "Vestir a todos" está escrito de **dos formas** en el catálogo y las
     /// dos tienen que caer del mismo lado. La declarada (`characterType == "*"`)
     /// y la que efectivamente se usa: el MISMO id repetido una vez por
-    /// personaje, que es como viven `oro` y `diamante`. Lo segundo no es un
+    /// personaje, que es como viven la dorada y la de diamante. Lo segundo no es un
     /// descuido del dato — es la razón de que la unicidad se pida por
     /// (personaje, id) y no por id (ver `validate`): la propiedad se guarda por
     /// id en `allOwnedSkins`, así que tener "diamante" es tenerlo en los 43.
@@ -156,17 +156,17 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
         return dueño.filter { !compartidas.contains($0.key) }
     }
 
-    /// Las pintas que se compran con ORO, una vez por id y en el orden del catálogo.
-    public var oroSkinIDs: [String] {
+    /// Las pintas que se compran con blue, una vez por id y en el orden del catálogo.
+    public var blueSkinIDs: [String] {
         var seen = Set<String>()
         return skins.compactMap { skin in
-            guard skin.oroPrice != nil, seen.insert(skin.id).inserted else { return nil }
+            guard skin.bluePrice != nil, seen.insert(skin.id).inserted else { return nil }
             return skin.id
         }
     }
 
-    public func oroPrice(of skinID: String) -> Int? {
-        skins.first { $0.id == skinID && $0.oroPrice != nil }?.oroPrice
+    public func bluePrice(of skinID: String) -> Int? {
+        skins.first { $0.id == skinID && $0.bluePrice != nil }?.bluePrice
     }
 
     public func entry(id: String) -> Entry? {
@@ -206,11 +206,11 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
             if skin.chestRarity != nil, skin.isMilestone {
                 throw ValidationError.chestAndMilestone(skin.id)
             }
-            if let price = skin.oroPrice {
-                guard price > 0 else { throw ValidationError.nonPositiveOroPrice(skin.id) }
-                guard skin.chestRarity == nil else { throw ValidationError.oroAndChest(skin.id) }
-                guard !skin.isMilestone else { throw ValidationError.oroAndMilestone(skin.id) }
-                if let anterior = precios[skin.id], anterior != price { throw ValidationError.inconsistentOroPrice(skin.id) }
+            if let price = skin.bluePrice {
+                guard price > 0 else { throw ValidationError.nonPositiveBluePrice(skin.id) }
+                guard skin.chestRarity == nil else { throw ValidationError.blueAndChest(skin.id) }
+                guard !skin.isMilestone else { throw ValidationError.blueAndMilestone(skin.id) }
+                if let anterior = precios[skin.id], anterior != price { throw ValidationError.inconsistentBluePrice(skin.id) }
                 precios[skin.id] = price
             }
             if skin.family != nil, skin.textureAtlas?.isEmpty != false {

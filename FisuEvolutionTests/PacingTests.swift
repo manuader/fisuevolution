@@ -12,7 +12,7 @@ import Testing
 /// COMPARACIÓN OTRA VEZ: CAMBIÓ LA POLÍTICA DEL BOT.** Las bandas ya no leen
 /// una simulación propia: leen `PacingReports.free`, la misma partida que
 /// asserta `PacingContractTests` —perfil `.free` (paquetes, diario, boosts
-/// gratis), política ×5 (reencarna cuando su ORO histórico se multiplica por
+/// gratis), política ×5 (reencarna cuando su blue histórico se multiplica por
 /// 5, no al duplicarlo), descuento de prestigio cobrado, 400 días—, con la
 /// calibración de la 2.0 (`Docs/balance-run-v2-e2b-candidata.md`). Ningún
 /// número de abajo de este párrafo es comparable con los de la sexta ronda.
@@ -113,7 +113,7 @@ import Testing
 /// mejoras POR PERSONAJE pasó de `2^nivel` a `1 + nivel` (pedido del dueño), y
 /// con eso el ingreso del juego se derrumbó: maxear las seis pasó de 24,00 h a
 /// **322,00 h**. La recalibración que lo devuelve al contrato movió dos knobs
-/// —`charUpgrades.costGrowth` 4,0 → 1,5 y `oro.divisor` 3e12 → 1e9— y las cuatro
+/// —`charUpgrades.costGrowth` 4,0 → 1,5 y `blue.divisor` 3e12 → 1e9— y las cuatro
 /// bandas se re-derivaron de la corrida nueva. La corrida está en
 /// `Docs/balance-run-t7-secuencial.csv` y el porqué en `Docs/balance-log.md`.
 ///
@@ -165,8 +165,8 @@ struct PacingTests {
     /// `titleKey`, `iconKey` y moneda, o sea presentación), así que el mapeo lo
     /// hace el LLAMADOR — igual que `pacing-sim` con su `UpgradesFile`.
     ///
-    /// Filtra por ORO porque es lo que el bot puede pagar: lo único que le entra
-    /// al reencarnar es ORO. Hoy las seis líneas son de ORO y lo pinea
+    /// Filtra por blue porque es lo que el bot puede pagar: lo único que le entra
+    /// al reencarnar es blue. Hoy las seis líneas son de blue y lo pinea
     /// `upgradeCatalogMatchesTunedValues`.
     ///
     /// El `Effect(rawValue:)` REVIENTA en vez de saltearse la línea: los dos
@@ -176,7 +176,7 @@ struct PacingTests {
     /// de modelar al jugador sin que nadie se entere.
     static func permanentLines(from config: UpgradesConfig) throws -> [PermanentUpgradeLine] {
         try config.upgrades
-            .filter { $0.currency == .oro }
+            .filter { $0.currency == .blue }
             .map { line in
                 let effect = try #require(
                     PermanentUpgradeLine.Effect(rawValue: line.effectType.rawValue),
@@ -250,7 +250,7 @@ struct PacingTests {
     ///
     /// ⚠️ **Volvió a caer temprano, y es el costo declarado de la ronda 2.** El
     /// rebalance de la ronda 1 la había llevado a 62,00 h de pared (3,67 h
-    /// activas) subiendo `oro.divisor` a 3e12, para que reencarnar dejara de ser
+    /// activas) subiendo `blue.divisor` a 3e12, para que reencarnar dejara de ser
     /// un trámite del primer minuto. Con el efecto secuencial el ingreso cayó
     /// tanto que ESE divisor pone la primera reencarnación a las **25,67 h
     /// activas** y maxear a 122 h: el hito llega tan tarde que el juego se
@@ -264,7 +264,7 @@ struct PacingTests {
     /// 15,29 h, o sea guardarse las reencarnaciones ganaba. Ver `balance-log`.
     ///
     /// Sexta ronda (2.0): medido **28,00 h de pared** (1,67 h activas), ±30 %.
-    /// Se fue de 9,28 a 28 h porque la política ×5 espera a juntar 1 ORO con el
+    /// Se fue de 9,28 a 28 h porque la política ×5 espera a juntar 1 blue con el
     /// divisor en 8e11, no a duplicar con 1e10.
     @Test("la 1ª reencarnación cae entre 19,6 y 36,4 h de pared")
     func firstReincarnation() throws {
@@ -378,8 +378,8 @@ struct PermanentUpgradesMirrorTests {
             critChanceBase: content.economy.critChanceBase,
             now: 0
         )
-        state.meta.oroUpgradeLevels = levels
-        state.meta.oroEarnedLifetime = 40
+        state.meta.blueUpgradeLevels = levels
+        state.meta.blueEarnedLifetime = 40
         return state
     }
 
@@ -388,11 +388,11 @@ struct PermanentUpgradesMirrorTests {
         let lines = try PacingTests.permanentLines(from: content.upgradesConfig)
         let economy = StandardEconomy(config: content.economy)
 
-        // El mapeo filtra por ORO y la derivación de la app NO: si alguna línea
+        // El mapeo filtra por blue y la derivación de la app NO: si alguna línea
         // se pagara con plata, el bot no la vería y las dos columnas
-        // divergirían con razón. Hoy las seis son de ORO.
+        // divergirían con razón. Hoy las seis son de blue.
         #expect(lines.count == content.upgradesConfig.upgrades.count,
-                "hay líneas que no se pagan con ORO: el espejo dejaría de ser comparable")
+                "hay líneas que no se pagan con blue: el espejo dejaría de ser comparable")
 
         let alTope = Dictionary(uniqueKeysWithValues: content.upgradesConfig.upgrades.map { ($0.id, $0.maxLevel) })
         let escenarios: [(String, [String: Int])] = [

@@ -457,7 +457,7 @@ struct GameBoardView: View {
     /// cualquier margen acá le dejaría una lonja de tablero al costado.
     ///
     /// El atajo no desaparece nunca (PLAN-v2 E3); el prestigio aparece recién
-    /// cuando hay ORO que cobrar. Esa aparición va **sin animación**: si algún día
+    /// cuando hay blue que cobrar. Esa aparición va **sin animación**: si algún día
     /// se anima, con `accessibilityReduceMotion` apagándolo.
     private var bottomBar: some View {
         BottomMenuBar(select: open)

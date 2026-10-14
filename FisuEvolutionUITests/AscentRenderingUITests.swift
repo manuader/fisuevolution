@@ -166,7 +166,7 @@ final class AscentRenderingUITests: XCTestCase {
     /// `skins.json` declara `floorReached`, ni siquiera `urban_trailblazer`, que
     /// ahora sale de cofre (`chestRarity`) y por eso su `isMilestone` cae a
     /// `false` sola. De los 45 milestones que quedan, 2 piden reencarnar y 43
-    /// tener las líneas de oro al tope: este test no hace ninguna de las dos, así
+    /// tener las líneas de blue al tope: este test no hace ninguna de las dos, así
     /// que `newlyUnlocked` vuelve vacío y `skin.award.dismiss` nunca existe.
     ///
     /// ⚠️ Aun así la llamada NO se borra, y no es por prolijidad: cuando el bucle

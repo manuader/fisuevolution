@@ -313,7 +313,7 @@ struct HUDView: View {
     /// RF-16: cuánto potenciador te da reencarnar, siempre a la vista. Lee la
     /// proyección `prestigePreview` que `refreshProjections` publica a 8 Hz —
     /// **nunca** `PlayerState`, que cambia decenas de veces por segundo.
-    /// La flecha aparece sólo cuando hay ORO por cobrar: sin nada que ganar, el
+    /// La flecha aparece sólo cuando hay blue por cobrar: sin nada que ganar, el
     /// "después" sería el "antes" y prometería un salto que no existe.
     private var prestigeIndicator: some View {
         let preview = gameState.prestigePreview

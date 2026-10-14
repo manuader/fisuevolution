@@ -100,7 +100,7 @@ struct PrizeAccessTests {
         #expect(gameState.mattressPopup == nil, "el video cierra el popup y el colchón cae")
         #expect(gameState.mattressOnBoard)
         #expect(gameState.prizeAccess.mattressOnBoard && !gameState.prizeAccess.mattressReady)
-        #expect(gameState.player?.run.coins == before.run.coins && gameState.player?.meta.oro == before.meta.oro,
+        #expect(gameState.player?.run.coins == before.run.coins && gameState.player?.meta.blue == before.meta.blue,
                 "pagar el video no acredita nada: el premio sale al abrirlo")
         #expect(gameState.boardMattressTapped())
         let first = try #require(gameState.openMattressOnBoard())
@@ -159,11 +159,11 @@ struct PrizeAccessTests {
         gameState.openMattressOnBoard()
         gameState.extraMattressVideoWatched()
         let second = try #require(gameState.mattressPopup?.outcome)
-        let oro = gameState.player?.meta.oro
+        let blue = gameState.player?.meta.blue
         let coins = gameState.player?.run.coins
         gameState.extraMattressVideoWatched()
         #expect(gameState.mattressPopup?.outcome == second)
-        #expect(gameState.player?.meta.oro == oro)
+        #expect(gameState.player?.meta.blue == blue)
         #expect(gameState.player?.run.coins == coins)
     }
 
@@ -255,21 +255,21 @@ struct PrizeAccessTests {
 @Suite("El cerrojo de la ruleta")
 @MainActor
 struct WheelSpinLatchTests {
-    @Test("dos toques seguidos al giro por ORO cobran uno solo")
-    func oroSpinChargesOnce() async {
+    @Test("dos toques seguidos al giro por blue cobran uno solo")
+    func blueSpinChargesOnce() async {
         let gameState = await makeGameState()
-        gameState.player?.meta.oro = 100
+        gameState.player?.meta.blue = 100
         var latch = PurchaseLatch()
-        let before = gameState.wheelAvailability(storefrontAllows: true).oroLeft
-        #expect(gameState.beginWheelSpin(.oro, latch: &latch, storefrontAllows: true) != nil)
-        #expect(gameState.beginWheelSpin(.oro, latch: &latch, storefrontAllows: true) == nil)
-        #expect(gameState.wheelAvailability(storefrontAllows: true).oroLeft == before - 1)
+        let before = gameState.wheelAvailability(storefrontAllows: true).blueLeft
+        #expect(gameState.beginWheelSpin(.blue, latch: &latch, storefrontAllows: true) != nil)
+        #expect(gameState.beginWheelSpin(.blue, latch: &latch, storefrontAllows: true) == nil)
+        #expect(gameState.wheelAvailability(storefrontAllows: true).blueLeft == before - 1)
     }
 
-    @Test("con un video en curso no gira ni el regalado ni el de ORO; el que paga ese video, sí")
+    @Test("con un video en curso no gira ni el regalado ni el de blue; el que paga ese video, sí")
     func aVideoInFlightBlocksTheOtherSpins() {
         #expect(!WheelSpinGate.allows(.bonus, spinning: false, videoBusy: true))
-        #expect(!WheelSpinGate.allows(.oro, spinning: false, videoBusy: true))
+        #expect(!WheelSpinGate.allows(.blue, spinning: false, videoBusy: true))
         #expect(WheelSpinGate.allows(.video, spinning: false, videoBusy: true))
     }
 
@@ -285,9 +285,9 @@ struct WheelSpinLatchTests {
     @Test("un giro que no sale suelta el cerrojo")
     func aFailedSpinReleasesTheLatch() async {
         let gameState = await makeGameState()
-        gameState.player?.meta.oro = 0
+        gameState.player?.meta.blue = 0
         var latch = PurchaseLatch()
-        #expect(gameState.beginWheelSpin(.oro, latch: &latch, storefrontAllows: true) == nil)
+        #expect(gameState.beginWheelSpin(.blue, latch: &latch, storefrontAllows: true) == nil)
         #expect(!latch.isLocked)
     }
 }

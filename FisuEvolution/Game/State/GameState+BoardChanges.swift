@@ -18,7 +18,7 @@ extension GameState {
     /// cambios del tablero, en el orden en que se funden; cada uno se juega en
     /// su turno y un tier nuevo se revela como siempre. Cada par es un eslabón
     /// (`chain`): la escena los juega en un solo turno. Devuelve cuántos. E6
-    /// (por ORO) y E7b (por video) lo llaman con su propio origen.
+    /// (por blue) y E7b (por video) lo llaman con su propio origen.
     @discardableResult
     func enqueueMergeAll(onFloor ordinal: Int, origin: BoardChange.Origin) -> Int {
         guard let content, let player, let tower else { return 0 }
@@ -30,7 +30,7 @@ extension GameState {
         return plan.count
     }
 
-    /// Hay un "Fusionar todo" (por video o por ORO) encolado o en vuelo: todo
+    /// Hay un "Fusionar todo" (por video o por blue) encolado o en vuelo: todo
     /// plan suyo lleva `chain`. El plan mira el tablero sin lo ya encolado: con
     /// una fusión pendiente volvería a ver los mismos pares y los cobraría de nuevo.
     var mergeAllIsQueued: Bool {
@@ -193,7 +193,7 @@ extension GameState {
         case .rewardedRareUnit: compensateRewardedVideo()
         case .rewardedMergeAll: noteVideoChainLink(change, applied: false)
         case .package: refundPackage()
-        case .eventStartup, .eventBlanqueo, .career, .debug, .visitor, .oroShop: break
+        case .eventStartup, .eventBlanqueo, .career, .debug, .visitor, .blueShop: break
         }
     }
 
@@ -235,7 +235,7 @@ private extension BoardChange {
     /// paquete se descuenta del buzón al abrirlo, así que también lo es.
     var isPrepaid: Bool {
         switch origin {
-        case .rewardedMergeAll, .rewardedRareUnit, .career, .package, .visitor, .oroShop: true
+        case .rewardedMergeAll, .rewardedRareUnit, .career, .package, .visitor, .blueShop: true
         case .eventStartup, .eventBlanqueo, .debug: false
         }
     }

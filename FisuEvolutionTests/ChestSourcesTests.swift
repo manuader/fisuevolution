@@ -63,7 +63,7 @@ struct ChestSourcesTests {
         state.awardFloorChestsIfDue()
         #expect(state.pendingChestCount == 5)
 
-        state.giveEarningsForPrestigeTesting(oro: 3)
+        state.giveEarningsForPrestigeTesting(blue: 3)
         state.confirmPrestige()
         let player = try #require(state.player)
 
@@ -257,7 +257,7 @@ struct ChestOpeningTests {
         }
         #expect(state.player!.run.coins == antesDelNormal + pagoNormal)
         #expect(state.player!.meta.lifetimeEarnings == lifetimeAntes + pagoNormal,
-                "la plata del cofre cuenta para el ORO, como cualquier ingreso")
+                "la plata del cofre cuenta para el blue, como cualquier ingreso")
 
         state.chestReward = nil
         let antesDelDePrestigio = state.player!.run.coins

@@ -44,7 +44,7 @@ public struct PacingSources: Sendable, Equatable {
     public var freeHireSeconds: Double
     /// Lo que da mirar videos. Sólo lo juegan los perfiles que miran (`.ads`, `.max`).
     public var ads: AdsSources?
-    /// Los permanentes de la tienda de ORO. Sólo los juega el perfil que paga (`.max`).
+    /// Los permanentes de la tienda de blue. Sólo los juega el perfil que paga (`.max`).
     public var shop: ShopPermanents?
 
     public init(
@@ -62,8 +62,8 @@ public struct PacingSources: Sendable, Equatable {
     public static let none = PacingSources(packages: nil, dailyMinutes: [], freeBoosts: [], freeHireSeconds: 0)
 }
 
-/// Los niveles de los tres permanentes de la tienda de ORO, ya resueltos por el
-/// llamador con `OroShop.extraSlots/bestSupplierLevel/bonusDailyWheelSpins`.
+/// Los niveles de los tres permanentes de la tienda de blue, ya resueltos por el
+/// llamador con `BlueShop.extraSlots/bestSupplierLevel/bonusDailyWheelSpins`.
 public struct ShopPermanents: Sendable, Equatable {
     public var extraSlots: Int
     public var bestSupplierLevel: Int

@@ -134,7 +134,7 @@ struct ShopEventsRuntimeTests {
         let after = try #require(gameState.player)
         #expect(after.run.coins == before.run.coins)
         #expect(after.run.units == before.run.units)
-        #expect(after.meta.oro == before.meta.oro)
+        #expect(after.meta.blue == before.meta.blue)
         #expect(after.run.activeModifiers.isEmpty)
         #expect(gameState.pendingBoardChanges.isEmpty)
         #expect(gameState.stageRuntime.pendingShopOffer == "cyber_monday")

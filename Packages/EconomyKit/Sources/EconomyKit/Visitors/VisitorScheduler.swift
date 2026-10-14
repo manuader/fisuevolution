@@ -35,7 +35,7 @@ public enum VisitorScheduler {
         guard state.day != today else { return }
         state.day = today
         state.visitsToday = [:]
-        state.oroExchangedToday = 0
+        state.blueExchangedToday = 0
     }
 
     /// Puede venir ahora, sea por la bolsa o porque lo llama un evento.

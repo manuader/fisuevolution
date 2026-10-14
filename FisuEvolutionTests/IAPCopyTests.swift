@@ -59,13 +59,13 @@ struct IAPCopyTests {
         #expect(detail == "Descripción de ASC")
     }
 
-    /// Los packs de ORO cambian de monto en la 2.0 (160/550/1.400): el número
-    /// sale de `oroAmount` y el texto no se toca. Desde E14 T7 la moneda se
-    /// presenta como «blue» (el dólar blue), no como «ORO».
-    @Test func theOroDescriptionTakesTheAmountFromTheData() throws {
+    /// Los packs de blue cambian de monto en la 2.0 (160/550/1.400): el número
+    /// sale de `blueAmount` y el texto no se toca. Desde E14 T7 la moneda se
+    /// presenta como «blue» (el dólar blue), no como «blue».
+    @Test func theBlueDescriptionTakesTheAmountFromTheData() throws {
         let pack = try product("oro_small")
         let retuned = ProductCatalog.Entry(
-            id: pack.id, type: pack.type, entitlement: .oro, skinId: nil, coinMinutes: nil, oroAmount: 160
+            id: pack.id, type: pack.type, entitlement: .blue, skinId: nil, coinMinutes: nil, blueAmount: 160
         )
         let quantity = IAPCopy.quantity(for: retuned, skins: skins)
         #expect(quantity == 160)
@@ -82,9 +82,9 @@ struct IAPCopyTests {
         #expect(en.hasPrefix("160 Blue"))
     }
 
-    @Test func everyOroPackSaysItsOwnAmount() throws {
-        for pack in catalog.products where pack.entitlement == .oro {
-            let amount = try #require(pack.oroAmount)
+    @Test func everyBluePackSaysItsOwnAmount() throws {
+        for pack in catalog.products where pack.entitlement == .blue {
+            let amount = try #require(pack.blueAmount)
             #expect(IAPCopy.quantity(for: pack, skins: skins) == amount)
         }
     }

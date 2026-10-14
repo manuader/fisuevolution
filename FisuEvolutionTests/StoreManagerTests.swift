@@ -90,9 +90,9 @@ struct StoreManagerTests {
         let offer = try #require(store.products.first { $0.id == "com.fisuevolution.iap.offer_renacer" })
         await store.purchase(offer)
 
-        await waitUntil { (gameState.player?.meta.oro ?? 0) > before.oro }
-        #expect(gameState.player?.meta.oro == before.oro + 300)
-        #expect(gameState.player?.meta.oroPurchasedLifetime == before.oroPurchasedLifetime + 300)
+        await waitUntil { (gameState.player?.meta.blue ?? 0) > before.blue }
+        #expect(gameState.player?.meta.blue == before.blue + 300)
+        #expect(gameState.player?.meta.bluePurchasedLifetime == before.bluePurchasedLifetime + 300)
         #expect(gameState.player?.run.activeModifiers.contains { $0.sourceKey == "offer.renacer" } == true)
         #expect(!store.isPurchased("com.fisuevolution.iap.offer_renacer"), "consumible: se vuelve a vender")
     }
@@ -119,30 +119,30 @@ struct StoreManagerTests {
         #expect(gameState.player?.run.coins == before + expected)
     }
 
-    @Test func purchasingAnOroPackCreditsSpendableOro() async throws {
+    @Test func purchasingAnBluePackCreditsSpendableBlue() async throws {
         let session = try makeSession()
         defer { session.clearTransactions() }
         let gameState = await makeGameState()
         let store = StoreManager()
         await store.start(gameState: gameState)
 
-        let before = try #require(gameState.player).meta.oro
+        let before = try #require(gameState.player).meta.blue
 
         let pack = try #require(store.products.first { $0.id == "com.fisuevolution.iap.oro_small" })
         await store.purchase(pack)
 
-        await waitUntil { (gameState.player?.meta.oro ?? 0) > before }
-        #expect(gameState.player?.meta.oro == before + 160)
+        await waitUntil { (gameState.player?.meta.blue ?? 0) > before }
+        #expect(gameState.player?.meta.blue == before + 160)
         // La compra no compra multiplicador: eso sólo lo da reencarnar.
-        #expect(gameState.player?.meta.oroEarnedLifetime == 0)
-        // Pero sí queda anotada como ORO comprado, en el acto.
-        #expect(gameState.player?.meta.oroPurchasedLifetime == 160)
+        #expect(gameState.player?.meta.blueEarnedLifetime == 0)
+        // Pero sí queda anotada como blue comprado, en el acto.
+        #expect(gameState.player?.meta.bluePurchasedLifetime == 160)
     }
 
     /// El recorrido de un save de la v1 por el arranque: la compra ya estaba
-    /// acreditada (está en `creditedPurchases`) y la cuenta del ORO comprado
+    /// acreditada (está en `creditedPurchases`) y la cuenta del blue comprado
     /// nace en 0, así que `start` la reconstruye desde `Transaction.all`.
-    @Test func reconstructsTheV1OroFromTransactionHistory() async throws {
+    @Test func reconstructsTheV1BlueFromTransactionHistory() async throws {
         let session = try makeSession()
         defer { session.clearTransactions() }
         let v2Device = await makeGameState()
@@ -155,14 +155,14 @@ struct StoreManagerTests {
         // El save de la v1 que se actualiza: acreditó la compra, no sabe del mapa.
         let gameState = await makeGameState()
         gameState.player?.meta.creditedPurchases = try #require(v2Device.player).meta.creditedPurchases
-        gameState.player?.meta.purchasedOroReconstructed = false
+        gameState.player?.meta.purchasedBlueReconstructed = false
         #expect(gameState.player?.meta.creditedPurchases.count == 1)
 
         let secondLaunch = StoreManager()
         await secondLaunch.start(gameState: gameState)
 
-        #expect(gameState.player?.meta.oroPurchasedLifetime == 250)
-        #expect(gameState.needsPurchasedOroReconstruction == false)
+        #expect(gameState.player?.meta.bluePurchasedLifetime == 250)
+        #expect(gameState.needsPurchasedBlueReconstruction == false)
     }
 
     /// Si StoreKit no contesta el historial, el arranque no se cuelga y la
@@ -171,7 +171,7 @@ struct StoreManagerTests {
         let session = try makeSession()
         defer { session.clearTransactions() }
         let gameState = await makeGameState()
-        gameState.player?.meta.purchasedOroReconstructed = false
+        gameState.player?.meta.purchasedBlueReconstructed = false
         gameState.player?.meta.creditedPurchases = ["9"]
         let hung = StoreManager()
         hung.historyTimeout = .milliseconds(200)
@@ -182,8 +182,8 @@ struct StoreManagerTests {
 
         await hung.start(gameState: gameState)
 
-        #expect(gameState.needsPurchasedOroReconstruction == true)
-        #expect(gameState.player?.meta.oroPurchasedLifetime == 0)
+        #expect(gameState.needsPurchasedBlueReconstruction == true)
+        #expect(gameState.player?.meta.bluePurchasedLifetime == 0)
         #expect(hung.loadState == .loaded, "el arranque siguió con la carga de productos")
 
         let nextLaunch = StoreManager()
@@ -192,8 +192,8 @@ struct StoreManagerTests {
         }
         await nextLaunch.start(gameState: gameState)
 
-        #expect(gameState.needsPurchasedOroReconstruction == false)
-        #expect(gameState.player?.meta.oroPurchasedLifetime == 250)
+        #expect(gameState.needsPurchasedBlueReconstruction == false)
+        #expect(gameState.player?.meta.bluePurchasedLifetime == 250)
     }
 
     /// `start` se suspende en la reconstrucción: un segundo `start` que entre en
@@ -202,7 +202,7 @@ struct StoreManagerTests {
         let session = try makeSession()
         defer { session.clearTransactions() }
         let gameState = await makeGameState()
-        gameState.player?.meta.purchasedOroReconstructed = false
+        gameState.player?.meta.purchasedBlueReconstructed = false
         let reads = HistoryReadCounter()
         let store = StoreManager()
         store.historyReader = {
@@ -217,9 +217,9 @@ struct StoreManagerTests {
         #expect(await reads.count == 1)
     }
 
-    /// El reembolso de un pack de ORO baja el total comprado: el reset de E9
+    /// El reembolso de un pack de blue baja el total comprado: el reset de E9
     /// conserva `min(saldo, comprado)` y no puede regalarle lo que pidió devolver.
-    @Test func refundingAnOroPackLowersThePurchasedTotal() async throws {
+    @Test func refundingAnBluePackLowersThePurchasedTotal() async throws {
         let session = try makeSession()
         defer { session.clearTransactions() }
         let gameState = await makeGameState()
@@ -228,8 +228,8 @@ struct StoreManagerTests {
 
         let pack = try #require(store.products.first { $0.id == "com.fisuevolution.iap.oro_small" })
         await store.purchase(pack)
-        await waitUntil { gameState.player?.meta.oroPurchasedLifetime == 160 }
-        #expect(gameState.player?.meta.oroPurchasedLifetime == 160)
+        await waitUntil { gameState.player?.meta.bluePurchasedLifetime == 160 }
+        #expect(gameState.player?.meta.bluePurchasedLifetime == 160)
 
         let transaction = try #require(
             session.allTransactions().first { $0.productIdentifier == pack.id },
@@ -237,11 +237,11 @@ struct StoreManagerTests {
         )
         try session.refundTransaction(identifier: UInt(transaction.identifier))
 
-        await waitUntil(timeout: 180) { gameState.player?.meta.oroPurchasedLifetime == 0 }
-        #expect(gameState.player?.meta.oroPurchasedLifetime == 0)
+        await waitUntil(timeout: 180) { gameState.player?.meta.bluePurchasedLifetime == 0 }
+        #expect(gameState.player?.meta.bluePurchasedLifetime == 0)
     }
 
-    /// Lo mismo con una oferta: su ORO es comprado y el reembolso lo descuenta.
+    /// Lo mismo con una oferta: su blue es comprado y el reembolso lo descuenta.
     @Test func refundingAnOfferLowersThePurchasedTotal() async throws {
         let session = try makeSession()
         defer { session.clearTransactions() }
@@ -251,8 +251,8 @@ struct StoreManagerTests {
 
         let offer = try #require(store.products.first { $0.id == "com.fisuevolution.iap.offer_renacer" })
         await store.purchase(offer)
-        await waitUntil { gameState.player?.meta.oroPurchasedLifetime == 300 }
-        #expect(gameState.player?.meta.oroPurchasedLifetime == 300)
+        await waitUntil { gameState.player?.meta.bluePurchasedLifetime == 300 }
+        #expect(gameState.player?.meta.bluePurchasedLifetime == 300)
 
         let transaction = try #require(
             session.allTransactions().first { $0.productIdentifier == offer.id },
@@ -260,8 +260,8 @@ struct StoreManagerTests {
         )
         try session.refundTransaction(identifier: UInt(transaction.identifier))
 
-        await waitUntil(timeout: 180) { gameState.player?.meta.oroPurchasedLifetime == 0 }
-        #expect(gameState.player?.meta.oroPurchasedLifetime == 0)
+        await waitUntil(timeout: 180) { gameState.player?.meta.bluePurchasedLifetime == 0 }
+        #expect(gameState.player?.meta.bluePurchasedLifetime == 0)
     }
 
     /// Un consumible se vuelve a comprar. Si quedara marcado como "comprado" la

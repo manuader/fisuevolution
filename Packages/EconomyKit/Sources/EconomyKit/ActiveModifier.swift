@@ -21,7 +21,7 @@ public struct ActiveModifier: Codable, Sendable, Equatable, Identifiable {
         /// Multiplica el ritmo del Paquete de la Aduana (Lluvia ×10, Piquete ×0).
         /// Lo lee el `PackageScheduler` de E5; no toca los ingresos.
         case packageRateMultiplier
-        /// Toques automáticos por segundo (el auto-tap de la tienda de ORO). La
+        /// Toques automáticos por segundo (el auto-tap de la tienda de blue). La
         /// magnitud son toques, no un factor: dos auto-taps se SUMAN. Lo cobra
         /// `AutoTapper` y no entra en ningún `factor` de ingresos.
         case autoTapPerSecond

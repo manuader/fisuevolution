@@ -202,7 +202,7 @@ extension GameState {
             hires: player.meta.stats.totalHiresEver,
             merges: player.meta.stats.totalMergesEver,
             upgradeLevels: player.run.charUpgradeLevels.values.reduce(0, +)
-                + player.meta.oroUpgradeLevels.values.reduce(0, +),
+                + player.meta.blueUpgradeLevels.values.reduce(0, +),
             passivesUnlocked: player.run.passiveUnlocked.values.filter { $0 }.count,
             visibleFloor: visibleFloorOrdinal,
             pinnedTypeId: player.meta.quickHirePinnedTypeId,
@@ -300,7 +300,7 @@ extension GameState {
             return
         }
         let onScreen = showing == .tutorialTip
-        // La regla de oro hasta el último frame: una lección que todavía no tomó el turno y
+        // La regla principal hasta el último frame: una lección que todavía no tomó el turno y
         // cuya condición murió se retira SIN marcarse, y vuelve cuando su momento vuelva.
         if !onScreen, lessonMomentDied(run) {
             tutorialRun = nil

@@ -91,9 +91,9 @@
     {"id": "bug_reinicio", "visitor": "sp_bug_simulacion", "weight": 5, "minTier": 21, "dailyCap": 1,
      "mechanic": {"kind": "gift", "rewards": [{"kind": "clearBoostCooldowns"}]}},
     {"id": "arbolito_cambio", "visitor": "sp_arbolito", "weight": 6, "minTier": 6, "dailyCap": 3,
-     "mechanic": {"kind": "exchange", "costSeconds": 5400, "oro": 1, "dailyOroCap": 3}},
+     "mechanic": {"kind": "exchange", "costSeconds": 5400, "blue": 1, "dailyBlueCap": 3}},
     {"id": "arbolito_blue", "visitor": "sp_arbolito", "eventOnly": true, "weight": 1, "minTier": 6, "dailyCap": 3,
-     "mechanic": {"kind": "exchange", "costSeconds": 3600, "oro": 1}},
+     "mechanic": {"kind": "exchange", "costSeconds": 3600, "blue": 1}},
     {"id": "coach_reto", "visitor": "sp_coach", "weight": 6, "minTier": 4, "dailyCap": 2,
      "mechanic": {"kind": "challenge", "taps": 67, "windowSeconds": 30,
                   "rewards": [{"kind": "modifier", "effect": "incomeMultiplier", "magnitude": 2, "seconds": 120}]}}

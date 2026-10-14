@@ -186,7 +186,7 @@ extension GameState {
         grantMilestoneSkinsForTests([masAlta.id])
     }
 
-    /// El ORO de reencarnar sale de `meta.lifetimeEarnings`, que es monótono y no
+    /// El blue de reencarnar sale de `meta.lifetimeEarnings`, que es monótono y no
     /// se puede acumular en un test sin jugar la partida entera. Esta puerta la
     /// mueve directo para poder ejercitar el prestigio (RF-16).
     func giveLifetimeEarningsForTesting(_ amount: Double) {
@@ -196,21 +196,21 @@ extension GameState {
         refreshProjections()
     }
 
-    /// Empuja `lifetimeEarnings` hasta que reencarnar rinda al menos `oro` ORO.
+    /// Empuja `lifetimeEarnings` hasta que reencarnar rinda al menos `blue` blue.
     ///
-    /// Los tests piden ORO y no monedas A PROPÓSITO: cuántas monedas hacen falta
-    /// sale de `oro.divisor` y `oro.exponent`, que son knobs de balance. Un
+    /// Los tests piden blue y no monedas A PROPÓSITO: cuántas monedas hacen falta
+    /// sale de `blue.divisor` y `blue.exponent`, que son knobs de balance. Un
     /// literal calibrado contra el divisor de ayer deja de significar lo mismo
     /// mañana — el rebalance de pacing lo movió de 3e6 a 3e12 (pasó por 3e11 en
     /// la ronda anterior) y dejó en rojo nueve tests que creían estar pidiendo
     /// "suficiente para reencarnar".
     ///
-    /// El margen es por el `floor()` de `oroTotal`: sin él, el error de punto
-    /// flotante puede dejar el resultado un ORO por debajo del pedido.
-    func giveEarningsForPrestigeTesting(oro: Int = 1) {
+    /// El margen es por el `floor()` de `blueTotal`: sin él, el error de punto
+    /// flotante puede dejar el resultado un blue por debajo del pedido.
+    func giveEarningsForPrestigeTesting(blue: Int = 1) {
         guard let content, let player else { return }
-        let curve = content.economy.oro
-        let target = Double(player.meta.oroEarnedLifetime + max(1, oro))
+        let curve = content.economy.blue
+        let target = Double(player.meta.blueEarnedLifetime + max(1, blue))
         let needed = curve.divisor * pow(target, 1 / curve.exponent) * 1.000_001
         giveLifetimeEarningsForTesting(max(0, needed - player.meta.lifetimeEarnings))
     }

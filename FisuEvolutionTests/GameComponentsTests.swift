@@ -51,7 +51,7 @@ struct GameComponentsTests {
         #expect(GameGlyph.clock.artKeys.first == "ui_icon_clock")
         #expect(GameGlyph.lock.artKeys.first == "ui_icon_lock")
         #expect(GameGlyph.check.artKeys.first == "ui_icon_check")
-        #expect(GameGlyph.blue.artKeys == ["ui_dolar_blue", "ui_oro"])
+        #expect(GameGlyph.blue.artKeys == ["ui_dolar_blue"])
         #expect(GameGlyph.offerMoving.artKeys.first == "ui_offer_mudanza")
         #expect(GameGlyph.offerWelcome.artKeys.first == "ui_offer_bienvenida")
         #expect(GameGlyph.offerRebirth.artKeys.first == "ui_offer_renacer")
@@ -60,8 +60,8 @@ struct GameComponentsTests {
     @Test("sin la clave nueva, el glifo cae a la hermana integrada")
     func glyphFallsBackToAnIntegratedSibling() {
         let integrated = UIArt.bundledNames()
-        if !integrated.contains("ui_dolar_blue"), integrated.contains("ui_oro") {
-            #expect(GameGlyph.blue.resolvedArtKey == "ui_oro")
+        if !integrated.contains("ui_offer_mudanza"), integrated.contains("ui_gift_bow") {
+            #expect(GameGlyph.offerMoving.resolvedArtKey == "ui_gift_bow")
         }
         #expect(GameGlyph.art("clave_que_no_existe").resolvedArtKey == nil)
     }
@@ -75,7 +75,7 @@ struct GameComponentsTests {
             "tapMultiplier": .tapBoost, "spawnCostMultiplier": .hireDiscount,
             "clearBoostCooldowns": .boostRefresh, "evolveBestUnit": .evolve, "grantUnit": .freeUnit,
             "exchange": .exchange, "fine": .fine, "fee": .fine, "take": .fine, "arrest": .arrest,
-            "spendingFrozen": .frozen, "oro": .blue, "package": .package,
+            "spendingFrozen": .frozen, "blue": .blue, "package": .package,
             "packageRateMultiplier": .packageRain, "skinChest": .chest, "wheelSpin": .wheelSpin,
             "gift": .gift
         ]
@@ -94,7 +94,7 @@ struct GameComponentsTests {
             .hireDiscount: "rw_hire_discount", .boostRefresh: "rw_boost_refresh", .evolve: "rw_evolve",
             .freeUnit: "rw_free_unit", .exchange: "rw_exchange", .fine: "rw_fine", .arrest: "rw_arrest",
             .frozen: "rw_frozen", .blue: "ui_dolar_blue", .package: "rw_package_employee",
-            .packageRain: "ui_oro_package_rain", .chest: "ui_chest_closed", .wheelSpin: "wheel_icon",
+            .packageRain: "ui_blue_package_rain", .chest: "ui_chest_closed", .wheelSpin: "wheel_icon",
             .gift: "ui_gift_bow", .mystery: "rw_mystery_all", .mattressTreasure: "rw_mattress_treasure"
         ]
         #expect(Set(expected.keys) == Set(RewardKind.allCases))
@@ -106,7 +106,7 @@ struct GameComponentsTests {
     @Test("el vocabulario de premios de la 2.0 se ilustra; lo que no da nada, no")
     func rewardSpecsMapToKinds() {
         #expect(RewardKind(RewardSpec.coinsSeconds(900)) == .coins)
-        #expect(RewardKind(RewardSpec.oro(5)) == .blue)
+        #expect(RewardKind(RewardSpec.blue(5)) == .blue)
         #expect(RewardKind(RewardSpec.package(1)) == .package)
         #expect(RewardKind(RewardSpec.skinChest(1)) == .chest)
         #expect(RewardKind(RewardSpec.clearBoostCooldowns) == .boostRefresh)

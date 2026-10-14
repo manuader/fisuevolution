@@ -33,7 +33,7 @@ struct GiftsAgendaTests {
         )
     }
 
-    private let freeSpin = WheelAvailability(bonus: 1, videoLeft: 0, oroLeft: 0, oroCost: 0, canPayOro: false, canRepeat: false)
+    private let freeSpin = WheelAvailability(bonus: 1, videoLeft: 0, blueLeft: 0, blueCost: 0, canPayBlue: false, canRepeat: false)
 
     @Test("lo listo va por valor: cofre, ruleta, boosts y videos")
     func readyOrder() {

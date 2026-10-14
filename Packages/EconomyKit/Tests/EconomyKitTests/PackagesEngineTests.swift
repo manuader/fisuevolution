@@ -62,7 +62,7 @@ struct PackageRollerTests {
                 gateTierDistance: distance
             ),
             charUpgrades: base.charUpgrades,
-            oro: base.oro,
+            blue: base.blue,
             critChanceBase: base.critChanceBase,
             critMultiplier: base.critMultiplier,
             offlineEfficiencyBase: base.offlineEfficiencyBase,

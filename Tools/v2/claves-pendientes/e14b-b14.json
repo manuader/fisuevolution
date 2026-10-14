@@ -1,0 +1,226 @@
+{
+  "ach.reward.blue %@": {
+    "es": "%@ blue",
+    "en": "%@ Blue"
+  },
+  "blueShop.blocked.daily": {
+    "es": "Mañana hay más",
+    "en": "More tomorrow"
+  },
+  "blueShop.blocked.nothing": {
+    "es": "Ahora no hace nada",
+    "en": "Nothing to do now"
+  },
+  "blueShop.blocked.pending": {
+    "es": "Ya tenés uno esperando",
+    "en": "One is already waiting"
+  },
+  "blueShop.buy.ax %@": {
+    "es": "Comprar %@",
+    "en": "Buy %@"
+  },
+  "blueShop.chest.coins": {
+    "es": "Ya tenés todas las pintas del cofre: este cofre paga monedas.",
+    "en": "You own every skin in the chest: this chest pays coins."
+  },
+  "blueShop.chest.odds": {
+    "es": "Qué puede salir",
+    "en": "What you can get"
+  },
+  "blueShop.cosmetic.family": {
+    "es": "La familia entera: los 43 personajes",
+    "en": "The whole family: all 43 characters"
+  },
+  "blueShop.cosmetic.outfit %@": {
+    "es": "Sólo para %@",
+    "en": "Only for %@"
+  },
+  "blueShop.cosmetic.owned": {
+    "es": "Tuya: ponétela en Pintas",
+    "en": "Yours: wear it in Looks"
+  },
+  "blueShop.footer.reincarnate": {
+    "es": "Los boosts por tiempo se pierden al reencarnar.",
+    "en": "Timed boosts are lost when you reincarnate."
+  },
+  "blueShop.item.auto_tap.name": {
+    "es": "Dedo de goma",
+    "en": "Rubber Finger"
+  },
+  "blueShop.item.better_supplier.desc": {
+    "es": "Nivel %1$@ de %2$@: los Paquetes traen más seguido a los de arriba",
+    "en": "Level %1$@ of %2$@: Parcels bring top hires more often"
+  },
+  "blueShop.item.better_supplier.name": {
+    "es": "Mejor proveedor",
+    "en": "Better Supplier"
+  },
+  "blueShop.item.daily_x3.name": {
+    "es": "Diario reforzado",
+    "en": "Boosted Daily"
+  },
+  "blueShop.item.extra_slots.desc": {
+    "es": "+%@ lugares en cada piso. Los pisos llenos dejan de estar «en marcha» hasta que los completes.",
+    "en": "+%@ spots on every floor. Full floors stop counting as \"running\" until you fill them."
+  },
+  "blueShop.item.extra_slots.name": {
+    "es": "Ampliación",
+    "en": "Expansion"
+  },
+  "blueShop.item.income_x2.name": {
+    "es": "Doble turno",
+    "en": "Double Shift"
+  },
+  "blueShop.item.income_x3.name": {
+    "es": "Triple turno",
+    "en": "Triple Shift"
+  },
+  "blueShop.item.merge_all.desc": {
+    "es": "Fusiona todos los pares del piso que estás mirando",
+    "en": "Merges every pair on the floor you're looking at"
+  },
+  "blueShop.item.merge_all.name": {
+    "es": "Fusionar todo",
+    "en": "Merge Everything"
+  },
+  "blueShop.item.offline_x3.name": {
+    "es": "Siesta productiva",
+    "en": "Productive Nap"
+  },
+  "blueShop.item.package_rain.name": {
+    "es": "Lluvia de paquetes",
+    "en": "Parcel Rain"
+  },
+  "blueShop.item.skin_chest.name": {
+    "es": "Cofre de pintas",
+    "en": "Outfit Chest"
+  },
+  "blueShop.item.skip_cooldowns.name": {
+    "es": "Recarga express",
+    "en": "Express Recharge"
+  },
+  "blueShop.item.time_jump_1h.name": {
+    "es": "Hora extra",
+    "en": "Overtime"
+  },
+  "blueShop.item.time_jump_4h.name": {
+    "es": "Media jornada",
+    "en": "Half Shift"
+  },
+  "blueShop.item.wheel_spins.desc": {
+    "es": "+%@ giros por día en la ruleta, con video o con blue",
+    "en": "+%@ Wheel spins a day, with a video or Blue"
+  },
+  "blueShop.item.wheel_spins.name": {
+    "es": "Abono a la ruleta",
+    "en": "Wheel Pass"
+  },
+  "blueShop.pending.daily %@": {
+    "es": "El próximo diario viene ×%@",
+    "en": "Your next daily reward comes ×%@"
+  },
+  "blueShop.pending.offline %@": {
+    "es": "El popup de tu próxima ausencia viene ×%@",
+    "en": "Your next away popup comes ×%@"
+  },
+  "blueShop.shelf.boosts": {
+    "es": "Boosts",
+    "en": "Boosts"
+  },
+  "blueShop.shelf.cosmetics": {
+    "es": "Cosméticos",
+    "en": "Cosmetics"
+  },
+  "blueShop.shelf.luck": {
+    "es": "Suerte",
+    "en": "Luck"
+  },
+  "blueShop.shelf.permanents": {
+    "es": "Permanentes",
+    "en": "Permanent"
+  },
+  "blueShop.shelf.shortcuts": {
+    "es": "Atajos",
+    "en": "Shortcuts"
+  },
+  "blueShop.today %@ %@": {
+    "es": "Hoy: %1$@ de %2$@",
+    "en": "Today: %1$@ of %2$@"
+  },
+  "character.skin.blue_shop": {
+    "es": "Se compra con blue, acá o en la Tienda",
+    "en": "Bought with Blue, here or in the Store"
+  },
+  "prestige.blue.gain %@": {
+    "es": "+%@ blue",
+    "en": "+%@ Blue"
+  },
+  "prestige.blue.next %@": {
+    "es": "Te falta juntar %@ para tu próximo blue",
+    "en": "Earn %@ more for your next Blue"
+  },
+  "price.ax.blue %@": {
+    "es": "%@ blue",
+    "en": "%@ Blue"
+  },
+  "reset.summary.blue %@ %@ %@ %@": {
+    "es": "Blue: tenés %1$@ (comprados %2$@, ganados %3$@) → conservás %4$@",
+    "en": "Blue: you have %1$@ (bought %2$@, earned %3$@) → you keep %4$@"
+  },
+  "reward.title.blue": {
+    "es": "%1$@ blue",
+    "en": "%1$@ Blue"
+  },
+  "skin.name.oro": {
+    "es": "Dorada",
+    "en": "Golden"
+  },
+  "stats.row.blue": {
+    "es": "Blue en la billetera",
+    "en": "Blue in the wallet"
+  },
+  "stats.row.blue_lifetime": {
+    "es": "Blue ganados en total",
+    "en": "Blue earned overall"
+  },
+  "store.pack.blue %@": {
+    "es": "Te da %@ blue para las mejoras permanentes",
+    "en": "Gives you %@ Blue to spend on permanent upgrades"
+  },
+  "store.section.blue": {
+    "es": "Blue",
+    "en": "Blue"
+  },
+  "tutorial.blue_shop.caps": {
+    "es": "Algunos tienen tope por día. Tu saldo de blue se ve arriba de todo.",
+    "en": "Some have a daily cap. Your Blue balance is at the very top."
+  },
+  "tutorial.blue_shop.open": {
+    "es": "Tenés blue para gastar. Abrí Mejoras.",
+    "en": "You have Blue to spend. Open Upgrades."
+  },
+  "tutorial.blue_shop.spend": {
+    "es": "Tocá «Boosts»: lo que dura un rato. Lo que dura para siempre está en «Permanentes».",
+    "en": "Tap “Boosts”: what lasts a while. What lasts forever is under “Permanent”."
+  },
+  "tutorial.prestige.blue": {
+    "es": "¡Ya podés reencarnar! Empezás de cero, pero con blue que multiplican todo para siempre.",
+    "en": "You can reincarnate! You start over, but with Blue that multiplies everything forever."
+  },
+  "tutorial.tip.blue": {
+    "es": "¡Tu primer blue! Canjealo en Mejoras por una mejora permanente",
+    "en": "Your first Blue! Trade it in Upgrades for a permanent boost"
+  },
+  "upgrades.blue_balance %@": {
+    "es": "Blue: %@",
+    "en": "Blue: %@"
+  },
+  "upgrades.flavor.lucky": {
+    "es": "Cada tanto un toque sale premiado, y muy de vez en cuando, uno dorado.",
+    "en": "Every so often a tap comes out lucky, and once in a blue moon, golden."
+  },
+  "wheel.spin.blue.ax": {
+    "es": "Girar la ruleta",
+    "en": "Spin the wheel"
+  }
+}

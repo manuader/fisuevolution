@@ -75,7 +75,7 @@ struct LocalizationCompletenessTests {
 
     @Test("el lector de placeholders distingue un formato de un porcentaje")
     func placeholderReader() {
-        #expect(Self.placeholders(in: "Te da %@ de ORO") == ["@"])
+        #expect(Self.placeholders(in: "Te da %@ de blue") == ["@"])
         #expect(Self.placeholders(in: "%@ en %lld días") == ["@", "lld"])
         // Con posición se comparan por posición: el inglés puede invertirlas.
         #expect(Self.placeholders(in: "%2$lld de %1$@") == ["@", "lld"])
@@ -116,9 +116,9 @@ struct LocalizationCompletenessTests {
         case visitors
         /// Las filas de Ajustes cuyo identifier es también su clave.
         case settingsRows
-        /// `oroShop.item.<id>.name` (y `.desc` en lo que no es un premio: Fusionar
-        /// todo y los permanentes), sobre `oro_shop.json`, y los estantes (`OroShopCopy`).
-        case oroShop
+        /// `blueShop.item.<id>.name` (y `.desc` en lo que no es un premio: Fusionar
+        /// todo y los permanentes), sobre `blue_shop.json`, y los estantes (`BlueShopCopy`).
+        case blueShop
 
         var testDescription: String { rawValue }
 
@@ -167,10 +167,10 @@ struct LocalizationCompletenessTests {
                 return LanguagePreference.allCases.map(\.identifier) + LegalDocument.Kind.allCases.map(\.identifier)
                     + ["settings.reset", "settings.section.tutorial", "settings.tutorial.replay", "settings.tutorial.tour",
                        "settings.tutorial.locked"] + content.notifications.kinds.map(\.settingsKey)
-            case .oroShop:
-                return content.oroShop.items.flatMap { item in
-                    [OroShopCopy.nameKey(item.id)] + (OroShopCopy.hasOwnDescription(item) ? [OroShopCopy.descriptionKey(item.id)] : [])
-                } + OroShopCatalog.Shelf.allCases.map(OroShopCopy.shelfKey)
+            case .blueShop:
+                return content.blueShop.items.flatMap { item in
+                    [BlueShopCopy.nameKey(item.id)] + (BlueShopCopy.hasOwnDescription(item) ? [BlueShopCopy.descriptionKey(item.id)] : [])
+                } + BlueShopCatalog.Shelf.allCases.map(BlueShopCopy.shelfKey)
             }
         }
     }

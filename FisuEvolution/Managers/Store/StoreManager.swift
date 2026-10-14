@@ -43,12 +43,12 @@ final class StoreManager {
     @ObservationIgnored
     var loadTimeout: Duration = .seconds(10)
 
-    /// De dónde sale el historial de transacciones para reconstruir el ORO de la
+    /// De dónde sale el historial de transacciones para reconstruir el blue de la
     /// v1. Es una propiedad por lo mismo que `productsFetcher`: la única forma de
     /// probar un historial que no contesta es poder ponerle uno que no conteste.
     @ObservationIgnored
-    var historyReader: @Sendable () async -> [PurchasedOroHistory.Record] = {
-        var records: [PurchasedOroHistory.Record] = []
+    var historyReader: @Sendable () async -> [PurchasedBlueHistory.Record] = {
+        var records: [PurchasedBlueHistory.Record] = []
         for await result in Transaction.all {
             guard case .verified(let transaction) = result else { continue }
             records.append(.init(
@@ -119,7 +119,7 @@ final class StoreManager {
         #if DEBUG
         startLocalStoreIfNeeded()
         #endif
-        await reconstructPurchasedOroIfNeeded()
+        await reconstructPurchasedBlueIfNeeded()
 
         updatesTask = Task { [weak self] in
             for await update in Transaction.updates {
@@ -310,20 +310,20 @@ final class StoreManager {
 
     /// Una vez por save de la v1. Corre antes del listener: así ninguna
     /// transacción nueva entra a la cuenta como si fuera de la v1.
-    private func reconstructPurchasedOroIfNeeded() async {
-        guard let gameState, gameState.needsPurchasedOroReconstruction else { return }
+    private func reconstructPurchasedBlueIfNeeded() async {
+        guard let gameState, gameState.needsPurchasedBlueReconstruction else { return }
         let reader = historyReader
         let records = await withDeadline(historyTimeout) { await reader() }
         // Un plazo vencido deja la reconstrucción abierta: se reintenta en el
-        // próximo arranque. Cerrarla en 0 perdería el ORO comprado para siempre.
+        // próximo arranque. Cerrarla en 0 perdería el blue comprado para siempre.
         guard let records else {
             Log.store.error("purchase history timed out after \(self.historyTimeout, privacy: .public)")
             return
         }
-        gameState.completePurchasedOroReconstruction(records: records)
-        let total = gameState.player?.meta.oroPurchasedLifetime ?? 0
+        gameState.completePurchasedBlueReconstruction(records: records)
+        let total = gameState.player?.meta.bluePurchasedLifetime ?? 0
         Log.store.info(
-            "purchased ORO reconstructed: \(total, privacy: .public) ORO from \(records.count, privacy: .public) transactions"
+            "purchased blue reconstructed: \(total, privacy: .public) blue from \(records.count, privacy: .public) transactions"
         )
     }
 
@@ -369,7 +369,7 @@ final class StoreManager {
 
         if transaction.revocationDate != nil {
             purchasedProductIDs.remove(transaction.productID)
-            if entry?.entitlement == .oro || entry?.entitlement == .offer {
+            if entry?.entitlement == .blue || entry?.entitlement == .offer {
                 settled = gameState?.revokeStorePurchase(transactionID: String(transaction.id)) ?? false
             }
             Log.store.warning("entitlement revoked: \(transaction.productID)")

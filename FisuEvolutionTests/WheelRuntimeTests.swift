@@ -58,10 +58,10 @@ struct WheelRuntimeTests {
     func aFarFutureDayDoesNotLockTheWheel() async throws {
         let gameState = await makeGameState()
         gameState.player?.meta.engagement.wheel = WheelState(
-            day: GameState.wheelDay(noon + 365 * day), videoSpinsUsed: 6, oroSpinsUsed: 6, bonusSpins: 2
+            day: GameState.wheelDay(noon + 365 * day), videoSpinsUsed: 6, blueSpinsUsed: 6, bonusSpins: 2
         )
         let availability = gameState.wheelAvailability(storefrontAllows: true, now: noon)
-        #expect(availability.videoLeft == 6 && availability.oroLeft == 6 && availability.bonus == 2)
+        #expect(availability.videoLeft == 6 && availability.blueLeft == 6 && availability.bonus == 2)
         #expect(gameState.spinWheel(.video, now: noon) != nil)
         #expect(gameState.player?.meta.engagement.wheel.day == GameState.wheelDay(noon))
     }
@@ -102,7 +102,7 @@ struct WheelRuntimeTests {
             switch outcome.segment.reward {
             case .coinsSeconds: #expect(after.run.coins > before.run.coins && outcome.coins > 0)
             case .modifier: #expect(after.run.activeModifiers.contains { $0.sourceKey == "wheel.\(outcome.segment.id)" })
-            case .oro(let amount): #expect(after.meta.oro == before.meta.oro + amount)
+            case .blue(let amount): #expect(after.meta.blue == before.meta.blue + amount)
             case .package(let count): #expect(after.meta.engagement.packages.waiting == before.meta.engagement.packages.waiting + count)
             case .skinChest(let count): #expect(after.meta.chestsPending == before.meta.chestsPending + count)
             default: Issue.record("la ruleta dio \(outcome.segment.reward.kind)")
@@ -132,13 +132,13 @@ struct WheelRuntimeTests {
         #expect(gameState.wheelAvailability(storefrontAllows: false, now: noon).videoLeft == 5, "repetir no gasta un giro")
     }
 
-    @Test("repetir el premio de plata acredita otra vez; el de ORO suma otra vez")
+    @Test("repetir el premio de plata acredita otra vez; el de blue suma otra vez")
     func repeatingPaysAgain() async throws {
         let gameState = await makeGameState()
-        gameState.player?.meta.engagement.wheel = WheelState(day: GameState.wheelDay(noon), repeatableSegmentId: "oro_3")
-        let before = try #require(gameState.player?.meta.oro)
+        gameState.player?.meta.engagement.wheel = WheelState(day: GameState.wheelDay(noon), repeatableSegmentId: "blue_3")
+        let before = try #require(gameState.player?.meta.blue)
         #expect(gameState.repeatWheelPrize(now: noon) != nil)
-        #expect(gameState.player?.meta.oro == before + 3)
+        #expect(gameState.player?.meta.blue == before + 3)
     }
 
     @Test("sin giro previo, o al día siguiente, no hay nada que repetir")
@@ -149,91 +149,91 @@ struct WheelRuntimeTests {
         #expect(gameState.repeatWheelPrize(now: noon + day) == nil)
     }
 
-    @Test("el giro con ORO cuesta 12, tiene su tope y se apaga donde la tienda no lo permite")
-    func theOroSpin() async throws {
+    @Test("el giro con blue cuesta 12, tiene su tope y se apaga donde la tienda no lo permite")
+    func theBlueSpin() async throws {
         let gameState = await makeGameState()
-        gameState.player?.meta.oro = 100
-        #expect(gameState.spinWheel(.oro, storefrontAllows: false, now: noon) == nil)
-        #expect(gameState.player?.meta.oro == 100)
-        #expect(gameState.player?.meta.engagement.wheel.oroSpinsUsed == 0)
-        #expect(gameState.wheelAvailability(storefrontAllows: false, now: noon).oroLeft == 0)
+        gameState.player?.meta.blue = 100
+        #expect(gameState.spinWheel(.blue, storefrontAllows: false, now: noon) == nil)
+        #expect(gameState.player?.meta.blue == 100)
+        #expect(gameState.player?.meta.engagement.wheel.blueSpinsUsed == 0)
+        #expect(gameState.wheelAvailability(storefrontAllows: false, now: noon).blueLeft == 0)
         for spin in 1...6 {
-            _ = try #require(gameState.spinWheel(.oro, storefrontAllows: true, now: noon))
-            #expect(gameState.player?.meta.stats.oroSpentEver == 12 * spin)
+            _ = try #require(gameState.spinWheel(.blue, storefrontAllows: true, now: noon))
+            #expect(gameState.player?.meta.stats.blueSpentEver == 12 * spin)
         }
-        let oroAfterSix = try #require(gameState.player?.meta.oro)
-        #expect(gameState.spinWheel(.oro, storefrontAllows: true, now: noon) == nil)
-        #expect(gameState.player?.meta.oro == oroAfterSix, "el séptimo no cobra")
+        let blueAfterSix = try #require(gameState.player?.meta.blue)
+        #expect(gameState.spinWheel(.blue, storefrontAllows: true, now: noon) == nil)
+        #expect(gameState.player?.meta.blue == blueAfterSix, "el séptimo no cobra")
     }
 
-    @Test("el borde del saldo: con 12 ORO gira y queda en 0; con 11 no gira ni cobra")
-    func theOroBalanceEdge() async throws {
+    @Test("el borde del saldo: con 12 blue gira y queda en 0; con 11 no gira ni cobra")
+    func theBlueBalanceEdge() async throws {
         let gameState = await makeGameState()
-        gameState.player?.meta.oro = 11
-        #expect(!gameState.wheelAvailability(storefrontAllows: true, now: noon).canPayOro)
-        #expect(gameState.spinWheel(.oro, storefrontAllows: true, now: noon) == nil)
-        #expect(gameState.player?.meta.oro == 11)
-        #expect(gameState.player?.meta.engagement.wheel.oroSpinsUsed == 0)
-        gameState.player?.meta.oro = 12
-        #expect(gameState.wheelAvailability(storefrontAllows: true, now: noon).canPayOro)
-        let outcome = try #require(gameState.spinWheel(.oro, storefrontAllows: true, now: noon))
-        let prizeOro: Int = if case .oro(let amount) = outcome.segment.reward { amount } else { 0 }
-        #expect(gameState.player?.meta.oro == prizeOro, "se cobró 12 una sola vez; el premio puede devolver ORO")
-        #expect(gameState.player?.meta.engagement.wheel.oroSpinsUsed == 1)
+        gameState.player?.meta.blue = 11
+        #expect(!gameState.wheelAvailability(storefrontAllows: true, now: noon).canPayBlue)
+        #expect(gameState.spinWheel(.blue, storefrontAllows: true, now: noon) == nil)
+        #expect(gameState.player?.meta.blue == 11)
+        #expect(gameState.player?.meta.engagement.wheel.blueSpinsUsed == 0)
+        gameState.player?.meta.blue = 12
+        #expect(gameState.wheelAvailability(storefrontAllows: true, now: noon).canPayBlue)
+        let outcome = try #require(gameState.spinWheel(.blue, storefrontAllows: true, now: noon))
+        let prizeBlue: Int = if case .blue(let amount) = outcome.segment.reward { amount } else { 0 }
+        #expect(gameState.player?.meta.blue == prizeBlue, "se cobró 12 una sola vez; el premio puede devolver blue")
+        #expect(gameState.player?.meta.engagement.wheel.blueSpinsUsed == 1)
     }
 
     @Test("el giro con blue gasta el cupo del día (D11) pero no los regalados")
-    func oroSpinLeavesOtherQuotas() async throws {
+    func blueSpinLeavesOtherQuotas() async throws {
         let gameState = await makeGameState()
-        gameState.player?.meta.oro = 50
+        gameState.player?.meta.blue = 50
         gameState.debugAddWheelSpins(2)
-        _ = try #require(gameState.spinWheel(.oro, storefrontAllows: true, now: noon))
+        _ = try #require(gameState.spinWheel(.blue, storefrontAllows: true, now: noon))
         let availability = gameState.wheelAvailability(storefrontAllows: true, now: noon)
-        #expect(availability.videoLeft == 5 && availability.bonus == 2 && availability.oroLeft == 5)
+        #expect(availability.videoLeft == 5 && availability.bonus == 2 && availability.blueLeft == 5)
     }
 
     @Test("D11: con el cupo gastado por video no hay giro con blue, aunque sobre blue")
-    func videoSpinsExhaustTheOroSpin() async throws {
+    func videoSpinsExhaustTheBlueSpin() async throws {
         let gameState = await makeGameState()
-        gameState.player?.meta.oro = 500
+        gameState.player?.meta.blue = 500
         for _ in 0..<6 { _ = try #require(gameState.spinWheel(.video, now: noon)) }
         let availability = gameState.wheelAvailability(storefrontAllows: true, now: noon)
-        #expect(availability.oroLeft == 0 && !availability.canPayOro)
-        #expect(gameState.spinWheel(.oro, storefrontAllows: true, now: noon) == nil)
-        #expect(gameState.player?.meta.oro == 500, "sin cupo no cobra")
-        #expect(gameState.player?.meta.engagement.wheel.oroSpinsUsed == 0)
+        #expect(availability.blueLeft == 0 && !availability.canPayBlue)
+        #expect(gameState.spinWheel(.blue, storefrontAllows: true, now: noon) == nil)
+        #expect(gameState.player?.meta.blue == 500, "sin cupo no cobra")
+        #expect(gameState.player?.meta.engagement.wheel.blueSpinsUsed == 0)
     }
 
     @Test("D11: seis con blue agotan también los de video, hasta mañana")
-    func oroSpinsExhaustTheVideoSpins() async throws {
+    func blueSpinsExhaustTheVideoSpins() async throws {
         let gameState = await makeGameState()
-        gameState.player?.meta.oro = 500
-        for _ in 0..<6 { _ = try #require(gameState.spinWheel(.oro, storefrontAllows: true, now: noon)) }
+        gameState.player?.meta.blue = 500
+        for _ in 0..<6 { _ = try #require(gameState.spinWheel(.blue, storefrontAllows: true, now: noon)) }
         #expect(gameState.wheelAvailability(storefrontAllows: false, now: noon).videoLeft == 0)
         #expect(gameState.spinWheel(.video, now: noon) == nil)
         #expect(gameState.wheelAvailability(storefrontAllows: true, now: noon + day).videoLeft == 6)
-        #expect(gameState.wheelAvailability(storefrontAllows: true, now: noon + day).oroLeft == 6)
+        #expect(gameState.wheelAvailability(storefrontAllows: true, now: noon + day).blueLeft == 6)
     }
 
     @Test("D11: la ruleta de Regalos y la de la columna cuentan el mismo cupo")
     func giftsAndRailAgree() async throws {
         let gameState = await makeGameState()
-        gameState.player?.meta.oro = 500
-        _ = try #require(gameState.spinWheel(.oro, storefrontAllows: true, now: noon))
+        gameState.player?.meta.blue = 500
+        _ = try #require(gameState.spinWheel(.blue, storefrontAllows: true, now: noon))
         _ = try #require(gameState.spinWheel(.video, now: noon))
         let gifts = gameState.wheelAvailability(storefrontAllows: false, now: noon)
         let wheel = gameState.wheelAvailability(storefrontAllows: true, now: noon)
-        #expect(gifts.videoLeft == 4 && wheel.videoLeft == 4 && wheel.oroLeft == 4)
+        #expect(gifts.videoLeft == 4 && wheel.videoLeft == 4 && wheel.blueLeft == 4)
     }
 
     @Test("D11: la mejora de la tienda sube el máximo, se gire con video o con blue")
     func theShopPerkRaisesTheSharedQuota() async throws {
         let gameState = await makeGameState()
-        gameState.player?.meta.oro = 500
+        gameState.player?.meta.blue = 500
         gameState.player?.meta.engagement.shop.levels["wheel_spins"] = 1
         #expect(gameState.bonusDailyWheelSpins == 1)
-        for _ in 0..<7 { _ = try #require(gameState.spinWheel(.oro, storefrontAllows: true, now: noon)) }
-        #expect(gameState.spinWheel(.oro, storefrontAllows: true, now: noon) == nil)
+        for _ in 0..<7 { _ = try #require(gameState.spinWheel(.blue, storefrontAllows: true, now: noon)) }
+        #expect(gameState.spinWheel(.blue, storefrontAllows: true, now: noon) == nil)
         #expect(gameState.spinWheel(.video, now: noon) == nil)
     }
 
@@ -244,25 +244,25 @@ struct WheelRuntimeTests {
         gameState.debugAddWheelSpins(1)
         #expect(gameState.spinWheel(.bonus, now: noon) != nil)
         #expect(gameState.player?.meta.engagement.wheel.videoSpinsUsed == 6)
-        #expect(gameState.player?.meta.engagement.wheel.oroSpinsUsed == 0)
+        #expect(gameState.player?.meta.engagement.wheel.blueSpinsUsed == 0)
     }
 
-    @Test("sin ORO no gira ni cobra")
-    func noOroNoSpin() async {
+    @Test("sin blue no gira ni cobra")
+    func noBlueNoSpin() async {
         let gameState = await makeGameState()
-        gameState.player?.meta.oro = 5
-        #expect(gameState.spinWheel(.oro, storefrontAllows: true) == nil)
-        #expect(gameState.player?.meta.oro == 5)
-        #expect(!gameState.wheelAvailability(storefrontAllows: true).canPayOro)
+        gameState.player?.meta.blue = 5
+        #expect(gameState.spinWheel(.blue, storefrontAllows: true) == nil)
+        #expect(gameState.player?.meta.blue == 5)
+        #expect(!gameState.wheelAvailability(storefrontAllows: true).canPayBlue)
     }
 
-    @Test("un reloj atrasado tampoco devuelve el cupo de ORO")
-    func aRewoundClockDoesNotRefillTheOroQuota() async throws {
+    @Test("un reloj atrasado tampoco devuelve el cupo de blue")
+    func aRewoundClockDoesNotRefillTheBlueQuota() async throws {
         let gameState = await makeGameState()
-        gameState.player?.meta.oro = 500
-        for _ in 0..<6 { _ = gameState.spinWheel(.oro, storefrontAllows: true, now: noon) }
-        #expect(gameState.spinWheel(.oro, storefrontAllows: true, now: noon - day) == nil)
-        #expect(gameState.spinWheel(.oro, storefrontAllows: true, now: noon + day) != nil)
+        gameState.player?.meta.blue = 500
+        for _ in 0..<6 { _ = gameState.spinWheel(.blue, storefrontAllows: true, now: noon) }
+        #expect(gameState.spinWheel(.blue, storefrontAllows: true, now: noon - day) == nil)
+        #expect(gameState.spinWheel(.blue, storefrontAllows: true, now: noon + day) != nil)
     }
 
     @Test("un giro regalado no pide video y no vence con el día")

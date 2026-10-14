@@ -122,7 +122,7 @@ struct VisitorFloorsRuntimeTests {
         try arrive(gameState, "turista_propina")
         gameState.setVisibleFloor(1)
         #expect(!gameState.visitorsWaitingElsewhere.isEmpty)
-        gameState.giveEarningsForPrestigeTesting(oro: 3)
+        gameState.giveEarningsForPrestigeTesting(blue: 3)
         gameState.confirmPrestige()
         #expect(gameState.player?.meta.engagement.visitors.waiting.isEmpty == true)
         #expect(gameState.stageRuntime.parked.isEmpty)

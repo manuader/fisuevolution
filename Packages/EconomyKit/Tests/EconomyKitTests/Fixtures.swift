@@ -35,7 +35,7 @@ func fxConfig(
             frontierEscalationFromTier: frontierEscalationFromTier
         ),
         charUpgrades: .init(baseCostMultiplier: 10, costGrowth: 2.0, effectStepPerLevel: 1.0),
-        oro: .init(divisor: 1_000_000, exponent: 0.5, globalMultiplierPerOro: 0.02),
+        blue: .init(divisor: 1_000_000, exponent: 0.5, globalMultiplierPerBlue: 0.02),
         critChanceBase: 0,
         critMultiplier: 5,
         offlineEfficiencyBase: 0.5,

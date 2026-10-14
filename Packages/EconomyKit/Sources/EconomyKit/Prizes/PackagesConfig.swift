@@ -15,7 +15,7 @@ public struct PackagesConfig: Codable, Sendable, Equatable {
     /// Cuántos tiers elegibles, desde el más alto, entran al sorteo.
     public let windowTiers: Int
     /// La razón r entre un tier y el de arriba (el de abajo pesa r veces más),
-    /// por nivel del permanente "mejor proveedor" de la tienda de ORO (E6).
+    /// por nivel del permanente "mejor proveedor" de la tienda de blue (E6).
     public let tierRatioByBestSupplierLevel: [Double]
 
     public init(

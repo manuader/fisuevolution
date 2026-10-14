@@ -22,7 +22,7 @@ import XCTest
 ///
 /// El guion de la 2.0 son ocho capturas, repartidas en cuatro corridas por
 /// idioma porque cada una pide fixtures que las otras taparían:
-/// `01-tablero`, `02-tienda-oro`, `03-ruleta`, `05-ascensor`, `06-ranking`
+/// `01-tablero`, `02-tienda-blue`, `03-ruleta`, `05-ascensor`, `06-ranking`
 /// (una sola partida, navegando el menú deslizable), `04-visitante`,
 /// `07-personajes` y `08-cofre`.
 ///
@@ -66,11 +66,11 @@ final class AppStoreScreenshotTests: XCTestCase {
     @MainActor
     func testCapturaElRecorridoEnCastellano() throws { try capturaElRecorrido(idioma: "es") }
 
-    /// 01 tablero · 02 tienda de oro · 03 ruleta · 06 ranking · 05 ascensor.
+    /// 01 tablero · 02 tienda de blue · 03 ruleta · 06 ranking · 05 ascensor.
     ///
     /// Una sola partida: la torre entera abierta, los tipos vistos y las pintas
     /// (las pantallas listan lo VISTO), los dos niveles de lugares extra con el
-    /// piso lleno (15 lugares), oro para la tienda, un giro regalado y el
+    /// piso lleno (15 lugares), blue para la tienda, un giro regalado y el
     /// servidor simulado del ranking. Todo se alcanza por la barra y el menú
     /// deslizable, y se espera un marcador de ADENTRO de cada pantalla.
     @MainActor
@@ -78,7 +78,7 @@ final class AppStoreScreenshotTests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = Self.languageArguments(idioma) + Self.baseArguments + [
             "--uitest-unlock-tower", "--uitest-seen-types", "--uitest-skins",
-            "--uitest-merge-all", "--uitest-extra-slots", "--uitest-oro=500", "--uitest-wheel-spins=1",
+            "--uitest-merge-all", "--uitest-extra-slots", "--uitest-blue=500", "--uitest-wheel-spins=1",
             "--uitest-ranking-outside-top",
         ]
         app.launch()
@@ -95,9 +95,9 @@ final class AppStoreScreenshotTests: XCTestCase {
         // en el simulador sin catálogo dice "no disponible").
         if open(app, tab: "hud.upgrades", marker: "upgrades.tab.boosts") {
             app.buttons["upgrades.tab.boosts"].tap()
-            if app.descendants(matching: .any)["oroShop.balance"].waitForExistence(timeout: 15) {
+            if app.descendants(matching: .any)["blueShop.balance"].waitForExistence(timeout: 15) {
                 settle()
-                shoot(app, "02-tienda-oro")
+                shoot(app, "02-tienda-blue")
             } else {
                 XCTFail("Mejoras no mostró el saldo de blue")
             }

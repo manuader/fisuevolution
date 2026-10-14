@@ -1,8 +1,8 @@
 import Foundation
 
-/// Lo que se recuerda de la tienda de ORO (PLAN-v2 E6): los topes del día, los
+/// Lo que se recuerda de la tienda de blue (PLAN-v2 E6): los topes del día, los
 /// niveles de los permanentes, los multiplicadores comprados que esperan su
-/// próximo offline o diario, y las pintas compradas con ORO.
+/// próximo offline o diario, y las pintas compradas con blue.
 public struct ShopState: Codable, Sendable, Equatable {
     /// El día calendario ("yyyy-MM-dd") de `purchasesToday`.
     public var day: String?
@@ -14,7 +14,7 @@ public struct ShopState: Codable, Sendable, Equatable {
     public var pendingOfflineMultiplier: Double?
     /// El próximo diario que paga plata se multiplica por esto (Diario ×3).
     public var pendingDailyMultiplier: Double?
-    /// Pintas compradas con ORO. Viven acá y no en `meta.ownedSkins`, que es la
+    /// Pintas compradas con blue. Viven acá y no en `meta.ownedSkins`, que es la
     /// caché de StoreKit y se reescribe entera en cada sincronización.
     public var skins: Set<String>
 

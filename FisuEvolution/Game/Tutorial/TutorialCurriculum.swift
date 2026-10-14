@@ -87,10 +87,10 @@ enum TutorialMechanic: String, CaseIterable {
     case tap, hire, merge, welcomeChest
     case quickHire, passiveIncome, characterMultipliers, orgChart, elevatorPanel, elevatorKeypad
     case floorSwipe, floorFull
-    case offlineDoubling, boosts, dailyGifts, skins, achievements, chests, prestigeAndOro, oroUpgrades
+    case offlineDoubling, boosts, dailyGifts, skins, achievements, chests, prestigeAndBlue, blueUpgrades
     case career, store, menuSwipe, characterSheet, newTabs, hirePriceStep, staffedFloors, prestigeGate
     case customsPackage, mattress, wheel, visitor, visitorPopup, eventChip, album, sideRail
-    case mergeAll, share, oroShopShelf, pendingTriple, autoTap, luckOdds, offers
+    case mergeAll, share, blueShopShelf, pendingTriple, autoTap, luckOdds, offers
     case cosmetics, skinEffects, extraSlots, notificationsPermission, adBreak
 
     var coverage: TutorialCoverage {
@@ -105,10 +105,10 @@ enum TutorialMechanic: String, CaseIterable {
         case .elevatorKeypad: .lesson(.elevatorKeypad)
         case .skins: .lesson(.skins)
         case .achievements: .lesson(.achievements)
-        case .oroUpgrades: .lesson(.oroUpgrades)
+        case .blueUpgrades: .lesson(.blueUpgrades)
         case .dailyGifts: .lesson(.gifts)
         case .store: .lesson(.store)
-        case .prestigeAndOro: .lesson(.prestige)
+        case .prestigeAndBlue: .lesson(.prestige)
         case .share: .lesson(.share)
         case .visitor: .lesson(.visitor)
         case .eventChip: .lesson(.eventChip)
@@ -135,7 +135,7 @@ enum TutorialMechanic: String, CaseIterable {
         case .menuSwipe: .lesson(.menuSwipe)
         case .newTabs: .lesson(.newTabs)
         case .hirePriceStep: .lesson(.hirePriceStep)
-        case .oroShopShelf: .lesson(.oroShop)
+        case .blueShopShelf: .lesson(.blueShop)
         case .pendingTriple: .lesson(.pendingTriple)
         case .autoTap: .lesson(.autoTap)
         case .luckOdds: .lesson(.luck)

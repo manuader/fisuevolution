@@ -10,24 +10,24 @@ let fxWheelSegments: [WheelConfig.Segment] = [
     .init(id: "income_x2", weight: 14, reward: .modifier(effect: .incomeMultiplier, magnitude: 2, seconds: 600)),
     .init(id: "income_x3", weight: 8, reward: .modifier(effect: .incomeMultiplier, magnitude: 3, seconds: 600)),
     .init(id: "income_x5", weight: 3, reward: .modifier(effect: .incomeMultiplier, magnitude: 5, seconds: 600)),
-    .init(id: "oro_1", weight: 15, reward: .oro(1)),
-    .init(id: "oro_3", weight: 5, reward: .oro(3)),
+    .init(id: "blue_1", weight: 15, reward: .blue(1)),
+    .init(id: "blue_3", weight: 5, reward: .blue(3)),
     .init(id: "package", weight: 12, reward: .package(1)),
     .init(id: "chest", weight: 5, reward: .skinChest(1)),
 ]
 
 func fxWheel(
     videoSpinsPerDay: Int = 6,
-    oroSpinCost: Int = 12,
-    oroSpinsPerDay: Int = 6,
+    blueSpinCost: Int = 12,
+    blueSpinsPerDay: Int = 6,
     chestFallbackSegmentId: String = "coins_30",
     segments: [WheelConfig.Segment] = fxWheelSegments
 ) -> WheelConfig {
     WheelConfig(
         schemaVersion: 1,
         videoSpinsPerDay: videoSpinsPerDay,
-        oroSpinCost: oroSpinCost,
-        oroSpinsPerDay: oroSpinsPerDay,
+        blueSpinCost: blueSpinCost,
+        blueSpinsPerDay: blueSpinsPerDay,
         spinSeconds: 3.8,
         chestFallbackSegmentId: chestFallbackSegmentId,
         segments: segments
@@ -94,18 +94,18 @@ struct WheelTableTests {
             try fxWheel(chestFallbackSegmentId: "nope").validate()
         }
         #expect(throws: WheelConfig.ValidationError.fallbackMustPayCoins) {
-            try fxWheel(chestFallbackSegmentId: "oro_1").validate()
+            try fxWheel(chestFallbackSegmentId: "blue_1").validate()
         }
     }
 
     @Test("un premio inválido o un cupo fuera de rango no cargan")
     func rewardsAndQuotasAreChecked() {
         var broken = fxWheelSegments
-        broken[6] = .init(id: "oro_1", weight: 15, reward: .oro(0))
-        #expect(throws: WheelConfig.ValidationError.invalidReward("oro_1")) { try fxWheel(segments: broken).validate() }
+        broken[6] = .init(id: "blue_1", weight: 15, reward: .blue(0))
+        #expect(throws: WheelConfig.ValidationError.invalidReward("blue_1")) { try fxWheel(segments: broken).validate() }
         #expect(throws: WheelConfig.ValidationError.outOfRange("videoSpinsPerDay")) { try fxWheel(videoSpinsPerDay: 0).validate() }
-        #expect(throws: WheelConfig.ValidationError.outOfRange("oroSpinCost")) { try fxWheel(oroSpinCost: 0).validate() }
-        #expect(throws: WheelConfig.ValidationError.outOfRange("oroSpinsPerDay")) { try fxWheel(oroSpinsPerDay: -1).validate() }
+        #expect(throws: WheelConfig.ValidationError.outOfRange("blueSpinCost")) { try fxWheel(blueSpinCost: 0).validate() }
+        #expect(throws: WheelConfig.ValidationError.outOfRange("blueSpinsPerDay")) { try fxWheel(blueSpinsPerDay: -1).validate() }
     }
 }
 
@@ -115,40 +115,40 @@ struct WheelStateTests {
 
     @Test("un día nuevo devuelve los cupos, pierde el «repetir» y conserva los regalados")
     func aNewDayResetsTheQuotas() {
-        let yesterday = WheelState(day: "2026-10-06", videoSpinsUsed: 6, oroSpinsUsed: 2, bonusSpins: 1, repeatableSegmentId: "oro_3")
-        #expect(yesterday.rolledOver(to: "2026-10-07") == WheelState(day: "2026-10-07", videoSpinsUsed: 0, oroSpinsUsed: 0, bonusSpins: 1, repeatableSegmentId: nil))
+        let yesterday = WheelState(day: "2026-10-06", videoSpinsUsed: 6, blueSpinsUsed: 2, bonusSpins: 1, repeatableSegmentId: "blue_3")
+        #expect(yesterday.rolledOver(to: "2026-10-07") == WheelState(day: "2026-10-07", videoSpinsUsed: 0, blueSpinsUsed: 0, bonusSpins: 1, repeatableSegmentId: nil))
     }
 
     @Test("el mismo día no cambia nada")
     func theSameDayKeepsEverything() {
-        let today = WheelState(day: "2026-10-07", videoSpinsUsed: 3, oroSpinsUsed: 1, bonusSpins: 0, repeatableSegmentId: "package")
+        let today = WheelState(day: "2026-10-07", videoSpinsUsed: 3, blueSpinsUsed: 1, bonusSpins: 0, repeatableSegmentId: "package")
         #expect(today.rolledOver(to: "2026-10-07") == today)
     }
 
     @Test("video y blue comparten los 6 del día; los regalados van aparte")
     func spinsLeftPerSource() {
-        let state = WheelState(day: "d", videoSpinsUsed: 2, oroSpinsUsed: 1, bonusSpins: 3)
+        let state = WheelState(day: "d", videoSpinsUsed: 2, blueSpinsUsed: 1, bonusSpins: 3)
         #expect(WheelRoller.spinsLeft(.video, state: state, config: config) == 3)
-        #expect(WheelRoller.spinsLeft(.oro, state: state, config: config) == 3)
+        #expect(WheelRoller.spinsLeft(.blue, state: state, config: config) == 3)
         #expect(WheelRoller.spinsLeft(.bonus, state: state, config: config) == 3)
     }
 
     @Test("gastar uno descuenta de su fuente; sin cupo no se gasta")
     func consumingSpendsFromItsSource() {
-        var state = WheelState(day: "d", videoSpinsUsed: 3, oroSpinsUsed: 2, bonusSpins: 1)
+        var state = WheelState(day: "d", videoSpinsUsed: 3, blueSpinsUsed: 2, bonusSpins: 1)
         #expect(WheelRoller.consume(.video, state: &state, config: config))
         #expect(!WheelRoller.consume(.video, state: &state, config: config))
-        #expect(!WheelRoller.consume(.oro, state: &state, config: config))
+        #expect(!WheelRoller.consume(.blue, state: &state, config: config))
         #expect(WheelRoller.consume(.bonus, state: &state, config: config))
-        #expect(state == WheelState(day: "d", videoSpinsUsed: 4, oroSpinsUsed: 2, bonusSpins: 0))
+        #expect(state == WheelState(day: "d", videoSpinsUsed: 4, blueSpinsUsed: 2, bonusSpins: 0))
     }
 
     @Test("al resolver un conflicto del mismo día, los cupos usados se quedan con lo más alto")
     func resolvingKeepsTheDailyQuotas() {
-        let winner = WheelState(day: "d", videoSpinsUsed: 1, oroSpinsUsed: 4, bonusSpins: 2)
-        let loser = WheelState(day: "d", videoSpinsUsed: 5, oroSpinsUsed: 0, bonusSpins: 0)
-        #expect(WheelState.resolve(winner: winner, loser: loser) == WheelState(day: "d", videoSpinsUsed: 5, oroSpinsUsed: 4, bonusSpins: 2))
-        let otherDay = WheelState(day: "c", videoSpinsUsed: 6, oroSpinsUsed: 6)
+        let winner = WheelState(day: "d", videoSpinsUsed: 1, blueSpinsUsed: 4, bonusSpins: 2)
+        let loser = WheelState(day: "d", videoSpinsUsed: 5, blueSpinsUsed: 0, bonusSpins: 0)
+        #expect(WheelState.resolve(winner: winner, loser: loser) == WheelState(day: "d", videoSpinsUsed: 5, blueSpinsUsed: 4, bonusSpins: 2))
+        let otherDay = WheelState(day: "c", videoSpinsUsed: 6, blueSpinsUsed: 6)
         #expect(WheelState.resolve(winner: winner, loser: otherDay) == winner)
     }
 
@@ -231,12 +231,12 @@ struct WheelTableEdgesTests {
         let odds = fxWheel().odds(chestHasSomethingToGive: false)
         #expect(odds.count == 9)
         #expect(abs(try #require(odds.first { $0.id == "coins_30" }).probability - 0.23) < 1e-12)
-        #expect(abs(try #require(odds.first { $0.id == "oro_3" }).probability - 0.05) < 1e-12)
+        #expect(abs(try #require(odds.first { $0.id == "blue_3" }).probability - 0.05) < 1e-12)
     }
 
-    @Test("ORO apagado (cero giros por día) es un dato válido")
-    func zeroOroSpinsIsValid() throws {
-        try fxWheel(oroSpinsPerDay: 0).validate()
+    @Test("blue apagado (cero giros por día) es un dato válido")
+    func zeroBlueSpinsIsValid() throws {
+        try fxWheel(blueSpinsPerDay: 0).validate()
     }
 
     @Test("la animación tiene que durar algo")
@@ -245,8 +245,8 @@ struct WheelTableEdgesTests {
             let config = WheelConfig(
                 schemaVersion: 1,
                 videoSpinsPerDay: 6,
-                oroSpinCost: 12,
-                oroSpinsPerDay: 6,
+                blueSpinCost: 12,
+                blueSpinsPerDay: 6,
                 spinSeconds: seconds,
                 chestFallbackSegmentId: "coins_30",
                 segments: fxWheelSegments
@@ -284,29 +284,29 @@ struct WheelStateEdgesTests {
 
     @Test("sin día en ninguno de los dos no hay nada que resolver: queda el ganador")
     func undatedStatesKeepTheWinner() {
-        let winner = WheelState(day: nil, videoSpinsUsed: 1, oroSpinsUsed: 0, bonusSpins: 1)
-        let loser = WheelState(day: nil, videoSpinsUsed: 5, oroSpinsUsed: 3)
+        let winner = WheelState(day: nil, videoSpinsUsed: 1, blueSpinsUsed: 0, bonusSpins: 1)
+        let loser = WheelState(day: nil, videoSpinsUsed: 5, blueSpinsUsed: 3)
         #expect(WheelState.resolve(winner: winner, loser: loser) == winner)
     }
 
     @Test("lo regalado y el «repetir» viajan con el ganador; el cupo más alto puede ser el del perdedor")
     func theWinnerKeepsGiftsAndRepeat() {
-        let winner = WheelState(day: "d", videoSpinsUsed: 4, oroSpinsUsed: 1, bonusSpins: 2, repeatableSegmentId: "oro_3")
-        let loser = WheelState(day: "d", videoSpinsUsed: 2, oroSpinsUsed: 5, bonusSpins: 7, repeatableSegmentId: "package")
-        #expect(WheelState.resolve(winner: winner, loser: loser) == WheelState(day: "d", videoSpinsUsed: 4, oroSpinsUsed: 5, bonusSpins: 2, repeatableSegmentId: "oro_3"))
+        let winner = WheelState(day: "d", videoSpinsUsed: 4, blueSpinsUsed: 1, bonusSpins: 2, repeatableSegmentId: "blue_3")
+        let loser = WheelState(day: "d", videoSpinsUsed: 2, blueSpinsUsed: 5, bonusSpins: 7, repeatableSegmentId: "package")
+        #expect(WheelState.resolve(winner: winner, loser: loser) == WheelState(day: "d", videoSpinsUsed: 4, blueSpinsUsed: 5, bonusSpins: 2, repeatableSegmentId: "blue_3"))
     }
 
     @Test("un cupo que se achicó en el dato no deja giros negativos")
     func spinsLeftNeverGoesNegative() {
-        let state = WheelState(day: "d", videoSpinsUsed: 9, oroSpinsUsed: 8, bonusSpins: -2)
+        let state = WheelState(day: "d", videoSpinsUsed: 9, blueSpinsUsed: 8, bonusSpins: -2)
         #expect(WheelRoller.spinsLeft(.video, state: state, config: config) == 0)
-        #expect(WheelRoller.spinsLeft(.oro, state: state, config: config) == 0)
+        #expect(WheelRoller.spinsLeft(.blue, state: state, config: config) == 0)
         #expect(WheelRoller.spinsLeft(.bonus, state: state, config: config) == 0)
     }
 
     @Test("sin cupo de ningún tipo, consumir no toca el estado")
     func consumingWithoutQuotaTouchesNothing() {
-        var state = WheelState(day: "d", videoSpinsUsed: 9, oroSpinsUsed: 8, bonusSpins: -2)
+        var state = WheelState(day: "d", videoSpinsUsed: 9, blueSpinsUsed: 8, bonusSpins: -2)
         let before = state
         for source in WheelSpinSource.allCases {
             #expect(!WheelRoller.consume(source, state: &state, config: config))
@@ -315,22 +315,22 @@ struct WheelStateEdgesTests {
     }
 
     @Test("gastar uno con blue anota en su contador, que cuenta para el cupo único")
-    func consumingOroOnlyTouchesOro() {
-        var state = WheelState(day: "d", videoSpinsUsed: 2, oroSpinsUsed: 1, bonusSpins: 3)
-        #expect(WheelRoller.consume(.oro, state: &state, config: config))
-        #expect(state == WheelState(day: "d", videoSpinsUsed: 2, oroSpinsUsed: 2, bonusSpins: 3))
+    func consumingBlueOnlyTouchesBlue() {
+        var state = WheelState(day: "d", videoSpinsUsed: 2, blueSpinsUsed: 1, bonusSpins: 3)
+        #expect(WheelRoller.consume(.blue, state: &state, config: config))
+        #expect(state == WheelState(day: "d", videoSpinsUsed: 2, blueSpinsUsed: 2, bonusSpins: 3))
     }
 
     @Test("gastar uno por video sólo suma al contador de video")
     func consumingVideoOnlyTouchesVideo() {
-        var state = WheelState(day: "d", videoSpinsUsed: 2, oroSpinsUsed: 1, bonusSpins: 3)
+        var state = WheelState(day: "d", videoSpinsUsed: 2, blueSpinsUsed: 1, bonusSpins: 3)
         #expect(WheelRoller.consume(.video, state: &state, config: config))
-        #expect(state == WheelState(day: "d", videoSpinsUsed: 3, oroSpinsUsed: 1, bonusSpins: 3))
+        #expect(state == WheelState(day: "d", videoSpinsUsed: 3, blueSpinsUsed: 1, bonusSpins: 3))
     }
 
     @Test("la ruleta guardada vuelve igual, con todos sus campos")
     func theStateRoundTrips() throws {
-        let state = WheelState(day: "2026-10-07", videoSpinsUsed: 3, oroSpinsUsed: 2, bonusSpins: 4, repeatableSegmentId: "oro_3")
+        let state = WheelState(day: "2026-10-07", videoSpinsUsed: 3, blueSpinsUsed: 2, bonusSpins: 4, repeatableSegmentId: "blue_3")
         let data = try JSONEncoder().encode(state)
         #expect(try JSONDecoder().decode(WheelState.self, from: data) == state)
     }
@@ -338,7 +338,7 @@ struct WheelStateEdgesTests {
     @Test("una ruleta con sólo el día decodifica con los cupos en cero")
     func aDayOnlyStateDecodesWithZeroes() throws {
         let state = try JSONDecoder().decode(WheelState.self, from: Data(#"{"day": "d"}"#.utf8))
-        #expect(state == WheelState(day: "d", videoSpinsUsed: 0, oroSpinsUsed: 0, bonusSpins: 0, repeatableSegmentId: nil))
+        #expect(state == WheelState(day: "d", videoSpinsUsed: 0, blueSpinsUsed: 0, bonusSpins: 0, repeatableSegmentId: nil))
     }
 }
 
@@ -348,7 +348,7 @@ struct WheelRollerPointsTests {
     func eachPointLandsOnItsSegment() throws {
         let segments = fxWheel().effectiveSegments(chestHasSomethingToGive: true)
         // acumulados: 18 30 38 52 60 63 78 83 95 100
-        let expected: [(Double, String)] = [(0.0, "coins_30"), (0.25, "coins_45"), (0.5, "income_x2"), (0.8, "oro_3"), (0.97, "chest")]
+        let expected: [(Double, String)] = [(0.0, "coins_30"), (0.25, "coins_45"), (0.5, "income_x2"), (0.8, "blue_3"), (0.97, "chest")]
         for (fraction, id) in expected {
             var rng = FixedPointRNG(fraction: fraction)
             let index = try #require(WheelRoller.roll(segments, using: &rng))
@@ -365,60 +365,60 @@ struct WheelDailyQuotaTests {
     let config = fxWheel()
 
     @Test("un giro con blue baja el cupo de video")
-    func anOroSpinLowersTheVideoQuota() {
+    func anBlueSpinLowersTheVideoQuota() {
         var state = WheelState(day: "d")
         #expect(WheelRoller.spinsLeft(.video, state: state, config: config) == 6)
-        #expect(WheelRoller.consume(.oro, state: &state, config: config))
+        #expect(WheelRoller.consume(.blue, state: &state, config: config))
         #expect(WheelRoller.spinsLeft(.video, state: state, config: config) == 5)
-        #expect(WheelRoller.spinsLeft(.oro, state: state, config: config) == 5)
+        #expect(WheelRoller.spinsLeft(.blue, state: state, config: config) == 5)
     }
 
     @Test("un giro por video baja lo que queda con blue")
-    func aVideoSpinLowersTheOroQuota() {
+    func aVideoSpinLowersTheBlueQuota() {
         var state = WheelState(day: "d")
         #expect(WheelRoller.consume(.video, state: &state, config: config))
-        #expect(WheelRoller.spinsLeft(.oro, state: state, config: config) == 5)
+        #expect(WheelRoller.spinsLeft(.blue, state: state, config: config) == 5)
     }
 
     @Test("con el cupo en 0 no hay giro con blue, aunque sobre blue, ni por video")
     func anEmptyQuotaBlocksBothPaidSources() {
         var state = WheelState(day: "d")
         for spin in 0..<6 {
-            let source: WheelSpinSource = spin.isMultiple(of: 2) ? .oro : .video
+            let source: WheelSpinSource = spin.isMultiple(of: 2) ? .blue : .video
             #expect(WheelRoller.consume(source, state: &state, config: config))
         }
         #expect(WheelRoller.dailySpinsLeft(state: state, config: config) == 0)
         let before = state
-        #expect(WheelRoller.spinsLeft(.oro, state: state, config: config) == 0)
+        #expect(WheelRoller.spinsLeft(.blue, state: state, config: config) == 0)
         #expect(WheelRoller.spinsLeft(.video, state: state, config: config) == 0)
-        #expect(!WheelRoller.consume(.oro, state: &state, config: config))
+        #expect(!WheelRoller.consume(.blue, state: &state, config: config))
         #expect(!WheelRoller.consume(.video, state: &state, config: config))
         #expect(state == before)
     }
 
     @Test("seis con blue agotan también los de video")
-    func sixOroSpinsExhaustTheDay() {
+    func sixBlueSpinsExhaustTheDay() {
         var state = WheelState(day: "d")
-        for _ in 0..<6 { #expect(WheelRoller.consume(.oro, state: &state, config: config)) }
+        for _ in 0..<6 { #expect(WheelRoller.consume(.blue, state: &state, config: config)) }
         #expect(!WheelRoller.consume(.video, state: &state, config: config))
-        #expect(!WheelRoller.consume(.oro, state: &state, config: config))
+        #expect(!WheelRoller.consume(.blue, state: &state, config: config))
     }
 
     @Test("el tope propio del blue ya no suma: un tope más alto no da más giros")
-    func theOroCapIsOnlyASwitch() {
-        let generous = fxWheel(videoSpinsPerDay: 6, oroSpinsPerDay: 50)
+    func theBlueCapIsOnlyASwitch() {
+        let generous = fxWheel(videoSpinsPerDay: 6, blueSpinsPerDay: 50)
         var state = WheelState(day: "d")
-        for _ in 0..<6 { #expect(WheelRoller.consume(.oro, state: &state, config: generous)) }
-        #expect(WheelRoller.spinsLeft(.oro, state: state, config: generous) == 0)
-        #expect(!WheelRoller.consume(.oro, state: &state, config: generous))
+        for _ in 0..<6 { #expect(WheelRoller.consume(.blue, state: &state, config: generous)) }
+        #expect(WheelRoller.spinsLeft(.blue, state: state, config: generous) == 0)
+        #expect(!WheelRoller.consume(.blue, state: &state, config: generous))
     }
 
     @Test("con el blue apagado (tope 0) no hay giro con blue, y el cupo queda entero para el video")
-    func aZeroOroCapSwitchesOroOff() {
-        let off = fxWheel(oroSpinsPerDay: 0)
+    func aZeroBlueCapSwitchesBlueOff() {
+        let off = fxWheel(blueSpinsPerDay: 0)
         var state = WheelState(day: "d")
-        #expect(WheelRoller.spinsLeft(.oro, state: state, config: off) == 0)
-        #expect(!WheelRoller.consume(.oro, state: &state, config: off))
+        #expect(WheelRoller.spinsLeft(.blue, state: state, config: off) == 0)
+        #expect(!WheelRoller.consume(.blue, state: &state, config: off))
         #expect(WheelRoller.spinsLeft(.video, state: state, config: off) == 6)
     }
 
@@ -426,11 +426,11 @@ struct WheelDailyQuotaTests {
     func theShopPerkRaisesTheSharedCap() {
         let upgraded = config.withBonusVideoSpins(2)
         var state = WheelState(day: "d")
-        for _ in 0..<6 { #expect(WheelRoller.consume(.oro, state: &state, config: upgraded)) }
+        for _ in 0..<6 { #expect(WheelRoller.consume(.blue, state: &state, config: upgraded)) }
         #expect(WheelRoller.spinsLeft(.video, state: state, config: upgraded) == 2)
         #expect(WheelRoller.consume(.video, state: &state, config: upgraded))
-        #expect(WheelRoller.consume(.oro, state: &state, config: upgraded))
-        #expect(!WheelRoller.consume(.oro, state: &state, config: upgraded))
+        #expect(WheelRoller.consume(.blue, state: &state, config: upgraded))
+        #expect(!WheelRoller.consume(.blue, state: &state, config: upgraded))
     }
 
     @Test("los regalados no tocan el cupo, y se pueden girar con el cupo agotado")
@@ -438,32 +438,32 @@ struct WheelDailyQuotaTests {
         var state = WheelState(day: "d", bonusSpins: 2)
         #expect(WheelRoller.consume(.bonus, state: &state, config: config))
         #expect(WheelRoller.dailySpinsLeft(state: state, config: config) == 6)
-        #expect(state.videoSpinsUsed == 0 && state.oroSpinsUsed == 0)
-        var spent = WheelState(day: "d", videoSpinsUsed: 3, oroSpinsUsed: 3, bonusSpins: 1)
+        #expect(state.videoSpinsUsed == 0 && state.blueSpinsUsed == 0)
+        var spent = WheelState(day: "d", videoSpinsUsed: 3, blueSpinsUsed: 3, bonusSpins: 1)
         #expect(WheelRoller.consume(.bonus, state: &spent, config: config))
-        #expect(spent == WheelState(day: "d", videoSpinsUsed: 3, oroSpinsUsed: 3, bonusSpins: 0))
+        #expect(spent == WheelState(day: "d", videoSpinsUsed: 3, blueSpinsUsed: 3, bonusSpins: 0))
     }
 
     @Test("al cambiar el día el cupo único vuelve entero")
     func aNewDayRefillsTheSharedQuota() {
-        let yesterday = WheelState(day: "2026-10-13", videoSpinsUsed: 2, oroSpinsUsed: 4, bonusSpins: 1)
+        let yesterday = WheelState(day: "2026-10-13", videoSpinsUsed: 2, blueSpinsUsed: 4, bonusSpins: 1)
         #expect(WheelRoller.dailySpinsLeft(state: yesterday, config: config) == 0)
         let today = yesterday.rolledOver(to: "2026-10-14")
         #expect(WheelRoller.dailySpinsLeft(state: today, config: config) == 6)
-        #expect(WheelRoller.spinsLeft(.oro, state: today, config: config) == 6)
+        #expect(WheelRoller.spinsLeft(.blue, state: today, config: config) == 6)
         #expect(today.bonusSpins == 1)
     }
 
     @Test("un contador negativo en el dato no devuelve giros")
     func aNegativeCounterGivesNothingBack() {
-        let state = WheelState(day: "d", videoSpinsUsed: 6, oroSpinsUsed: -4)
+        let state = WheelState(day: "d", videoSpinsUsed: 6, blueSpinsUsed: -4)
         #expect(WheelRoller.dailySpinsLeft(state: state, config: config) == 0)
     }
 
     @Test("un guardado de antes de D11 con los dos cupos gastados por separado queda en 0")
     func aLegacyDoubleQuotaSaveStaysEmpty() {
-        let legacy = WheelState(day: "d", videoSpinsUsed: 6, oroSpinsUsed: 6)
+        let legacy = WheelState(day: "d", videoSpinsUsed: 6, blueSpinsUsed: 6)
         #expect(WheelRoller.spinsLeft(.video, state: legacy, config: config) == 0)
-        #expect(WheelRoller.spinsLeft(.oro, state: legacy, config: config) == 0)
+        #expect(WheelRoller.spinsLeft(.blue, state: legacy, config: config) == 0)
     }
 }

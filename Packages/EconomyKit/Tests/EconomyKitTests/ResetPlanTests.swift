@@ -6,8 +6,8 @@ import Testing
 struct ResetPlanTests {
     private func current(balance: Int, purchased: [String: Int], revoked: Set<String> = []) -> PlayerState {
         var state = fxState(units: ["a": 4, "b": 2])
-        state.meta.oro = balance
-        for (id, amount) in purchased { state.meta.recordOroPurchase(transactionID: id, amount: amount) }
+        state.meta.blue = balance
+        for (id, amount) in purchased { state.meta.recordBluePurchase(transactionID: id, amount: amount) }
         for id in revoked { state.meta.revokePurchase(transactionID: id) }
         state.meta.creditedPurchases = Set(purchased.keys)
         state.meta.prestigeLevel = 3
@@ -21,7 +21,7 @@ struct ResetPlanTests {
         return state
     }
 
-    @Test("la matriz del ORO: se conserva min(saldo, comprado)",
+    @Test("la matriz del blue: se conserva min(saldo, comprado)",
           arguments: [
             (1250, ["p": 500], 500, 750),
             (300, ["p": 500], 300, 0),
@@ -29,12 +29,12 @@ struct ResetPlanTests {
             (800, [String: Int](), 0, 800),
             (2000, ["p": 160, "q": 550], 710, 1290),
           ])
-    func oroMatrix(balance: Int, purchased: [String: Int], kept: Int, earned: Int) {
+    func blueMatrix(balance: Int, purchased: [String: Int], kept: Int, earned: Int) {
         let plan = ResetPlan.make(current: current(balance: balance, purchased: purchased), fresh: fxState())
-        #expect(plan.summary.oroBalance == balance)
-        #expect(plan.summary.oroKept == kept)
-        #expect(plan.summary.oroEarned == earned)
-        #expect(plan.result.meta.oro == kept, "lo que se muestra es lo que se ejecuta")
+        #expect(plan.summary.blueBalance == balance)
+        #expect(plan.summary.blueKept == kept)
+        #expect(plan.summary.blueEarned == earned)
+        #expect(plan.result.meta.blue == kept, "lo que se muestra es lo que se ejecuta")
     }
 
     @Test("avisa del ×3 pagado y sin usar, sea el offline, el diario o los dos",
@@ -62,8 +62,8 @@ struct ResetPlanTests {
             current: current(balance: 1000, purchased: ["p": 500, "r": 300], revoked: ["r"]),
             fresh: fxState()
         )
-        #expect(plan.summary.oroPurchased == 500)
-        #expect(plan.result.meta.oro == 500)
+        #expect(plan.summary.bluePurchased == 500)
+        #expect(plan.result.meta.blue == 500)
         #expect(plan.result.meta.revokedPurchases == ["r"])
     }
 
@@ -74,7 +74,7 @@ struct ResetPlanTests {
         #expect(meta.removedAds)
         #expect(meta.ownedSkins == ["iap_skin"])
         #expect(meta.creditedPurchases == ["p"], "sin esto, una transacción re-entregada se acreditaría dos veces")
-        #expect(meta.oroPurchasedLifetime == 500)
+        #expect(meta.bluePurchasedLifetime == 500)
         #expect(meta.prestigeLevel == 0)
         #expect(meta.milestoneSkins.isEmpty)
         #expect(meta.unlockedAchievements.isEmpty)
@@ -96,39 +96,39 @@ struct ResetPlanTests {
         #expect(plan.result.meta.floorChestsAwarded == fxState().meta.floorChestsAwarded)
     }
 
-    @Test("las pintas compradas con ORO se conservan y cuentan como conservadas; las de cofre se pierden")
+    @Test("las pintas compradas con blue se conservan y cuentan como conservadas; las de cofre se pierden")
     func shopSkinsKept() {
         var state = current(balance: 0, purchased: [:])
-        state.meta.engagement.shop.skins = ["oro_skin", "oro_skin2"]
+        state.meta.engagement.shop.skins = ["blue_skin", "blue_skin2"]
         let plan = ResetPlan.make(current: state, fresh: fxState())
-        #expect(plan.result.meta.engagement.shop.skins == ["oro_skin", "oro_skin2"])
-        #expect(plan.result.meta.allOwnedSkins == ["iap_skin", "oro_skin", "oro_skin2"])
+        #expect(plan.result.meta.engagement.shop.skins == ["blue_skin", "blue_skin2"])
+        #expect(plan.result.meta.allOwnedSkins == ["iap_skin", "blue_skin", "blue_skin2"])
         #expect(plan.summary.skinsLost == 2, "sólo las de cofre e hitos")
         #expect(plan.summary.keptSkins == 3)
         #expect(plan.result.meta.milestoneSkins.isEmpty)
     }
 
-    @Test("el plan con pintas de ORO es estable: re-armarlo sobre su resultado no cambia nada")
+    @Test("el plan con pintas de blue es estable: re-armarlo sobre su resultado no cambia nada")
     func shopSkinsPlanIdempotent() {
         var state = current(balance: 0, purchased: [:])
-        state.meta.engagement.shop.skins = ["oro_skin"]
+        state.meta.engagement.shop.skins = ["blue_skin"]
         let plan = ResetPlan.make(current: state, fresh: fxState())
         #expect(ResetPlan.make(current: state, fresh: plan.result).result == plan.result)
     }
 
-    @Test("la pinta de ORO equipada sigue puesta")
+    @Test("la pinta de blue equipada sigue puesta")
     func equippedShopSkin() {
         var state = current(balance: 0, purchased: [:])
-        state.meta.engagement.shop.skins = ["oro_skin"]
-        state.meta.activeSkinByType = ["homeless": "oro_skin", "chef": "m1"]
+        state.meta.engagement.shop.skins = ["blue_skin"]
+        state.meta.activeSkinByType = ["homeless": "blue_skin", "chef": "m1"]
         let plan = ResetPlan.make(current: state, fresh: fxState())
-        #expect(plan.result.meta.activeSkinByType == ["homeless": "oro_skin"])
+        #expect(plan.result.meta.activeSkinByType == ["homeless": "blue_skin"])
     }
 
-    @Test("resolver entre épocas no une las pintas de ORO ni las de cofre del lado viejo")
-    func resolverDoesNotUnionOldOroOrChestSkins() {
+    @Test("resolver entre épocas no une las pintas de blue ni las de cofre del lado viejo")
+    func resolverDoesNotUnionOldBlueOrChestSkins() {
         var older = current(balance: 0, purchased: [:])
-        older.meta.engagement.shop.skins = ["oro_skin"]
+        older.meta.engagement.shop.skins = ["blue_skin"]
         older.meta.resetEpoch = 4
         var newer = fxState()
         newer.meta.resetEpoch = 5
@@ -186,7 +186,7 @@ struct ResetPlanTests {
             SaveConflictResolver.resolve(local: old, remote: plan.result)
         ] {
             #expect(resolved.meta.resetEpoch == 5)
-            #expect(resolved.meta.oro == 500, "la transacción ya anotada no suma otra vez")
+            #expect(resolved.meta.blue == 500, "la transacción ya anotada no suma otra vez")
             #expect(resolved.meta.prestigeLevel == 0)
         }
     }

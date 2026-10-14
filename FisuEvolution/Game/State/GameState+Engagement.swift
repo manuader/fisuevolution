@@ -32,9 +32,9 @@ extension GameState {
         if let count = Self.fixtureValue("--uitest-wheel-spins=", in: arguments).flatMap(Int.init) {
             debugAddWheelSpins(count)
         }
-        // El ORO para ejercitar la tienda sin reencarnar.
-        if let oro = Self.fixtureValue("--uitest-oro=", in: arguments).flatMap(Int.init), var player {
-            player.meta.oro = oro
+        // El blue para ejercitar la tienda sin reencarnar.
+        if let blue = Self.fixtureValue("--uitest-blue=", in: arguments).flatMap(Int.init), var player {
+            player.meta.blue = blue
             self.player = player
             refreshProjections()
         }

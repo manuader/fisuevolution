@@ -8,7 +8,7 @@ import Testing
 struct ExtraSlotsWiringTests {
     private func rich() async -> GameState {
         let gameState = await makeGameState()
-        gameState.player?.meta.oro = 5_000
+        gameState.player?.meta.blue = 5_000
         return gameState
     }
 
@@ -16,21 +16,21 @@ struct ExtraSlotsWiringTests {
     func buyingGrowsEveryFloor() async throws {
         let gameState = await rich()
         let base = try #require(gameState.content?.baseFloorTable.floors.map(\.capacity))
-        #expect(gameState.buyOroShopItem(id: "extra_slots", chanceAllowed: true) == .bought)
+        #expect(gameState.buyBlueShopItem(id: "extra_slots", chanceAllowed: true) == .bought)
         #expect(gameState.content?.floorTable.floors.map(\.capacity) == base.map { $0 + 3 })
         #expect(gameState.floorOccupancy(ordinal: 0).capacity == base[0] + 3)
         #expect(gameState.tower?.floors[0].slots.count == base[0] + 3)
         #expect(gameState.floorMap.last?.capacity == base[0] + 3, "el mapa dice cuánto entra")
-        #expect(gameState.buyOroShopItem(id: "extra_slots", chanceAllowed: true) == .bought)
+        #expect(gameState.buyBlueShopItem(id: "extra_slots", chanceAllowed: true) == .bought)
         #expect(gameState.floorOccupancy(ordinal: 0).capacity == base[0] + 5)
-        #expect(gameState.buyOroShopItem(id: "extra_slots", chanceAllowed: true) == .refused(.maxed))
+        #expect(gameState.buyBlueShopItem(id: "extra_slots", chanceAllowed: true) == .refused(.maxed))
     }
 
     @Test("lo que desbordaba entra: con los lugares, nadie se fusiona solo al cargar")
     func moreRoomNoAutoMerge() async throws {
         let gameState = await rich()
         let base = try #require(gameState.content?.baseFloorTable[0].capacity)
-        gameState.buyOroShopItem(id: "extra_slots", chanceAllowed: true)
+        gameState.buyBlueShopItem(id: "extra_slots", chanceAllowed: true)
         let type = try #require(gameState.content?.tiers.baseType)
         gameState.player?.run.units = [type.id: base + 3]
         gameState.reconcileTower()
@@ -55,7 +55,7 @@ struct ExtraSlotsWiringTests {
         gameState.reconcileTower()
         gameState.debugAddPackages(1)
         #expect(gameState.packagesBlocked, "con la torre llena, LLENO")
-        #expect(gameState.buyOroShopItem(id: "extra_slots", chanceAllowed: true) == .bought)
+        #expect(gameState.buyBlueShopItem(id: "extra_slots", chanceAllowed: true) == .bought)
         #expect(!gameState.packagesBlocked, "E5a lee content.floorTable: con los lugares nuevos, entra")
     }
 
@@ -67,35 +67,35 @@ struct ExtraSlotsWiringTests {
 
     // MARK: La plata
 
-    @Test("se cobra una sola vez el precio del nivel, ni un ORO más")
+    @Test("se cobra una sola vez el precio del nivel, ni un blue más")
     func chargedExactlyOnce() async throws {
         let gameState = await rich()
-        #expect(gameState.buyOroShopItem(id: "extra_slots", chanceAllowed: true) == .bought)
-        #expect(gameState.player?.meta.oro == 5_000 - 600)
+        #expect(gameState.buyBlueShopItem(id: "extra_slots", chanceAllowed: true) == .bought)
+        #expect(gameState.player?.meta.blue == 5_000 - 600)
         #expect(gameState.player?.meta.engagement.shop.levels["extra_slots"] == 1)
-        #expect(gameState.buyOroShopItem(id: "extra_slots", chanceAllowed: true) == .bought)
-        #expect(gameState.player?.meta.oro == 5_000 - 600 - 1_500, "el segundo toque es el nivel 2, a su precio")
+        #expect(gameState.buyBlueShopItem(id: "extra_slots", chanceAllowed: true) == .bought)
+        #expect(gameState.player?.meta.blue == 5_000 - 600 - 1_500, "el segundo toque es el nivel 2, a su precio")
     }
 
     @Test("el segundo toque con plata sólo para uno no cobra ni agranda de nuevo")
-    func secondTapWithOneLevelOfOro() async throws {
+    func secondTapWithOneLevelOfBlue() async throws {
         let gameState = await makeGameState()
         let base = try #require(gameState.content?.baseFloorTable[0].capacity)
-        gameState.player?.meta.oro = 600
-        #expect(gameState.buyOroShopItem(id: "extra_slots", chanceAllowed: true) == .bought)
-        #expect(gameState.buyOroShopItem(id: "extra_slots", chanceAllowed: true) == .refused(.cantAfford))
-        #expect(gameState.player?.meta.oro == 0)
+        gameState.player?.meta.blue = 600
+        #expect(gameState.buyBlueShopItem(id: "extra_slots", chanceAllowed: true) == .bought)
+        #expect(gameState.buyBlueShopItem(id: "extra_slots", chanceAllowed: true) == .refused(.cantAfford))
+        #expect(gameState.player?.meta.blue == 0)
         #expect(gameState.player?.meta.engagement.shop.levels["extra_slots"] == 1)
         #expect(gameState.floorOccupancy(ordinal: 0).capacity == base + 3)
     }
 
-    @Test("un ORO menos que el precio no cobra ni agranda")
+    @Test("un blue menos que el precio no cobra ni agranda")
     func oneShortOfThePrice() async throws {
         let gameState = await makeGameState()
         let base = try #require(gameState.content?.baseFloorTable[0].capacity)
-        gameState.player?.meta.oro = 599
-        #expect(gameState.buyOroShopItem(id: "extra_slots", chanceAllowed: true) == .refused(.cantAfford))
-        #expect(gameState.player?.meta.oro == 599)
+        gameState.player?.meta.blue = 599
+        #expect(gameState.buyBlueShopItem(id: "extra_slots", chanceAllowed: true) == .refused(.cantAfford))
+        #expect(gameState.player?.meta.blue == 599)
         #expect(gameState.floorOccupancy(ordinal: 0).capacity == base)
     }
 
@@ -108,8 +108,8 @@ struct ExtraSlotsWiringTests {
               {"id": "extra_slots", "shelf": "permanents", "iconKey": "x", "symbol": "x",
                "perk": "extraSlots", "levels": [{"price": \(price), "value": 3}]}]}
             """
-            let shop = try JSONDecoder().decode(OroShopCatalog.self, from: Data(json.utf8))
-            #expect(throws: OroShopCatalog.ValidationError.nonPositivePrice("extra_slots")) {
+            let shop = try JSONDecoder().decode(BlueShopCatalog.self, from: Data(json.utf8))
+            #expect(throws: BlueShopCatalog.ValidationError.nonPositivePrice("extra_slots")) {
                 try shop.validate(floorIDs: floorIDs)
             }
         }
@@ -118,7 +118,7 @@ struct ExtraSlotsWiringTests {
           {"id": "extra_slots", "shelf": "permanents", "iconKey": "x", "symbol": "x",
            "perk": "extraSlots", "levels": [{"price": 1, "value": 3}]}]}
         """
-        let shop = try JSONDecoder().decode(OroShopCatalog.self, from: Data(one.utf8))
+        let shop = try JSONDecoder().decode(BlueShopCatalog.self, from: Data(one.utf8))
         #expect(throws: Never.self) { try shop.validate(floorIDs: floorIDs) }
     }
 
@@ -132,9 +132,9 @@ struct ExtraSlotsWiringTests {
               {"id": "extra_slots", "shelf": "permanents", "iconKey": "x", "symbol": "x",
                "perk": "extraSlots", "levels": [{"price": 600, "value": \(value)}]}]}
             """
-            let shop = try JSONDecoder().decode(OroShopCatalog.self, from: Data(json.utf8))
-            #expect(throws: GameContentLoader.OroShopContentError.extraSlotsNotWholeNumber("extra_slots")) {
-                try GameContentLoader.validate(oroShop: shop, floorIDs: floorIDs, packages: content.packages)
+            let shop = try JSONDecoder().decode(BlueShopCatalog.self, from: Data(json.utf8))
+            #expect(throws: GameContentLoader.BlueShopContentError.extraSlotsNotWholeNumber("extra_slots")) {
+                try GameContentLoader.validate(blueShop: shop, floorIDs: floorIDs, packages: content.packages)
             }
         }
     }
@@ -154,7 +154,7 @@ struct ExtraSlotsWiringTests {
         tower.floors[0].slots[7] = type.id
         gameState.tower = tower
         let before = gameState.tower?.floors[0].slots
-        #expect(gameState.buyOroShopItem(id: "extra_slots", chanceAllowed: true) == .bought)
+        #expect(gameState.buyBlueShopItem(id: "extra_slots", chanceAllowed: true) == .bought)
         let after = try #require(gameState.tower?.floors[0].slots)
         #expect(Array(after.prefix(before?.count ?? 0)) == before, "los huecos quedan donde estaban")
         #expect(after.count == (before?.count ?? 0) + 3)
@@ -175,11 +175,11 @@ struct ExtraSlotsWiringTests {
         let next = try #require(gameState.content?.tiers.type(id: type.id)?.mergesInto)
         let change = BoardChange(
             kind: .merge(floorOrdinal: 0, typeId: type.id, sourceSlot: slots[0], targetSlot: slots[1], newTypeId: next),
-            origin: .oroShop
+            origin: .blueShop
         )
         gameState.inFlightBoardChange = change
         gameState.pendingBoardChanges = [change]
-        #expect(gameState.buyOroShopItem(id: "extra_slots", chanceAllowed: true) == .bought)
+        #expect(gameState.buyBlueShopItem(id: "extra_slots", chanceAllowed: true) == .bought)
         #expect(gameState.inFlightBoardChange == change, "la compra no lo toca")
         #expect(gameState.pendingBoardChanges == [change])
         let player = try #require(gameState.player)
@@ -195,7 +195,7 @@ struct ExtraSlotsWiringTests {
     func visibleFloorStays() async throws {
         let gameState = await rich()
         gameState.visibleFloorOrdinal = 0
-        gameState.buyOroShopItem(id: "extra_slots", chanceAllowed: true)
+        gameState.buyBlueShopItem(id: "extra_slots", chanceAllowed: true)
         #expect(gameState.visibleFloorOrdinal == 0)
     }
 }

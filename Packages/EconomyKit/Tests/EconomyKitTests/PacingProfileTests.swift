@@ -202,21 +202,21 @@ struct PacingAdsSourcesTests {
         }
     }
 
-    @Test("el traductor: lo que no mueve la economía del bot no paga monedas ni ORO")
+    @Test("el traductor: lo que no mueve la economía del bot no paga monedas ni blue")
     func ignoredRewardsPayNothing() throws {
         for prize in [RewardSpec.skinChest(1), .clearBoostCooldowns, .autoTap(perSecond: 3, seconds: 60),
                       .extraSlots(1), .eventImmunity(seconds: 60),
                       .modifier(effect: .spawnCostMultiplier, magnitude: 0.7, seconds: 300)] {
             let report = try breakWith(prize)
             #expect((report.sourceTotals["coins.adBreak"] ?? 0) == 0, "\(prize)")
-            #expect((report.sourceTotals["oro.fromSources"] ?? 0) == 0, "\(prize)")
+            #expect((report.sourceTotals["blue.fromSources"] ?? 0) == 0, "\(prize)")
         }
     }
 
-    @Test("el ORO de una fuente se gasta en líneas en el acto, sin tocar el ORO histórico")
-    func oroBuysLines() throws {
-        let report = try breakWith(.oro(2))
-        #expect((report.sourceTotals["oro.fromSources"] ?? 0) > 0)
+    @Test("el blue de una fuente se gasta en líneas en el acto, sin tocar el blue histórico")
+    func blueBuysLines() throws {
+        let report = try breakWith(.blue(2))
+        #expect((report.sourceTotals["blue.fromSources"] ?? 0) > 0)
         #expect(report.finalPermanentUpgradeLevels.values.reduce(0, +) > 0)
     }
 
@@ -278,7 +278,7 @@ struct PacingAdsSourcesTests {
     @Test("la ruleta: giros del día, y el repetir premio es otro video por giro")
     func wheelSpinsAndRepeats() throws {
         let wheel = WheelConfig(
-            schemaVersion: 1, videoSpinsPerDay: 3, oroSpinCost: 1, oroSpinsPerDay: 0, spinSeconds: 1,
+            schemaVersion: 1, videoSpinsPerDay: 3, blueSpinCost: 1, blueSpinsPerDay: 0, spinSeconds: 1,
             chestFallbackSegmentId: "plata",
             segments: [.init(id: "plata", weight: 60, reward: .coinsSeconds(300)),
                        .init(id: "cofre", weight: 40, reward: .skinChest(1))]
@@ -391,7 +391,7 @@ struct PacingMaxProfileTests {
     @Test("los giros de más son videos de más, y sólo con .max")
     func bonusSpinsAreVideos() throws {
         let wheel = WheelConfig(
-            schemaVersion: 1, videoSpinsPerDay: 3, oroSpinCost: 1, oroSpinsPerDay: 0, spinSeconds: 1,
+            schemaVersion: 1, videoSpinsPerDay: 3, blueSpinCost: 1, blueSpinsPerDay: 0, spinSeconds: 1,
             chestFallbackSegmentId: "plata",
             segments: [.init(id: "plata", weight: 100, reward: .coinsSeconds(300))]
         )

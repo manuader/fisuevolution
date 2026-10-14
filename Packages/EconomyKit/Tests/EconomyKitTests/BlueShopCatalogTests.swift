@@ -2,8 +2,8 @@ import Foundation
 import Testing
 @testable import EconomyKit
 
-@Suite("oro_shop.json: el catálogo y su validador")
-struct OroShopCatalogTests {
+@Suite("blue_shop.json: el catálogo y su validador")
+struct BlueShopCatalogTests {
     static let json = """
     {
       "schemaVersion": 1,
@@ -25,8 +25,8 @@ struct OroShopCatalogTests {
     }
     """
 
-    static func catalog() throws -> OroShopCatalog {
-        try JSONDecoder().decode(OroShopCatalog.self, from: Data(json.utf8))
+    static func catalog() throws -> BlueShopCatalog {
+        try JSONDecoder().decode(BlueShopCatalog.self, from: Data(json.utf8))
     }
 
     @Test("se lee la forma del JSON, con sus defaults")
@@ -44,9 +44,9 @@ struct OroShopCatalogTests {
         #expect(throws: Never.self) { try catalog.validate(floorIDs: ["alley"]) }
     }
 
-    private func rejects(_ item: String, with error: OroShopCatalog.ValidationError) throws {
+    private func rejects(_ item: String, with error: BlueShopCatalog.ValidationError) throws {
         let json = #"{"schemaVersion": 1, "items": [\#(item)]}"#
-        let catalog = try JSONDecoder().decode(OroShopCatalog.self, from: Data(json.utf8))
+        let catalog = try JSONDecoder().decode(BlueShopCatalog.self, from: Data(json.utf8))
         #expect(throws: error) { try catalog.validate(floorIDs: ["alley"]) }
     }
 
@@ -58,18 +58,18 @@ struct OroShopCatalogTests {
     @Test("un consumible que además es permanente no entra")
     func mixedKinds() throws {
         try rejects(
-            #"{"id": "x", "shelf": "boosts", "iconKey": "k", "symbol": "s", "price": 10, "perk": "bestSupplier", "levels": [{"price": 1, "value": 1}], "rewards": [{"kind": "oro", "amount": 1}]}"#,
+            #"{"id": "x", "shelf": "boosts", "iconKey": "k", "symbol": "s", "price": 10, "perk": "bestSupplier", "levels": [{"price": 1, "value": 1}], "rewards": [{"kind": "blue", "amount": 1}]}"#,
             with: .mixedKinds("x")
         )
     }
 
     @Test("precios, topes y crecimiento tienen que tener sentido")
     func numbers() throws {
-        try rejects(#"{"id": "x", "shelf": "boosts", "iconKey": "k", "symbol": "s", "price": 0, "rewards": [{"kind": "oro", "amount": 1}]}"#,
+        try rejects(#"{"id": "x", "shelf": "boosts", "iconKey": "k", "symbol": "s", "price": 0, "rewards": [{"kind": "blue", "amount": 1}]}"#,
                     with: .nonPositivePrice("x"))
-        try rejects(#"{"id": "x", "shelf": "boosts", "iconKey": "k", "symbol": "s", "price": 5, "dailyLimit": 0, "rewards": [{"kind": "oro", "amount": 1}]}"#,
+        try rejects(#"{"id": "x", "shelf": "boosts", "iconKey": "k", "symbol": "s", "price": 5, "dailyLimit": 0, "rewards": [{"kind": "blue", "amount": 1}]}"#,
                     with: .invalidLimit("x"))
-        try rejects(#"{"id": "x", "shelf": "boosts", "iconKey": "k", "symbol": "s", "price": 5, "priceGrowthPerPurchase": 0.9, "rewards": [{"kind": "oro", "amount": 1}]}"#,
+        try rejects(#"{"id": "x", "shelf": "boosts", "iconKey": "k", "symbol": "s", "price": 5, "priceGrowthPerPurchase": 0.9, "rewards": [{"kind": "blue", "amount": 1}]}"#,
                     with: .invalidGrowth("x"))
         try rejects(#"{"id": "x", "shelf": "permanents", "iconKey": "k", "symbol": "s", "perk": "bestSupplier", "levels": [{"price": 400, "value": 1}, {"price": 150, "value": 2}]}"#,
                     with: .descendingPrices("x"))
@@ -79,14 +79,14 @@ struct OroShopCatalogTests {
     func references() throws {
         try rejects(#"{"id": "x", "shelf": "boosts", "iconKey": "k", "symbol": "s", "price": 5, "rewards": [{"kind": "coinsSeconds", "seconds": 0}]}"#,
                     with: .badReward("x"))
-        try rejects(#"{"id": "x", "shelf": "boosts", "iconKey": "k", "symbol": "s", "price": 5, "unlockFloorId": "luna", "rewards": [{"kind": "oro", "amount": 1}]}"#,
+        try rejects(#"{"id": "x", "shelf": "boosts", "iconKey": "k", "symbol": "s", "price": 5, "unlockFloorId": "luna", "rewards": [{"kind": "blue", "amount": 1}]}"#,
                     with: .unknownFloor("luna"))
     }
 
     @Test("ids repetidos no entran")
     func duplicates() throws {
-        let item = #"{"id": "x", "shelf": "boosts", "iconKey": "k", "symbol": "s", "price": 5, "rewards": [{"kind": "oro", "amount": 1}]}"#
-        let catalog = try JSONDecoder().decode(OroShopCatalog.self, from: Data(#"{"schemaVersion": 1, "items": [\#(item), \#(item)]}"#.utf8))
-        #expect(throws: OroShopCatalog.ValidationError.duplicateID("x")) { try catalog.validate(floorIDs: []) }
+        let item = #"{"id": "x", "shelf": "boosts", "iconKey": "k", "symbol": "s", "price": 5, "rewards": [{"kind": "blue", "amount": 1}]}"#
+        let catalog = try JSONDecoder().decode(BlueShopCatalog.self, from: Data(#"{"schemaVersion": 1, "items": [\#(item), \#(item)]}"#.utf8))
+        #expect(throws: BlueShopCatalog.ValidationError.duplicateID("x")) { try catalog.validate(floorIDs: []) }
     }
 }

@@ -1,8 +1,8 @@
 import Foundation
 import StoreKit
 
-/// El azar que se paga con ORO —el giro extra de la ruleta y, en E6, el cofre
-/// por ORO— se apaga en las tiendas de `restrictedStorefronts` (PLAN-v2 §2:
+/// El azar que se paga con blue —el giro extra de la ruleta y, en E6, el cofre
+/// por blue— se apaga en las tiendas de `restrictedStorefronts` (PLAN-v2 §2:
 /// Bélgica y Australia). La lista viaja en la config remota de anuncios.
 enum LootBoxGate {
     /// Sin tienda conocida, no: mejor no ofrecerlo que ofrecerlo donde está

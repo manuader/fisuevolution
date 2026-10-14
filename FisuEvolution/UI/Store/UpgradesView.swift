@@ -43,7 +43,7 @@ struct UpgradesView: View {
     var body: some View {
         let _ = gameState.effectsVersion
         let _ = gameState.coinsText
-        let _ = gameState.oroText
+        let _ = gameState.blueText
 
         NavigationStack {
             ScrollViewReader { proxy in
@@ -108,7 +108,7 @@ struct UpgradesView: View {
             )
             tabPicker
             if selectedTab != .characters {
-                BlueBalanceHeader(text: gameState.oroText, onStore: onStore)
+                BlueBalanceHeader(text: gameState.blueText, onStore: onStore)
             }
         }
     }
@@ -122,7 +122,7 @@ struct UpgradesView: View {
             tabButton(.characters, key: "upgrades.tab.characters", identifier: "upgrades.tab.characters")
             tabButton(.permanent, key: "upgrades.tab.permanent", identifier: "upgrades.tab.permanent")
             tabButton(.boosts, key: "upgrades.tab.boosts", identifier: "upgrades.tab.boosts")
-                .tutorialAnchor(.oroShop)
+                .tutorialAnchor(.blueShop)
         }
         .padding(Tokens.s4)
         .background {
@@ -137,7 +137,7 @@ struct UpgradesView: View {
         let selected = selectedTab == tab
         return Button {
             selectedTab = tab
-            if tab == .boosts { gameState.oroShopSpendChosen() }
+            if tab == .boosts { gameState.blueShopSpendChosen() }
         } label: {
             // Sin achicar la letra: la pestaña es ancha (la cabecera usa todo el ancho
             // de la columna) y, si aun así no entra, baja a un segundo renglón.
@@ -397,14 +397,14 @@ struct UpgradesView: View {
             SavingsGoalCard(goal: goal)
         }
         sealHeader("upgrades.permanent.seal", note: "upgrades.permanent.seal.note", noteIdentifier: "upgrades.permanent.note")
-        OroShopShelves(shelves: [.permanents], chanceAllowed: false, titled: false)
+        BlueShopShelves(shelves: [.permanents], chanceAllowed: false, titled: false)
         permanentRows
     }
 
     /// Lo que dura un rato: boosts y atajos, del más barato al más caro.
     @ViewBuilder private var boostsTab: some View {
-        sealHeader("upgrades.boosts.seal", note: "oroShop.footer.reincarnate", noteIdentifier: "oroShop.footer.reincarnate")
-        OroShopShelves(shelves: [.boosts, .shortcuts], chanceAllowed: false, titled: false)
+        sealHeader("upgrades.boosts.seal", note: "blueShop.footer.reincarnate", noteIdentifier: "blueShop.footer.reincarnate")
+        BlueShopShelves(shelves: [.boosts, .shortcuts], chanceAllowed: false, titled: false)
     }
 
     private func sealHeader(_ titleKey: LocalizedStringKey, note: LocalizedStringKey, noteIdentifier: String) -> some View {
@@ -426,14 +426,14 @@ struct UpgradesView: View {
         // Lo comprado al máximo se va al fondo con su tilde.
         let lines = allLines.filter { gameState.upgradeLevel(of: $0.id) < $0.maxLevel }
             + allLines.filter { gameState.upgradeLevel(of: $0.id) >= $0.maxLevel }
-        // La manito del primer ORO: mientras no haya NINGUNA línea subida y
+        // La manito del primer blue: mientras no haya NINGUNA línea subida y
         // alguna sea pagable, la primera pagable late — la lección del primer
-        // ORO manda hasta acá, y esto dice DÓNDE (el mismo gesto que la fila
+        // Blue manda hasta acá, y esto dice DÓNDE (el mismo gesto que la fila
         // recomendada de FisuJobs en la fase). Elegida la primera, se retira.
         let neverChose = lines.allSatisfy { gameState.upgradeLevel(of: $0.id) == 0 }
         let handTarget = neverChose
             ? lines.first(where: {
-                (gameState.player?.meta.oro ?? 0) >= Int(gameState.upgradeCost(of: $0).rounded(.up))
+                (gameState.player?.meta.blue ?? 0) >= Int(gameState.upgradeCost(of: $0).rounded(.up))
             })?.id
             : nil
         ForEach(Array(lines.enumerated()), id: \.element.id) { offset, line in
@@ -449,7 +449,7 @@ struct UpgradesView: View {
         }
     }
 
-    /// Una de las siete líneas de ORO. La cápsula de precio se fue abajo, al
+    /// Una de las siete líneas de blue. La cápsula de precio se fue abajo, al
     /// lado de la barra de nivel: arriba deja el ancho entero para el título y
     /// el efecto, y abajo arma el renglón de acción —cuánto llevás y cuánto
     /// sale el siguiente— de un solo vistazo.
@@ -457,8 +457,8 @@ struct UpgradesView: View {
         let level = gameState.upgradeLevel(of: line.id)
         let cost = gameState.upgradeCost(of: line)
         let maxed = level >= line.maxLevel
-        let oroCost = Int(cost.rounded(.up))
-        let canAfford = (gameState.player?.meta.oro ?? 0) >= oroCost
+        let blueCost = Int(cost.rounded(.up))
+        let canAfford = (gameState.player?.meta.blue ?? 0) >= blueCost
 
         return GameCard {
             VStack(alignment: .leading, spacing: Tokens.s8) {
@@ -515,11 +515,11 @@ struct UpgradesView: View {
                         .accessibilityIdentifier("upgrades.permanent.\(line.id).maxed")
                     } else {
                         PricePill(
-                            text: String(oroCost),
-                            currency: .oro,
+                            text: String(blueCost),
+                            currency: .blue,
                             affordable: canAfford,
                             identifier: "upgrades.permanent.\(line.id)",
-                            // Las siete líneas ofrecen el mismo botón de ORO: el
+                            // Las siete líneas ofrecen el mismo botón de blue: el
                             // título es lo que dice cuál se está por subir. El
                             // título sale del JSON, así que se resuelve con el
                             // lookup de claves data-driven (`String(localized:)`
@@ -542,7 +542,7 @@ struct UpgradesView: View {
     /// ⚠️ **Tapado de VoiceOver**, como el retrato de FisuJobs y la copa de
     /// Logros: es decoración —el título de al lado dice qué línea es— y una
     /// `Image` sin etiqueta deja una parada donde el lector se detiene para no
-    /// decir nada. Eran siete, una por línea de ORO. Se tapa el glifo y NO la
+    /// decir nada. Eran siete, una por línea de blue. Se tapa el glifo y NO la
     /// fila: el badge "Al máximo" y la cápsula de precio siguen siendo sus
     /// propias paradas (patrón T8: se tapa la info, nunca el control ni el
     /// estado que no viaja en ningún otro lado).

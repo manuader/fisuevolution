@@ -71,10 +71,10 @@ struct StatsView: View {
                         StatRow(key: "income_per_second", label: "stats.row.income_per_second",
                                 value: stats.incomePerSecond, glyph: .coins)
                         RowDivider()
-                        StatRow(key: "oro", label: "stats.row.oro", value: stats.oro, glyph: .oro)
+                        StatRow(key: "blue", label: "stats.row.blue", value: stats.blue, glyph: .blue)
                         RowDivider()
-                        StatRow(key: "oro_lifetime", label: "stats.row.oro_lifetime",
-                                value: stats.oroLifetime, glyph: .oro)
+                        StatRow(key: "blue_lifetime", label: "stats.row.blue_lifetime",
+                                value: stats.blueLifetime, glyph: .blue)
                     }
                 }
 
@@ -151,7 +151,7 @@ private struct StatRow: View {
     /// Glifo de moneda a la izquierda del valor, cuando el número es plata.
     enum Glyph {
         case coins
-        case oro
+        case blue
     }
 
     let key: String
@@ -193,7 +193,7 @@ private struct StatRow: View {
         if let glyph {
             switch glyph {
             case .coins: CoinIcon(size: 18)
-            case .oro: OroIcon(size: 18)
+            case .blue: BlueIcon(size: 18)
             }
         }
     }

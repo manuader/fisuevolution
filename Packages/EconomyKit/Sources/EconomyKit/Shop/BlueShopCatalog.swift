@@ -1,13 +1,13 @@
 import Foundation
 
-/// La tienda de ORO como dato (`oro_shop.json`, PLAN-v2 E6). Un ítem es una de dos
+/// La tienda de blue como dato (`blue_shop.json`, PLAN-v2 E6). Un ítem es una de dos
 /// cosas: un **consumible** (precio, premios o una acción, tope por día) o un
 /// **permanente** (un perk con niveles, cada uno con su precio y su valor).
-/// Los cosméticos no viven acá: son skins con `oroPrice` en `skins.json` (E6b).
-public struct OroShopCatalog: Codable, Sendable, Equatable {
+/// Los cosméticos no viven acá: son skins con `bluePrice` en `skins.json` (E6b).
+public struct BlueShopCatalog: Codable, Sendable, Equatable {
     public enum Shelf: String, Codable, Sendable, CaseIterable {
         case boosts, shortcuts, permanents
-        /// Las pintas de ORO (`skins.json`, E6b): ningún ítem de `oro_shop.json` va acá.
+        /// Las pintas de blue (`skins.json`, E6b): ningún ítem de `blue_shop.json` va acá.
         case cosmetics
         case luck
     }
@@ -54,7 +54,7 @@ public struct OroShopCatalog: Codable, Sendable, Equatable {
         public let action: Action?
         public let perk: Perk?
         public let levels: [Level]
-        /// Azar pagado con ORO (Apple 3.1.1): probabilidades a la vista y apagado en
+        /// Azar pagado con blue (Apple 3.1.1): probabilidades a la vista y apagado en
         /// las tiendas restringidas.
         public let isChance: Bool
         /// Desde qué piso alcanzado en la cuenta aparece.

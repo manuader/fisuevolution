@@ -16,8 +16,8 @@ struct SkinEffectRenderingTests {
         let base = content.tiers.baseType.id
         return SkinsConfig(schemaVersion: 2, skins: [
             .init(id: "pijama", characterType: base, treatment: .texture,
-                  textureKey: "\(base)_idle__pijama", oroPrice: 450, family: "pijama", textureAtlas: "fam_pijama"),
-            .init(id: "cohete", characterType: base, treatment: .texture, textureKey: "\(base)_idle__cohete", oroPrice: 150),
+                  textureKey: "\(base)_idle__pijama", bluePrice: 450, family: "pijama", textureAtlas: "fam_pijama"),
+            .init(id: "cohete", characterType: base, treatment: .texture, textureKey: "\(base)_idle__cohete", bluePrice: 150),
         ])
     }
 

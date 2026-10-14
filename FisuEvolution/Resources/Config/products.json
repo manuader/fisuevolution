@@ -34,20 +34,20 @@
     {
       "id": "com.fisuevolution.iap.oro_small",
       "type": "consumable",
-      "entitlement": "oro",
-      "oroAmount": 160
+      "entitlement": "blue",
+      "blueAmount": 160
     },
     {
       "id": "com.fisuevolution.iap.oro_medium",
       "type": "consumable",
-      "entitlement": "oro",
-      "oroAmount": 550
+      "entitlement": "blue",
+      "blueAmount": 550
     },
     {
       "id": "com.fisuevolution.iap.oro_large",
       "type": "consumable",
-      "entitlement": "oro",
-      "oroAmount": 1400
+      "entitlement": "blue",
+      "blueAmount": 1400
     },
     {
       "id": "com.fisuevolution.iap.skin_mundialista",

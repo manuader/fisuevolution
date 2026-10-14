@@ -175,7 +175,7 @@ struct RankingWiringTests {
         await closeTutorialCore(rig)
         let before = rig.gameState.player?.meta.ranking
 
-        rig.gameState.giveEarningsForPrestigeTesting(oro: 9)
+        rig.gameState.giveEarningsForPrestigeTesting(blue: 9)
         rig.gameState.confirmPrestige()
         #expect(rig.gameState.player?.meta.prestigeLevel == 1)
         await rig.store.settled()

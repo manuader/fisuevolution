@@ -13,7 +13,7 @@ enum ForcedAdFormat: String, Codable, Sendable, CaseIterable {
 
 /// La configuración de anuncios que se cambia **sin pasar por Apple**: IDs,
 /// cadencia, alternancia, app open, interruptores de apagado y las tiendas
-/// donde se apaga el azar con ORO.
+/// donde se apaga el azar con blue.
 ///
 /// Se publica en `adergames-site` (`/config/ads.json`) y el bundle trae una
 /// copia con la misma forma (`Resources/Config/ads.json`), que es el respaldo
@@ -124,11 +124,11 @@ struct AdsRemoteConfig: Codable, Sendable, Equatable {
     let appOpen: AppOpen
     let switches: Switches
     /// Los códigos de tienda (ISO 3166-1 alfa-3, como `Storefront.countryCode`)
-    /// donde se apagan los giros extra y los cofres por ORO (decisión "loot
+    /// donde se apagan los giros extra y los cofres por blue (decisión "loot
     /// boxes" de PLAN-v2 §2: Bélgica y Australia).
     let restrictedStorefronts: [String]
 
-    /// Si en esa tienda se apagan el azar con ORO.
+    /// Si en esa tienda se apagan el azar con blue.
     func isRestricted(storefront countryCode: String) -> Bool {
         restrictedStorefronts.contains(countryCode.uppercased())
     }

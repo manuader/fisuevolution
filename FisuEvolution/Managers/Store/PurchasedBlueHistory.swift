@@ -1,11 +1,11 @@
 import Foundation
 
-/// El ORO que la v1 vendió, reconstruido desde el historial de StoreKit.
-enum PurchasedOroHistory {
+/// El blue que la v1 vendió, reconstruido desde el historial de StoreKit.
+enum PurchasedBlueHistory {
     /// Lo que la v1 acreditaba por cada pack. Es una foto, como
     /// `SaveMigrator.rebalanceLevelCaps`: E6 reescala `products.json` y esta
     /// cuenta no puede cambiar con él.
-    static let v1OroAmountByProductID: [String: Int] = [
+    static let v1BlueAmountByProductID: [String: Int] = [
         "com.fisuevolution.iap.oro_small": 250,
         "com.fisuevolution.iap.oro_medium": 750,
         "com.fisuevolution.iap.oro_large": 2000,
@@ -19,7 +19,7 @@ enum PurchasedOroHistory {
 
     /// Lo que el historial dice, por id de transacción: se asigna, no se suma.
     struct Reconstruction: Equatable {
-        /// id de transacción → ORO que le dio la v1. Sólo las no revocadas.
+        /// id de transacción → blue que le dio la v1. Sólo las no revocadas.
         let purchases: [String: Int]
         /// Las que se reembolsaron: dejan de contar donde sea que estén anotadas.
         let revoked: Set<String>
@@ -31,7 +31,7 @@ enum PurchasedOroHistory {
         var purchases: [String: Int] = [:]
         var revoked: Set<String> = []
         for record in records {
-            guard let amount = v1OroAmountByProductID[record.productID] else { continue }
+            guard let amount = v1BlueAmountByProductID[record.productID] else { continue }
             if record.isRevoked {
                 revoked.insert(record.transactionID)
             } else if creditedTransactionIDs.contains(record.transactionID) {

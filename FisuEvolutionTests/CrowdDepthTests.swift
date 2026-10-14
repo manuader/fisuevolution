@@ -30,7 +30,7 @@ struct CrowdDepthTests {
         CGSize(width: 744, height: 1133),
         CGSize(width: 1032, height: 1376),
     ]
-    /// Los de hoy (10), los de la crítica de Marco (15) y el permanente de ORO (20).
+    /// Los de hoy (10), los de la crítica de Marco (15) y el permanente de blue (20).
     private let capacities = [10, 15, 20]
 
     /// El z más bajo que puede alcanzar un personaje en esa pantalla y capacidad.

@@ -73,7 +73,7 @@ struct WheelGeometryTests {
 
     @Test("la animación arranca donde estaba y termina donde dijo el sorteo")
     func theSpinAnimation() {
-        let segment = WheelConfig.Segment(id: "x", weight: 100, reward: .oro(1))
+        let segment = WheelConfig.Segment(id: "x", weight: 100, reward: .blue(1))
         let outcome = WheelSpinOutcome(segments: [segment], index: 0, coins: 0)
         let start = Date(timeIntervalSince1970: 1000)
         let spin = WheelSpinAnimation(outcome: outcome, from: 10, to: 1900, start: start, duration: 3.8)

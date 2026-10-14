@@ -52,9 +52,9 @@ struct SkinMilestonesTests {
     }
 }
 
-// MARK: - Skins de oro (2026-08-19)
+// MARK: - Skins de blue (2026-08-19)
 
-/// El oro NO se vende: la única vía es tener todas las mejoras permanentes al
+/// El blue NO se vende: la única vía es tener todas las mejoras permanentes al
 /// tope. El diamante es al revés — sin condición de milestone, sólo el bundle.
 @Suite("Skins de material")
 struct SkinsDeMaterialTests {
@@ -87,8 +87,8 @@ struct SkinsDeMaterialTests {
         }
     }
 
-    @Test("el oro entra sólo con todas las mejoras al máximo")
-    func oroPideMejorasAlMaximo() {
+    @Test("el blue entra sólo con todas las mejoras al máximo")
+    func bluePideMejorasAlMaximo() {
         let state = fxState()
         #expect(SkinMilestones.newlyUnlocked(
             state: state, config: catalogo(), allUpgradesMaxed: false) == [])

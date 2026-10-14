@@ -2,7 +2,7 @@ import EconomyKit
 import Foundation
 
 /// Una mejora permanente que se paga con blue y todavía se puede comprar: del
-/// catálogo de `oro_shop.json` (lugares extra, proveedor, ruleta) o de las siete
+/// catálogo de `blue_shop.json` (lugares extra, proveedor, ruleta) o de las siete
 /// líneas globales de `upgrades.json`.
 struct PermanentOffer: Identifiable, Equatable {
     enum Source: Equatable {
@@ -49,7 +49,7 @@ extension GameState {
     /// Las permanentes por comprar, de mayor a menor impacto: lugares extra y lo
     /// demás del catálogo primero, después las siete globales en el orden del dato.
     var permanentOffers: [PermanentOffer] {
-        let shop = oroShopRows(chanceAllowed: false).compactMap { row -> PermanentOffer? in
+        let shop = blueShopRows(chanceAllowed: false).compactMap { row -> PermanentOffer? in
             guard row.item.isPermanent, row.quote.blocker != .maxed, let price = row.quote.price else { return nil }
             return PermanentOffer(source: .shop(id: row.id), price: price)
         }
@@ -64,7 +64,7 @@ extension GameState {
         let offers = permanentOffers
         guard let offer = SavingsGoal.pick(from: offers, pinned: flagDefaults.string(forKey: Self.pinnedGoalKey))
         else { return nil }
-        return SavingsGoal(offer: offer, balance: player?.meta.oro ?? 0)
+        return SavingsGoal(offer: offer, balance: player?.meta.blue ?? 0)
     }
 
     /// El jugador elige otra meta: pasa a la siguiente y queda fijada.
@@ -78,7 +78,7 @@ extension GameState {
     /// Cobra la meta por el mismo camino que la fila de su estante.
     func buyPermanentOffer(_ offer: PermanentOffer) {
         switch offer.source {
-        case .shop(let id): buyOroShopItem(id: id, chanceAllowed: false)
+        case .shop(let id): buyBlueShopItem(id: id, chanceAllowed: false)
         case .line(let id): buyUpgrade(lineId: id)
         }
     }
@@ -87,9 +87,9 @@ extension GameState {
     func permanentOfferCopy(_ offer: PermanentOffer) -> (name: String, effect: String, iconKey: String)? {
         switch offer.source {
         case .shop(let id):
-            guard let item = content?.oroShop.item(id: id) else { return nil }
+            guard let item = content?.blueShop.item(id: id) else { return nil }
             let level = player?.meta.engagement.shop.levels[id] ?? 0
-            return (OroShopCopy.name(for: item), OroShopCopy.detail(for: item, level: level), item.iconKey)
+            return (BlueShopCopy.name(for: item), BlueShopCopy.detail(for: item, level: level), item.iconKey)
         case .line(let id):
             guard let line = content?.upgradesConfig.upgrades.first(where: { $0.id == id }) else { return nil }
             return (Self.localized(line.titleKey), upgradeEffectText(for: line), line.iconKey)

@@ -55,15 +55,15 @@ extension GameState {
 
     /// Milestones no dependen de la escena: cualquier unlock/reencarnación que
     /// actualice el estado de torre acredita una vez en MetaState. StoreKit usa
-    /// `ownedSkins` aparte y las compradas con ORO viven en `engagement.shop.skins`,
-    /// así que esta unión (milestone ∪ ORO ∪ IAP) nunca borra una compra.
+    /// `ownedSkins` aparte y las compradas con blue viven en `engagement.shop.skins`,
+    /// así que esta unión (milestone ∪ blue ∪ IAP) nunca borra una compra.
     private func awardEligibleMilestoneSkins() {
         guard let content, var player else { return }
-        // Las skins de oro no se venden: la única vía es tener las siete líneas
+        // Las skins doradas no se venden: la única vía es tener las siete líneas
         // de mejora permanente en su tope. El flag se calcula acá, que es donde
         // vive `upgradesConfig`; EconomyKit no conoce `upgrades.json` y pasárselo
         // ya resuelto lo deja puro.
-        let lineasDeOro = content.upgradesConfig.upgrades.filter { $0.currency == .oro }
+        let lineasDeBlue = content.upgradesConfig.upgrades.filter { $0.currency == .blue }
         // `>=` y no `==`, y hay que decir exactamente qué regala.
         //
         // Un save v3 llega acá con los niveles ya reescalados por
@@ -77,7 +77,7 @@ extension GameState {
         // Lo que el `>=` sí deja pasar, y es más grande, es un save **v4
         // anterior al rebalance de pacing**: uno con `crit` entre 10 y 24 no
         // había maxeado esa línea —con la curva vieja (3 × 2,5ⁿ) llegar a crit 10 costaba
-        // ~19.100 ORO de los 1,776e10 que valía la línea, el 0,0001 %— y desde
+        // ~19.100 blue de los 1,776e10 que valía la línea, el 0,0001 %— y desde
         // el rebalance cuenta como tope y se lleva las skins doradas.
         //
         // Ese agujero lo cerró el bump a v5: `SaveMigrator.migrateV4toV5`
@@ -92,8 +92,8 @@ extension GameState {
         // (maxeado) son idénticos en disco. De quince valores por línea quedó
         // uno, y taparlo pediría un campo que los saves viejos no tienen.
         // Lo que NO se regala es el efecto: las dos derivaciones clampean.
-        let todoAlMaximo = !lineasDeOro.isEmpty && lineasDeOro.allSatisfy {
-            (player.meta.oroUpgradeLevels[$0.id] ?? 0) >= $0.maxLevel
+        let todoAlMaximo = !lineasDeBlue.isEmpty && lineasDeBlue.allSatisfy {
+            (player.meta.blueUpgradeLevels[$0.id] ?? 0) >= $0.maxLevel
         }
         let newlyUnlocked = SkinMilestones.newlyUnlocked(
             state: player, config: content.skins, allUpgradesMaxed: todoAlMaximo

@@ -375,7 +375,7 @@ struct OfflineTests {
     }
 }
 
-// MARK: - Reencarnación (F7 §3.7: gate por ORO)
+// MARK: - Reencarnación (F7 §3.7: gate por blue)
 
 @Suite("Reencarnación")
 struct ReincarnationTests {
@@ -388,20 +388,20 @@ struct ReincarnationTests {
         floorTable = try fxFloorTable()
     }
 
-    @Test func gateIsEarningAtLeastOneOro() {
+    @Test func gateIsEarningAtLeastOneBlue() {
         var state = fxState()
         #expect(!PrestigeCalculator.canReincarnate(state: state, economy: economy))
-        // divisor fixture 1e6: lifetime 4e6 → oroTotal 2.
+        // divisor fixture 1e6: lifetime 4e6 → blueTotal 2.
         state.meta.lifetimeEarnings = 4_000_000
         #expect(PrestigeCalculator.canReincarnate(state: state, economy: economy))
     }
 
-    @Test func gainedOroIsTheDelta() {
+    @Test func gainedBlueIsTheDelta() {
         var state = fxState()
         state.meta.lifetimeEarnings = 4_000_000
-        #expect(PrestigeCalculator.oroGained(state: state, economy: economy) == 2)
-        state.meta.oroEarnedLifetime = 1
-        #expect(PrestigeCalculator.oroGained(state: state, economy: economy) == 1)
+        #expect(PrestigeCalculator.blueGained(state: state, economy: economy) == 2)
+        state.meta.blueEarnedLifetime = 1
+        #expect(PrestigeCalculator.blueGained(state: state, economy: economy) == 1)
     }
 
     @Test func applyResetsRunAndKeepsMeta() {
@@ -420,9 +420,9 @@ struct ReincarnationTests {
 
         PrestigeCalculator.applyReincarnation(state: &state, economy: economy, tiers: tiers, floorTable: floorTable, now: 2000)
 
-        // ORO acreditado: floor(sqrt(9)) = 3.
-        #expect(state.meta.oro == 3)
-        #expect(state.meta.oroEarnedLifetime == 3)
+        // Blue acreditado: floor(sqrt(9)) = 3.
+        #expect(state.meta.blue == 3)
+        #expect(state.meta.blueEarnedLifetime == 3)
         #expect(state.meta.prestigeLevel == 1)
         #expect(abs(state.meta.globalMultiplier - 1.06) < 1e-12)
         // Run muerta y fresca:
@@ -442,26 +442,26 @@ struct ReincarnationTests {
         #expect(state.meta.lastSeenTimestamp == 2000)
     }
 
-    @Test func repeatedReincarnationNeverDoubleEarnsOro() {
+    @Test func repeatedReincarnationNeverDoubleEarnsBlue() {
         var state = fxState()
         state.meta.lifetimeEarnings = 4_000_000
         PrestigeCalculator.applyReincarnation(state: &state, economy: economy, tiers: tiers, floorTable: floorTable, now: 2000)
-        #expect(state.meta.oro == 2)
-        // Sin nuevas ganancias, otra reencarnación no suma ORO.
+        #expect(state.meta.blue == 2)
+        // Sin nuevas ganancias, otra reencarnación no suma blue.
         PrestigeCalculator.applyReincarnation(state: &state, economy: economy, tiers: tiers, floorTable: floorTable, now: 3000)
-        #expect(state.meta.oro == 2)
-        #expect(state.meta.oroEarnedLifetime == 2)
+        #expect(state.meta.blue == 2)
+        #expect(state.meta.blueEarnedLifetime == 2)
         #expect(state.meta.prestigeLevel == 2)
     }
 
-    @Test func spendingOroNeverLowersTheMultiplier() {
+    @Test func spendingBlueNeverLowersTheMultiplier() {
         var state = fxState()
         state.meta.lifetimeEarnings = 9_000_000
         PrestigeCalculator.applyReincarnation(state: &state, economy: economy, tiers: tiers, floorTable: floorTable, now: 2000)
         let multiplier = state.meta.globalMultiplier
-        state.meta.oro = 0  // gastó todo
-        // El multiplicador se computa sobre oroEarnedLifetime, no el balance.
-        #expect(economy.globalMultiplier(oroEarnedLifetime: state.meta.oroEarnedLifetime, prestigeBonus: 0) == multiplier)
+        state.meta.blue = 0  // gastó todo
+        // El multiplicador se computa sobre blueEarnedLifetime, no el balance.
+        #expect(economy.globalMultiplier(blueEarnedLifetime: state.meta.blueEarnedLifetime, prestigeBonus: 0) == multiplier)
     }
 
     @Test func prestigeUnlocksDiscountAccumulatesAndCaps() {

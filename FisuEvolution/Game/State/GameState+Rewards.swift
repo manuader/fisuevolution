@@ -11,7 +11,7 @@ extension GameState {
     /// (`VisitorScheduler`, `eventIsApplicable`): mejor que no venga a que prometa
     /// y no cumpla.
     static let grantableRewardKinds: Set<RewardSpec.Kind> = [
-        .coinsSeconds, .oro, .skinChest, .modifier, .clearBoostCooldowns, .eventImmunity, .package, .wheelSpin,
+        .coinsSeconds, .blue, .skinChest, .modifier, .clearBoostCooldowns, .eventImmunity, .package, .wheelSpin,
         .autoTap, .nextOfflineMultiplier, .nextDailyMultiplier,
     ]
 
@@ -61,10 +61,10 @@ extension GameState {
             credited = Self.coinReward(seconds: seconds, player: player, content: content, economy: economy)
             player.run.coins += credited
             player.meta.lifetimeEarnings += credited
-        case .oro(let amount):
-            // Sólo el balance, como logros y tienda: `oroEarnedLifetime` alimenta el
+        case .blue(let amount):
+            // Sólo el balance, como logros y tienda: `blueEarnedLifetime` alimenta el
             // multiplicador global y eso lo gana el prestigio.
-            player.meta.oro += amount
+            player.meta.blue += amount
         case .skinChest(let count):
             player.meta.chestsPending += count
         case let .modifier(effect, magnitude, seconds):

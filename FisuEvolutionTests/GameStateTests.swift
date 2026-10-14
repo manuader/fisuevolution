@@ -65,9 +65,9 @@ struct GameStateTests {
             now: 1_700_000_000
         )
         existing.meta.daily.lastClaimDay = DailyRewardManager.dayString(for: Date())
-        // El veterano de Pegarla 7 + Toque de oro 4: 11 niveles de "lucky" con los
+        // El veterano de Pegarla 7 + Toque dorado 4: 11 niveles de "lucky" con los
         // efectos que dejó la fórmula vieja (17,5 % de crítico).
-        existing.meta.oroUpgradeLevels = ["lucky": 11]
+        existing.meta.blueUpgradeLevels = ["lucky": 11]
         existing.meta.derivedEffects.critChance = 0.175
         await repository.save(existing)
 

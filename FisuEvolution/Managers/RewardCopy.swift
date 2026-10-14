@@ -14,8 +14,8 @@ enum RewardCopy {
         case let .modifier(effect, magnitude, seconds):
             text(effect == .incomeMultiplier ? "reward.title.income" : "reward.title.modifier",
                  multiplier(magnitude), minutes(seconds))
-        case .oro(let amount):
-            text("reward.title.oro", String(amount))
+        case .blue(let amount):
+            text("reward.title.blue", String(amount))
         case .package(let count):
             count == 1 ? text("reward.title.package") : text("reward.title.packages", String(count))
         case .skinChest(let count):
@@ -43,7 +43,7 @@ enum RewardCopy {
         switch reward {
         case .coinsSeconds(let seconds): "\(minutes(seconds)) min"
         case let .modifier(_, magnitude, _): "×\(multiplier(magnitude))"
-        case .oro(let amount): String(amount)
+        case .blue(let amount): String(amount)
         case .package, .skinChest, .wheelSpin, .clearBoostCooldowns, .eventImmunity, .autoTap,
              .nextOfflineMultiplier, .nextDailyMultiplier, .extraSlots: nil
         }
@@ -54,7 +54,7 @@ enum RewardCopy {
         switch reward {
         case .coinsSeconds: "dollarsign.circle.fill"
         case .modifier: "chart.line.uptrend.xyaxis"
-        case .oro: "seal.fill"
+        case .blue: "seal.fill"
         case .package: "shippingbox.fill"
         case .skinChest: "gift.fill"
         case .wheelSpin: "arrow.clockwise.circle.fill"

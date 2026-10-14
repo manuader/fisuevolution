@@ -109,17 +109,17 @@
       "localizations": [
         {
           "description": "Para un boost o esa mejora que venís mirando",
-          "displayName": "Puñado de ORO",
+          "displayName": "Puñado de dólares blue",
           "locale": "es"
         },
         {
           "description": "For a boost or that upgrade you keep eyeing",
-          "displayName": "Handful of ORO",
+          "displayName": "Handful of Blue Dollars",
           "locale": "en"
         }
       ],
       "productID": "com.fisuevolution.iap.oro_small",
-      "referenceName": "ORO S",
+      "referenceName": "Blue S",
       "type": "Consumable"
     },
     {
@@ -129,17 +129,17 @@
       "localizations": [
         {
           "description": "Boosts, mejoras y skins, y todavía te sobra",
-          "displayName": "Saco de ORO",
+          "displayName": "Saco de dólares blue",
           "locale": "es"
         },
         {
           "description": "Boosts, upgrades and skins, with change left",
-          "displayName": "Sack of ORO",
+          "displayName": "Sack of Blue Dollars",
           "locale": "en"
         }
       ],
       "productID": "com.fisuevolution.iap.oro_medium",
-      "referenceName": "ORO M",
+      "referenceName": "Blue M",
       "type": "Consumable"
     },
     {
@@ -149,17 +149,17 @@
       "localizations": [
         {
           "description": "Para el que quiere todo, y lo quiere ahora",
-          "displayName": "Bóveda de ORO",
+          "displayName": "Bóveda de dólares blue",
           "locale": "es"
         },
         {
           "description": "For those who want it all, and want it now",
-          "displayName": "Vault of ORO",
+          "displayName": "Vault of Blue Dollars",
           "locale": "en"
         }
       ],
       "productID": "com.fisuevolution.iap.oro_large",
-      "referenceName": "ORO L",
+      "referenceName": "Blue L",
       "type": "Consumable"
     },
     {
@@ -228,12 +228,12 @@
       "internalID": "F15CE001-0000-4000-8000-0000000000E1",
       "localizations": [
         {
-          "description": "ORO, 2 h de ingresos y un cofre de pintas",
+          "description": "Blue, 2 h de ingresos y un cofre de pintas",
           "displayName": "Pack de Bienvenida",
           "locale": "es"
         },
         {
-          "description": "ORO, 2 h of income and a skin chest",
+          "description": "Blue, 2 h of income and a skin chest",
           "displayName": "Welcome Pack",
           "locale": "en"
         }
@@ -248,12 +248,12 @@
       "internalID": "F15CE001-0000-4000-8000-0000000000E2",
       "localizations": [
         {
-          "description": "ORO, 4 h de ingresos y ×3 por 30 minutos",
+          "description": "Blue, 4 h de ingresos y ×3 por 30 minutos",
           "displayName": "Pack Renacer",
           "locale": "es"
         },
         {
-          "description": "ORO, 4 h of income and ×3 for 30 minutes",
+          "description": "Blue, 4 h of income and ×3 for 30 minutes",
           "displayName": "Rebirth Pack",
           "locale": "en"
         }
@@ -268,12 +268,12 @@
       "internalID": "F15CE001-0000-4000-8000-0000000000E3",
       "localizations": [
         {
-          "description": "ORO, 8 h de ingresos y 3 Paquetes",
+          "description": "Blue, 8 h de ingresos y 3 Paquetes",
           "displayName": "Pack Mudanza",
           "locale": "es"
         },
         {
-          "description": "ORO, 8 h of income and 3 Parcels",
+          "description": "Blue, 8 h of income and 3 Parcels",
           "displayName": "Moving Day Pack",
           "locale": "en"
         }

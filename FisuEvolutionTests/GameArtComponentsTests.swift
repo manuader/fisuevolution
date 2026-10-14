@@ -154,7 +154,7 @@ struct GameArtComponentsTests {
     @Test("un monto no finito no llega roto al pill")
     func priceHandlesNonFiniteAmounts() {
         for value in [Double.infinity, .nan, -1] {
-            let pill = PricePill(text: CoinFormatter.string(from: value), currency: .oro,
+            let pill = PricePill(text: CoinFormatter.string(from: value), currency: .blue,
                                  affordable: true, identifier: "store.buy.test", action: {})
             #expect(pill.text == "∞")
         }
@@ -169,7 +169,7 @@ struct GameArtComponentsTests {
     /// clave que falta se resuelve a sí misma y eso se ve.
     @Test("el precio en moneda del juego dice la moneda")
     func priceSpeaksItsCurrency() {
-        for currency in [PricePill.Currency.coins, .oro] {
+        for currency in [PricePill.Currency.coins, .blue] {
             let pill = PricePill(text: "1,2K", currency: currency, affordable: true,
                                  identifier: "jobs.hire.test", action: {})
             #expect(pill.spokenAmount.contains("1,2K"))

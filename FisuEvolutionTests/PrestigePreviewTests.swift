@@ -22,7 +22,7 @@ struct PrestigePreviewTests {
     @Test("el multiplicador que promete el popup es el que queda después de confirmar")
     func previewMatchesReality() async throws {
         let gameState = await makeGameState()
-        gameState.giveEarningsForPrestigeTesting(oro: 3)
+        gameState.giveEarningsForPrestigeTesting(blue: 3)
         let preview = gameState.prestigePreview
         gameState.confirmPrestige()
         let real = try #require(gameState.player?.meta.globalMultiplier)
@@ -30,16 +30,16 @@ struct PrestigePreviewTests {
                 "si el popup miente, el jugador aprende a no creerle")
     }
 
-    @Test("el ORO prometido es el que se acredita")
-    func previewOroMatchesReality() async throws {
+    @Test("el blue prometido es el que se acredita")
+    func previewBlueMatchesReality() async throws {
         let gameState = await makeGameState()
-        gameState.giveEarningsForPrestigeTesting(oro: 3)
+        gameState.giveEarningsForPrestigeTesting(blue: 3)
         let preview = gameState.prestigePreview
-        #expect(preview.oroGained > 0, "con lifetime para 3 ORO hay ORO que ganar")
-        let oroBefore = try #require(gameState.player?.meta.oro)
+        #expect(preview.blueGained > 0, "con lifetime para 3 blue hay blue que ganar")
+        let blueBefore = try #require(gameState.player?.meta.blue)
         gameState.confirmPrestige()
-        let oroAfter = try #require(gameState.player?.meta.oro)
-        #expect(oroAfter - oroBefore == preview.oroGained)
+        let blueAfter = try #require(gameState.player?.meta.blue)
+        #expect(blueAfter - blueBefore == preview.blueGained)
     }
 
     /// El "antes" tiene que ser el multiplicador que el jugador tiene ahora, no
@@ -51,26 +51,26 @@ struct PrestigePreviewTests {
         let cached = try #require(gameState.player?.meta.globalMultiplier)
         #expect(abs(gameState.prestigePreview.multiplierBefore - cached) < 0.000_1)
 
-        gameState.giveEarningsForPrestigeTesting(oro: 3)
+        gameState.giveEarningsForPrestigeTesting(blue: 3)
         let preview = gameState.prestigePreview
         #expect(preview.multiplierAfter >= preview.multiplierBefore)
         gameState.confirmPrestige()
         // Recién reencarnado no queda nada por cobrar: el "después" del popup ya
         // es el "antes" de la próxima vida.
         let settled = gameState.prestigePreview
-        #expect(settled.oroGained == 0)
+        #expect(settled.blueGained == 0)
         #expect(abs(settled.multiplierBefore - preview.multiplierAfter) < 0.000_1)
         #expect(abs(settled.multiplierAfter - preview.multiplierAfter) < 0.000_1)
     }
 
     /// El botón adelantado (dueño, 2026-08-28: "al llegar a lujo"): desde el
-    /// piso configurado en `oro.prestigeTeaserFloorId` el botón EXISTE sin ORO
+    /// piso configurado en `blue.prestigeTeaserFloorId` el botón EXISTE sin blue
     /// por cobrar, y la preview sabe contar el camino al próximo.
-    @Test("el teaser se enciende al llegar al piso configurado, sin ORO todavía")
+    @Test("el teaser se enciende al llegar al piso configurado, sin blue todavía")
     func teaserLightsUpAtTheConfiguredFloor() async throws {
         let gameState = await makeGameState()
         let content = try #require(gameState.content)
-        let floorId = try #require(content.economy.oro.prestigeTeaserFloorId)
+        let floorId = try #require(content.economy.blue.prestigeTeaserFloorId)
         let ordinal = try #require(
             (0..<content.floorTable.count).first { content.floorTable[$0].id == floorId }
         )
@@ -85,18 +85,18 @@ struct PrestigePreviewTests {
         gameState.refreshProjections()
 
         #expect(gameState.prestigeTeaser, "llegar al piso del teaser enciende el botón")
-        #expect(!gameState.prestigeAvailable, "sin ORO por cobrar sigue sin poder reencarnar")
+        #expect(!gameState.prestigeAvailable, "sin blue por cobrar sigue sin poder reencarnar")
         let preview = gameState.prestigePreview
         #expect(!preview.isWorthIt)
-        #expect(preview.coinsToNextOro > 0, "el camino al primer ORO tiene que ser medible")
-        #expect(preview.nextOroProgress >= 0 && preview.nextOroProgress < 1)
+        #expect(preview.coinsToNextBlue > 0, "el camino al primer blue tiene que ser medible")
+        #expect(preview.nextBlueProgress >= 0 && preview.nextBlueProgress < 1)
     }
 
     /// Lo que se borra también sale en números, y son los de la run vigente.
     @Test("la vista previa cuenta lo que muere con la run")
     func previewCountsWhatDies() async throws {
         let gameState = await makeGameState()
-        gameState.giveEarningsForPrestigeTesting(oro: 3)
+        gameState.giveEarningsForPrestigeTesting(blue: 3)
         gameState.debugSetMaxTier(5)
         gameState.debugGrantPair()
 
@@ -118,10 +118,10 @@ struct PrestigePreviewTests {
     @Test("el indicador del HUD se refresca por proyección, no por PlayerState")
     func hudProjectionFollowsRefresh() async throws {
         let gameState = await makeGameState()
-        #expect(gameState.prestigePreview.oroGained == 0)
+        #expect(gameState.prestigePreview.blueGained == 0)
 
-        gameState.giveEarningsForPrestigeTesting(oro: 3)
-        #expect(gameState.prestigePreview.oroGained > 0,
+        gameState.giveEarningsForPrestigeTesting(blue: 3)
+        #expect(gameState.prestigePreview.blueGained > 0,
                 "giveEarningsForPrestigeTesting refresca proyecciones")
         #expect(gameState.prestigePreview == gameState.prestigePreviewNow,
                 "la proyección publicada no puede quedar atrasada respecto del cálculo")
@@ -131,12 +131,12 @@ struct PrestigePreviewTests {
         let gameState = await makeGameState()
         let content = try #require(gameState.content)
         gameState.economy = StandardEconomy(config: try content.economy.tuned(EconomyKnobs(requiresLastRunWall: true)))
-        gameState.giveEarningsForPrestigeTesting(oro: 9)
+        gameState.giveEarningsForPrestigeTesting(blue: 9)
         gameState.player?.meta.lastRunMaxTier = lastWall
         _ = gameState.player?.run.raiseFrontier(to: frontier)
         gameState.player?.run.chosenCareerPath = career.map { MergeRules.careerPath(fromOptionId: $0) }
         // `refreshProjections` y no sólo la vista previa: `prestigeAvailable`
-        // también se republica ahí, y el fixture de ORO lo dejó calculado antes
+        // también se republica ahí, y el fixture de blue lo dejó calculado antes
         // de la pared.
         gameState.refreshProjections()
         return gameState
@@ -179,7 +179,7 @@ struct PrestigePreviewTests {
         let content = try #require(gameState.content)
         // La perilla apagada a mano: el `economy.json` de la 2.0 la trae prendida.
         gameState.economy = StandardEconomy(config: try content.economy.tuned(EconomyKnobs(requiresLastRunWall: false)))
-        gameState.giveEarningsForPrestigeTesting(oro: 9)
+        gameState.giveEarningsForPrestigeTesting(blue: 9)
         gameState.player?.meta.lastRunMaxTier = 13
         gameState.refreshProjections()
         #expect(!gameState.prestigePreview.isBlockedByWall)
@@ -192,7 +192,7 @@ struct PrestigePreviewTests {
         let content = try #require(gameState.content)
         gameState.economy = StandardEconomy(config: try content.economy.tuned(EconomyKnobs(inheritsPassiveUnlocks: true)))
         gameState.player?.run.passiveUnlocked = ["homeless": true, "cartonero": true]
-        gameState.giveEarningsForPrestigeTesting(oro: 5)
+        gameState.giveEarningsForPrestigeTesting(blue: 5)
         let preview = gameState.prestigePreview
         #expect(preview.inheritedPassives == 2)
         #expect(preview.inheritedPassivesText?.contains("2") == true)
@@ -207,7 +207,7 @@ struct PrestigePreviewTests {
         // Apagada a mano: el `economy.json` de la 2.0 la trae prendida.
         gameState.economy = StandardEconomy(config: try content.economy.tuned(EconomyKnobs(inheritsPassiveUnlocks: false)))
         gameState.player?.run.passiveUnlocked = ["homeless": true]
-        gameState.giveEarningsForPrestigeTesting(oro: 5)
+        gameState.giveEarningsForPrestigeTesting(blue: 5)
         let preview = gameState.prestigePreview
         #expect(preview.inheritedPassives == 0)
         #expect(preview.inheritedPassivesText == nil)

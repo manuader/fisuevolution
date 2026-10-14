@@ -179,7 +179,7 @@ struct UpgradesMenuTests {
         #expect(gameState.upgradeEffectText(for: line).contains("→"), "tiene que decir a cuánto saltás")
 
         var player = try #require(gameState.player)
-        player.meta.oroUpgradeLevels[line.id] = line.maxLevel
+        player.meta.blueUpgradeLevels[line.id] = line.maxLevel
         gameState.player = player
         let maxed = gameState.upgradeEffectText(for: line)
         #expect(!maxed.contains("→"), "en el nivel máximo no hay salto que mostrar")
@@ -192,7 +192,7 @@ struct UpgradesMenuTests {
         func text(_ id: String, level: Int) throws -> String {
             let line = try #require(content.upgradesConfig.upgrades.first { $0.id == id })
             var player = try #require(gameState.player)
-            player.meta.oroUpgradeLevels[id] = level
+            player.meta.blueUpgradeLevels[id] = level
             gameState.player = player
             return gameState.upgradeEffectText(for: line)
         }

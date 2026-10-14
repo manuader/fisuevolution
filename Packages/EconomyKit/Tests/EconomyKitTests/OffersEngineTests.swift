@@ -8,11 +8,11 @@ struct OffersEngineTests {
     {"schemaVersion": 1, "windowHours": 24, "cooldownDays": 3, "offers": [
       {"id": "bienvenida", "productId": "p.bienvenida", "trigger": "secondDay", "oncePerAccount": true, "isChance": true,
        "iconKey": "k", "symbol": "s",
-       "rewards": [{"kind": "oro", "amount": 120}, {"kind": "coinsSeconds", "seconds": 7200}, {"kind": "skinChest", "count": 1}]},
+       "rewards": [{"kind": "blue", "amount": 120}, {"kind": "coinsSeconds", "seconds": 7200}, {"kind": "skinChest", "count": 1}]},
       {"id": "renacer", "productId": "p.renacer", "trigger": "reincarnation", "iconKey": "k", "symbol": "s",
-       "rewards": [{"kind": "oro", "amount": 300}]},
+       "rewards": [{"kind": "blue", "amount": 300}]},
       {"id": "mudanza", "productId": "p.mudanza", "trigger": "newFloor", "iconKey": "k", "symbol": "s",
-       "rewards": [{"kind": "oro", "amount": 500}, {"kind": "package", "count": 3}]}
+       "rewards": [{"kind": "blue", "amount": 500}, {"kind": "package", "count": 3}]}
     ]}
     """
 
@@ -39,7 +39,7 @@ struct OffersEngineTests {
         try catalog.validate()
         #expect(catalog.windowSeconds == 86_400)
         #expect(catalog.cooldownSeconds == 3 * 86_400)
-        #expect(catalog.offer(id: "renacer")?.oroAmount == 300)
+        #expect(catalog.offer(id: "renacer")?.blueAmount == 300)
         #expect(catalog.offer(productId: "p.mudanza")?.id == "mudanza")
         #expect(catalog.offer(id: "bienvenida")?.oncePerAccount == true)
         #expect(catalog.offer(id: "renacer")?.oncePerAccount == false)
@@ -137,7 +137,7 @@ struct OffersEngineTests {
         func decode(_ offers: String) throws -> OffersCatalog {
             try JSONDecoder().decode(OffersCatalog.self, from: Data(#"{"schemaVersion": 1, "windowHours": 24, "cooldownDays": 3, "offers": [\#(offers)]}"#.utf8))
         }
-        let a = #"{"id": "a", "productId": "p.a", "trigger": "newFloor", "iconKey": "k", "symbol": "s", "rewards": [{"kind": "oro", "amount": 1}]}"#
+        let a = #"{"id": "a", "productId": "p.a", "trigger": "newFloor", "iconKey": "k", "symbol": "s", "rewards": [{"kind": "blue", "amount": 1}]}"#
         #expect(throws: OffersCatalog.ValidationError.duplicateID("a")) { try decode("\(a), \(a)").validate() }
         let empty = #"{"id": "e", "productId": "p.e", "trigger": "newFloor", "iconKey": "k", "symbol": "s", "rewards": []}"#
         #expect(throws: OffersCatalog.ValidationError.emptyRewards("e")) { try decode(empty).validate() }

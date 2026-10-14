@@ -28,7 +28,7 @@ struct TapActionTests {
         let gain = economy.applyTap(type: a, state: &state, tiers: tiers, floorTable: floorTable, now: 0)
         #expect(gain == 1)
         #expect(state.run.coins == 1)
-        // El lifetime es la base del ORO: cada tap tiene que sumar ahí también.
+        // El lifetime es la base del blue: cada tap tiene que sumar ahí también.
         #expect(state.meta.lifetimeEarnings == 1)
     }
 
@@ -297,7 +297,7 @@ private func gateConfig(distance: Int = 3) -> EconomyConfig {
         hire: .init(defaultCostMultiplier: 600, defaultCostGrowth: 1.06,
                     priceGrowthPerTier: 1.5, gateTierDistance: distance),
         charUpgrades: .init(baseCostMultiplier: 50, costGrowth: 1.5, effectStepPerLevel: 1.0),
-        oro: .init(divisor: 1e9, exponent: 0.25, globalMultiplierPerOro: 0.18),
+        blue: .init(divisor: 1e9, exponent: 0.25, globalMultiplierPerBlue: 0.18),
         critChanceBase: 0,
         critMultiplier: 5,
         offlineEfficiencyBase: 0.35,

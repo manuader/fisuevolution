@@ -577,7 +577,7 @@ extension View {
 struct PricePill: View {
     enum Currency {
         case coins
-        case oro
+        case blue
         /// Plata de verdad (IAP). El texto lo pone StoreKit (`displayPrice`) y el
         /// glifo es un carrito y **no** una moneda del juego: con la moneda
         /// puesta, "USD 1,99" se lee como si costara monedas.
@@ -609,7 +609,7 @@ struct PricePill: View {
     var spokenAmount: String {
         switch currency {
         case .coins: String(localized: "price.ax.coins \(text)")
-        case .oro: String(localized: "price.ax.oro \(text)")
+        case .blue: String(localized: "price.ax.blue \(text)")
         case .money: text
         }
     }
@@ -632,7 +632,7 @@ struct PricePill: View {
             HStack(spacing: 6) {
                 switch currency {
                 case .coins: CoinIcon(size: 20)
-                case .oro: OroIcon(size: 20)
+                case .blue: BlueIcon(size: 20)
                 case .money:
                     Image(systemName: "cart.fill")
                         .font(.system(size: 15, weight: .black))

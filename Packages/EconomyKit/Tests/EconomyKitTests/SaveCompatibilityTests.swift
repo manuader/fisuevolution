@@ -30,7 +30,7 @@ struct SaveCompatibilityTests {
         #expect(state.run.activeModifiers.count == 1)
         #expect(state.run.activeModifiers.first?.sourceKey == "boost.mate")
         #expect(state.meta.lifetimeEarnings == 7_500_000)
-        #expect(state.meta.oro == 12)
+        #expect(state.meta.blue == 12)
         #expect(state.meta.stats.maxFloorOrdinalEver == 7)
 
         // Lo que no traía cae a su default en vez de tirar keyNotFound.
@@ -173,7 +173,7 @@ struct SaveCompatibilityTests {
         #expect(state.meta.derivedEffects.prestigeBonus == 0)
         // Y el resto de la partida sobrevive, que es de lo que se trata.
         #expect(state.run.coins == 123_456.5)
-        #expect(state.meta.oro == 12)
+        #expect(state.meta.blue == 12)
     }
 
     /// El caso extremo del mismo camino: `migrateV3toV4` hace
@@ -200,7 +200,7 @@ struct SaveCompatibilityTests {
     /// clave, aunque sea con `{}`— pero sí un v4 escrito por otra versión o un
     /// blob recortado, y hasta acá se llevaba la partida entera con un
     /// `keyNotFound`. Son efectos DERIVADOS: la fuente de verdad
-    /// (`oroUpgradeLevels`) sobrevive al lado y `recomputeDerivedEffects` los
+    /// (`blueUpgradeLevels`) sobrevive al lado y `recomputeDerivedEffects` los
     /// reconstruye, así que caer al neutro es recuperable y perder el save no.
     @Test("un save v4 sin la clave derivedEffects decodifica con el neutro")
     func metaSinDerivedEffectsDecodifica() throws {
@@ -217,11 +217,11 @@ struct SaveCompatibilityTests {
             offlineEfficiency: 0, tapMultiplier: 1.0, critChance: 0
         ))
         // La fuente de verdad de esos efectos llega intacta: se pueden recalcular.
-        #expect(state.meta.oroUpgradeLevels == ["offline": 2])
+        #expect(state.meta.blueUpgradeLevels == ["offline": 2])
         // Y el resto de la partida sobrevive, que es de lo que se trata.
         #expect(state.run.coins == 123_456.5)
         #expect(state.run.units == ["a": 3, "b": 2])
-        #expect(state.meta.oro == 12)
+        #expect(state.meta.blue == 12)
         #expect(state.meta.prestigeLevel == 2)
     }
 
@@ -243,9 +243,9 @@ struct SaveCompatibilityTests {
         var meta = try #require(object["meta"] as? [String: Any])
         var stats = try #require(meta["stats"] as? [String: Any])
         for key in ["revealedTier", "priceRelief"] { run.removeValue(forKey: key) }
-        for key in ["oroPurchases", "revokedPurchases", "purchasedOroReconstructed", "lastRunMaxTier",
+        for key in ["bluePurchases", "revokedPurchases", "purchasedBlueReconstructed", "lastRunMaxTier",
                     "quickHirePinnedTypeId", "unlockedTabs", "engagement", "ranking"] { meta.removeValue(forKey: key) }
-        stats.removeValue(forKey: "oroSpentEver")
+        stats.removeValue(forKey: "blueSpentEver")
         meta["stats"] = stats
         object["run"] = run
         object["meta"] = meta
@@ -258,14 +258,14 @@ struct SaveCompatibilityTests {
         let decoded = try JSONDecoder().decode(PlayerState.self, from: v5Blob(maxTier: 4))
         #expect(decoded.run.revealedTier == 4, "nunca una lluvia de revelaciones al actualizar")
         #expect(decoded.run.priceRelief == 1)
-        #expect(decoded.meta.oroPurchasedLifetime == 0)
-        #expect(decoded.meta.purchasedOroReconstructed, "sin el migrador no se reconstruye")
+        #expect(decoded.meta.bluePurchasedLifetime == 0)
+        #expect(decoded.meta.purchasedBlueReconstructed, "sin el migrador no se reconstruye")
         #expect(decoded.meta.lastRunMaxTier == 0)
         #expect(decoded.meta.quickHirePinnedTypeId == nil)
         #expect(decoded.meta.unlockedTabs.isEmpty)
         #expect(decoded.meta.engagement == .initial)
         #expect(decoded.meta.ranking == .legacy)
-        #expect(decoded.meta.stats.oroSpentEver == 0)
+        #expect(decoded.meta.stats.blueSpentEver == 0)
     }
 
     @Test("un engagement vacío o con claves de una versión futura decodifica como el inicial")
@@ -291,13 +291,13 @@ struct SaveCompatibilityTests {
         #expect(state.schemaVersion == 7)
         #expect(state.run.revealedTier == 1)
         #expect(state.run.priceRelief == 1)
-        #expect(state.meta.purchasedOroReconstructed)
-        #expect(state.meta.oroPurchasedLifetime == 0)
+        #expect(state.meta.purchasedBlueReconstructed)
+        #expect(state.meta.bluePurchasedLifetime == 0)
         #expect(state.meta.lastRunMaxTier == 0)
         #expect(state.meta.quickHirePinnedTypeId == nil)
         #expect(state.meta.unlockedTabs.isEmpty)
         #expect(state.meta.engagement == .initial)
-        #expect(state.meta.stats.oroSpentEver == 0)
+        #expect(state.meta.stats.blueSpentEver == 0)
     }
 
     @Test("round trip: los campos de la 2.0 sobreviven encode → decode")
@@ -306,24 +306,24 @@ struct SaveCompatibilityTests {
         state.run.raiseFrontier(to: 3)
         state.run.revealedTier = 2
         state.run.priceRelief = 0.75
-        state.meta.recordOroPurchase(transactionID: "tx_550", amount: 550)
-        state.meta.purchasedOroReconstructed = false
+        state.meta.recordBluePurchase(transactionID: "tx_550", amount: 550)
+        state.meta.purchasedBlueReconstructed = false
         state.meta.lastRunMaxTier = 4
         state.meta.quickHirePinnedTypeId = "b"
         state.meta.unlockedTabs = ["jobs", "gifts"]
-        state.meta.stats.oroSpentEver = 30
+        state.meta.stats.blueSpentEver = 30
 
         let decoded = try JSONDecoder().decode(PlayerState.self, from: JSONEncoder().encode(state))
 
         #expect(decoded == state)
         #expect(decoded.run.revealedTier == 2, "la red de seguridad no se pisa con maxTierReached")
         #expect(decoded.run.priceRelief == 0.75)
-        #expect(decoded.meta.oroPurchasedLifetime == 550)
-        #expect(!decoded.meta.purchasedOroReconstructed)
+        #expect(decoded.meta.bluePurchasedLifetime == 550)
+        #expect(!decoded.meta.purchasedBlueReconstructed)
         #expect(decoded.meta.lastRunMaxTier == 4)
         #expect(decoded.meta.quickHirePinnedTypeId == "b")
         #expect(decoded.meta.unlockedTabs == ["jobs", "gifts"])
-        #expect(decoded.meta.stats.oroSpentEver == 30)
+        #expect(decoded.meta.stats.blueSpentEver == 30)
     }
 
     @Test("quickHireMode: round trip con y sin la clave, y el modo derivado de un save anterior")
@@ -376,42 +376,42 @@ struct SaveCompatibilityTests {
         #expect(decoded.run.hireCountsByType == ["a": 1.5])
     }
 
-    @Test("gastar ORO pasa por un solo lugar y lo cuenta")
-    func spendOroIsTheOnlyWayOut() {
+    @Test("gastar blue pasa por un solo lugar y lo cuenta")
+    func spendBlueIsTheOnlyWayOut() {
         var meta = fxState().meta
-        meta.oro = 10
-        let tooMuch = meta.spendOro(11)
+        meta.blue = 10
+        let tooMuch = meta.spendBlue(11)
         #expect(!tooMuch)
-        #expect(meta.oro == 10)
-        let spent = meta.spendOro(4)
+        #expect(meta.blue == 10)
+        let spent = meta.spendBlue(4)
         #expect(spent)
-        #expect(meta.oro == 6)
-        #expect(meta.stats.oroSpentEver == 4)
+        #expect(meta.blue == 6)
+        #expect(meta.stats.blueSpentEver == 4)
     }
 
-    @Test("gastar ORO rechaza lo negativo, acepta el saldo exacto y no toca el ORO ganado")
-    func spendOroEdges() {
+    @Test("gastar blue rechaza lo negativo, acepta el saldo exacto y no toca el blue ganado")
+    func spendBlueEdges() {
         var meta = fxState().meta
-        meta.oro = 5
-        meta.oroEarnedLifetime = 9
+        meta.blue = 5
+        meta.blueEarnedLifetime = 9
 
-        let negative = meta.spendOro(-1)
+        let negative = meta.spendBlue(-1)
         #expect(!negative)
-        #expect(meta.oro == 5)
-        #expect(meta.stats.oroSpentEver == 0)
+        #expect(meta.blue == 5)
+        #expect(meta.stats.blueSpentEver == 0)
 
-        let nothing = meta.spendOro(0)
+        let nothing = meta.spendBlue(0)
         #expect(nothing)
-        #expect(meta.oro == 5)
-        #expect(meta.stats.oroSpentEver == 0)
+        #expect(meta.blue == 5)
+        #expect(meta.stats.blueSpentEver == 0)
 
-        let everything = meta.spendOro(5)
+        let everything = meta.spendBlue(5)
         #expect(everything)
-        #expect(meta.oro == 0)
-        let overdraft = meta.spendOro(1)
+        #expect(meta.blue == 0)
+        let overdraft = meta.spendBlue(1)
         #expect(!overdraft)
-        #expect(meta.stats.oroSpentEver == 5)
-        #expect(meta.oroEarnedLifetime == 9, "gastar ORO nunca nerfea el multiplicador global")
+        #expect(meta.stats.blueSpentEver == 5)
+        #expect(meta.blueEarnedLifetime == 9, "gastar blue nunca nerfea el multiplicador global")
     }
 
     @Test("reencarnar recuerda la pared de la run que muere")
@@ -431,8 +431,8 @@ struct SaveCompatibilityTests {
         var state = fxState()
         state.meta.unlockedTabs = ["jobs"]
         state.meta.quickHirePinnedTypeId = "a"
-        state.meta.recordOroPurchase(transactionID: "tx_550", amount: 550)
-        state.meta.purchasedOroReconstructed = false
+        state.meta.recordBluePurchase(transactionID: "tx_550", amount: 550)
+        state.meta.purchasedBlueReconstructed = false
         state.run.raiseFrontier(to: 4)
         state.run.priceRelief = 0.5
 
@@ -445,8 +445,8 @@ struct SaveCompatibilityTests {
         #expect(state.run.priceRelief == 1, "el colchón es de la run y muere con ella")
         #expect(state.meta.unlockedTabs == ["jobs"])
         #expect(state.meta.quickHirePinnedTypeId == "a")
-        #expect(state.meta.oroPurchasedLifetime == 550)
-        #expect(!state.meta.purchasedOroReconstructed)
+        #expect(state.meta.bluePurchasedLifetime == 550)
+        #expect(!state.meta.purchasedBlueReconstructed)
 
         state.run.raiseFrontier(to: 2)
         PrestigeCalculator.applyReincarnation(

@@ -150,7 +150,7 @@ struct TutorialTipsTests {
         let gameState = await pendingUpgradesLesson()
         gameState.player?.run.coins = 0
         gameState.refreshProjections()
-        #expect(gameState.tutorialRun == nil, "la regla de oro vale hasta el último frame")
+        #expect(gameState.tutorialRun == nil, "la regla principal vale hasta el último frame")
         #expect(!gameState.celebrations.contains(.tutorialTip), "y suelta su lugar en la fila")
         #expect(!gameState.isLessonDone(.upgrades),
                 "no se quema: nunca estuvo en pantalla")
@@ -197,7 +197,7 @@ struct TutorialTipsTests {
     ///
     /// Por eso la señal sigue siendo `!ownedSkins.isEmpty`: esa proyección
     /// publica `allOwnedSkins` —tienda ∪ milestone—, que es literalmente "tiene
-    /// una pinta que ponerse", que es la regla de oro, y es donde el cofre
+    /// una pinta que ponerse", que es la regla principal, y es donde el cofre
     /// acredita. Una señal atada a `welcomeChestGiven` mandaría a Pintas por
     /// haber DADO el cofre y no por tener la pinta, y de paso se olvidaría de
     /// la vía de la tienda.
@@ -228,13 +228,13 @@ struct TutorialTipsTests {
                 "con la pinta del cofre acreditada, Pintas por fin tiene algo que hacer")
     }
 
-    /// La lección del primer ORO (dueño, 2026-08-28: "que te lleve a la
+    /// La lección del primer blue (dueño, 2026-08-28: "que te lleve a la
     /// pestaña de mejoras permanentes y te haga elegir"). La señal es una
-    /// permanente de ORO PAGABLE — no el ORO pelado: si el primer premio no
+    /// permanente de blue PAGABLE — no el blue pelado: si el primer premio no
     /// alcanza para la línea más barata, mandar a Mejoras violaría la regla
-    /// de oro (no habría nada que hacer).
-    @Test("el primer ORO con una permanente pagable dispara su lección")
-    func theFirstOroLessonFiresWhenAPermanentIsAffordable() async throws {
+    /// principal (no habría nada que hacer).
+    @Test("el primer blue con una permanente pagable dispara su lección")
+    func theFirstBlueLessonFiresWhenAPermanentIsAffordable() async throws {
         let gameState = await makeGameState()
         // Las lecciones anteriores del orden ya quedaron atrás en una partida
         // real (la de Mejoras salió con la primera plata): dadas.
@@ -242,21 +242,21 @@ struct TutorialTipsTests {
             gameState.markLessonDone(lesson)
         }
         gameState.refreshProjections()
-        #expect(gameState.tutorialTip == nil, "sin ORO no hay nada que canjear en las permanentes")
+        #expect(gameState.tutorialTip == nil, "sin blue no hay nada que canjear en las permanentes")
 
-        // El primer ORO, como lo paga un logro: justo lo que sale la línea
+        // El primer blue, como lo paga un logro: justo lo que sale la línea
         // más barata.
         let lines = try #require(gameState.content?.upgradesConfig.upgrades)
         let cheapest = try #require(
-            lines.filter { $0.currency == .oro }
+            lines.filter { $0.currency == .blue }
                 .map { Int(gameState.upgradeCost(of: $0).rounded(.up)) }
                 .min()
         )
-        gameState.player?.meta.oro += cheapest
+        gameState.player?.meta.blue += cheapest
         gameState.refreshProjections()
-        #expect(gameState.canAffordAnyOroUpgrade)
-        #expect(gameState.tutorialTip?.lesson == .oroUpgrades,
-                "el primer ORO pagable tiene que llevar a las permanentes")
+        #expect(gameState.canAffordAnyBlueUpgrade)
+        #expect(gameState.tutorialTip?.lesson == .blueUpgrades,
+                "el primer blue pagable tiene que llevar a las permanentes")
     }
 
     @Test("con el piso lleno y plata la lección del atajo no nace: no hay nada que comprar")

@@ -38,8 +38,13 @@ enum TutorialFlags {
         defaults.set(pending, forKey: tourPendingKey)
     }
 
+    /// Las lecciones del blue se guardaban con el nombre viejo de la moneda hasta E14b B14: su
+    /// bandera vieja sigue valiendo, así nadie repite la lección al actualizar. Sólo se lee.
+    static let legacyLessonIDs = ["blueUpgrades": "oroUpgrades", "blueShop": "oroShop"]
+
     static func isLessonDone(_ id: String, in defaults: UserDefaults = .standard) -> Bool {
         defaults.bool(forKey: lessonKey(id))
+            || legacyLessonIDs[id].map { defaults.bool(forKey: lessonKey($0)) } == true
     }
 
     static func markLessonDone(_ id: String, in defaults: UserDefaults = .standard) {

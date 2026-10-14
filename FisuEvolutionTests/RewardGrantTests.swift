@@ -33,13 +33,13 @@ struct RewardGrantTests {
         #expect(modifier.expiresAt == 2200)
     }
 
-    @Test("ORO al balance, nunca al ORO de por vida (el multiplicador lo gana sólo el prestigio)")
-    func oroGoesToTheBalance() async throws {
+    @Test("blue al balance, nunca al blue de por vida (el multiplicador lo gana sólo el prestigio)")
+    func blueGoesToTheBalance() async throws {
         let gameState = await makeGameState()
         let before = try #require(gameState.player?.meta)
-        gameState.grant(.oro(3), source: "visit.arbolito_cambio")
-        #expect(gameState.player?.meta.oro == before.oro + 3)
-        #expect(gameState.player?.meta.oroEarnedLifetime == before.oroEarnedLifetime)
+        gameState.grant(.blue(3), source: "visit.arbolito_cambio")
+        #expect(gameState.player?.meta.blue == before.blue + 3)
+        #expect(gameState.player?.meta.blueEarnedLifetime == before.blueEarnedLifetime)
     }
 
     @Test("cofres a la cola de cofres, cooldowns a cero, inmunidad como modificador")
@@ -67,16 +67,16 @@ struct RewardGrantTests {
 
     @Test("lo entregable es exactamente lo que este punto sabe dar")
     func grantableKinds() {
-        #expect(GameState.grantableRewardKinds == [.coinsSeconds, .oro, .skinChest, .modifier, .clearBoostCooldowns, .eventImmunity, .package, .wheelSpin,
+        #expect(GameState.grantableRewardKinds == [.coinsSeconds, .blue, .skinChest, .modifier, .clearBoostCooldowns, .eventImmunity, .package, .wheelSpin,
                 .autoTap, .nextOfflineMultiplier, .nextDailyMultiplier])
     }
 
     @Test("varios premios juntos: una sola pasada, la plata sumada")
     func severalRewards() async throws {
         let gameState = await makeGameState()
-        let credited = gameState.grant([.coinsSeconds(60), .oro(1), .coinsSeconds(60)], source: "test")
+        let credited = gameState.grant([.coinsSeconds(60), .blue(1), .coinsSeconds(60)], source: "test")
         #expect(credited > 0)
-        #expect(gameState.player?.meta.oro == 1)
+        #expect(gameState.player?.meta.blue == 1)
     }
 
     @Test("un segundo de producción vale algo aunque la torre no produzca (el piso de los premios)")

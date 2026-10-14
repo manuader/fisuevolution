@@ -29,7 +29,7 @@ struct AchievementRow: Identifiable, Equatable {
     /// (abrir un piso) sólo tienen 0 y 1. Un logro ya conseguido muestra 1
     /// aunque la run haya vuelto a cero al reencarnar.
     let progress: Double
-    /// "12.500 monedas" / "25 de ORO" — con el número del catálogo puesto.
+    /// "12.500 monedas" / "25 de blue" — con el número del catálogo puesto.
     let rewardText: String
 }
 
@@ -201,7 +201,7 @@ extension GameState {
     /// tipos concretos, una run ve como máximo **37** — los 35 del tronco más el
     /// junior y el senior de su rama—, así que medir "los viste a todos" contra
     /// 43 es prometer algo que el juego no puede dar: la barra se clavaría en
-    /// 0,86 para siempre y el logro sería ORO muerto.
+    /// 0,86 para siempre y el logro sería blue muerto.
     ///
     /// Se deriva del DATO y no de un 37 escrito: las raíces son los
     /// `choiceOptions` de `tiers.json`, y la rama de cada una es lo que cuelga
@@ -265,12 +265,12 @@ extension GameState {
             player.meta.lifetimeEarnings += chest
             announceCoins(chest)
             audio?.play(.coin)
-        case .oro:
-            // ⚠️ SÓLO el balance. `oroEarnedLifetime` es de donde sale el
+        case .blue:
+            // ⚠️ SÓLO el balance. `blueEarnedLifetime` es de donde sale el
             // multiplicador global y sube ÚNICAMENTE al reencarnar; tocarlo acá
             // regalaría multiplicador permanente por fuera del prestigio (mismo
-            // criterio que los packs de ORO de la tienda).
-            player.meta.oro += achievement.reward.amount ?? 0
+            // criterio que los packs de blue de la tienda).
+            player.meta.blue += achievement.reward.amount ?? 0
             announceBlue(achievement.reward.amount ?? 0)
             audio?.play(.coin)
         case .freeBoost:
@@ -383,7 +383,7 @@ extension GameState {
     /// estás parado, así que no se puede escribir en la copy: sale calculada acá
     /// y la fila la muestra tal cual.
     ///
-    /// ⚠️ El ORO va como `String` a propósito: una clave con `%@` interpolada con
+    /// ⚠️ El blue va como `String` a propósito: una clave con `%@` interpolada con
     /// un `Int` sale en pantalla como la clave cruda (trampa 5 del HANDOFF).
     private static func rewardText(
         for reward: AchievementsConfig.Reward,
@@ -398,8 +398,8 @@ extension GameState {
             // mentiría.
             let chest = coinReward(seconds: reward.seconds ?? 0, player: player, content: content, economy: economy)
             return String(localized: "ach.reward.coins \(CoinFormatter.string(from: chest))")
-        case .oro:
-            return String(localized: "ach.reward.oro \(String(reward.amount ?? 0))")
+        case .blue:
+            return String(localized: "ach.reward.blue \(String(reward.amount ?? 0))")
         case .freeBoost:
             guard let boost = content.boosts.boosts.first(where: { $0.id == reward.boostId }) else { return "" }
             let name = localized(boost.displayNameKey(buildVariant: content.flags.effectiveBuildVariant))

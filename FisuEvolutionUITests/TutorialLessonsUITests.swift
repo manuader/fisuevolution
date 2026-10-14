@@ -133,17 +133,17 @@ final class TutorialLessonsUITests: XCTestCase {
         XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 8), .completed, "deslizar cierra la lección")
     }
 
-    /// La tienda de ORO: abrir Mejoras → elegir la pestaña Boosts → el cierre de los topes. El segundo
+    /// La tienda de blue: abrir Mejoras → elegir la pestaña Boosts → el cierre de los topes. El segundo
     /// paso se cumple con la pestaña elegida, no con abrir la hoja.
     @MainActor
-    func testLaTiendaDeOroPasaPorLaPestanaBoosts() throws {
-        let app = launch(lesson: "oroShop", coins: false)
-        XCTAssertTrue(waitForStep(app, "oro_shop.open"))
+    func testLaTiendaDeBluePasaPorLaPestanaBoosts() throws {
+        let app = launch(lesson: "blueShop", coins: false)
+        XCTAssertTrue(waitForStep(app, "blue_shop.open"))
         app.buttons["hud.upgrades"].tap()
 
-        XCTAssertTrue(waitForCoach(app, "oro_shop.spend"))
-        XCTAssertEqual(app.otherElements["tutorial.coach"].value as? String, "oro_shop.spend", "abrir Mejoras no basta")
+        XCTAssertTrue(waitForCoach(app, "blue_shop.spend"))
+        XCTAssertEqual(app.otherElements["tutorial.coach"].value as? String, "blue_shop.spend", "abrir Mejoras no basta")
         app.buttons["upgrades.tab.boosts"].tap()
-        XCTAssertTrue(waitForCoach(app, "oro_shop.caps"))
+        XCTAssertTrue(waitForCoach(app, "blue_shop.caps"))
     }
 }

@@ -76,19 +76,19 @@ struct VisitorClockTests {
 
     @Test("el día nuevo resetea los topes; el mismo día no")
     func rollDay() {
-        var state = VisitorsState(day: "2026-10-07", visitsToday: ["a": 2], oroExchangedToday: 3)
+        var state = VisitorsState(day: "2026-10-07", visitsToday: ["a": 2], blueExchangedToday: 3)
         VisitorScheduler.rollDay(&state, today: "2026-10-07")
         #expect(state.visitsToday == ["a": 2])
         VisitorScheduler.rollDay(&state, today: "2026-10-08")
         #expect(state.visitsToday.isEmpty)
-        #expect(state.oroExchangedToday == 0)
+        #expect(state.blueExchangedToday == 0)
         #expect(state.day == "2026-10-08")
     }
 }
 
 @Suite("Visitantes: la bolsa barajada")
 struct VisitorBagTests {
-    let context = VisitContext(maxTier: 5, ownedSpecials: [], grantable: [.coinsSeconds, .oro, .modifier])
+    let context = VisitContext(maxTier: 5, ownedSpecials: [], grantable: [.coinsSeconds, .blue, .modifier])
 
     /// Visitas seguidas, siempre con alguien que puede venir: devuelve quién vino.
     private func visits(_ count: Int, config: VisitorsConfig, state: inout VisitorsState, seed: UInt64,

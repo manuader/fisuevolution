@@ -49,10 +49,10 @@ struct ExtraSlotsTests {
     @Test("los niveles del permanente dan los lugares que dice el dato")
     func perkFromLevels() throws {
         let json = #"{"schemaVersion": 1, "items": [{"id": "extra_slots", "shelf": "permanents", "iconKey": "k", "symbol": "s", "perk": "extraSlots", "levels": [{"price": 600, "value": 3}, {"price": 1500, "value": 2}]}]}"#
-        let catalog = try JSONDecoder().decode(OroShopCatalog.self, from: Data(json.utf8))
+        let catalog = try JSONDecoder().decode(BlueShopCatalog.self, from: Data(json.utf8))
         let table = try fxFloorTable()
-        #expect(table.expanded(by: OroShop.extraSlots(levels: ["extra_slots": 1], catalog: catalog)).floors[0].capacity == 8)
-        #expect(table.expanded(by: OroShop.extraSlots(levels: ["extra_slots": 2], catalog: catalog)).floors[0].capacity == 10)
+        #expect(table.expanded(by: BlueShop.extraSlots(levels: ["extra_slots": 1], catalog: catalog)).floors[0].capacity == 8)
+        #expect(table.expanded(by: BlueShop.extraSlots(levels: ["extra_slots": 2], catalog: catalog)).floors[0].capacity == 10)
     }
 
     @Test("un piso en marcha con lugares extra pide más gente")

@@ -32,10 +32,10 @@
     "effectStepPerLevel": 1.0,
     "maxLevel": 19
   },
-  "oro": {
+  "blue": {
     "divisor": 800000000000,
     "exponent": 0.25,
-    "globalMultiplierPerOro": 0.18,
+    "globalMultiplierPerBlue": 0.18,
     "prestigeTeaserFloorId": "luxury",
     "requiresLastRunWall": true,
     "inheritsPassiveUnlocks": true

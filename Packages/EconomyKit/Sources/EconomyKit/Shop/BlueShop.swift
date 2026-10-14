@@ -1,9 +1,9 @@
 import Foundation
 
-/// Las cuentas de la tienda de ORO (PLAN-v2 E6). Pura: la app le pasa lo que
+/// Las cuentas de la tienda de blue (PLAN-v2 E6). Pura: la app le pasa lo que
 /// sólo ella sabe (lo que puede entregar, si el azar está permitido en esta
 /// tienda, cuántos pares fundiría "Fusionar todo") y entrega los premios ella.
-public enum OroShop {
+public enum BlueShop {
     public struct Context: Sendable, Equatable {
         /// "yyyy-MM-dd", el mismo día del premio diario.
         public let today: String
@@ -20,7 +20,7 @@ public enum OroShop {
         /// El cofre de pintas tiene algo para dar hoy (`ChestRoller.hasSomethingToGive`).
         public let chestHasSomethingToGive: Bool
         /// Los perks que alguien lee hoy (el de paquetes necesita E5; el de lugares, E6b).
-        public let supportedPerks: Set<OroShopCatalog.Perk>
+        public let supportedPerks: Set<BlueShopCatalog.Perk>
 
         public init(
             today: String,
@@ -30,7 +30,7 @@ public enum OroShop {
             mergeAllPairs: Int,
             anyBoostCoolingDown: Bool,
             chestHasSomethingToGive: Bool,
-            supportedPerks: Set<OroShopCatalog.Perk>
+            supportedPerks: Set<BlueShopCatalog.Perk>
         ) {
             self.today = today
             self.grantableKinds = grantableKinds
@@ -70,18 +70,18 @@ public enum OroShop {
     }
 
     public struct Purchase: Sendable, Equatable {
-        public let item: OroShopCatalog.Item
+        public let item: BlueShopCatalog.Item
         public let price: Int
         /// Permanentes: el nivel que quedó. Consumibles: `nil`.
         public let newLevel: Int?
     }
 
     /// Lo que se ofrece hoy, en el orden del catálogo.
-    public static func visibleItems(catalog: OroShopCatalog, context: Context) -> [OroShopCatalog.Item] {
+    public static func visibleItems(catalog: BlueShopCatalog, context: Context) -> [BlueShopCatalog.Item] {
         catalog.items.filter { isOffered($0, context: context) }
     }
 
-    public static func quote(_ item: OroShopCatalog.Item, state: PlayerState, context: Context) -> Quote {
+    public static func quote(_ item: BlueShopCatalog.Item, state: PlayerState, context: Context) -> Quote {
         let shop = state.meta.engagement.shop.on(day: context.today)
         let bought = shop.purchasesToday[item.id] ?? 0
         if item.isPermanent {
@@ -90,29 +90,29 @@ public enum OroShop {
                 return Quote(itemId: item.id, price: nil, level: level, boughtToday: 0, blocker: .maxed)
             }
             let price = item.levels[level].price
-            let blocker: Blocker? = state.meta.oro >= price ? nil : .cantAfford
+            let blocker: Blocker? = state.meta.blue >= price ? nil : .cantAfford
             return Quote(itemId: item.id, price: price, level: level, boughtToday: 0, blocker: blocker)
         }
         let base = Double(item.price ?? 0)
         let price = Int((base * pow(item.priceGrowthPerPurchase ?? 1, Double(bought))).rounded())
         return Quote(itemId: item.id, price: price, level: 0, boughtToday: bought,
-                     blocker: consumableBlocker(item, shop: shop, bought: bought, price: price, oro: state.meta.oro, context: context))
+                     blocker: consumableBlocker(item, shop: shop, bought: bought, price: price, blue: state.meta.blue, context: context))
     }
 
-    /// Compra: cobra por `MetaState.spendOro` (la única salida de ORO) y anota el
+    /// Compra: cobra por `MetaState.spendBlue` (la única salida de blue) y anota el
     /// cupo del día o el nivel. NO entrega los premios: eso es de la app.
     @discardableResult
     public static func purchase(
         _ itemId: String,
         state: inout PlayerState,
-        catalog: OroShopCatalog,
+        catalog: BlueShopCatalog,
         context: Context
     ) throws -> Purchase {
         guard let item = catalog.item(id: itemId) else { throw PurchaseError.unknownItem }
         guard isOffered(item, context: context) else { throw PurchaseError.notOffered }
         let quote = quote(item, state: state, context: context)
         if let blocker = quote.blocker { throw PurchaseError.blocked(blocker) }
-        guard let price = quote.price, state.meta.spendOro(price) else { throw PurchaseError.blocked(.cantAfford) }
+        guard let price = quote.price, state.meta.spendBlue(price) else { throw PurchaseError.blocked(.cantAfford) }
 
         var shop = state.meta.engagement.shop.on(day: context.today)
         var newLevel: Int?
@@ -132,20 +132,20 @@ public enum OroShop {
         case invalidPrice
     }
 
-    /// Una pinta con ORO: `spendOro` y a `shop.skins`, en un solo paso. El precio
-    /// lo trae quien llama, desde `skins.json` (`SkinsConfig.oroPrice(of:)`).
+    /// Una pinta con blue: `spendBlue` y a `shop.skins`, en un solo paso. El precio
+    /// lo trae quien llama, desde `skins.json` (`SkinsConfig.bluePrice(of:)`).
     /// Lo que ya es tuyo no se cobra: una segunda llamada ve la primera.
     public static func purchaseSkin(_ skinID: String, price: Int, state: inout PlayerState) throws {
         guard price > 0 else { throw SkinPurchaseError.invalidPrice }
         guard !state.meta.allOwnedSkins.contains(skinID) else { throw SkinPurchaseError.alreadyOwned }
-        guard state.meta.spendOro(price) else { throw SkinPurchaseError.cantAfford }
+        guard state.meta.spendBlue(price) else { throw SkinPurchaseError.cantAfford }
         state.meta.engagement.shop.skins.insert(skinID)
     }
 
     // MARK: Perks
 
     /// Lugares extra por piso: la suma de los valores de los niveles comprados.
-    public static func extraSlots(levels: [String: Int], catalog: OroShopCatalog) -> Int {
+    public static func extraSlots(levels: [String: Int], catalog: BlueShopCatalog) -> Int {
         catalog.items.filter { $0.perk == .extraSlots }.reduce(0) { total, item in
             let level = min(levels[item.id] ?? 0, item.levels.count)
             return total + item.levels.prefix(level).reduce(0) { $0 + Int($1.value) }
@@ -154,24 +154,24 @@ public enum OroShop {
 
     /// El nivel de "mejor proveedor" (0 sin comprar). Lo lee el Paquete de E5a
     /// con `PackagesConfig.tierRatio(bestSupplierLevel:)`: el `r` es dato de E5.
-    public static func bestSupplierLevel(levels: [String: Int], catalog: OroShopCatalog) -> Int {
+    public static func bestSupplierLevel(levels: [String: Int], catalog: BlueShopCatalog) -> Int {
         Int(levelValue(of: .bestSupplier, levels: levels, catalog: catalog) ?? 0)
     }
 
     /// Giros por video de más por día en la ruleta.
-    public static func bonusDailyWheelSpins(levels: [String: Int], catalog: OroShopCatalog) -> Int {
+    public static func bonusDailyWheelSpins(levels: [String: Int], catalog: BlueShopCatalog) -> Int {
         Int(levelValue(of: .wheelDailySpins, levels: levels, catalog: catalog) ?? 0)
     }
 
     // MARK: Internals
 
-    private static func levelValue(of perk: OroShopCatalog.Perk, levels: [String: Int], catalog: OroShopCatalog) -> Double? {
+    private static func levelValue(of perk: BlueShopCatalog.Perk, levels: [String: Int], catalog: BlueShopCatalog) -> Double? {
         guard let item = catalog.items.first(where: { $0.perk == perk }) else { return nil }
         let level = min(levels[item.id] ?? 0, item.levels.count)
         return level > 0 ? item.levels[level - 1].value : nil
     }
 
-    private static func isOffered(_ item: OroShopCatalog.Item, context: Context) -> Bool {
+    private static func isOffered(_ item: BlueShopCatalog.Item, context: Context) -> Bool {
         if let floor = item.unlockFloorId, !context.reachedFloorIds.contains(floor) { return false }
         if item.isChance, !context.chanceAllowed { return false }
         if let perk = item.perk, !context.supportedPerks.contains(perk) { return false }
@@ -187,11 +187,11 @@ public enum OroShop {
     }
 
     private static func consumableBlocker(
-        _ item: OroShopCatalog.Item,
+        _ item: BlueShopCatalog.Item,
         shop: ShopState,
         bought: Int,
         price: Int,
-        oro: Int,
+        blue: Int,
         context: Context
     ) -> Blocker? {
         if let limit = item.dailyLimit, bought >= limit { return .dailyLimitReached }
@@ -205,6 +205,6 @@ public enum OroShop {
             }
         }
         if item.action == .mergeAll, context.mergeAllPairs == 0 { return .nothingToDo }
-        return oro >= price ? nil : .cantAfford
+        return blue >= price ? nil : .cantAfford
     }
 }

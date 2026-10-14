@@ -167,7 +167,7 @@ struct AchievementEngineTests {
     /// ⚠️ **Se mide contra los tipos ALCANZABLES, no contra los 43.** La carrera
     /// es excluyente y `run.seenTypes` muere al reencarnar: una run ve como
     /// máximo el tronco (35) más el junior y el senior de SU rama = 37. Medir
-    /// contra 43 dejaba el logro —40 de ORO— matemáticamente inconseguible, con
+    /// contra 43 dejaba el logro —40 de blue— matemáticamente inconseguible, con
     /// la barra clavada en 0,86 para siempre.
     @Test("seenAllTypes se cruza con los tipos alcanzables de tu carrera, no con los 43")
     func seenAllTypesTrigger() async throws {
@@ -309,7 +309,7 @@ struct AchievementEngineTests {
         let after = state.player?.run.coins ?? 0
         #expect(after > before)
         #expect(state.player?.meta.claimedAchievements.contains("ach_merges_1") == true)
-        // La plata de un logro es plata ganada: cuenta para el ORO.
+        // La plata de un logro es plata ganada: cuenta para el blue.
         #expect((state.player?.meta.lifetimeEarnings ?? 0) - lifetimeBefore == after - before)
 
         state.claimAchievement(id: "ach_merges_1")
@@ -508,22 +508,22 @@ struct AchievementEngineTests {
         #expect(row.rewardText.contains(CoinFormatter.string(from: gain)))
     }
 
-    /// El multiplicador global se computa sobre `oroEarnedLifetime`, que SOLO
+    /// El multiplicador global se computa sobre `blueEarnedLifetime`, que SOLO
     /// sube al reencarnar. Un logro que lo tocara regalaría multiplicador
-    /// permanente por fuera del prestigio (mismo criterio que los packs de ORO).
-    @Test("el premio en oro suma al balance y NO al oro histórico")
-    func oroRewardNeverTouchesLifetimeOro() async {
+    /// permanente por fuera del prestigio (mismo criterio que los packs de blue).
+    @Test("el premio en blue suma al balance y NO al blue histórico")
+    func blueRewardNeverTouchesLifetimeBlue() async {
         let state = await makeState { $0.meta.prestigeLevel = 3 }
         state.evaluateAchievements()
-        let oroBefore = state.player?.meta.oro ?? 0
-        let lifetimeBefore = state.player?.meta.oroEarnedLifetime ?? 0
+        let blueBefore = state.player?.meta.blue ?? 0
+        let lifetimeBefore = state.player?.meta.blueEarnedLifetime ?? 0
 
         state.claimAchievement(id: "ach_prestige_3")
-        // 4 y no 25: el re-escalado de los doce logros de ORO, ×2 en la 2.0
-        // con las líneas a 348 (`fixedOroAchievementsFundAFifthOfTheRun`).
-        #expect(state.player?.meta.oro == oroBefore + 4)
-        #expect(state.player?.meta.oroEarnedLifetime == lifetimeBefore)
-        #expect(state.player?.meta.lifetimeEarnings == 0, "el oro no es plata: no toca lifetimeEarnings")
+        // 4 y no 25: el re-escalado de los doce logros de blue, ×2 en la 2.0
+        // con las líneas a 348 (`fixedBlueAchievementsFundAFifthOfTheRun`).
+        #expect(state.player?.meta.blue == blueBefore + 4)
+        #expect(state.player?.meta.blueEarnedLifetime == lifetimeBefore)
+        #expect(state.player?.meta.lifetimeEarnings == 0, "el blue no es plata: no toca lifetimeEarnings")
     }
 
     // MARK: Proyección
@@ -605,8 +605,8 @@ struct AchievementEngineTests {
         #expect(throws: GameError.self) {
             try GameContentLoader.validate(achievements: sinFactor, floorTable: content.floorTable, boosts: content.boosts)
         }
-        // `oro` sin `amount`.
-        let sinAmount = Self.config(reward: .init(kind: "oro", seconds: 2, amount: nil, boostId: nil))
+        // `blue` sin `amount`.
+        let sinAmount = Self.config(reward: .init(kind: "blue", seconds: 2, amount: nil, boostId: nil))
         #expect(throws: GameError.self) {
             try GameContentLoader.validate(achievements: sinAmount, floorTable: content.floorTable, boosts: content.boosts)
         }

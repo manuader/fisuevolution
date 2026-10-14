@@ -15,7 +15,7 @@ enum UpgradeManager {
         case unknownLine
         case maxLevelReached
         case insufficientCoins
-        case insufficientOro
+        case insufficientBlue
         case spendingFrozen
     }
 
@@ -32,7 +32,7 @@ enum UpgradeManager {
         guard let line = config.upgrades.first(where: { $0.id == lineId }) else {
             throw PurchaseError.unknownLine
         }
-        let level = state.meta.oroUpgradeLevels[lineId] ?? 0
+        let level = state.meta.blueUpgradeLevels[lineId] ?? 0
         guard level < line.maxLevel else { throw PurchaseError.maxLevelReached }
         let price = cost(of: line, level: level)
         switch line.currency {
@@ -42,10 +42,10 @@ enum UpgradeManager {
             }
             guard state.run.coins >= price else { throw PurchaseError.insufficientCoins }
             state.run.coins -= price
-        case .oro:
-            guard state.meta.spendOro(Int(price.rounded(.up))) else { throw PurchaseError.insufficientOro }
+        case .blue:
+            guard state.meta.spendBlue(Int(price.rounded(.up))) else { throw PurchaseError.insufficientBlue }
         }
-        state.meta.oroUpgradeLevels[lineId] = level + 1
+        state.meta.blueUpgradeLevels[lineId] = level + 1
         recomputeDerivedEffects(state: &state, config: config, specials: specials, viral: viral, boosts: boosts, economy: economy)
     }
 
@@ -77,7 +77,7 @@ enum UpgradeManager {
             // el juego lo recorta por `EffectCaps` mientras el simulador no —
             // justo la divergencia que `upgradeLinesNeverReachTheirEffectCaps`
             // existe para prevenir.
-            let level = Double(min(state.meta.oroUpgradeLevels[line.id] ?? 0, line.maxLevel))
+            let level = Double(min(state.meta.blueUpgradeLevels[line.id] ?? 0, line.maxLevel))
             guard level > 0 else { continue }
             switch line.effectType {
             case .incomeMultiplier: income += level * line.magnitudePerLevel
@@ -104,7 +104,7 @@ enum UpgradeManager {
 
         // Milanesa (boost permanente) reusa el dict de niveles con key propia.
         let milanesaStep = boosts.boosts.first { $0.effectType == .offlineEfficiencyPermanent }?.magnitude ?? 0
-        offline += Double(state.meta.oroUpgradeLevels[BoostManager.milanesaLevelKey] ?? 0) * milanesaStep
+        offline += Double(state.meta.blueUpgradeLevels[BoostManager.milanesaLevelKey] ?? 0) * milanesaStep
 
         // Referral local (bible §8): bonus permanente chico por share, con cap.
         let shares = min(state.meta.sharesCompleted, viral.maxShares)
@@ -121,7 +121,7 @@ enum UpgradeManager {
         state.meta.derivedEffects.spawnDiscount = min(spawnDiscount, EffectCaps.spawnDiscount)
         state.meta.derivedEffects.prestigeBonus = prestigeBonus
         state.meta.globalMultiplier = economy.globalMultiplier(
-            oroEarnedLifetime: state.meta.oroEarnedLifetime,
+            blueEarnedLifetime: state.meta.blueEarnedLifetime,
             prestigeBonus: prestigeBonus
         )
     }
@@ -202,7 +202,7 @@ enum BoostManager {
             return nil
         case .offlineEfficiencyPermanent:
             // Milanesa: mejora permanente, acumulable, capeada en la derivación.
-            state.meta.oroUpgradeLevels[milanesaLevelKey, default: 0] += 1
+            state.meta.blueUpgradeLevels[milanesaLevelKey, default: 0] += 1
             UpgradeManager.recomputeDerivedEffects(state: &state, config: upgrades, specials: specials, viral: viral, boosts: config, economy: economy)
             return nil
         case .periodicPayout:

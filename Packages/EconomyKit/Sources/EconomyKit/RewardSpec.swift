@@ -11,7 +11,7 @@ public enum RewardSpec: Sendable, Equatable, Hashable {
     /// Segundos de producción real (el `S(n)` del Anexo A). Se cotizan al cobrar,
     /// o al llegar el visitante (`VisitPlanner`).
     case coinsSeconds(Double)
-    case oro(Int)
+    case blue(Int)
     /// Paquetes de la Aduana. Los entrega E5.
     case package(Int)
     case skinChest(Int)
@@ -28,14 +28,27 @@ public enum RewardSpec: Sendable, Equatable, Hashable {
     case eventImmunity(seconds: Double)
 
     public enum Kind: String, CaseIterable, Sendable, Codable {
-        case coinsSeconds, oro, package, skinChest, modifier, clearBoostCooldowns, autoTap
+        case coinsSeconds, blue, package, skinChest, modifier, clearBoostCooldowns, autoTap
         case nextOfflineMultiplier, nextDailyMultiplier, wheelSpin, extraSlots, eventImmunity
+
+        /// El nombre con que se guardaba el blue hasta E14b B14 (ver `MetaState.LegacyKeys`): sólo se lee.
+        static let legacyRawValues = ["oro": Kind.blue.rawValue]
+
+        public init(from decoder: Decoder) throws {
+            let raw = try decoder.singleValueContainer().decode(String.self)
+            guard let kind = Kind(rawValue: Self.legacyRawValues[raw] ?? raw) else {
+                throw DecodingError.dataCorrupted(
+                    .init(codingPath: decoder.codingPath, debugDescription: "RewardSpec.Kind desconocido: \(raw)")
+                )
+            }
+            self = kind
+        }
     }
 
     public var kind: Kind {
         switch self {
         case .coinsSeconds: .coinsSeconds
-        case .oro: .oro
+        case .blue: .blue
         case .package: .package
         case .skinChest: .skinChest
         case .modifier: .modifier
@@ -56,7 +69,7 @@ public enum RewardSpec: Sendable, Equatable, Hashable {
         let factor = Double(multiplier)
         switch self {
         case .coinsSeconds(let seconds): return .coinsSeconds(seconds * factor)
-        case .oro(let amount): return .oro(amount * multiplier)
+        case .blue(let amount): return .blue(amount * multiplier)
         case .package(let count): return .package(count * multiplier)
         case .skinChest(let count): return .skinChest(count * multiplier)
         case let .modifier(effect, magnitude, seconds):
@@ -78,7 +91,7 @@ public enum RewardSpec: Sendable, Equatable, Hashable {
         switch self {
         case .coinsSeconds(let seconds), .eventImmunity(seconds: let seconds):
             guard seconds > 0, seconds.isFinite else { throw ValidationError.notPositive(kind) }
-        case .oro(let count), .package(let count), .skinChest(let count), .wheelSpin(let count), .extraSlots(let count):
+        case .blue(let count), .package(let count), .skinChest(let count), .wheelSpin(let count), .extraSlots(let count):
             guard count > 0 else { throw ValidationError.notPositive(kind) }
         case let .modifier(_, magnitude, seconds):
             guard seconds > 0, magnitude > 0, seconds.isFinite, magnitude.isFinite else { throw ValidationError.notPositive(kind) }
@@ -102,7 +115,7 @@ extension RewardSpec: Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         switch try container.decode(Kind.self, forKey: .kind) {
         case .coinsSeconds: self = .coinsSeconds(try container.decode(Double.self, forKey: .seconds))
-        case .oro: self = .oro(try container.decode(Int.self, forKey: .amount))
+        case .blue: self = .blue(try container.decode(Int.self, forKey: .amount))
         case .package: self = .package(try container.decode(Int.self, forKey: .count))
         case .skinChest: self = .skinChest(try container.decode(Int.self, forKey: .count))
         case .modifier:
@@ -131,7 +144,7 @@ extension RewardSpec: Codable {
         switch self {
         case .coinsSeconds(let seconds), .eventImmunity(seconds: let seconds):
             try container.encode(seconds, forKey: .seconds)
-        case .oro(let amount):
+        case .blue(let amount):
             try container.encode(amount, forKey: .amount)
         case .package(let count), .skinChest(let count), .wheelSpin(let count), .extraSlots(let count):
             try container.encode(count, forKey: .count)

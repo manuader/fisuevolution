@@ -32,7 +32,7 @@ struct CinematicTriggerTests {
     @Test("reencarnar la pide antes del cofre, que espera detrás")
     func reincarnationBeforeTheChest() async throws {
         let gameState = await world()
-        gameState.giveEarningsForPrestigeTesting(oro: 3)
+        gameState.giveEarningsForPrestigeTesting(blue: 3)
         gameState.confirmPrestige()
         #expect(gameState.showing == .cinematic)
         #expect(gameState.cinematic == .reencarnacion)
@@ -48,7 +48,7 @@ struct CinematicTriggerTests {
     @Test("sin cinemáticas, reencarnar es lo de siempre")
     func reincarnationWithoutCinematics() async {
         let gameState = await makeGameState()
-        gameState.giveEarningsForPrestigeTesting(oro: 3)
+        gameState.giveEarningsForPrestigeTesting(blue: 3)
         gameState.confirmPrestige()
         #expect(gameState.showing != .cinematic)
         #expect(gameState.cinematic == nil)
@@ -58,7 +58,7 @@ struct CinematicTriggerTests {
     @Test("si nadie dibuja la cinemática, reencarnar no se traba: el watchdog la libera y la cuenta vista")
     func reincarnationDoesNotHangWithoutAPlayer() async {
         let gameState = await world()
-        gameState.giveEarningsForPrestigeTesting(oro: 3)
+        gameState.giveEarningsForPrestigeTesting(blue: 3)
         gameState.confirmPrestige()
         gameState.openChest()
         gameState.advanceCelebrations(delta: 12.5)
@@ -71,7 +71,7 @@ struct CinematicTriggerTests {
     @Test("política de video apagada: el overlay la cierra en el acto y el juego sigue")
     func closedAtOnceWhenVideoIsOff() async {
         let gameState = await world()
-        gameState.giveEarningsForPrestigeTesting(oro: 3)
+        gameState.giveEarningsForPrestigeTesting(blue: 3)
         gameState.confirmPrestige()
         gameState.celebrationFinished(.cinematic)
         #expect(gameState.showing != .cinematic)
@@ -83,7 +83,7 @@ struct CinematicTriggerTests {
     @Test("Dios pendiente sobrevive a reencarnar: la de reencarnación se descarta y suena el SFX")
     func pendingGodSurvivesReincarnation() async {
         let gameState = await world()
-        gameState.giveEarningsForPrestigeTesting(oro: 3)
+        gameState.giveEarningsForPrestigeTesting(blue: 3)
         #expect(gameState.playCinematicIfDue(.dios))
         gameState.confirmPrestige()
         #expect(gameState.cinematic == .dios, "la única de Dios no se pierde")

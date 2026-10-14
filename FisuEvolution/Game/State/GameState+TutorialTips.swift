@@ -5,7 +5,7 @@ import Foundation
 /// (tap → contratar → fusionar), el resto de la app se enseña de a una lección,
 /// cada una la PRIMERA vez que hay algo que hacer en su pantalla — nunca antes.
 ///
-/// La regla de oro es del dueño y es el criterio de aceptación: ninguna lección
+/// La regla principal es del dueño y es el criterio de aceptación: ninguna lección
 /// manda a una pantalla donde EN ESE MOMENTO no hay nada que hacer. Por eso
 /// cada lección declara su señal de gating (una proyección barata, nunca una
 /// fila computada), y por eso viajan por la `CelebrationQueue` como
@@ -43,12 +43,12 @@ extension GameState {
         case chests
         /// El primer logro COBRABLE: enseña el circuito del puntito rojo.
         case achievements
-        /// El primer ORO en el bolsillo (los logros lo pagan) con una mejora
+        /// El primer blue en el bolsillo (los logros lo pagan) con una mejora
         /// PERMANENTE pagable: la lección lleva a Mejoras a canjearlo — y
-        /// adentro, la manito de la sección de ORO dice cuál (pedido del
+        /// adentro, la manito de la sección de blue dice cuál (pedido del
         /// dueño, 2026-08-28: "que te lleve a la pestaña de mejoras
         /// permanentes y te haga elegir").
-        case oroUpgrades
+        case blueUpgrades
         /// Se desbloqueó el segundo piso: recién ahora el mapa tiene a dónde ir.
         case elevator
         /// El tercer piso: la placa colgante (PLAN-v2 E13, ítem 13).
@@ -91,11 +91,11 @@ extension GameState {
         case eventChip
         /// El primer especial conseguido: vive en el Álbum de la Oficina central.
         case album
-        /// ORO para gastar: la mitad «Gastar ORO» de la Tienda y los topes del día.
-        case oroShop
-        /// El azar pagado con ORO muestra sus probabilidades a la vista.
+        /// Blue para gastar: la mitad «Gastar blue» de la Tienda y los topes del día.
+        case blueShop
+        /// El azar pagado con blue muestra sus probabilidades a la vista.
         case luck
-        /// Una pinta de ORO a la venta que el saldo alcanza.
+        /// Una pinta de blue a la venta que el saldo alcanza.
         case cosmetics
         /// Un ×3 comprado, esperando a la próxima vuelta o al próximo premio diario.
         case pendingTriple
@@ -124,11 +124,11 @@ extension GameState {
         /// las de la v1 (`TutorialMigration`); las de la 2.0 las ve en su primera vez.
         var introducedIn: TutorialRelease {
             switch self {
-            case .upgrades, .passive, .orgChart, .elevator, .floorSwipe, .floorFull, .skins, .achievements, .oroUpgrades,
+            case .upgrades, .passive, .orgChart, .elevator, .floorSwipe, .floorFull, .skins, .achievements, .blueUpgrades,
                  .gifts, .store, .prestige, .boosts, .chests: .v1
             case .quickHire, .newTabs, .elevatorKeypad, .characterSheet, .menuSwipe, .hirePriceStep, .staffedFloors,
                  .prestigeGate, .share, .sideRail, .packages, .mattress, .wheel, .mergeAllVideo, .visitor, .eventChip,
-                 .album, .oroShop, .luck, .cosmetics, .pendingTriple, .autoTap, .offers, .extraSlots: .v2
+                 .album, .blueShop, .luck, .cosmetics, .pendingTriple, .autoTap, .offers, .extraSlots: .v2
             }
         }
 
@@ -150,7 +150,7 @@ extension GameState {
             case .characterSheet: .boardUnit
             case .skins: .skins
             case .achievements: .menu
-            case .oroUpgrades: .upgrades
+            case .blueUpgrades: .upgrades
             case .gifts: .gifts
             case .store: .store
             case .prestige: .prestige
@@ -164,7 +164,7 @@ extension GameState {
             case .hirePriceStep: .hire
             case .menuSwipe: .upgrades
             case .newTabs, .pendingTriple, .extraSlots: .bottomBar
-            case .oroShop: .upgrades
+            case .blueShop: .upgrades
             case .luck, .cosmetics: .skins
             case .autoTap: .autoTapChip
             case .offers: .offerChip
@@ -176,12 +176,12 @@ extension GameState {
         /// mapa, el atajo y el prestigio avisan desde su propia acción).
         var destinationScreen: GameScreen? {
             switch self {
-            case .upgrades, .passive, .oroUpgrades: .upgrades
+            case .upgrades, .passive, .blueUpgrades: .upgrades
             case .skins: .skins
             case .achievements, .album, .orgChart: .menu
             case .gifts, .boosts, .chests: .gifts
             case .store: .store
-            case .oroShop: .upgrades
+            case .blueShop: .upgrades
             case .luck, .cosmetics: .skins
             case .hirePriceStep: .jobs
             case .visitor, .eventChip, .elevator, .elevatorKeypad, .quickHire, .floorSwipe, .floorFull, .staffedFloors,
@@ -236,7 +236,7 @@ extension GameState {
                 .explain("prestige_gate.explain", text: "tutorial.prestige_gate.explain", on: .prestige),
             ]
             case .prestige: [
-                .explain("prestige.oro", text: "tutorial.prestige.oro", on: .prestige),
+                .explain("prestige.blue", text: "tutorial.prestige.blue", on: .prestige),
                 .act("prestige.open", .lessonAction, text: "tutorial.prestige.open", on: .prestige),
             ]
             case .characterSheet: [
@@ -265,10 +265,10 @@ extension GameState {
             case .newTabs: [
                 .explain("new_tabs.explain", text: "tutorial.new_tabs.explain"),
             ]
-            case .oroShop: [
-                .act("oro_shop.open", .screenOpened(.upgrades), text: "tutorial.oro_shop.open", on: .upgrades),
-                .act("oro_shop.spend", .lessonAction, text: "tutorial.oro_shop.spend", on: .oroShop, surface: .page(.upgrades)),
-                .explain("oro_shop.caps", text: "tutorial.oro_shop.caps", surface: .page(.upgrades)),
+            case .blueShop: [
+                .act("blue_shop.open", .screenOpened(.upgrades), text: "tutorial.blue_shop.open", on: .upgrades),
+                .act("blue_shop.spend", .lessonAction, text: "tutorial.blue_shop.spend", on: .blueShop, surface: .page(.upgrades)),
+                .explain("blue_shop.caps", text: "tutorial.blue_shop.caps", surface: .page(.upgrades)),
             ]
             case .luck: [
                 .act("luck.open", .screenOpened(.skins), text: "tutorial.luck.open", on: .skins),
@@ -302,8 +302,8 @@ extension GameState {
             case .achievements: [
                 .act("achievements.open", .screenOpened(.menu), text: "tutorial.tip.achievements", on: .menu),
             ]
-            case .oroUpgrades: [
-                .act("oro_upgrades.open", .screenOpened(.upgrades), text: "tutorial.tip.oro", on: .upgrades),
+            case .blueUpgrades: [
+                .act("blue_upgrades.open", .screenOpened(.upgrades), text: "tutorial.tip.blue", on: .upgrades),
             ]
             case .gifts: [
                 .act("gifts.open", .screenOpened(.gifts), text: "tutorial.tip.gifts", on: .gifts),
@@ -396,9 +396,9 @@ extension GameState {
             // Comprable de verdad: con el piso lleno la oferta existe pero no compra.
             quickHireOffer.map { $0.blocker == nil } ?? false
         case .skins:
-            // "Tener una pinta que ponerse", literal — que es la regla de oro
+            // "Tener una pinta que ponerse", literal — que es la regla principal
             // aplicada a esta pantalla. La proyección publica `allOwnedSkins`
-            // (tienda ∪ milestone ∪ ORO) y el cofre acredita en `milestoneSkins`, así
+            // (tienda ∪ milestone ∪ blue) y el cofre acredita en `milestoneSkins`, así
             // que el de bienvenida la enciende apenas se abre, y el carrusel
             // muestra a su dueño aunque el jugador todavía no lo haya conocido
             // (`skinnableTypes` incluye a los personajes con pinta).
@@ -409,8 +409,8 @@ extension GameState {
             !ownedSkins.isEmpty
         case .achievements:
             hasClaimableAchievements
-        case .oroUpgrades:
-            canAffordAnyOroUpgrade
+        case .blueUpgrades:
+            canAffordAnyBlueUpgrade
         case .gifts:
             // `cycleDay` apunta al día que el ciclo VA a pagar y arranca en 1;
             // la instalación fresca marca `lastClaimDay` sin moverlo. O sea:
@@ -450,12 +450,12 @@ extension GameState {
             unlockedTabsInBarOrder.count >= 3
         case .newTabs:
             !newTabs.isEmpty
-        case .oroShop:
-            cheapestOroShopPrice().map { (player?.meta.oro ?? 0) >= $0 } ?? false
+        case .blueShop:
+            cheapestBlueShopPrice().map { (player?.meta.blue ?? 0) >= $0 } ?? false
         case .luck:
             luckMomentIsOn()
         case .cosmetics:
-            isLessonDone(.oroShop) && cheapestCosmeticPrice().map { (player?.meta.oro ?? 0) >= $0 } ?? false
+            isLessonDone(.blueShop) && cheapestCosmeticPrice().map { (player?.meta.blue ?? 0) >= $0 } ?? false
         case .pendingTriple:
             hasPendingTriple
         case .autoTap:
@@ -488,10 +488,10 @@ extension GameState {
         return shop.pendingOfflineMultiplier != nil || shop.pendingDailyMultiplier != nil
     }
 
-    /// Lo más barato que la tienda de ORO ofrece hoy (lo que no se vende, no cuenta).
-    func cheapestOroShopPrice() -> Int? {
+    /// Lo más barato que la tienda de blue ofrece hoy (lo que no se vende, no cuenta).
+    func cheapestBlueShopPrice() -> Int? {
         guard let content, let player else { return nil }
-        return content.oroShop.items.compactMap { item -> Int? in
+        return content.blueShop.items.compactMap { item -> Int? in
             if item.isChance, !LootBoxGate.lastKnown { return nil }
             if let floor = item.unlockFloorId,
                (content.floorTable.ordinal(of: floor) ?? .max) > player.meta.stats.maxFloorOrdinalEver { return nil }
@@ -499,24 +499,24 @@ extension GameState {
         }.min()
     }
 
-    /// La pinta de ORO más barata que todavía no es tuya.
+    /// La pinta de blue más barata que todavía no es tuya.
     func cheapestCosmeticPrice() -> Int? {
         guard let content, let player else { return nil }
         let owned = player.meta.allOwnedSkins
         return content.skins.skins.compactMap { skin in
-            skin.oroPrice.flatMap { owned.contains(skin.id) ? nil : $0 }
+            skin.bluePrice.flatMap { owned.contains(skin.id) ? nil : $0 }
         }.min()
     }
 
-    /// El azar pagado muestra sus probabilidades: la tienda de ORO ya se enseñó, la puerta del azar
+    /// El azar pagado muestra sus probabilidades: la tienda de blue ya se enseñó, la puerta del azar
     /// está abierta y el cofre tiene qué sortear.
     func luckMomentIsOn(chanceAllowed: Bool = LootBoxGate.lastKnown) -> Bool {
-        isLessonDone(.oroShop) && chanceAllowed && chestOdds != .nothingYet
+        isLessonDone(.blueShop) && chanceAllowed && chestOdds != .nothingYet
     }
 
     /// El jugador abrió la pestaña Boosts de Mejoras: cumple el paso que lo pide.
-    func oroShopSpendChosen() {
-        guard let id = tutorialRun?.lessonID, id == TutorialLesson.oroShop.rawValue else { return }
+    func blueShopSpendChosen() {
+        guard let id = tutorialRun?.lessonID, id == TutorialLesson.blueShop.rawValue else { return }
         tutorialSignal(.lessonAction(id))
     }
 
@@ -576,23 +576,23 @@ extension GameState {
             if let cost = characterUpgradeCost(of: type), coins >= cost { return true }
             if player.run.passiveUnlocked[type.id] != true, coins >= type.passiveUnlockCost { return true }
         }
-        let oro = Double(player.meta.oro)
+        let blue = Double(player.meta.blue)
         for line in content.upgradesConfig.upgrades where upgradeLevel(of: line.id) < line.maxLevel {
-            let balance = line.currency == .oro ? oro : coins
+            let balance = line.currency == .blue ? blue : coins
             if balance >= upgradeCost(of: line) { return true }
         }
         return false
     }
 
-    /// La señal de la lección del primer ORO: hay una línea de ORO pagable
-    /// (lo que implica ORO en el bolsillo — el primero lo paga un logro).
+    /// La señal de la lección del primer blue: hay una línea de blue pagable
+    /// (lo que implica blue en el bolsillo — el primero lo paga un logro).
     /// Misma dieta que la de arriba: costos crudos contra el balance, a 8 Hz.
-    func computeCanAffordAnyOroUpgrade(player: PlayerState, content: GameContent) -> Bool {
-        let oro = Double(player.meta.oro)
-        guard oro > 0 else { return false }
+    func computeCanAffordAnyBlueUpgrade(player: PlayerState, content: GameContent) -> Bool {
+        let blue = Double(player.meta.blue)
+        guard blue > 0 else { return false }
         for line in content.upgradesConfig.upgrades
-        where line.currency == .oro && upgradeLevel(of: line.id) < line.maxLevel {
-            if oro >= upgradeCost(of: line) { return true }
+        where line.currency == .blue && upgradeLevel(of: line.id) < line.maxLevel {
+            if blue >= upgradeCost(of: line) { return true }
         }
         return false
     }

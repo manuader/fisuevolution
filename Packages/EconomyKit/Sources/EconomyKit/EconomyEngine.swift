@@ -6,8 +6,8 @@ import Foundation
 ///     tapYield(t)          = baseTapYieldTier1 × yieldGrowthPerTier^(t−1)
 ///     passiveYield(t)      = tapYield(t) × passiveRatio
 ///     passiveUnlockCost(t) = tapYield(t) × passiveUnlockCostMultiplier
-///     oroTotal             = floor((lifetimeEarnings / oro.divisor)^oro.exponent)
-///     globalMultiplier     = 1 + oroEarnedLifetime × perOro × (1 + prestigeBonus)
+///     blueTotal             = floor((lifetimeEarnings / blue.divisor)^blue.exponent)
+///     globalMultiplier     = 1 + blueEarnedLifetime × perBlue × (1 + prestigeBonus)
 public struct StandardEconomy: Sendable {
     public let config: EconomyConfig
 
@@ -27,17 +27,17 @@ public struct StandardEconomy: Sendable {
         tapYield(forTier: tier) * config.passiveUnlockCostMultiplier
     }
 
-    /// ORO total que corresponde a un lifetimeEarnings dado (fórmula F7 §3.7).
-    public func oroTotal(lifetimeEarnings: Double) -> Int {
+    /// Blue total que corresponde a un lifetimeEarnings dado (fórmula F7 §3.7).
+    public func blueTotal(lifetimeEarnings: Double) -> Int {
         guard lifetimeEarnings > 0 else { return 0 }
-        let raw = pow(lifetimeEarnings / config.oro.divisor, config.oro.exponent)
+        let raw = pow(lifetimeEarnings / config.blue.divisor, config.blue.exponent)
         return Self.clampedFloor(raw)
     }
 
-    /// Multiplicador global. Se computa sobre `oroEarnedLifetime` (monótono):
-    /// gastar ORO nunca nerfea.
-    public func globalMultiplier(oroEarnedLifetime: Int, prestigeBonus: Double = 0) -> Double {
-        1.0 + Double(oroEarnedLifetime) * config.oro.globalMultiplierPerOro * (1 + prestigeBonus)
+    /// Multiplicador global. Se computa sobre `blueEarnedLifetime` (monótono):
+    /// gastar blue nunca nerfea.
+    public func globalMultiplier(blueEarnedLifetime: Int, prestigeBonus: Double = 0) -> Double {
+        1.0 + Double(blueEarnedLifetime) * config.blue.globalMultiplierPerBlue * (1 + prestigeBonus)
     }
 
     /// `Int(_:)` on a Double at or beyond 2^63 traps; idle-game magnitudes get there.

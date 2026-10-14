@@ -17,7 +17,7 @@ struct RewardFlightPlanTests {
 
     @Test("el blue vuela al botón del blue y el ×2 duplica su monto")
     func blueDoublesWithTheVideo() {
-        let items = RewardFlightPlan.items(for: [.oro(15)], multiplier: 2)
+        let items = RewardFlightPlan.items(for: [.blue(15)], multiplier: 2)
         #expect(items == [RewardFlightItem(kind: .blue, destination: .blue, amount: 30)])
         #expect(items.first?.label == "+30")
     }
@@ -39,7 +39,7 @@ struct RewardFlightPlanTests {
 
     @Test("lo que no se puede mostrar no vuela: lugares extra, plata cero y montos que no son números")
     func nothingToShow() {
-        #expect(RewardFlightPlan.items(for: [.extraSlots(3), .coinsSeconds(60), .oro(0)]).isEmpty)
+        #expect(RewardFlightPlan.items(for: [.extraSlots(3), .coinsSeconds(60), .blue(0)]).isEmpty)
         #expect(RewardFlightPlan.items(for: [], coins: 0).isEmpty)
         #expect(RewardFlightPlan.items(for: [], coins: .infinity).isEmpty)
         #expect(RewardFlightPlan.items(for: [], coins: -5).isEmpty)
@@ -167,7 +167,7 @@ struct RewardFlightSourcesTests {
     func announcingNeverChangesTheBalance() async throws {
         let gameState = await start()
         let before = try #require(gameState.player)
-        gameState.announceReward([.oro(5), .package(1)], coins: 1_000)
+        gameState.announceReward([.blue(5), .package(1)], coins: 1_000)
         #expect(gameState.player == before)
         #expect(RewardFlightCenter.shared.launched.map(\.kind) == [.coins, .blue, .package])
 
@@ -208,7 +208,7 @@ struct RewardFlightSourcesTests {
         let gained = (gameState.player?.run.coins ?? 0) - coinsBefore
         let launched = RewardFlightCenter.shared.launched
         #expect(launched.map(\.kind) == RewardFlightPlan.items(for: offer.rewards, coins: gained).map(\.kind))
-        #expect(launched.first { $0.kind == .blue }?.amount == Double(offer.oroAmount))
+        #expect(launched.first { $0.kind == .blue }?.amount == Double(offer.blueAmount))
     }
 
     @Test("un evento de plata anuncia la plata que acreditó")

@@ -1,10 +1,10 @@
 import SwiftUI
 
-/// Reencarnación: mata la run, preserva MetaState y acredita ORO.
+/// Reencarnación: mata la run, preserva MetaState y acredita blue.
 ///
-/// RF-16: antes decía sólo cuánto ORO ganabas. Un número chico ("ganás 14") sin
+/// RF-16: antes decía sólo cuánto blue ganabas. Un número chico ("ganás 14") sin
 /// forma de saber qué compra. Ahora la pantalla es el **antes y el después** del
-/// multiplicador global, que es lo que ese ORO paga.
+/// multiplicador global, que es lo que ese blue paga.
 struct PrestigeView: View {
     @Environment(GameState.self) private var gameState
     /// Cierra el popup (lo pone quien lo presenta).
@@ -18,16 +18,16 @@ struct PrestigeView: View {
         return PopupContainer("prestige.title", ribbonTint: Color("PalettePink"), onClose: onClose) {
             PopupHero(artKey: "rw_reencarnar", fallback: .blue)
             if preview.isWorthIt {
-                oroGain(preview)
+                blueGain(preview)
                 multiplierArrow(preview)
             } else {
-                // El teaser ("al llegar a lujo"): todavía no hay ORO por
+                // El teaser ("al llegar a lujo"): todavía no hay blue por
                 // cobrar, así que el popup no promete — muestra el camino
                 // al primero y qué compra cada uno.
-                nextOroProgress(preview)
+                nextBlueProgress(preview)
             }
 
-            Text("prestige.body \(gameState.prestigeMultiplierPerOroText)")
+            Text("prestige.body \(gameState.prestigeMultiplierPerBlueText)")
                 .font(.system(.footnote, design: .rounded))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(Color("PaletteInk").opacity(0.75))
@@ -66,7 +66,7 @@ struct PrestigeView: View {
             // apaga, no existe (la doctrina de `GameButton`).
             if preview.isWorthIt {
                 if let goal = preview.wallGoalText {
-                    // El piso móvil: hay ORO, falta la pared. No se apaga el
+                    // El piso móvil: hay blue, falta la pared. No se apaga el
                     // botón, se dice qué falta.
                     GameButton(verbatim: goal, role: .blue, medallion: .glyph(.lock), available: false,
                                identifier: "prestige.wall") {}
@@ -83,33 +83,33 @@ struct PrestigeView: View {
         }
     }
 
-    /// El camino al PRÓXIMO ORO, cuando todavía no hay ninguno por cobrar: lo
+    /// El camino al PRÓXIMO blue, cuando todavía no hay ninguno por cobrar: lo
     /// que falta juntar y la barra del progreso. Es lo único que la hoja puede
     /// contar sin mentir en el teaser.
-    private func nextOroProgress(_ preview: PrestigePreview) -> some View {
+    private func nextBlueProgress(_ preview: PrestigePreview) -> some View {
         VStack(spacing: 10) {
             HStack(spacing: 8) {
-                OroIcon(size: 30)
-                Text("prestige.oro.next \(CoinFormatter.string(from: preview.coinsToNextOro))")
+                BlueIcon(size: 30)
+                Text("prestige.blue.next \(CoinFormatter.string(from: preview.coinsToNextBlue))")
                     .font(.system(.footnote, design: .rounded).weight(.semibold))
                     .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .foregroundStyle(Color("PaletteInk"))
             ProgressBar(
-                progress: preview.nextOroProgress,
+                progress: preview.nextBlueProgress,
                 tint: Color("PalettePink"),
-                labelText: preview.nextOroProgress.formatted(.percent.precision(.fractionLength(0)))
+                labelText: preview.nextBlueProgress.formatted(.percent.precision(.fractionLength(0)))
             )
         }
         .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("prestige.oro.progress")
+        .accessibilityIdentifier("prestige.blue.progress")
     }
 
-    private func oroGain(_ preview: PrestigePreview) -> some View {
+    private func blueGain(_ preview: PrestigePreview) -> some View {
         HStack(spacing: 8) {
-            OroIcon(size: 30)
-            Text("prestige.oro.gain \(String(preview.oroGained))")
+            BlueIcon(size: 30)
+            Text("prestige.blue.gain \(String(preview.blueGained))")
                 // `Tokens.display` es este mismo cuerpo (.title rounded) con el
                 // peso de la casa: el número grande del popup habla el idioma
                 // de los otros números grandes del juego.
@@ -120,7 +120,7 @@ struct PrestigeView: View {
         }
         .foregroundStyle(Color("PaletteInk"))
         .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("prestige.oro")
+        .accessibilityIdentifier("prestige.blue")
     }
 
     /// El de la izquierda es el multiplicador que tenés; el de la derecha, el que

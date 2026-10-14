@@ -77,7 +77,7 @@ public struct FloorDef: Codable, Sendable, Equatable, Identifiable {
         backgroundOffset = try container.decodeIfPresent(Double.self, forKey: .backgroundOffset) ?? 0
     }
 
-    /// El mismo piso con otra capacidad (los lugares extra de la tienda de ORO).
+    /// El mismo piso con otra capacidad (los lugares extra de la tienda de blue).
     /// Copia TODOS los campos: uno que se olvide acá cambia el piso en silencio.
     public func withCapacity(_ capacity: Int) -> FloorDef {
         FloorDef(
@@ -194,7 +194,7 @@ public struct FloorTable: Sendable, Equatable {
     }
 
     /// La misma torre con `extra` lugares más en cada piso: el permanente de la
-    /// tienda de ORO (PLAN-v2 E6). Es el ÚNICO lugar donde cambia la capacidad: la
+    /// tienda de blue (PLAN-v2 E6). Es el ÚNICO lugar donde cambia la capacidad: la
     /// torre, el reconciliador, los pisos en marcha y el simulador la leen de la
     /// tabla que reciben. No tira: la tabla ya está validada y sólo crece.
     public func expanded(by extra: Int) -> FloorTable {

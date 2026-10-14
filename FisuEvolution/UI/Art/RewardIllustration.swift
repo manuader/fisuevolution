@@ -41,9 +41,9 @@ enum RewardKind: String, CaseIterable, Sendable {
         case .fine: ["rw_fine"]
         case .arrest: ["rw_arrest"]
         case .frozen: ["rw_frozen"]
-        case .blue: ["ui_dolar_blue", "ui_oro"]
+        case .blue: ["ui_dolar_blue"]
         case .package: ["rw_package_employee", "pickup_package_full"]
-        case .packageRain: ["ui_oro_package_rain", "rw_package_employee", "pickup_package_full"]
+        case .packageRain: ["ui_blue_package_rain", "rw_package_employee", "pickup_package_full"]
         case .chest: ["ui_chest_closed"]
         case .wheelSpin: ["wheel_icon"]
         case .gift: ["ui_gift_bow"]
@@ -99,7 +99,7 @@ extension RewardKind {
     init?(_ spec: RewardSpec) {
         switch spec {
         case .coinsSeconds: self = .coins
-        case .oro: self = .blue
+        case .blue: self = .blue
         case .package: self = .package
         case .skinChest: self = .chest
         case .modifier(let effect, _, _):
@@ -154,7 +154,7 @@ extension RewardKind {
         case "fine", "fee", "take": self = .fine
         case "arrest": self = .arrest
         case "spendingFrozen": self = .frozen
-        case "oro": self = .blue
+        case "blue": self = .blue
         case "package": self = .package
         case "packageRateMultiplier": self = .packageRain
         case "skinChest": self = .chest

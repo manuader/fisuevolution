@@ -52,9 +52,9 @@ struct SideRailProjectionTests {
         #expect(gameState.sideRail.mergeAllPairs == 3)
     }
 
-    @Test("Fusionar todo ya encolado (por video, por ORO o en cadena) no vuelve a contar los mismos pares")
+    @Test("Fusionar todo ya encolado (por video, por blue o en cadena) no vuelve a contar los mismos pares")
     func queuedMergeAllIsNotCountedAgain() async {
-        for origin in [BoardChange.Origin.rewardedMergeAll, .oroShop] {
+        for origin in [BoardChange.Origin.rewardedMergeAll, .blueShop] {
             let gameState = await gameStateWithPairs()
             #expect(gameState.enqueueMergeAll(onFloor: gameState.visibleFloorOrdinal, origin: origin) == 3)
             gameState.refreshProjections()
@@ -96,7 +96,7 @@ struct SideRailProjectionTests {
     @Test("un video de Fusionar todo con otro ya en la cola no tiene efecto: compensa y no toca la cola")
     func rewardedMergeAllWithQueuedChainCompensates() async throws {
         let gameState = await gameStateWithPairs()
-        gameState.enqueueMergeAll(onFloor: gameState.visibleFloorOrdinal, origin: .oroShop)
+        gameState.enqueueMergeAll(onFloor: gameState.visibleFloorOrdinal, origin: .blueShop)
         let queued = gameState.pendingBoardChanges
         let coins = try #require(gameState.player?.run.coins)
         gameState.mergeAllVideoWatched()

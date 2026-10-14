@@ -41,6 +41,6 @@ extension GameState {
         from origin: RewardFlightOrigin = .popup,
         after delay: TimeInterval = RewardFlightTiming.defaultDelay
     ) {
-        announceReward([.oro(amount)], from: origin, after: delay)
+        announceReward([.blue(amount)], from: origin, after: delay)
     }
 }

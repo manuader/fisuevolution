@@ -102,7 +102,7 @@ struct ActiveModifierTests {
         #expect(abs(expired.cost - 15) < 1e-9)
     }
 
-    // MARK: meta.derivedEffects.spawnDiscount (mejora permanente en ORO)
+    // MARK: meta.derivedEffects.spawnDiscount (mejora permanente en blue)
 
     @Test("spawnDiscount permanente descuenta el hire y se combina con el modifier")
     func spawnDiscountSeCombinaConElModifier() throws {

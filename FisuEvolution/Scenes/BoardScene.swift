@@ -381,7 +381,9 @@ final class BoardScene: SKScene {
             abortBoardCelebration()
         }
         startBoardCelebrationIfItsTurn()
-        stage.update(delta: delta, reduceMotion: Self.prefersReducedMotion)
+        stage.update(delta: delta, reduceMotion: Self.prefersReducedMotion,
+                     cameraOffsetY: cameraNode.position.y - size.height / 2)
+        stage.markRequested(Array(characterNodes.values))
         stageEffects.update(delta: delta, reduceMotion: Self.prefersReducedMotion, units: Array(characterNodes.values))
         pickups.update(delta: delta, reduceMotion: Self.prefersReducedMotion)
         packageOpening.update(delta: delta, reduceMotion: Self.prefersReducedMotion)
@@ -803,6 +805,7 @@ final class BoardScene: SKScene {
         }
         if isDragging {
             node.position = location
+            stage.dragHover(at: touch.location(in: stage.layer), typeId: node.typeId)
         }
     }
 
@@ -849,6 +852,13 @@ final class BoardScene: SKScene {
             // Tap corto: §2.3 regla 1.
             dragNode = nil
             handleTap(on: node, at: touch.timestamp)
+            return
+        }
+
+        // Soltado sobre quien pide a este empleado (C16): se lo entrega; sobre quien pide a otro, rebota.
+        stage.dragHover(at: nil, typeId: nil)
+        if stage.handleDrop(at: touch.location(in: stage.layer), typeId: node.typeId) != .ignored {
+            cancelDrag(snapBack: true)
             return
         }
 

@@ -21,10 +21,8 @@ final class VisitorMechanicsUITests: XCTestCase {
     func testAceptarElRetoCambiaElChipPorElDelReto() throws {
         let app = launch("coach_reto")
         let chip = app.buttons["stage.chip.visitor"]
-        XCTAssertTrue(chip.waitForExistence(timeout: 15))
-        chip.tap()
         let accept = app.buttons["visit.option.challenge"]
-        XCTAssertTrue(accept.waitForExistence(timeout: 6))
+        XCTAssertTrue(accept.waitForExistence(timeout: 25), "el popup sale solo al llegar")
         accept.tap()
         let challenge = app.otherElements["stage.chip.challenge"]
         XCTAssertTrue(challenge.waitForExistence(timeout: 6), "el reto se juega en el tablero, con su contador")
@@ -39,8 +37,7 @@ final class VisitorMechanicsUITests: XCTestCase {
     func testElVendedorMuestraTresCartasYSeLlevaUna() throws {
         let app = launch("vendedor_ofertas")
         let chip = app.buttons["stage.chip.visitor"]
-        XCTAssertTrue(chip.waitForExistence(timeout: 15))
-        chip.tap()
+        XCTAssertTrue(app.buttons["visit.option.card.mate"].waitForExistence(timeout: 25), "el popup sale solo al llegar")
         for card in ["mate", "cafe", "turbo"] {
             XCTAssertTrue(app.buttons["visit.option.card.\(card)"].waitForExistence(timeout: 6), "falta la carta \(card)")
         }
@@ -53,5 +50,22 @@ final class VisitorMechanicsUITests: XCTestCase {
         XCTAssertTrue(app.otherElements["hud.bonus.chip"].waitForExistence(timeout: 10)
             || app.staticTexts["hud.bonus.chip"].waitForExistence(timeout: 1))
         XCTAssertTrue(chip.waitForNonExistence(timeout: 6))
+    }
+
+    @MainActor
+    func testElVendedorSeOfendeYSeVaPisandoFuerte() throws {
+        let app = launch("vendedor_ofertas")
+        let decline = app.buttons["visit.option.decline"]
+        XCTAssertTrue(decline.waitForExistence(timeout: 25))
+        decline.tap()
+        let bye = app.buttons["visit.offended.bye"]
+        XCTAssertTrue(bye.waitForExistence(timeout: 6), "el berretín: su frase ofendida y un «Chau»")
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = "vendedor: el berretín"
+        shot.lifetime = .keepAlways
+        add(shot)
+        bye.tap()
+        XCTAssertTrue(bye.waitForNonExistence(timeout: 6))
+        XCTAssertTrue(app.buttons["stage.chip.visitor"].waitForNonExistence(timeout: 20), "se va y no deja tarjeta")
     }
 }

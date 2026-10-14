@@ -17545,6 +17545,40 @@
         }
       }
     },
+    "visit.request.asks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wants"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te pide"
+          }
+        }
+      }
+    },
+    "visit.request.gives" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In return"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A cambio"
+          }
+        }
+      }
+    },
     "visit.sindicalista_asado.ask" : {
       "extractionState" : "manual",
       "localizations" : {

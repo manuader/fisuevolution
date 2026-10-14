@@ -51,7 +51,7 @@ final class VisitorNode: SKSpriteNode {
                                     manifest: loops, pool: pool, packs: packs)
         node.position = CGPoint(x: 0, y: size.height / 2)
         addChild(node)
-        node.setVisible(true)
+        node.setVisible(!isHidden)
         videoNode = node
     }
 
@@ -63,10 +63,18 @@ final class VisitorNode: SKSpriteNode {
         videoClip = nil
     }
 
-    /// El bamboleo al caminar: unos puntos arriba y abajo, tres pasos por segundo.
-    func walkBob(delta: TimeInterval) -> CGFloat {
+    /// El bamboleo al caminar: unos puntos arriba y abajo, tres pasos por segundo. Pisando fuerte
+    /// (`stomp`, el vendedor ofendido): pasos más rápidos y más altos.
+    func walkBob(delta: TimeInterval, stomp: Bool = false) -> CGFloat {
         clock += delta
-        return CGFloat(abs(sin(clock * .pi * 3))) * 4
+        return stomp ? CGFloat(abs(sin(clock * .pi * 5))) * 8 : CGFloat(abs(sin(clock * .pi * 3))) * 4
+    }
+
+    /// Fuera de la pantalla (su piso no se ve) el video suelta su cupo.
+    func setOnScreen(_ onScreen: Bool) {
+        guard isHidden == onScreen else { return }
+        isHidden = !onScreen
+        videoNode?.setVisible(onScreen)
     }
 
     /// El pulso de espera: respira.

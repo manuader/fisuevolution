@@ -136,7 +136,7 @@ struct FloorMapView: View {
             if let summary = gameState.staffedSummary {
                 StateBadge(
                     text: gameState.staffedSummaryText(summary),
-                    systemImage: "bolt.fill",
+                    glyph: .coin,
                     textAlignment: .center,
                     muted: summary.staffed == 0
                 )
@@ -276,8 +276,7 @@ struct FloorMapView: View {
         if entry.isUnlocked {
             HStack(spacing: Tokens.s8) {
                 HStack(spacing: 4) {
-                    Image(systemName: "person.2.fill")
-                        .font(.system(size: 12, weight: .bold))
+                    GameGlyphView(glyph: .people, size: 18)
                     Text(verbatim: "\(entry.occupied)/\(entry.capacity)")
                         .font(Tokens.body)
                         .monospacedDigit()
@@ -287,8 +286,7 @@ struct FloorMapView: View {
             }
         } else {
             HStack(spacing: 5) {
-                Image(systemName: "lock.fill")
-                    .font(.system(size: 14, weight: .black))
+                GameGlyphView(glyph: .lock, size: 20)
                 Text("map.locked")
                     .font(Tokens.body)
                     .lineLimit(1)
@@ -359,9 +357,8 @@ struct FloorMapView: View {
             } else {
                 Color("PaletteInk").opacity(0.18)
                     .overlay {
-                        Image(systemName: entry.isUnlocked ? "photo" : "questionmark")
-                            .font(.system(size: 22, weight: .black))
-                            .foregroundStyle(Color("PaletteInk").opacity(0.45))
+                        GameGlyphView(glyph: entry.isUnlocked ? .photo : .question, size: 30)
+                            .opacity(0.6)
                     }
             }
         }

@@ -86,6 +86,8 @@ extension GameState {
         player.meta.engagement.wheel = wheel
         self.player = player
         let coins = grant(segments[index].reward, source: "wheel.\(segments[index].id)", now: now)
+        // El premio vuela cuando la rueda ya frenó: recién ahí el jugador lo ve.
+        announceReward(segments[index].reward, coins: coins, after: content.wheel.spinSeconds + 0.4)
         Task { await persistNow() }
         Log.economy.info("wheel spin (\(source.rawValue)): \(segments[index].id)")
         return WheelSpinOutcome(segments: segments, index: index, coins: coins)
@@ -126,6 +128,7 @@ extension GameState {
         player.meta.engagement.wheel = wheel
         self.player = player
         let coins = grant(repeated.reward, source: "wheel.\(repeated.id)", now: now)
+        announceReward(repeated.reward, coins: coins)
         Task { await persistNow() }
         Log.economy.info("wheel prize repeated: \(repeated.id)")
         return WheelSpinOutcome(segments: segments, index: index, coins: coins)

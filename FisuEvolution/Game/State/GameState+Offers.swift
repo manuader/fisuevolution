@@ -16,7 +16,8 @@ extension GameState {
             Log.store.error("offer purchase without a known offer: \(offerId ?? "nil")")
             return
         }
-        grant(offer.rewards, source: "offer.\(offerId)", now: now)
+        let coins = grant(offer.rewards, source: "offer.\(offerId)", now: now)
+        announceReward(offer.rewards, coins: coins)
         guard var player else { return }
         player.meta.recordOroPurchase(transactionID: transactionID, amount: offer.oroAmount)
         OffersEngine.markPurchased(offerId, in: &player.meta.engagement.offers, now: now)

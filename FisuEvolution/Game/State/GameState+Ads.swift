@@ -146,7 +146,7 @@ extension GameState {
         }
         releaseCelebrationsAfterAd()
         guard earned, let content else { return }
-        grant(offer.prize, source: "adbreak")
+        announceReward(offer.prize, coins: grant(offer.prize, source: "adbreak"))
         Task { await persistNow(includingCloud: false) }
         pacer.advanceAdBreakPrize(count: content.rewardedAds.effectiveAdBreak.prizes.count)
         towerNotice = TowerNotice(kind: .rewardGranted(text: RewardCopy.title(offer.prize)))

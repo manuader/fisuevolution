@@ -160,12 +160,16 @@ extension GameState {
             return true
         case .listen:
             creditCoins(checked.coins)
-            grant(checked.rewards, source: source, now: now)
+            announceReward(
+                checked.rewards, coins: max(0, checked.coins) + grant(checked.rewards, source: source, now: now)
+            )
             revealGossip()
             return true
         case .accept, .acceptWithVideo, .payBail, .release, .payFine, .forgiveWithVideo, .sell, .exchange, .card:
             creditCoins(checked.coins)
-            grant(checked.rewards, source: source, now: now)
+            announceReward(
+                checked.rewards, coins: max(0, checked.coins) + grant(checked.rewards, source: source, now: now)
+            )
             noteOroExchanged(checked, scriptId: offer.scriptId)
             // La plata ya está; la salida, a la vista y en su turno (E1). Si al
             // llegar su turno ya no es válida se descarta y la plata queda: el
@@ -213,7 +217,8 @@ extension GameState {
         stageChallenge = nil
         guard won else { return finishVisit(saying: "visit.challenge.lost") }
         creditCoins(challenge.terms.coins)
-        grant(challenge.terms.rewards, source: "visit.\(challenge.scriptId)", now: now)
+        let granted = grant(challenge.terms.rewards, source: "visit.\(challenge.scriptId)", now: now)
+        announceReward(challenge.terms.rewards, coins: max(0, challenge.terms.coins) + granted)
         guard challenge.terms.videoDoubles, var visit = stageVisit else {
             return finishVisit(saying: "visit.challenge.won")
         }

@@ -55,7 +55,8 @@ extension GameState {
         player.meta.stats.videosWatchedEver += 1
         self.player = player
         if let minutes {
-            grant(.coinsSeconds(minutes * 60), source: "career.x2.\(optionId)")
+            let reward = RewardSpec.coinsSeconds(minutes * 60)
+            announceReward(reward, coins: grant(reward, source: "career.x2.\(optionId)"))
         }
         evaluateAchievements()
     }

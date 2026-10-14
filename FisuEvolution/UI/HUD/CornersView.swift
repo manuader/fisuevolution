@@ -15,6 +15,7 @@ struct CornersView: View {
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
             SideRailView(offer: $railOffer)
+                .rewardFlightAnchor(.seals)
                 .zIndex(1)
             Spacer(minLength: 0)
             rightColumn
@@ -34,5 +35,6 @@ struct CornersView: View {
                 ActiveBonusBar(bonuses: gameState.activeBonuses) { gameState.openEventPopup(id: $0) }
             }
         }
+        .rewardFlightAnchor(.boosts)
     }
 }

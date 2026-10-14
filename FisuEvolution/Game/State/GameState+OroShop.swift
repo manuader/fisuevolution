@@ -116,7 +116,8 @@ extension GameState {
         }
         if item.perk == .extraSlots { growTowerToTheExtraSlots() }
         if !item.rewards.isEmpty {
-            grant(item.rewards, source: "shop.\(id)", now: now.timeIntervalSince1970)
+            let coins = grant(item.rewards, source: "shop.\(id)", now: now.timeIntervalSince1970)
+            announceReward(item.rewards, coins: coins)
         }
         effectsVersion += 1
         audio?.play(.coin)

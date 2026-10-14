@@ -110,6 +110,7 @@ extension GameState {
         player.meta.lifetimeEarnings += amount
         self.player = player
         towerNotice = TowerNotice(kind: .rewardCompensated(durationText: Self.durationText(seconds)))
+        announceCoins(amount)
         if isSceneActive { audio?.play(.coin) }
         refreshProjections()
         scheduleSave()
@@ -212,6 +213,11 @@ extension GameState {
     }
 
     func dismissDailyClaim() {
+        // El popup se cierra y la plata vuela al contador: con el ×2 del video, las dos pagas.
+        if let claim = dailyClaim {
+            let chest: [RewardSpec] = claim.chestGranted ? [.skinChest(1)] : []
+            announceReward(chest, coins: claim.coinsGranted * (dailyRewardDoubled() ? 2 : 1))
+        }
         dailyClaim = nil
         celebrationFinished(.dailyReward)
     }
@@ -485,18 +491,21 @@ extension GameState {
     func grantCareerReward(optionId: String, now: TimeInterval = Date().timeIntervalSince1970) {
         guard let content, let career = content.careers.careers.first(where: { $0.id == optionId }) else { return }
         let source = "career.\(optionId)"
+        func give(_ reward: RewardSpec) {
+            announceReward(reward, coins: grant(reward, source: source, now: now))
+        }
 
         switch career.rewardKind {
         case .freeHires:
-            grant(.modifier(effect: .freeHire, magnitude: 1, seconds: career.durationSeconds ?? 0), source: source, now: now)
+            give(.modifier(effect: .freeHire, magnitude: 1, seconds: career.durationSeconds ?? 0))
         case .skin:
             grantSkin(career.skinId)
         case .lawsuit:
-            grant(.coinsSeconds((career.lumpMinutes ?? 0) * 60), source: source, now: now)
+            give(.coinsSeconds((career.lumpMinutes ?? 0) * 60))
         case .healthPlan:
-            grant(.eventImmunity(seconds: career.durationSeconds ?? 0), source: source, now: now)
+            give(.eventImmunity(seconds: career.durationSeconds ?? 0))
             cutNegativeEvents(now: now)
-            grant(.coinsSeconds((career.lumpMinutes ?? 0) * 60), source: source, now: now)
+            give(.coinsSeconds((career.lumpMinutes ?? 0) * 60))
         }
         Log.economy.info("career reward granted: \(optionId) (\(career.rewardKind.rawValue))")
     }

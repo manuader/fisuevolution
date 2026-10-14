@@ -1,34 +1,31 @@
 import SwiftUI
 
-/// **Regalos** — todo lo que el juego te da sin cobrarte (spec §9), en un solo
-/// panel: los **cofres de pintas** sin abrir —cuando hay—, la **racha diaria**,
-/// los **boosts** gratis con cooldown y los **videos**.
+/// **Regalos** — todo lo que el juego te da sin cobrarte (spec §9), ordenado por
+/// **estado** y no por catálogo (E14 C29): arriba «Para cobrar ahora» —una
+/// tarjeta grande con lo más valioso que está listo y, debajo, el resto en
+/// filas—, después «Pronto» con el reloj como protagonista, «Más adelante» con lo
+/// que todavía no se puede, y al final la racha. El orden lo decide `GiftsAgenda`.
 ///
-/// El cofre va primero porque no es de la misma clase que las otras tres: las
-/// demás **ofrecen** algo que el jugador todavía tiene que ganar, y ésa
-/// **entrega** algo que ya ganó. Y es el único botón del juego —fuera de la
-/// puerta de debug— que llama a `openChest()`: sin él los cofres se acumulan
-/// invisibles en el save.
-///
-/// Reemplaza a `BonusView`, que era una `List` de sistema con dos secciones. Lo
-/// que cambió es el idioma visual —`GameCard`, `SectionHeader`, `ActionPill`,
-/// `StateBadge`, `Tokens`, el marco `panel_reward` medido— y que ahora la
-/// pantalla **muestra el calendario**, que antes sólo existía como popup del día
-/// que te tocaba. Los identifiers de los controles son los mismos que ejercen
-/// `BonusHUDUITests`.
+/// Si no hay nada para cobrar, la cabecera lo dice y muestra lo próximo con su
+/// reloj: nunca una página vacía.
 ///
 /// ⚠️ **El calendario no tiene botón de reclamar, y es a propósito.** El daily se
 /// cobra solo (bootstrap y vuelta a foreground, `GameState.swift:436` y `604`);
 /// un segundo camino de claim desde acá abriría la carrera que el spec descarta.
-/// La tira informa: qué llevás cobrado y qué viene.
+/// La tira informa: qué llevás cobrado y qué viene. Su explicación larga vive
+/// detrás del «?».
 ///
 /// ⚠️ **Un solo timer de 1 Hz para toda la pantalla** (patrón `ActiveBonusBar`).
 /// Los cooldowns NO viajan en ninguna proyección publicada: `boostRows` y
 /// `rewardRows` se computan al leerse, así que basta con que `now` avance una vez
-/// por segundo para que las secciones se recalculen juntas. Es también lo que
-/// refresca la tarjeta del cofre: `pendingChestCount` sale de `player`, que la UI
-/// no observa (el puntito de la pestaña, que no tiene timer, va por la
-/// proyección `hasPendingChests`).
+/// por segundo para que las secciones se recalculen juntas —y para que una fila
+/// pase de «Pronto» a «Para cobrar ahora» sola—. Es también lo que refresca el
+/// cofre: `pendingChestCount` sale de `player`, que la UI no observa (el puntito
+/// de la pestaña, que no tiene timer, va por la proyección `hasPendingChests`).
+///
+/// Los identifiers de los controles son los de siempre (`bonus.activate.<id>`,
+/// `gifts.chest.open`, `ads.watch.<id>`…): los ejercen `BonusHUDUITests` y
+/// `WheelUITests`, y no cambian de lugar al cambiar de sección.
 struct GiftsView: View {
     @Environment(GameState.self) private var gameState
     @Environment(\.dismiss) private var dismiss
@@ -40,11 +37,13 @@ struct GiftsView: View {
     @State private var now = Date()
     /// La ruleta se empuja dentro de esta misma hoja (PLAN-v2 E5: "vive en Regalos").
     @State private var showWheel = false
+    /// El popup de «cómo funciona la racha».
+    @State private var showStreakHelp = false
 
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     /// Hay anuncio cargado para saltear el cooldown de un boost. Se sondea una
-    /// vez para toda la pantalla (ver `BoostCard.adReady`).
+    /// vez para toda la pantalla (ver `GiftEntryCard.adReady`).
     @State private var boostAdReady = false
 
     /// La pantalla de Regalos es la vidriera de los videos, así que al abrirla
@@ -77,92 +76,50 @@ struct GiftsView: View {
     }
 
     /// Margen lateral de la columna: el del marco vectorial, publicado por el
-    /// componente. Un solo número para las nueve hojas — el marco es el
-    /// contenedor y las tarjetas viven ADENTRO (pedido del dueño, 2026-08-18;
-    /// antes eran cuatro insets medidos PNG por PNG contra el arte 9-slice,
-    /// que además se deformaba al estirarse).
+    /// componente. Un solo número para las nueve hojas.
     private static let panelInset: CGFloat = WoodPanelBackground.columnInset
 
     var body: some View {
         // `effectsVersion` sube al activar un boost o acreditar un video: es lo
-        // que hace que la fila pase de botón a cuenta regresiva sin cerrar la
-        // hoja. `now` avanza una vez por segundo y es lo que hace tictaquear las
-        // tres secciones. Los dos se leen explícitamente para que el body dependa
-        // de ELLOS y no de `PlayerState`, que la UI nunca observa.
+        // que hace que la fila cambie de sección sin cerrar la hoja. `now` avanza
+        // una vez por segundo. Los dos se leen explícitamente para que el body
+        // dependa de ELLOS y no de `PlayerState`, que la UI nunca observa.
         let _ = gameState.effectsVersion
-        let _ = now
+        let clock = now.timeIntervalSince1970
 
-        // ⚠️ UNA lectura por evaluación del body: las tres proyecciones se
-        // computan de cero cada vez que se leen (los seis boosts consultan el
-        // cooldown, los videos también). Leerlas adentro del `ForEach` las
-        // multiplicaría por su cantidad de filas.
+        // ⚠️ UNA lectura por evaluación del body: las proyecciones se computan de
+        // cero cada vez que se leen.
         let days = gameState.dailyCalendar
-        let boosts = gameState.boostRows
-        let rewards = gameState.rewardRows
-        // La tarjeta del cofre está o no está, y eso corre TODA la cascada de
-        // abajo un lugar: el índice del escalonado cuenta a través de las
-        // secciones (ver el comentario del `VStack`), así que las de abajo tienen
-        // que sumar la fila que la tarjeta ocupa — o no ocupa.
-        let chests = gameState.pendingChestCount
-        let chestRows = chests > 0 ? 1 : 0
-        let wheel = gameState.wheelAvailability(storefrontAllows: false)
+        let agenda = GiftsAgenda(
+            chests: gameState.pendingChestCount,
+            canOpenChest: gameState.canOpenChest,
+            wheel: gameState.wheelAvailability(storefrontAllows: false),
+            wheelReadyIn: gameState.wheelSpinsReadyAt(now: clock).map { max(0, $0 - clock) },
+            boosts: gameState.boostRows,
+            videos: gameState.rewardRows
+        )
+        let firstBoostId = (agenda.ready + agenda.soon + agenda.later).compactMap { entry -> String? in
+            if case .boost(let row) = entry { row.id } else { nil }
+        }.first
 
         NavigationStack {
             ScrollView {
-                // `VStack` y no `LazyVStack`: son 12 tarjetas contadas —la tira,
-                // los seis boosts y los cinco videos—, 13 con la del cofre cuando
-                // hay alguno esperando, y tienen que existir en el árbol de
-                // accesibilidad sin scrollear. La fila del video que ejerce
-                // `BonusHUDUITests` vive abajo de los seis boosts, y con la lista
-                // perezosa de `BonusView` el test tenía que deslizar hasta cuatro
-                // veces para encontrarla.
-                // Las tarjetas caen escalonadas de arriba abajo al abrir la hoja
-                // (spec §11.2). El índice corre a través de TODAS las secciones
-                // —la fila 0 es el cofre si está, y si no la ruleta—
-                // así que la cascada es del panel y no de cada sección por su
-                // cuenta. Las cintas de sección no participan: son el esqueleto,
-                // y lo que entra es el contenido.
+                // `VStack` y no `LazyVStack`: son ~13 tarjetas y tienen que existir
+                // en el árbol de accesibilidad sin scrollear (la fila del video que
+                // ejerce `BonusHUDUITests` vive abajo de los boosts).
                 VStack(spacing: Tokens.s12) {
-                    // Arriba de todo, y sólo cuando hay: es lo único de esta
-                    // pantalla que el jugador YA ganó y todavía no cobró. Los
-                    // boosts y los videos son ofertas; el cofre es suyo.
-                    if chests > 0 {
-                        section("gifts.section.chests")
-                        ChestCard(count: chests, canOpen: gameState.canOpenChest, open: openChest)
-                            .tutorialAnchor(.giftsChest)
-                            .staggeredAppearance(index: 0)
-                    }
-
-                    section("gifts.section.wheel")
-                    WheelGiftCard(availability: wheel) { showWheel = true }
-                        .staggeredAppearance(index: chestRows)
-
-                    section("gifts.section.daily")
-                    DailyStrip(days: days)
-                        .staggeredAppearance(index: chestRows + 1)
-
-                    section("gifts.section.boosts")
-                    ForEach(Array(boosts.enumerated()), id: \.element.id) { offset, row in
-                        BoostCard(
-                            row: row,
-                            activate: { payoutAmount = gameState.activateBoost(id: row.id) },
-                            adReady: boostAdReady,
-                            boostWatched: { boostWatched(boostId: row.id) }
-                        )
-                            .tutorialAnchor(.giftsBoosts, when: offset == 0)
-                            .staggeredAppearance(index: chestRows + 2 + offset)
-                    }
+                    readySection(agenda, firstBoostId: firstBoostId)
                     if let payoutAmount {
                         payoutBanner(payoutAmount)
                     }
+                    cards(agenda.soon, mode: .soon, titleKey: "gifts.section.soon",
+                          firstBoostId: firstBoostId, indexBase: agenda.ready.count + 1)
+                    cards(agenda.later, mode: .later, titleKey: "gifts.section.later",
+                          firstBoostId: firstBoostId, indexBase: agenda.ready.count + agenda.soon.count + 2)
 
-                    section("gifts.section.videos")
-                    ForEach(Array(rewards.enumerated()), id: \.element.id) { offset, row in
-                        VideoCard(row: row) {
-                            gameState.applyRewardedReward(rewardId: row.id)
-                        }
-                        .staggeredAppearance(index: chestRows + 2 + boosts.count + offset)
-                    }
+                    section("gifts.section.daily")
+                    DailyStrip(days: days) { showStreakHelp = true }
+                        .staggeredAppearance(index: agenda.ready.count + agenda.soon.count + agenda.later.count + 3)
                 }
                 .padding(.horizontal, Self.panelInset)
                 .padding(.top, Tokens.s12)
@@ -172,8 +129,6 @@ struct GiftsView: View {
                 header
             } ornament: {
                 // El moño de la referencia, apoyado sobre el TOLDO del marco.
-                // Va como ornamento del panel —en el plano del fondo, detrás
-                // del contenido— anclado al tope, que es donde vive el toldo.
                 GiftBowOrnament()
                     .offset(y: 8)
                     .allowsHitTesting(false)
@@ -192,8 +147,60 @@ struct GiftsView: View {
             .onChange(of: showWheel) { _, pushed in pager?.lock(pushed) }
             .onReceive(timer) { now = $0 }
             .task { await preloadVideos() }
+            .gamePopup(isPresented: $showStreakHelp, dismissOnVeilTap: true) {
+                StreakHelpPopup { showStreakHelp = false }
+            }
         }
         .tint(Color("PaletteInk"))
+    }
+
+    // MARK: Secciones
+
+    /// «Para cobrar ahora»: la tarjeta grande y el resto de lo listo. Sin nada
+    /// listo, la cabecera dice que no hay y qué viene.
+    @ViewBuilder
+    private func readySection(_ agenda: GiftsAgenda, firstBoostId: String?) -> some View {
+        if let hero = agenda.hero {
+            section("gifts.section.ready")
+            card(hero, mode: .hero, firstBoostId: firstBoostId, index: 0)
+            ForEach(Array(agenda.rest.enumerated()), id: \.element.id) { offset, entry in
+                card(entry, mode: .ready, firstBoostId: firstBoostId, index: offset + 1)
+            }
+        } else {
+            NothingToCollectCard(next: agenda.soon.first)
+                .staggeredAppearance(index: 0)
+        }
+    }
+
+    @ViewBuilder
+    private func cards(
+        _ entries: [GiftsAgenda.Entry], mode: GiftEntryCard.Mode, titleKey: LocalizedStringKey,
+        firstBoostId: String?, indexBase: Int
+    ) -> some View {
+        if !entries.isEmpty {
+            section(titleKey)
+            ForEach(Array(entries.enumerated()), id: \.element.id) { offset, entry in
+                card(entry, mode: mode, firstBoostId: firstBoostId, index: indexBase + offset)
+            }
+        }
+    }
+
+    private func card(
+        _ entry: GiftsAgenda.Entry, mode: GiftEntryCard.Mode, firstBoostId: String?, index: Int
+    ) -> some View {
+        GiftEntryCard(
+            entry: entry,
+            mode: mode,
+            adReady: boostAdReady,
+            openChest: openChest,
+            openWheel: { showWheel = true },
+            activateBoost: { payoutAmount = gameState.activateBoost(id: $0) },
+            boostWatched: { boostWatched(boostId: $0) },
+            videoRewarded: { gameState.applyRewardedReward(rewardId: $0) }
+        )
+        .tutorialAnchor(.giftsChest, when: entry.id == "chest")
+        .tutorialAnchor(.giftsBoosts, when: entry.id == firstBoostId)
+        .staggeredAppearance(index: index)
     }
 
     // MARK: Cabecera
@@ -203,8 +210,7 @@ struct GiftsView: View {
     /// cabecera, y la banda tapaba el toldo y los postes (2026-08-18).
     private var header: some View {
         // El mismo moño del tab que abre esta hoja, ADENTRO de la cápsula
-        // del título (así componen las referencias). El banner ya lo tapa
-        // de VoiceOver: es decoración, el título dice "Regalos".
+        // del título. El banner ya lo tapa de VoiceOver: es decoración.
         PanelTitleBanner(
             titleKey: "gifts.title",
             icon: AnyView(GameIcon(artKey: "ui_tab_gifts", size: 26) { VectorTabGiftsIcon() })
@@ -217,7 +223,7 @@ struct GiftsView: View {
             .padding(.top, Tokens.s8)
     }
 
-    /// Lo que pagó la picada del Asado. Aparece bajo los boosts y se queda hasta
+    /// Lo que pagó la picada del Asado. Aparece bajo lo listo y se queda hasta
     /// cerrar la hoja: es un premio de una vez y el jugador tiene que poder
     /// volver a mirarlo.
     private func payoutBanner(_ amount: Double) -> some View {
@@ -261,9 +267,10 @@ struct GiftsView: View {
 
 // MARK: - Formato de los cooldowns
 
-/// El reloj de las dos secciones. Vive suelto y no en cada tarjeta porque los
-/// boosts y los videos tienen que contar IGUAL: son cuentas regresivas de la
-/// misma pantalla, y dos formatos distintos se leen como dos relojes distintos.
+/// El reloj de las secciones. Vive suelto y no en cada tarjeta porque los
+/// boosts, los videos y la Ruleta tienen que contar IGUAL: son cuentas
+/// regresivas de la misma pantalla, y dos formatos distintos se leen como dos
+/// relojes distintos.
 private enum Cooldown {
     /// "4h 0m", "12m 3s", "8s".
     static func text(_ remaining: TimeInterval) -> String {
@@ -274,162 +281,429 @@ private enum Cooldown {
     }
 
     /// Cuánto del cooldown ya pasó, 0…1. El aro **se llena hacia el momento en
-    /// que vuelve a estar disponible** (al revés que el de `ActiveBonusBar`, que
-    /// se vacía mientras el bonus se consume): acá lo que se espera es que se
-    /// complete.
+    /// que vuelve a estar disponible**: acá lo que se espera es que se complete.
     static func progress(remaining: TimeInterval, total: TimeInterval) -> Double {
         guard total > 0 else { return 1 }
         return min(1, max(0, 1 - remaining / total))
     }
 }
 
-// MARK: - El cofre sin abrir
+// MARK: - Nada para cobrar
 
-/// Los cofres de pintas que el jugador YA ganó y todavía no abrió: el arte del
-/// cofre cerrado, cuántos son y el botón que abre uno.
-///
-/// Es una de las dos tarjetas **destacadas** de la pantalla —la otra es el
-/// `payoutBanner`, y pueden convivir—, y es a propósito: las otras
-/// tres secciones ofrecen cosas —una racha que hay que sostener, boosts con
-/// cooldown, videos que hay que mirar—, y ésta entrega algo que ya es suyo. El
-/// amarillo es el mismo acento con el que la tira marca el día en juego.
-///
-/// Abre **de a uno**: `openChest()` gasta uno solo y la animación ocupa la
-/// pantalla entera, así que con dos esperando el jugador vuelve acá y la tarjeta
-/// —que se recompone con el timer de la pantalla— ya dice "1 sin abrir".
-private struct ChestCard: View {
-    let count: Int
-    /// Si el sorteo tiene algo para dar HOY. Con la regla de desbloqueo
-    /// (2026-08-28) un cofre puede estar ganado y todavía no ser abrible: el
-    /// jugador ya tiene todas las pintas de los personajes a los que llegó.
-    ///
-    /// ⚠️ **El cofre NO se pierde ni se descuenta** — sigue contando arriba, y
-    /// por eso el número de la tarjeta no cambia. Lo único que cambia es el riel
-    /// derecho, que pasa de ofrecer a explicar.
-    let canOpen: Bool
-    let open: () -> Void
-
-    /// El mismo plato de 56 pt que la tira, `BoostGlyph` y `ScreenGlyph`: las
-    /// cuatro secciones llevan su glifo con el mismo encuadre.
-    private static let plateShape = RoundedRectangle(cornerRadius: 12, style: .continuous)
-    /// Y el mismo riel derecho que las otras dos filas con botón, por lo mismo:
-    /// las secciones de esta pantalla son la misma lista.
-    private static let railWidth: CGFloat = BoostCard.railWidth
+/// La cabecera cuando no hay nada listo: lo dice con humor y muestra lo próximo
+/// con su reloj.
+private struct NothingToCollectCard: View {
+    let next: GiftsAgenda.Entry?
 
     var body: some View {
-        GameCard(style: .highlighted(Color("PaletteYellow"))) {
+        GameCard(style: .normal) {
             HStack(spacing: Tokens.s12) {
-                GameIcon(artKey: "ui_chest_closed", size: 44) { VectorTabGiftsIcon() }
+                GameGlyphView(glyph: .clock, size: 44)
                     .padding(6)
                     .background(Color("PaletteYellow").opacity(0.35))
-                    .clipShape(Self.plateShape)
-                    .overlay(Self.plateShape.strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
-                    .accessibilityHidden(true)
-                // Interpolar el `Int` en la clave arma "gifts.chest.count %lld",
-                // que es la que está en el catálogo (trampa 5, al derecho).
-                Text("gifts.chest.count \(count)")
-                    .font(Tokens.title)
-                    .monospacedDigit()
-                    .foregroundStyle(Color("PaletteInk"))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.6)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    // Ya lo dice el resumen de la fila, que es el elemento de
-                    // atrás: sin esto se anuncia dos veces.
-                    .accessibilityHidden(true)
-                // El riel ofrece o explica, nunca ofrece apagado: `ActionPill`
-                // no usa `.disabled` en ningún lado del juego —una acción que no
-                // corresponde no se dibuja— y `StateBadge` es lo que ocupa su
-                // lugar. Mismo par que las filas de boosts de esta pantalla.
-                Group {
-                    if canOpen {
-                        ActionPill(
-                            titleKey: "gifts.chest.open",
-                            systemImage: "sparkles",
-                            identifier: "gifts.chest.open",
-                            // "Abrir" a secas no dice qué se abre, y en el rotor es una
-                            // parada muda. El nombre del premio ya existe —es el que usa
-                            // el día 7 del calendario— y va en singular, que es lo que
-                            // este botón hace: abrir UNO.
-                            accessibilityLabel: Text("gifts.chest.open")
-                                + Text(verbatim: ", ") + Text("daily.prize.chest"),
-                            action: open
-                        )
-                    } else {
-                        StateBadge(
-                            text: String(localized: "gifts.chest.locked"),
-                            systemImage: "lock.fill",
-                            muted: true
-                        )
-                        // Regalos navega por paradas y este badge es el ÚNICO
-                        // lugar donde "todavía no" se dice: taparlo lo borraría
-                        // del árbol y el cofre quedaría mudo (patrón del grupo 2).
-                        .accessibilityElement(children: .combine)
-                        .accessibilityIdentifier("gifts.chest.locked")
-                    }
+                    .clipShape(GiftPlate.shape)
+                    .overlay(GiftPlate.shape.strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("gifts.empty.title")
+                        .font(Tokens.title)
+                        .foregroundStyle(Color("PaletteInk"))
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.7)
+                    Text(verbatim: line)
+                        .font(Tokens.body)
+                        .foregroundStyle(Color("PaletteInk").opacity(0.75))
+                        .lineLimit(3)
+                        .minimumScaleFactor(0.75)
                 }
-                .frame(width: Self.railWidth, alignment: .trailing)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
-        // ⚠️ El resumen de la fila va en una capa VACÍA y detrás, patrón T8:
-        // encima de la tarjeta se tragaría el botón (trampa 9a) y
-        // `gifts.chest.open` dejaría de existir en el árbol de accesibilidad.
-        .background {
-            Color.clear
-                .accessibilityElement(children: .ignore)
-                .accessibilityIdentifier("gifts.chest.row")
-                .accessibilityLabel(
-                    Text("gifts.section.chests")
-                        + Text(verbatim: ", ") + Text("gifts.chest.count \(count)")
-                )
-                .allowsHitTesting(false)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("gifts.empty")
+    }
+
+    private var line: String {
+        guard let next, let wait = next.waitSeconds else { return String(localized: "gifts.empty.later") }
+        return String(localized: "gifts.empty.next \(Cooldown.text(wait)) \(GiftFacts.name(of: next))")
+    }
+}
+
+// MARK: - Qué dice cada regalo
+
+/// El texto de cada regalo, en un solo lugar para las tres presentaciones
+/// (tarjeta grande, fila y fila con reloj).
+@MainActor
+private enum GiftFacts {
+    /// El nombre ya resuelto.
+    static func name(of entry: GiftsAgenda.Entry) -> String {
+        switch entry {
+        case .chest: String(localized: "daily.prize.chest")
+        case .wheel: String(localized: "gifts.wheel.title")
+        case .boost(let row): row.displayName
+        case .video(let row): GameState.localized(row.titleKey)
+        }
+    }
+
+    /// Una línea de lo que da (o por qué todavía no).
+    static func detail(of entry: GiftsAgenda.Entry, mode: GiftEntryCard.Mode) -> String {
+        switch entry {
+        case .chest(let count):
+            mode == .later
+                ? String(localized: "gifts.chest.locked")
+                : String(localized: "gifts.chest.count \(count)")
+        case .wheel(let availability, _):
+            if availability.bonus > 0 { RewardCopy.text("gifts.wheel.bonus", String(availability.bonus)) }
+            else if availability.videoLeft > 0 { RewardCopy.text("gifts.wheel.left", String(availability.videoLeft)) }
+            else if mode == .soon { String(localized: "gifts.wheel.back") }
+            else { String(localized: "gifts.wheel.empty") }
+        case .boost(let row):
+            row.isUnlocked ? row.effectText : String(localized: "bonus.locked \(row.unlockFloorName ?? "")")
+        case .video(let row):
+            row.unavailableReason ?? row.rewardText
+        }
+    }
+
+    /// El resumen hablado de la fila: lo que la pantalla muestra y el chiste
+    /// del boost, que ya no ocupa lugar en pantalla.
+    static func spoken(of entry: GiftsAgenda.Entry, mode: GiftEntryCard.Mode) -> String {
+        var parts = [name(of: entry), detail(of: entry, mode: mode)]
+        if case .boost(let row) = entry { parts.append(row.flavorText) }
+        return parts.joined(separator: ", ")
+    }
+
+    static func art(of entry: GiftsAgenda.Entry) -> RewardKind? {
+        switch entry {
+        case .chest: .chest
+        case .wheel: .wheelSpin
+        case .boost, .video: nil
         }
     }
 }
 
-// MARK: - La tira del calendario
+// MARK: - El plato del arte
+
+/// El arte de un regalo en su plato, con el aro del cooldown alrededor si corre.
+/// Copia el encuadre del retrato de `FisuJobsView` —plato amarillo tenue,
+/// esquinas redondeadas, borde marrón— para que las pantallas se lean como el
+/// mismo juego.
+private struct GiftPlate: View {
+    static let shape = RoundedRectangle(cornerRadius: 12, style: .continuous)
+
+    let entry: GiftsAgenda.Entry
+    var side: CGFloat = 56
+    /// Cuánto del cooldown ya pasó (0…1), o `nil` si no corre.
+    var progress: Double?
+
+    var body: some View {
+        Color.clear
+            .frame(width: side, height: side)
+            .overlay { art.padding(6).opacity(progress == nil ? 1 : 0.55) }
+            .background(Color("PaletteYellow").opacity(0.35))
+            .clipShape(Self.shape)
+            .overlay(Self.shape.strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
+            .overlay {
+                if let progress {
+                    Self.shape
+                        .trim(from: 0, to: progress)
+                        .stroke(Color("PaletteBlue"), style: StrokeStyle(lineWidth: 3.5, lineCap: .round))
+                        // Sin animación: el aro se mueve una vez por segundo con
+                        // el timer de la pantalla.
+                        .padding(1.75)
+                }
+            }
+            .accessibilityHidden(true)
+    }
+
+    @ViewBuilder private var art: some View {
+        switch entry {
+        case .chest: RewardArt(kind: .chest)
+        case .wheel: RewardArt(kind: .wheelSpin)
+        case .video: GameGlyphView(glyph: .video, size: side * 0.6)
+        case .boost(let row):
+            if let image = UIArt.image(row.iconKey) {
+                image.resizable().scaledToFit()
+            } else {
+                // Un boost sin su arte en el atlas sigue teniendo fila.
+                RewardArt(kind: .incomeBoost)
+            }
+        }
+    }
+}
+
+// MARK: - La tarjeta de un regalo
+
+/// Un regalo en cualquiera de sus tres estados: **listo** (un botón de la casa;
+/// el primero de la lista va en grande), **pronto** (el reloj) o **más adelante**
+/// (gris, con lo que falta).
+private struct GiftEntryCard: View {
+    enum Mode: Equatable {
+        /// La tarjeta destacada de arriba.
+        case hero
+        case ready
+        case soon
+        case later
+    }
+
+    let entry: GiftsAgenda.Entry
+    let mode: Mode
+    /// Hay anuncio cargado para saltear cooldowns. Lo sondea la PANTALLA una
+    /// sola vez y se lo pasa a todas las filas.
+    let adReady: Bool
+    let openChest: () -> Void
+    let openWheel: () -> Void
+    let activateBoost: (String) -> Void
+    let boostWatched: (String) -> Void
+    let videoRewarded: (String) -> Void
+
+    private var progress: Double? {
+        switch entry {
+        case .boost(let row) where mode == .soon:
+            Cooldown.progress(remaining: row.cooldownRemaining, total: row.cooldownTotal)
+        case .video(let row) where mode == .soon:
+            Cooldown.progress(remaining: row.cooldownRemaining, total: row.cooldownTotal)
+        default: nil
+        }
+    }
+
+    var body: some View {
+        Group {
+            switch mode {
+            case .hero: hero
+            case .ready, .soon: GameCard(style: .normal) { row }
+            case .later: GameCard(style: .locked, contentDimsWhenLocked: false) { row }
+            }
+        }
+        // ⚠️ El resumen de la fila va en una capa VACÍA y **detrás** (patrón T8):
+        // sobre la tarjeta entera se tragaría al botón —un elemento de
+        // accesibilidad que CONTIENE un control lo borra del árbol (trampa 9a)—.
+        .background {
+            Color.clear
+                .accessibilityElement(children: .ignore)
+                .accessibilityIdentifier(rowIdentifier)
+                .accessibilityLabel(Text(verbatim: GiftFacts.spoken(of: entry, mode: mode)))
+                .allowsHitTesting(false)
+        }
+    }
+
+    private var rowIdentifier: String {
+        if case .chest = entry { return "gifts.chest.row" }
+        return "gifts.row.\(entry.id)"
+    }
+
+    // MARK: Tarjeta grande
+
+    private var hero: some View {
+        GameCard(style: .highlighted(Color("PaletteYellow"))) {
+            VStack(spacing: Tokens.s12) {
+                HStack(spacing: Tokens.s12) {
+                    heroArt
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(verbatim: GiftFacts.name(of: entry))
+                            .font(Tokens.title)
+                            .foregroundStyle(Color("PaletteInk"))
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.7)
+                        Text(verbatim: GiftFacts.detail(of: entry, mode: mode))
+                            .font(Tokens.body)
+                            .foregroundStyle(Color("PaletteInk").opacity(0.8))
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.75)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityHidden(true)
+                }
+                action(size: .regular)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+    }
+
+    @ViewBuilder private var heroArt: some View {
+        if let kind = GiftFacts.art(of: entry) {
+            RewardIllustration(kind: kind, size: 64)
+                .frame(width: 84, height: 84)
+        } else {
+            GiftPlate(entry: entry, side: 72)
+        }
+    }
+
+    // MARK: Fila
+
+    private var row: some View {
+        HStack(spacing: Tokens.s12) {
+            GiftPlate(entry: entry, progress: progress)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(verbatim: GiftFacts.name(of: entry))
+                    .font(Tokens.body)
+                    .foregroundStyle(Color("PaletteInk"))
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
+                Text(verbatim: GiftFacts.detail(of: entry, mode: mode))
+                    .font(Tokens.caption)
+                    .foregroundStyle(Color("PaletteInk").opacity(0.7))
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            // Todo lo que dice esta columna ya lo dice el resumen de la fila.
+            .accessibilityHidden(true)
+            trailing
+        }
+    }
+
+    @ViewBuilder private var trailing: some View {
+        switch mode {
+        case .hero, .ready: action(size: .compact)
+        case .soon: waiting
+        case .later: lock
+        }
+    }
+
+    // MARK: El botón
+
+    @ViewBuilder
+    private func action(size: GameButton.Size) -> some View {
+        switch entry {
+        case .chest:
+            GameButton(
+                "gifts.chest.open", role: .free, medallion: medallion(.chest, size), size: size,
+                fullWidth: size == .regular, identifier: "gifts.chest.open",
+                // "Abrir" a secas no dice qué se abre; el nombre del premio ya
+                // existe y va en singular: abrir UNO.
+                accessibilityLabel: Text("gifts.chest.open") + Text(verbatim: ", ") + Text("daily.prize.chest"),
+                action: openChest
+            )
+        case .wheel:
+            GameButton(
+                "gifts.wheel.open", role: .free, medallion: medallion(.wheel, size), size: size,
+                fullWidth: size == .regular, identifier: "gifts.wheel.open", action: openWheel
+            )
+        case .boost(let row):
+            GameButton(
+                "bonus.activate", role: .free, medallion: medallion(.art(row.iconKey), size), size: size,
+                fullWidth: size == .regular, identifier: "bonus.activate.\(row.id)",
+                // "Activar" a secas es lo que dicen todos los botones: sin el
+                // nombre, VoiceOver no distingue cuál se está por apretar.
+                accessibilityLabel: Text("bonus.activate") + Text(verbatim: ", \(row.displayName)"),
+                action: { activateBoost(row.id) }
+            )
+        case .video(let row):
+            // Mientras carga o corre el video el botón dice "Cargando video…" y
+            // ignora los toques: es lo que reemplaza al `.disabled`.
+            RewardedOfferButton(
+                title: String(localized: "ads.watch"),
+                identifier: "ads.watch.\(row.id)",
+                placement: .gifts,
+                accessibilityLabel: Text("ads.watch") + Text(verbatim: ", \(GameState.localized(row.titleKey))"),
+                gameRole: .video,
+                gameCompact: size == .compact,
+                onRewarded: { videoRewarded(row.id) }
+            )
+        }
+    }
+
+    /// El medallón va en el botón grande; en el de la fila no, como el del video
+    /// (`RewardedOfferButton.gameCompact`): los botones de una lista son parejos.
+    private func medallion(_ glyph: GameGlyph, _ size: GameButton.Size) -> GameButton.Medallion {
+        size == .regular ? .glyph(glyph) : .none
+    }
+
+    // MARK: Pronto y más adelante
+
+    /// El reloj, protagonista de «Pronto». Un boost con el video de su ciclo sin
+    /// usar (C32) ofrece saltear la espera si hay anuncio cargado; si no, el
+    /// reloj sigue estando: es el único lugar donde se dice «está en cooldown».
+    @ViewBuilder private var waiting: some View {
+        switch entry {
+        case .boost(let row) where adReady && row.offersAd:
+            RewardedOfferButton(
+                title: String(localized: "ads.offer.boost.now"),
+                identifier: "bonus.ad.\(row.id)",
+                placement: .boost,
+                accessibilityLabel: Text("ads.offer.boost.now") + Text(verbatim: ", \(row.displayName)"),
+                gameRole: .video,
+                gameCompact: true,
+                onRewarded: { boostWatched(row.id) }
+            )
+        case .boost(let row):
+            clock(row.cooldownRemaining, identifier: "bonus.cooldown.\(row.id)")
+        case .video(let row):
+            clock(row.cooldownRemaining, identifier: "ads.cooldown.\(row.id)")
+        case .wheel(_, let readyIn):
+            if let readyIn { clock(readyIn, identifier: "gifts.wheel.soon") }
+        case .chest:
+            EmptyView()
+        }
+    }
+
+    private func clock(_ remaining: TimeInterval, identifier: String) -> some View {
+        HStack(spacing: Tokens.s4) {
+            GameGlyphView(glyph: .clock, size: 22)
+            Text(verbatim: Cooldown.text(remaining))
+                .font(Tokens.title)
+                .monospacedDigit()
+                .foregroundStyle(Color("PaletteInk"))
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityIdentifier(identifier)
+        .accessibilityLabel(Text(verbatim: Cooldown.text(remaining)))
+    }
+
+    /// El candado de «Más adelante»: lo que falta lo dice la línea de la fila; el
+    /// candado es el estado, y es lo que VoiceOver encuentra por su identifier.
+    private var lock: some View {
+        GameGlyphView(glyph: .lock, size: 28)
+            .accessibilityElement(children: .ignore)
+            .accessibilityIdentifier(lockIdentifier)
+            .accessibilityLabel(Text(verbatim: GiftFacts.detail(of: entry, mode: .later)))
+    }
+
+    private var lockIdentifier: String {
+        switch entry {
+        case .chest: "gifts.chest.locked"
+        case .wheel: "gifts.wheel.locked"
+        case .boost(let row): "bonus.locked.\(row.id)"
+        case .video(let row): "ads.unavailable.\(row.id)"
+        }
+    }
+}
+
+// MARK: - La racha
 
 /// Los siete días del ciclo, en una tira. Cobrados con tilde, el que está en
-/// juego resaltado en amarillo —el mismo acento que marca el piso actual en el
-/// ascensor— y el séptimo con el moño de la sorpresa.
+/// juego resaltado en amarillo y el séptimo con el moño de la sorpresa. Arriba,
+/// el día en un número grande y el «?» que abre la explicación.
 ///
 /// No hay botón de reclamar: ver el ⚠️ de `GiftsView`.
 private struct DailyStrip: View {
     let days: [GameState.DailyDayRow]
+    let showHelp: () -> Void
 
-    /// El mismo plato de 56 pt que `BoostGlyph` y `ScreenGlyph`: las tres
-    /// secciones de la pantalla llevan su glifo con el mismo encuadre.
-    private static let plateShape = RoundedRectangle(cornerRadius: 12, style: .continuous)
+    private var currentDay: Int {
+        days.first(where: \.isToday)?.id ?? max(1, days.filter(\.isClaimed).count)
+    }
 
     var body: some View {
         GameCard(style: .normal) {
             VStack(spacing: Tokens.s8) {
                 HStack(spacing: Tokens.s12) {
-                    // El calendario es el único de los 15 iconos de la T19 que
-                    // no tenía call-site: sin este `GameIcon`, su PNG entraría
-                    // al manifest y el juego lo ignoraría. 44 pt adentro del
-                    // plato — el rango que pide su prompt (44–60).
                     GameIcon(artKey: "ui_daily_calendar", size: 44) { VectorCalendarIcon() }
                         .padding(6)
                         .background(Color("PaletteYellow").opacity(0.35))
-                        .clipShape(Self.plateShape)
-                        .overlay(Self.plateShape.strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
+                        .clipShape(GiftPlate.shape)
+                        .overlay(GiftPlate.shape.strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
                         .accessibilityHidden(true)
-                    // Por qué no hay botón, dicho en la pantalla y no sólo en
-                    // el código: sin esta línea, "el día 3 está resaltado y no
-                    // puedo tocarlo" se lee como un bug. Tres renglones y no
-                    // dos: al lado del plato la columna es más angosta y con
-                    // dos el remate ("la racha vuelve al 1") se caía en los
-                    // tamaños estándar. Con Dynamic Type de accesibilidad
-                    // trunca igual que antes de esta tarjeta (verificado): el
-                    // tercer renglón cubre el rango normal, no el AX.
-                    Text("gifts.daily.note")
-                        .font(Tokens.caption)
-                        .foregroundStyle(Color("PaletteInk").opacity(0.65))
-                        .multilineTextAlignment(.leading)
-                        .lineLimit(3)
-                        .minimumScaleFactor(0.8)
+                    Text("gifts.daily.headline \(currentDay)")
+                        .font(Tokens.title)
+                        .monospacedDigit()
+                        .foregroundStyle(Color("PaletteInk"))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
                         .frame(maxWidth: .infinity, alignment: .leading)
+                    HelpButton(action: showHelp)
                 }
                 HStack(spacing: Tokens.s4) {
                     ForEach(days) { day in
@@ -437,6 +711,45 @@ private struct DailyStrip: View {
                     }
                 }
             }
+        }
+    }
+}
+
+/// El «?» de la casa: un disco dibujado con su marca, con el área de toque de
+/// 44 pt.
+private struct HelpButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            IconCanvas { MarkDisc(mark: "?", fill: Color("PaletteBlue")) }
+                .frame(width: 30, height: 30)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("gifts.help.ax"))
+        .accessibilityIdentifier("gifts.daily.help")
+    }
+}
+
+/// La explicación de la racha: lo que antes eran tres renglones en la tarjeta.
+private struct StreakHelpPopup: View {
+    let close: () -> Void
+
+    var body: some View {
+        PopupContainer("gifts.section.daily", onClose: close, closeIdentifier: "gifts.help.close") {
+            VStack(spacing: Tokens.s12) {
+                RewardIllustration(kind: .gift, size: 72)
+                Text("gifts.daily.note")
+                    .font(Tokens.body)
+                    .foregroundStyle(Color("PaletteInk"))
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity)
+        } actions: {
+            GameButton("gifts.help.ok", role: .neutral, identifier: "gifts.help.ok", action: close)
         }
     }
 }
@@ -465,15 +778,13 @@ private struct DayCell: View {
         VStack(spacing: 2) {
             // El número del día. `verbatim` porque es un dígito y no una frase:
             // meterlo en un `LocalizedStringKey` armaría la clave "%lld"
-            // (trampa 5). Mismo criterio que el botón de piso del ascensor.
+            // (trampa 5).
             Text(verbatim: "\(day.id)")
                 .font(Tokens.caption)
                 .monospacedDigit()
                 .foregroundStyle(Color("PaletteInk").opacity(day.isClaimed || day.isToday ? 1 : 0.55))
-                // Siete casillas se reparten ~40 pt cada una en un iPhone 16 Pro
-                // y ~36 en el más angosto: con el cuerpo de texto grande de
-                // Dynamic Type el dígito no entra y se trunca a nada. Se encoge,
-                // como todo lo demás de la pantalla.
+                // Siete casillas se reparten ~36 pt cada una en el más angosto:
+                // con Dynamic Type grande el dígito se encoge, como todo lo demás.
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
             glyph
@@ -511,389 +822,12 @@ private struct DayCell: View {
     /// día de la sorpresa, y la moneda en los demás.
     @ViewBuilder private var glyph: some View {
         if day.isClaimed {
-            Image(systemName: "checkmark")
-                .font(.system(size: 14, weight: .black))
-                .foregroundStyle(Color("PaletteGreen"))
-                .shadow(color: Color("PaletteInk").opacity(0.5), radius: 0.5)
+            GameGlyphView(glyph: .check, size: 20)
         } else if day.isChest {
             GameIcon(artKey: "ui_tab_gifts", size: 20) { VectorTabGiftsIcon() }
         } else {
             CoinIcon(size: 18)
                 .opacity(day.isToday ? 1 : 0.6)
         }
-    }
-}
-
-// MARK: - La fila de boost
-
-/// Un boost: su arte, qué hace, el chiste, y a la derecha el botón, la cuenta
-/// regresiva o el candado con el piso que lo abre.
-///
-/// Los tres identifiers —`bonus.activate.<id>`, `bonus.cooldown.<id>` y
-/// `bonus.locked.<id>`— vienen de `BonusView` y los ejerce `BonusHUDUITests`:
-/// cambiarlos rompe el test que prueba que el contador queda en el HUD.
-private struct BoostCard: View {
-    let row: GameState.BoostRow
-    let activate: () -> Void
-    /// Hay anuncio cargado para saltear cooldowns. Lo sondea la PANTALLA una
-    /// sola vez y se lo pasa a las seis filas: seis sondeos en paralelo pidiendo
-    /// el mismo inventario sería trabajo repetido para una respuesta idéntica.
-    let adReady: Bool
-    /// El video de este boost pagó (`RewardedOfferButton.onRewarded`).
-    let boostWatched: () -> Void
-
-    /// Ancho fijo del riel derecho, por lo mismo que en `FisuJobsView`: sin él,
-    /// "Activar" y "12m 3s" dejan la columna de datos arrancando en un lugar
-    /// distinto en cada fila y la lista se ve desalineada de arriba abajo.
-    ///
-    /// **92 y no 96**: 92 es el `minWidth` real de `ActionPill` y de `PricePill`,
-    /// o sea el piso duro de lo que puede haber en este riel. Los 4 pt que
-    /// sobraban eran aire, y acá el aire lo paga la columna de datos, que es la
-    /// que se estaba quedando corta.
-    static let railWidth: CGFloat = 92
-
-    private var isCooling: Bool { row.isUnlocked && row.cooldownRemaining > 0 }
-
-    var body: some View {
-        Group {
-            // El boost que todavía no está se ve, pero apagado: es la
-            // zanahoria. La tarjeta se pone gris y el CONTENIDO queda a color
-            // (referencia v3): el mate bloqueado se antoja igual, y lo que
-            // falta lo dice el badge del riel.
-            if row.isUnlocked {
-                GameCard(style: .normal) { content }
-            } else {
-                GameCard(style: .locked, contentDimsWhenLocked: false) { content }
-            }
-        }
-        // ⚠️ El elemento de estado va en una capa VACÍA y **detrás** (patrón T8):
-        // si el trío `children: .ignore` + id + label se pusiera sobre la tarjeta
-        // entera, se tragaría al botón —un elemento de accesibilidad que CONTIENE
-        // un control lo borra del árbol (trampa 9a)— y `bonus.activate.<id>`
-        // dejaría de existir. Atrás, el botón queda por delante y los dos se ven:
-        // la fila informa, el riel actúa.
-        .background {
-            Color.clear
-                .accessibilityElement(children: .ignore)
-                .accessibilityIdentifier("gifts.row.\(row.id)")
-                .accessibilityLabel(Text(verbatim: axLabel))
-                .allowsHitTesting(false)
-        }
-    }
-
-    /// ⚠️ **El chiste va a lo ancho de la tarjeta y no en la columna del medio**,
-    /// y no es una decisión de gusto: medido contra una captura, la columna que
-    /// queda entre el plato y el riel son **126 pt** (los mismos que en
-    /// `FisuJobsView`), y ahí adentro los seis flavors se cortaban TODOS con
-    /// puntos suspensivos — "…the crew delivers: hiring is…", "…y gana be…".
-    /// FisuJobs no trunca nunca, y una fila que corta el remate del chiste se lee
-    /// como una pantalla a medio terminar. A lo ancho son ~330 pt y entran.
-    ///
-    /// El precio son ~15 pt más de alto por fila. Se paga: es el mismo criterio
-    /// con el que FisuJobs acepta que un nombre largo le sume un renglón a su
-    /// tarjeta ("se lee como un aviso más largo, no como un error").
-    private var content: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: Tokens.s12) {
-                BoostGlyph(
-                    iconKey: row.iconKey,
-                    progress: isCooling
-                        ? Cooldown.progress(remaining: row.cooldownRemaining, total: row.cooldownTotal)
-                        : nil
-                )
-                info
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    // Todo lo que dice esta columna ya lo dice `axLabel`, que es
-                    // el resumen de la fila. Sin esto se anuncia dos veces y
-                    // encima partido en tres paradas.
-                    .accessibilityHidden(true)
-                rail
-            }
-            Text(verbatim: row.flavorText)
-                .font(Tokens.caption)
-                .foregroundStyle(Color("PaletteInk").opacity(0.6))
-                .lineLimit(2)
-                .minimumScaleFactor(0.8)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .accessibilityHidden(true)
-        }
-    }
-
-    /// ⚠️ **El nombre va en UN renglón, al revés que en `FisuJobsView`**, y la
-    /// diferencia es de medición, no de gusto. Medidos a `Tokens.title` (20 pt),
-    /// los seis boosts y los cuatro videos de entonces iban de 88 pt ("Milanesa") a 193 pt
-    /// ("Personaje de regalo"): en la columna de 130 pt que queda entre el plato
-    /// y el riel, **ocho de los diez se partían en dos** — y se partían mal, con
-    /// una sola palabra colgando ("Ganancias / dobles", "Turbo de / ingresos"),
-    /// arriba de un efecto que ya usa dos renglones. Cuatro renglones por fila
-    /// en una lista de diez filas no se lee como una lista.
-    ///
-    /// El nombre más largo entra al 0,67 y el `minimumScaleFactor` es 0,60, así
-    /// que nadie trunca. Lo que justifica los dos renglones en FisuJobs —43
-    /// nombres data-driven, algunos larguísimos— acá no aplica: son diez nombres
-    /// del catálogo, cortos y medidos.
-    private var info: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            Text(verbatim: row.displayName)
-                .font(Tokens.title)
-                .foregroundStyle(Color("PaletteInk"))
-                .lineLimit(1)
-                .minimumScaleFactor(0.6)
-                .fixedSize(horizontal: false, vertical: true)
-            Text(verbatim: row.effectText)
-                .font(Tokens.body)
-                .foregroundStyle(Color("PaletteInk").opacity(0.9))
-                .lineLimit(2)
-                .minimumScaleFactor(0.7)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-
-    /// El riel derecho: los tres estados del boost, siempre en el mismo lugar y
-    /// con el mismo ancho.
-    ///
-    /// Los badges **no** se esconden de VoiceOver —a diferencia de `FisuJobsView`,
-    /// donde el badge repite el valor de la fila—: acá el resumen de la fila NO
-    /// lleva el estado, así que este es el único lugar donde "está en cooldown" o
-    /// "se abre en el callejón" se dice. Son dos paradas por fila: la que informa
-    /// y la que actúa (o la que explica por qué no se puede).
-    @ViewBuilder private var rail: some View {
-        Group {
-            if !row.isUnlocked {
-                StateBadge(
-                    text: String(localized: "bonus.locked \(row.unlockFloorName ?? "")"),
-                    systemImage: "lock.fill",
-                    muted: true
-                )
-                .accessibilityElement(children: .combine)
-                .accessibilityIdentifier("bonus.locked.\(row.id)")
-            } else if row.cooldownRemaining > 0 {
-                // Un video por ciclo (C32): activarlo por anuncio arranca un
-                // cooldown completo desde ese momento, y la tarjeta ya no
-                // ofrece otro video hasta la próxima activación gratis (ver
-                // `activateBoostFromAd`).
-                //
-                // El badge del reloj sigue estando cuando no hay anuncio: era el
-                // único lugar donde se dice "está en cooldown", y perderlo
-                // dejaría la fila sin explicar por qué no se puede.
-                if adReady && row.offersAd {
-                    RewardedOfferButton(
-                        title: String(localized: "ads.offer.boost.now"),
-                        identifier: "bonus.ad.\(row.id)",
-                        placement: .boost,
-                        systemImage: "play.rectangle.fill",
-                        tint: Color("PaletteBlue"),
-                        accessibilityLabel: Text("ads.offer.boost.now")
-                            + Text(verbatim: ", \(row.displayName)"),
-                        onRewarded: boostWatched
-                    )
-                } else {
-                    StateBadge(
-                        text: Cooldown.text(row.cooldownRemaining),
-                        systemImage: "clock.fill",
-                        muted: true
-                    )
-                    .monospacedDigit()
-                    .accessibilityElement(children: .combine)
-                    .accessibilityIdentifier("bonus.cooldown.\(row.id)")
-                }
-            } else {
-                ActionPill(
-                    titleKey: "bonus.activate",
-                    systemImage: "bolt.fill",
-                    tint: Color("PaletteOrange"),
-                    identifier: "bonus.activate.\(row.id)",
-                    // "Activar" a secas es lo que dicen los seis botones: sin el
-                    // nombre, VoiceOver no distingue cuál se está por apretar.
-                    accessibilityLabel: Text("bonus.activate") + Text(verbatim: ", \(row.displayName)"),
-                    action: activate
-                )
-            }
-        }
-        .frame(width: Self.railWidth, alignment: .trailing)
-    }
-
-    /// Lo que VoiceOver anuncia como nombre de la fila: los tres renglones que
-    /// quedaron tapados, en el orden en que se leen.
-    private var axLabel: String {
-        [row.displayName, row.effectText, row.flavorText].joined(separator: ", ")
-    }
-}
-
-/// El arte del boost en su plato, con el aro del cooldown alrededor.
-///
-/// El plato copia el encuadre del retrato de `FisuJobsView` —plato amarillo
-/// tenue, esquinas redondeadas, borde ink— para que las dos pantallas se lean
-/// como el mismo juego. El aro sigue el contorno del plato en vez de ser un
-/// círculo: un círculo alrededor de un cuadrado redondeado queda flotando.
-private struct BoostGlyph: View {
-    let iconKey: String
-    /// Cuánto del cooldown ya pasó (0…1), o `nil` si el boost está disponible.
-    let progress: Double?
-
-    private static let side: CGFloat = 56
-    private static let shape = RoundedRectangle(cornerRadius: 12, style: .continuous)
-
-    var body: some View {
-        Color.clear
-            .frame(width: Self.side, height: Self.side)
-            .overlay { glyph.padding(6).opacity(progress == nil ? 1 : 0.45) }
-            .background(Color("PaletteYellow").opacity(0.35))
-            .clipShape(Self.shape)
-            .overlay(Self.shape.strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
-            .overlay {
-                if let progress {
-                    Self.shape
-                        .trim(from: 0, to: progress)
-                        .stroke(Color("PaletteBlue"), style: StrokeStyle(lineWidth: 3.5, lineCap: .round))
-                        // Sin animación: el aro se mueve una vez por segundo con
-                        // el timer de la pantalla, y un tween encima de un salto
-                        // de 1/1800 no se ve.
-                        .padding(1.75)
-                }
-            }
-            .accessibilityHidden(true)
-    }
-
-    @ViewBuilder private var glyph: some View {
-        if let image = UIArt.image(iconKey) {
-            image.resizable().scaledToFit()
-        } else {
-            // Un boost sin su arte en el atlas sigue teniendo fila: el manifest
-            // cae a placeholder, no a nada (mismo criterio que `ActiveBonusBar`).
-            Image(systemName: "bolt.fill")
-                .resizable()
-                .scaledToFit()
-                .padding(8)
-                .foregroundStyle(Color("PaletteOrange"))
-        }
-    }
-}
-
-// MARK: - La fila de video
-
-/// Un video: qué te da, y a la derecha el botón de play o cuánto falta para que
-/// vuelva a ofrecerse. `ads.watch.<id>` y `ads.cooldown.<id>` vienen de
-/// `BonusView` y los ejerce `BonusHUDUITests`.
-private struct VideoCard: View {
-    let row: GameState.RewardRow
-    /// El video pagó (`RewardedOfferButton.onRewarded`).
-    let onRewarded: () -> Void
-
-    /// El mismo riel que el de los boosts, y por el mismo motivo: las dos
-    /// secciones son la misma lista.
-    private static let railWidth: CGFloat = BoostCard.railWidth
-
-    var body: some View {
-        GameCard(style: .normal) {
-            HStack(spacing: Tokens.s12) {
-                ScreenGlyph(
-                    progress: row.cooldownRemaining > 0
-                        ? Cooldown.progress(remaining: row.cooldownRemaining, total: row.cooldownTotal)
-                        : nil
-                )
-                info
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .accessibilityHidden(true)
-                rail
-            }
-        }
-        .background {
-            Color.clear
-                .accessibilityElement(children: .ignore)
-                .accessibilityIdentifier("gifts.row.\(row.id)")
-                .accessibilityLabel(Text(verbatim: axLabel))
-                .allowsHitTesting(false)
-        }
-    }
-
-    private var info: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            // Un renglón, igual que el nombre del boost y por la misma medición
-            // (ver el docstring de `BoostCard.info`): los títulos de video
-            // se partían **los cuatro que había cuando se midió**.
-            Text(LocalizedStringKey(row.titleKey))
-                .font(Tokens.title)
-                .foregroundStyle(Color("PaletteInk"))
-                .lineLimit(1)
-                .minimumScaleFactor(0.6)
-                .fixedSize(horizontal: false, vertical: true)
-            // Lo que la fila NO decía hasta la T13: qué te da exactamente. El
-            // número sale del config, no de la copy (ver `rewardText`).
-            Text(verbatim: row.rewardText)
-                .font(Tokens.body)
-                .foregroundStyle(Color("PaletteInk").opacity(0.9))
-                .lineLimit(2)
-                .minimumScaleFactor(0.7)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-
-    @ViewBuilder private var rail: some View {
-        Group {
-            if row.cooldownRemaining > 0 {
-                StateBadge(
-                    text: Cooldown.text(row.cooldownRemaining),
-                    systemImage: "clock.fill",
-                    muted: true
-                )
-                .monospacedDigit()
-                .accessibilityElement(children: .combine)
-                .accessibilityIdentifier("ads.cooldown.\(row.id)")
-            } else if let reason = row.unavailableReason {
-                StateBadge(text: reason, systemImage: "nosign", muted: true)
-                    .accessibilityElement(children: .combine)
-                    .accessibilityIdentifier("ads.unavailable.\(row.id)")
-            } else {
-                // Mientras carga o corre el video el botón dice "Cargando video…"
-                // y ignora los toques: es lo que reemplaza al `.disabled`, que
-                // dejaba el texto ilegible.
-                RewardedOfferButton(
-                    title: String(localized: "ads.watch"),
-                    identifier: "ads.watch.\(row.id)",
-                    placement: .gifts,
-                    accessibilityLabel: Text("ads.watch")
-                        + Text(verbatim: ", \(GameState.localized(row.titleKey))"),
-                    onRewarded: onRewarded
-                )
-            }
-        }
-        .frame(width: Self.railWidth, alignment: .trailing)
-    }
-
-    private var axLabel: String {
-        [GameState.localized(row.titleKey), row.rewardText].joined(separator: ", ")
-    }
-}
-
-/// La "pantalla" del video: el mismo plato que el arte de los boosts, con el
-/// triángulo de play adentro, para que las dos secciones tengan el mismo ritmo.
-private struct ScreenGlyph: View {
-    let progress: Double?
-
-    private static let side: CGFloat = 56
-    private static let shape = RoundedRectangle(cornerRadius: 12, style: .continuous)
-
-    var body: some View {
-        Color.clear
-            .frame(width: Self.side, height: Self.side)
-            .overlay {
-                Image(systemName: "play.fill")
-                    .font(.system(size: 22, weight: .black))
-                    .foregroundStyle(Color("PaletteInk").opacity(progress == nil ? 0.8 : 0.35))
-            }
-            .background(Color("PaletteBlue").opacity(0.28))
-            .clipShape(Self.shape)
-            .overlay(Self.shape.strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
-            .overlay {
-                if let progress {
-                    Self.shape
-                        .trim(from: 0, to: progress)
-                        .stroke(Color("PaletteBlue"), style: StrokeStyle(lineWidth: 3.5, lineCap: .round))
-                        .padding(1.75)
-                }
-            }
-            .accessibilityHidden(true)
     }
 }

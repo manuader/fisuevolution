@@ -1,0 +1,12 @@
+{
+  "gifts.section.ready": {"es": "Para cobrar ahora", "en": "Ready to collect"},
+  "gifts.section.soon": {"es": "Pronto", "en": "Coming up"},
+  "gifts.section.later": {"es": "Más adelante", "en": "Later on"},
+  "gifts.empty.title": {"es": "Todo cobrado. ¡Qué ritmo!", "en": "All collected. Nice pace!"},
+  "gifts.empty.next %@ %@": {"es": "Vení en %1$@ y cobrás: %2$@", "en": "Come back in %1$@ to collect: %2$@"},
+  "gifts.empty.later": {"es": "Mañana hay más regalos. Hoy ya hiciste lo tuyo.", "en": "More gifts tomorrow. You've done your part today."},
+  "gifts.wheel.back": {"es": "Vuelve a girar", "en": "Spins again soon"},
+  "gifts.daily.headline %lld": {"es": "Día %lld de 7", "en": "Day %lld of 7"},
+  "gifts.help.ax": {"es": "Cómo funciona la racha", "en": "How the streak works"},
+  "gifts.help.ok": {"es": "Entendido", "en": "Got it"}
+}

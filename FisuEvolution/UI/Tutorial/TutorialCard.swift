@@ -21,6 +21,8 @@ struct TutorialCard: View {
     let confirmKey: String
     let onConfirm: () -> Void
     var onEnd: (() -> Void)?
+    /// La X de las lecciones: ningún tip queda sin salida (B11).
+    var onClose: (() -> Void)?
     /// La versión de coach-mark de las hojas: retrato chico y sin puntos de progreso.
     var compact = false
 
@@ -41,6 +43,10 @@ struct TutorialCard: View {
                             if let onEnd { endButton(onEnd) }
                         }
                     }
+                }
+                if let onClose {
+                    PopupCloseButton(identifier: "tutorial.tip.close", action: onClose)
+                        .frame(maxHeight: .infinity, alignment: .top)
                 }
             }
             if step.clockKind == .explain {

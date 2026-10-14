@@ -101,6 +101,18 @@ extension GameState {
         advanceTutorialStep()
     }
 
+    /// El tip se puede cerrar con su botón: toda lección del tablero que toma turno de la cola.
+    /// El núcleo no (no se saltea) y las demostraciones ya traen «Terminar repaso» o «Entendido».
+    func tutorialTipIsClosable(_ run: TutorialRun) -> Bool {
+        run.script != .core && !run.isDemo && runTakesAQueueTurn(run)
+    }
+
+    /// El jugador cerró el tip con su X: la lección queda dada, como si hubiera salido por su turno.
+    func closeTutorialTip() {
+        guard let run = tutorialRun, tutorialTipIsClosable(run), showing == .tutorialTip else { return }
+        celebrationFinished(.tutorialTip)
+    }
+
     /// Lo que avisan las vistas y no queda en el save.
     func tutorialSignal(_ event: TutorialEvent) {
         guard var run = tutorialRun else { return }

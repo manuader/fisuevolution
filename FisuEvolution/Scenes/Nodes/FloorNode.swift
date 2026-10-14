@@ -18,6 +18,7 @@ final class FloorNode: SKNode {
     /// el piso de abajo puede terminar pintando sobre el de arriba.
     private let background = SKCropNode()
     private var renderedSize: CGSize = .zero
+    private var renderedFloorBottom: CGFloat = 0
 
     /// Orden determinístico entre pisos vivos: `renderLiveFloorNodes` los agrega
     /// iterando un Set, así que sin esto el orden de dibujo entre hermanos es
@@ -42,28 +43,32 @@ final class FloorNode: SKNode {
         fatalError("FloorNode is never decoded")
     }
 
-    func render(content: GameContent, size: CGSize) {
-        guard renderedSize != size || background.children.isEmpty else { return }
+    /// `floorBottom`: el borde de abajo del fondo, arriba de la barra inferior (E14b B3). Debajo
+    /// de esa línea no se dibuja nada: la barra es sólida y el horizonte sube con ella.
+    func render(content: GameContent, size: CGSize, floorBottom: CGFloat = 0) {
+        guard renderedSize != size || renderedFloorBottom != floorBottom || background.children.isEmpty else { return }
         renderedSize = size
+        renderedFloorBottom = floorBottom
         background.removeAllChildren()
 
-        let mask = SKSpriteNode(color: .white, size: size)
+        let mask = SKSpriteNode(color: .white, size: CGSize(width: size.width, height: max(0, size.height - floorBottom)))
         mask.anchorPoint = .zero
+        mask.position = CGPoint(x: 0, y: floorBottom)
         background.maskNode = mask
 
         if let assetName = content.manifest.backgrounds[definition.background].flatMap({ $0.isEmpty ? nil : $0 }),
            UIImage(named: assetName) != nil {
             let sprite = SKSpriteNode(imageNamed: assetName)
             let textureSize = sprite.texture?.size() ?? CGSize(width: 1024, height: 1024)
-            let scale = max(size.width / textureSize.width, size.height / textureSize.height) * 1.18
+            let scale = max(size.width / textureSize.width, size.height / textureSize.height) * StageLayout.backgroundOverscan
             sprite.size = CGSize(width: textureSize.width * scale, height: textureSize.height * scale)
             sprite.anchorPoint = CGPoint(x: 0.5, y: 0)
-            // Bajar el fondo hunde su franja plana inferior por debajo del slot.
+            // Bajar el fondo hunde su franja plana inferior por debajo de la barra.
             // El clamp al sobrante REAL del aspect-fill garantiza que el borde
-            // superior nunca se despegue del techo del piso.
-            let slack = max(0, sprite.size.height - size.height)
-            let offset = min(definition.backgroundOffset * size.height, slack)
-            sprite.position = CGPoint(x: size.width / 2, y: -offset)
+            // superior nunca se despegue del techo del piso. La cuenta es la de
+            // `StageLayout.horizonY`: el horizonte y el fondo no pueden discrepar.
+            let offset = StageLayout.backgroundLift(offset: definition.backgroundOffset, sceneSize: size, floorBase: floorBottom)
+            sprite.position = CGPoint(x: size.width / 2, y: floorBottom - offset)
             sprite.zPosition = -100
             background.addChild(sprite)
             return

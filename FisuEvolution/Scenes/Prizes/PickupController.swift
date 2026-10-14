@@ -34,9 +34,10 @@ final class PickupController {
         parent.addChild(layer)
     }
 
-    func layout(sceneSize: CGSize, bottomInset: CGFloat, cellSize: CGFloat) {
+    func layout(sceneSize: CGSize, bottomInset: CGFloat, cellSize: CGFloat, floorBottom: CGFloat? = nil) {
         layout = PickupLayout(sceneSize: sceneSize, bottomInset: bottomInset, cellSize: cellSize,
-                              background: layout.background, backgroundOffset: layout.backgroundOffset)
+                              background: layout.background, backgroundOffset: layout.backgroundOffset,
+                              floorBottom: floorBottom)
         for node in boxes { node.resize(side: layout.side) }
         mattress?.resize(side: layout.side)
     }

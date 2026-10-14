@@ -62,7 +62,7 @@ struct StageLayoutTests {
             for background in StageLayout.horizons.keys {
                 let y = layout.standY(background: background)
                 #expect(y >= 118 + cell, "\(size) \(background): pisa la barra de abajo")
-                #expect(y + layout.actorSide < size.height * 0.85, "\(size) \(background): se sale por arriba")
+                #expect(y + layout.actorSide < size.height * StageLayout.maxHeadRatio, "\(size) \(background): se sale por arriba")
             }
         }
     }
@@ -81,5 +81,69 @@ struct StageLayoutTests {
         let base = layout.standY(background: "urban")
         #expect(layout.standY(background: "urban", backgroundOffset: 0.05) < base)
         #expect(layout.standY(background: "urban", backgroundOffset: 5) >= 118 + 72)
+    }
+
+    // MARK: - E14b B3: el horizonte, un solo dato por escenario
+
+    /// El borde de arriba de la barra que usa la app (`BoardScene.floorBottom`), y el default de los tests puros.
+    private static let floorBottoms: [CGFloat?] = [nil, 96]
+
+    @Test("el horizonte de cada fondo queda arriba de la barra y los pies pisan suelo, en los diez fondos")
+    func horizonSitsAboveTheBar() {
+        for (size, cell) in Self.screens {
+            for floorBottom in Self.floorBottoms {
+                let layout = StageLayout(sceneSize: size, bottomInset: 118, cellSize: cell, floorBottom: floorBottom)
+                for background in StageLayout.horizons.keys {
+                    let horizon = layout.horizonY(background: background)
+                    #expect(horizon > layout.floorBase, "\(size) \(background): el horizonte queda bajo la barra")
+                    let y = layout.standY(background: background)
+                    #expect(y <= horizon + 0.001, "\(size) \(background): los pies pasan del horizonte")
+                    #expect(y >= 118 + cell, "\(size) \(background): pisa la barra")
+                    #expect(y + layout.actorSide < size.height * StageLayout.maxHeadRatio, "\(size) \(background): la cabeza llega al HUD")
+                }
+            }
+        }
+    }
+
+    @Test("terminar el fondo arriba de la barra sube el horizonte exactamente lo que sube su borde")
+    func lowerEdgeRaisesTheHorizon() {
+        for (size, cell) in Self.screens {
+            let flush = StageLayout(sceneSize: size, bottomInset: 118, cellSize: cell, floorBottom: 0)
+            let raised = StageLayout(sceneSize: size, bottomInset: 118, cellSize: cell, floorBottom: 96)
+            for background in StageLayout.horizons.keys {
+                let rise = raised.horizonY(background: background) - flush.horizonY(background: background)
+                #expect(abs(rise - 96) < 0.001, "\(size) \(background): subió \(rise)")
+            }
+        }
+    }
+
+    @Test("el fondo bajado se mide con la misma cuenta que lo dibuja")
+    func liftMatchesTheDrawing() {
+        let size = CGSize(width: 393, height: 852)
+        let slack = StageLayout.spriteHeight(sceneSize: size) - (size.height - 96)
+        #expect(StageLayout.backgroundLift(offset: 0, sceneSize: size, floorBase: 96) == 0)
+        #expect(StageLayout.backgroundLift(offset: 0.05, sceneSize: size, floorBase: 96) == 0.05 * size.height)
+        #expect(StageLayout.backgroundLift(offset: 5, sceneSize: size, floorBase: 96) == slack)
+    }
+
+    @Test("el visitante crece entre un 20 y un 30 % y su cuerpo guarda la proporción con el de un empleado")
+    func visitorScaleKeepsTheProportion() {
+        let before: CGFloat = 1.35
+        let growth = StageLayout.actorScale / before - 1
+        #expect(growth >= 0.2 && growth <= 0.3, "creció \(growth)")
+        let employeeBody = StageLayout.employeeSideRatio * StageLayout.employeeCanvasBodyRatio
+        let visitorBody = StageLayout.actorScale * StageLayout.visitorCanvasBodyRatio
+        #expect(abs(visitorBody / employeeBody - StageLayout.visitorHeightRatio) < 0.001)
+        #expect(visitorBody < employeeBody, "el visitante no supera a un empleado en la misma hilera")
+        for (size, cell) in Self.screens {
+            let layout = StageLayout(sceneSize: size, bottomInset: 118, cellSize: cell)
+            #expect(abs(layout.actorSide - cell * StageLayout.actorScale) < 0.001)
+        }
+    }
+
+    @Test("el lado del arte del empleado espeja al nodo del tablero")
+    @MainActor
+    func employeeSideMirrorsTheNode() {
+        #expect(abs(StageLayout.employeeSideRatio - 0.92 * CharacterNode.realArtScale) < 0.0001)
     }
 }

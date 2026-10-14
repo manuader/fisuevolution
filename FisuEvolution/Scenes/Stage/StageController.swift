@@ -64,8 +64,8 @@ final class StageController {
         parent.addChild(layer)
     }
 
-    func layout(sceneSize: CGSize, bottomInset: CGFloat, cellSize: CGFloat) {
-        layout = StageLayout(sceneSize: sceneSize, bottomInset: bottomInset, cellSize: cellSize)
+    func layout(sceneSize: CGSize, bottomInset: CGFloat, cellSize: CGFloat, floorBottom: CGFloat? = nil) {
+        layout = StageLayout(sceneSize: sceneSize, bottomInset: bottomInset, cellSize: cellSize, floorBottom: floorBottom)
         actor?.resize(side: layout.actorSide)
     }
 

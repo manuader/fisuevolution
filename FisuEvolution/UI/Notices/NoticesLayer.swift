@@ -15,6 +15,7 @@ struct NoticesLayer: ViewModifier {
         content.overlayPreferenceValue(TutorialAnchorKey.self) { anchors in
             GeometryReader { proxy in
                 let hudBottom = anchors[.hudBar].map { proxy[$0].maxY } ?? 0
+                let topInset: CGFloat = hudBottom + Tokens.s8 + NoticesLayout.compactDrop(forWidth: proxy.size.width)
                 VStack(spacing: Tokens.s4) {
                     // Cada aviso en su propio `ZStack` con su `.animation(value:)`: una
                     // `.transition` sólo corre si la inserción cae en una transacción
@@ -37,7 +38,7 @@ struct NoticesLayer: ViewModifier {
                     .animation(.spring(duration: 0.32), value: gameState.towerNotice?.id)
                 }
                 .padding(.horizontal, NoticesLayout.sideInset)
-                .padding(.top, hudBottom + Tokens.s8)
+                .padding(.top, topInset)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             }
             .allowsHitTesting(false)
@@ -49,6 +50,17 @@ enum NoticesLayout {
     /// El aire a cada lado: lo que ocupan las columnas de las esquinas (C9) más un respiro,
     /// para que el aviso quede entre las dos y no tape ni un sello ni un boost.
     static let sideInset: CGFloat = SideRailLayout.edgeInset + SideRailLayout.touchWidth + Tokens.s12
+
+    /// Hasta este ancho (el SE mide 375) el aviso entre las dos columnas queda angosto y un chip
+    /// ancho de la derecha, el del reloj de un evento, lo pisa (D14).
+    static let compactWidth: CGFloat = 375
+    /// Cuánto se baja el aviso en una pantalla compacta: debajo de la primera tarjeta de la columna
+    /// derecha y de su reloj. Los chips no se achican (decisión del dueño, E14b B3).
+    static let compactDropHeight: CGFloat = SideRailLayout.touchWidth + SideRailLayout.seal
+
+    static func compactDrop(forWidth width: CGFloat) -> CGFloat {
+        width <= compactWidth ? compactDropHeight : 0
+    }
 
     /// Lo que dura el aviso de la torre a la vista. `--uitest-notices-slow` lo estira ×4: con
     /// la máquina cargada cada consulta de XCUITest tarda más de un segundo y los 2,4 s se

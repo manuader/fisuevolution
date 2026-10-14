@@ -15,8 +15,11 @@ struct PickupLayout: Equatable {
     /// 62 pt de toque y su margen), sin aire de más para que la caja entre en un SE.
     static let edgeClearance: CGFloat = 66
     /// Cuánto del ancho de la ficha del visitante es cuerpo: el resto es aire
-    /// transparente del sprite, y no hace falta dejárselo libre.
-    static let visitorBodyRatio: CGFloat = 0.8
+    /// transparente del sprite, y no hace falta dejárselo libre. Medido sobre los PNG de
+    /// `npcs.atlas`: 0,49–0,69 del lienzo (el sindicalista, con los brazos abiertos, 0,83).
+    static let visitorBodyRatio: CGFloat = 0.65
+    /// La pila de cajas no sube más arriba de esta fracción del alto: más arriba queda bajo el HUD.
+    static let maxTopRatio: CGFloat = 0.82
     /// El área de toque nunca baja de esto (HIG: 44; el dueño pidió ≥ 60).
     static let minTouchSide: CGFloat = 60
 
@@ -26,15 +29,24 @@ struct PickupLayout: Equatable {
     /// El fondo del piso que se ve y su desplazamiento: de ellos sale el horizonte.
     var background: String?
     var backgroundOffset: Double = 0
+    /// Dónde apoya el fondo su borde de abajo (`StageLayout.floorBottom`).
+    var floorBottom: CGFloat?
 
     private var stage: StageLayout {
-        StageLayout(sceneSize: sceneSize, bottomInset: bottomInset, cellSize: cellSize)
+        StageLayout(sceneSize: sceneSize, bottomInset: bottomInset, cellSize: cellSize, floorBottom: floorBottom)
     }
 
     var side: CGFloat { cellSize * Self.sideRatio }
-    /// La línea del horizonte: donde apoyan las cajas y el colchón. Nunca baja de
-    /// `StageLayout.standY`, que ya queda arriba de las solapas de la barra.
-    var baselineY: CGFloat { stage.standY(background: background, backgroundOffset: backgroundOffset) }
+    /// Lo que sube la pila entera de cajas sobre su línea de apoyo.
+    private var stackHeight: CGFloat { side * (1 + CGFloat(Self.maxVisibleBoxes - 1) * Self.stackStep) }
+    /// La línea del horizonte: donde apoyan las cajas y el colchón, la misma de `StageLayout.standY`
+    /// (que ya queda arriba de las solapas de la barra). Si con la pila llena el tope pasaría de
+    /// `maxTopRatio`, baja lo justo.
+    var baselineY: CGFloat {
+        let horizon = stage.standY(background: background, backgroundOffset: backgroundOffset)
+        let ceiling = sceneSize.height * Self.maxTopRatio - stackHeight - 0.5
+        return max(bottomInset + cellSize, min(horizon, ceiling))
+    }
 
     /// Lo que ocupa el cuerpo del visitante parado en el medio.
     private var visitorSpan: ClosedRange<CGFloat> {

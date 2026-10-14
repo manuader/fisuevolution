@@ -173,6 +173,11 @@ final class BoardScene: SKScene {
     /// ⚠️ El espejo de `AscentRenderingUITests` es copia a mano —un test de UI no
     /// puede importar la app— y va en el MISMO commit que este número.
     static let bottomInset: CGFloat = GameTabBar.panelHeight + 34
+    /// Dónde termina el fondo del piso por abajo (E14b B3): el borde de arriba de la barra en el
+    /// teléfono con menos safe area (el SE, 12 pt de piso). En los demás la barra es más alta y
+    /// tapa el excedente, así que nunca queda una franja sin fondo. De acá sale el horizonte de
+    /// cada escenario (`StageLayout.horizonY`).
+    static let floorBottom: CGFloat = GameTabBar.panelHeight + GameTabBar.minimumBottomGap
     /// Margen a cada lado para los textos del reveal, que van centrados y a
     /// pantalla completa.
     static let revealMargin: CGFloat = 24
@@ -1570,7 +1575,7 @@ final class BoardScene: SKScene {
         cameraOverlay.position = CGPoint(x: -size.width / 2, y: -size.height / 2)
         moveCameraIfNeeded(to: floorOffset)
 
-        rebuildAnchors(capacity: floorDef.capacity)
+        rebuildAnchors(capacity: floorDef.capacity, floorDef: floorDef)
         // `moveCameraIfNeeded` ya decidió si esto es un vuelo. Si lo es, los
         // fondos arrancan donde ESTÁ la cámara (el piso de salida) y el vuelo se
         // encarga de ir trayendo el resto; centrarlos en el destino cargaría un
@@ -1578,9 +1583,9 @@ final class BoardScene: SKScene {
         renderLiveFloorNodes(content: content, centeredOn: isFlying ? cameraFloorOrdinal : gameState.visibleFloorOrdinal)
         renderPlacements(content: content)
         renderLockedFloorOverlay()
-        stage.layout(sceneSize: size, bottomInset: Self.bottomInset, cellSize: cellSize)
+        stage.layout(sceneSize: size, bottomInset: Self.bottomInset, cellSize: cellSize, floorBottom: Self.floorBottom)
         stageEffects.layout(sceneSize: size, bottomInset: Self.bottomInset)
-        pickups.layout(sceneSize: size, bottomInset: Self.bottomInset, cellSize: cellSize)
+        pickups.layout(sceneSize: size, bottomInset: Self.bottomInset, cellSize: cellSize, floorBottom: Self.floorBottom)
     }
 
     /// Mantiene sólo un piso y sus vecinos inmediatos. El resto de los fondos se
@@ -1611,7 +1616,7 @@ final class BoardScene: SKScene {
             let definition = content.floorTable[ordinal]
             let node = floorNodes[ordinal] ?? FloorNode(ordinal: ordinal, definition: definition)
             node.position = CGPoint(x: 0, y: CGFloat(ordinal) * size.height)
-            node.render(content: content, size: size)
+            node.render(content: content, size: size, floorBottom: Self.floorBottom)
             node.isPaused = ordinal != visible
             if floorNodes[ordinal] == nil {
                 backgroundLayer.addChild(node)
@@ -1918,13 +1923,15 @@ final class BoardScene: SKScene {
     /// Ancla por slot: punto de grilla lógica + jitter determinístico
     /// (hash del índice), para que el campo se vea orgánico pero estable entre
     /// launches y consistente con el modelo de slots del piso.
-    private func rebuildAnchors(capacity: Int) {
+    private func rebuildAnchors(capacity: Int, floorDef: FloorDef) {
         let cols = max(boardColumns, 1)
         // Margen lateral para que los personajes grandes de las puntas no se corten
         // contra el borde de la pantalla; las columnas se centran dentro del campo.
         let edgeInset = cellSize * 0.68
         let colSpacing = (cellSize * CGFloat(cols) - 2 * edgeInset) / CGFloat(cols)
-        band = Self.crowdBand(sceneHeight: size.height, cellSize: cellSize, rows: boardRows)
+        let horizon = StageLayout(sceneSize: size, bottomInset: Self.bottomInset, cellSize: cellSize, floorBottom: Self.floorBottom)
+            .standY(background: floorDef.background, backgroundOffset: floorDef.backgroundOffset)
+        band = Self.crowdBand(sceneHeight: size.height, cellSize: cellSize, rows: boardRows, horizon: horizon)
         let frontY = band.frontY
         let rowDepth = band.rowDepth
         anchorPoints = (0..<capacity).map { index in
@@ -2089,10 +2096,15 @@ final class BoardScene: SKScene {
     /// franja entera sin huecos y sin pasarse. Cuando el deambular era un número
     /// independiente sumado encima del ancla, la fila trasera terminó fuera de
     /// rango y detrás del fondo.
-    static func crowdBand(sceneHeight: CGFloat, cellSize: CGFloat, rows: Int) -> CrowdBand {
+    ///
+    /// `horizon` (E14b B3): la línea donde apoyan los pies del escenario, en coordenadas de la
+    /// escena (`StageLayout.standY`). Es un techo más: ninguna hilera, pase lo que pase con las
+    /// filas que se compran, apoya los pies por encima de él. Sin él, sólo manda la fracción.
+    static func crowdBand(sceneHeight: CGFloat, cellSize: CGFloat, rows: Int, horizon: CGFloat? = nil) -> CrowdBand {
         let rows = max(1, rows)
         let floorY = cellSize * frontRowRatio
-        let topY = max(floorY, sceneHeight * PlayLayout.crowdTopRatio(rows: rows) - bottomInset)
+        let ratioTop = sceneHeight * PlayLayout.crowdTopRatio(rows: rows)
+        let topY = max(floorY, min(ratioTop, horizon ?? ratioTop) - bottomInset)
         let usable = topY - floorY
         let halfWander = usable / CGFloat(2 * rows)
         return CrowdBand(

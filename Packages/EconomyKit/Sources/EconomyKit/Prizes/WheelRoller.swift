@@ -6,19 +6,29 @@ public enum WheelSpinSource: String, Sendable, Equatable, CaseIterable {
     case bonus
     /// Uno de los diarios por video.
     case video
-    /// El extra con ORO (apagado donde la tienda no lo permite: lo decide la app).
+    /// Uno pagado con blue: gasta el mismo cupo diario que el video (apagado
+    /// donde la tienda no lo permite: lo decide la app).
     case oro
 }
 
 /// Los cupos y el sorteo de la ruleta. El estado que recibe ya está pasado al
 /// día de hoy (`WheelState.rolledOver`).
+///
+/// Hay un solo cupo por día (E14b D11): `videoSpinsPerDay`, que la mejora
+/// permanente de la tienda agranda. Un giro por video o con blue lo gasta; los
+/// regalados no. Con el cupo en cero no se gira ni con video ni con blue.
 public enum WheelRoller {
     public static func spinsLeft(_ source: WheelSpinSource, state: WheelState, config: WheelConfig) -> Int {
         switch source {
         case .bonus: max(0, state.bonusSpins)
-        case .video: max(0, config.videoSpinsPerDay - state.videoSpinsUsed)
-        case .oro: max(0, config.oroSpinsPerDay - state.oroSpinsUsed)
+        case .video: dailySpinsLeft(state: state, config: config)
+        case .oro: config.oroSpinsPerDay > 0 ? dailySpinsLeft(state: state, config: config) : 0
         }
+    }
+
+    /// Lo que queda hoy del cupo único, lo gaste un video o el blue.
+    public static func dailySpinsLeft(state: WheelState, config: WheelConfig) -> Int {
+        max(0, config.videoSpinsPerDay - state.dailySpinsUsed)
     }
 
     /// Gasta un giro de esa fuente. Sin cupo, no toca nada y devuelve `false`.

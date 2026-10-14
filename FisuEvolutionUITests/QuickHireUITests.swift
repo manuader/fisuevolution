@@ -76,12 +76,14 @@ final class QuickHireUITests: XCTestCase {
     @MainActor
     private func openDebug(_ identifier: String, in app: XCUIApplication) {
         let debugKey = app.buttons["hud.debug"]
-        XCTAssertTrue(debugKey.waitForExistence(timeout: 6))
-        debugKey.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        XCTAssertTrue(waitUntilHittable(debugKey))
         let button = app.buttons[identifier]
-        XCTAssertTrue(button.waitForExistence(timeout: 6), "el panel de debug no ofrece \(identifier)")
+        // La llave tiene que estar tocable, no sólo existir: con la máquina cargada
+        // un toque en plena entrada del tablero se perdía y la hoja nunca subía.
+        debugKey.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        XCTAssertTrue(button.waitForExistence(timeout: 12), "el panel de debug no ofrece \(identifier)")
         button.tap()
-        XCTAssertTrue(button.waitForNonExistence(timeout: 6))
+        XCTAssertTrue(button.waitForNonExistence(timeout: 12), "el panel de debug no se cerró tras \(identifier)")
     }
 
     @MainActor

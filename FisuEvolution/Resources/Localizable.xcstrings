@@ -13825,6 +13825,754 @@
         }
       }
     },
+    "tier.desc.administrativo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stamps, signs and tells you it needs to be filled out in triplicate, in blue ink, not that blue. His filing cabinet hasn't closed since 2009. Nobody knows what he does, but the day he called in sick the whole building stopped."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sello, firma y «vuelva mañana con fotocopia del DNI, de los dos lados». Tiene una torre de expedientes que no se mueve desde 2009. Nadie sabe bien qué hace, pero el día que falta se frena todo."
+          }
+        }
+      }
+    },
+    "tier.desc.cartonero" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Knows every recycling day in the city and which building just got a new fridge. Can flatten a refrigerator box in four seconds flat. Was going green back when people still called it \"digging through the trash.\""
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sale de noche con el carro y conoce la ciudad por lo que tira. Sabe que el cartón de una mudanza en Palermo rinde más que el de un súper. Reciclaba desde mucho antes de que se pusiera de moda."
+          }
+        }
+      }
+    },
+    "tier.desc.ceo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fleece vest, white sneakers and an all-hands about \"being a family\" the same morning he lays off fifty people. Flies private to climate conferences. Pays an executive coach to tell him he's a visionary."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chaleco de plumas, zapatillas blancas y el discurso de «somos una familia» el mismo día que despide a cincuenta. Viaja en business y habla de austeridad. Le paga en dólares a un coach para que le diga que es un líder."
+          }
+        }
+      }
+    },
+    "tier.desc.chofer_app" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phone chargers for every model, mints in the cupholder and a 4.97 rating he defends like a family name. Mentions his podcast before you've buckled up. He took the long way, but now you know everything about the podcast."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maneja un auto que todavía paga en cuotas y lleva caramelos en la guantera para las cinco estrellas. Esquiva taxistas, inspectores y la Panamericana a las seis de la tarde. «¿Te molesta si voy por General Paz?» Siempre molesta."
+          }
+        }
+      }
+    },
+    "tier.desc.coleccionista_galaxias" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collects galaxies like baseball cards: sleeved, graded, never touched. Traded two spirals for a mint elliptical at a swap meet outside a black hole. He's still missing Andromeda, the rookie card everyone wants."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Junta galaxias como figuritas del Mundial: «la tengo, la tengo, me falta». Cambia dos espirales repetidas por una elíptica en la puerta de un agujero negro. Le falta Andrómeda, que es la difícil, y no duerme."
+          }
+        }
+      }
+    },
+    "tier.desc.deidad" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Has a shrine in every town and a bobblehead on half the dashboards in the country. People pray to him for a fourth-quarter touchdown, a lost cat and a lower mortgage rate. He listens to every request, but the mortgage rate is out of his hands."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiene altar en cada barrio y estampita en la billetera de medio país. Le prenden velas para que gane el equipo, para que aparezca el gato y para que baje el dólar. Atiende todos los pedidos, aunque lo del dólar no lo promete."
+          }
+        }
+      }
+    },
+    "tier.desc.director" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coffee mug, headshot smile and a calendar full of meetings that could have been an email. His job is \"aligning stakeholders.\" He says \"let's circle back,\" and nobody ever sees him again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Taza de café, sonrisa de foto institucional y una agenda llena de reuniones que podrían haber sido un mail. Su trabajo es «alinear expectativas». Dice «lo vemos», y nunca más nadie lo ve."
+          }
+        }
+      }
+    },
+    "tier.desc.dueno_luna" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sells lunar lots with a beautiful framed certificate and no deed. Every lot comes with an Earth view and an HOA that bans lawn flamingos. The water hookup is coming \"in phase two.\""
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vende lotes en la Luna en doce cuotas sin interés y sin escritura. El comprador recibe un certificado lindo y una vista a la Tierra que no puede alquilar. Si le preguntan por el gas, dice que llega «en la segunda etapa»."
+          }
+        }
+      }
+    },
+    "tier.desc.dueno_marte" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Founded the first colony on Mars, and the first thing he built was a backyard grill. Delivery is the problem: a pizza takes seven months to get there, and \"thirty minutes or it's free\" bankrupted him in a week. The Martians already say \"y'all.\""
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fundó la primera colonia argentina en Marte y lo primero que armó fue la parrilla. El problema es la logística: el asado tarda siete meses en llegar y la yerba entra de contrabando. Los marcianos ya dicen «che»."
+          }
+        }
+      }
+    },
+    "tier.desc.dueno_pyme" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pays payroll, quarterly taxes, insurance and his nephew who \"does the social media.\" Lives inside a spreadsheet where the numbers never add up. Hasn't taken a vacation since he opened, but the lights come on every morning at seven."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paga sueldos, aguinaldos, cargas sociales y el monotributo del cuñado. Vive adentro de una planilla donde los números nunca cierran. A fin de mes tiene más canas que plata, pero la persiana se levanta igual."
+          }
+        }
+      }
+    },
+    "tier.desc.emperador_cosmico" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The known universe pays him taxes, and the unknown one does too, just to be safe. Signs executive orders with an entire galaxy as witness. He still can't get the office printer to work."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le paga impuestos el universo conocido, y el desconocido también, por las dudas. Firma decretos de necesidad y urgencia con una galaxia de testigo. Lo único que no puede controlar es el dólar."
+          }
+        }
+      }
+    },
+    "tier.desc.emprendedor" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Up at 4 a.m. for a cold plunge, a journal and a course that teaches you to get up at 4 a.m. Posts photos next to rented sports cars with captions about mindset. Every business that fails becomes a thread called \"What it taught me.\""
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se levanta a las cinco, hace ayuno, toma agua con limón y te vende un curso para que vos también te levantes a las cinco. Tiene un podcast con cuarenta oyentes, treinta y ocho de la familia. Cada fracaso lo postea como un aprendizaje."
+          }
+        }
+      }
+    },
+    "tier.desc.estanciero_estelar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Runs cattle across a nebula on horseback, if you can call a comet a horse. In zero gravity the whole herd floats, so roping a steer takes a week. Still complains about the government, just a galactic one now."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Juega al Estanciero de verdad: compra campos, pero los suyos son nebulosas. Cría vacas en gravedad cero y el asado se le escapa flotando. Se queja de las retenciones del Imperio como cualquier estanciero que se precie."
+          }
+        }
+      }
+    },
+    "tier.desc.fast_food" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\"Do you want fries with that?\" Four hundred times a shift. His uniform still smells like the fryer after three washes. On his résumé it says \"food service management,\" because one time he fixed the shake machine."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«¿Te lo agrando por cien pesos más?» Lo pregunta cuatrocientas veces por turno y siempre le dicen que no. Huele a fritura hasta el domingo. En joda le dicen «chef», y él no corrige a nadie."
+          }
+        }
+      }
+    },
+    "tier.desc.fondo_buitre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On Earth, vulture funds buy a broke country's debt for pennies on the dollar, then sue in a New York court for every cent. One of them got a navy's sailing ship seized in an African port. This one does the same with bankrupt planets: miss a payment and he repossesses your moon."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En la Tierra, los fondos buitre compraban por monedas la deuda de países en default y después les hacían juicio por el total en un juzgado de Nueva York. A la Argentina le embargaron hasta la Fragata Libertad, en un puerto de Ghana. Este hace lo mismo con planetas quebrados: por un pagaré vencido, te embarga una luna."
+          }
+        }
+      }
+    },
+    "tier.desc.fundador_startup" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "His pitch: \"It's like a dating app, but for sandwiches.\" Raised a seed round, bought a standing desk and calls his three employees \"family.\" Has pivoted four times this year, and it's March."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vende «una app de empanadas a domicilio, pero con inteligencia artificial» a inversores que nunca probaron una empanada. Levantó una ronda, se compró un monopatín eléctrico y tiene tres empleados que le dicen «founder». Quema plata como si la imprimiera el Banco Central."
+          }
+        }
+      }
+    },
+    "tier.desc.god" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "He started on a street corner with a single quarter. Read the small print on it: In God We Trust. Now the universe is his small business, and he still drinks diner coffee and answers the phone himself."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todos lo decían y al final era cierto: Dios es argentino. Empezó durmiendo en una esquina y hoy el universo es su emprendimiento. Sigue atendiendo en Buenos Aires y tomando mate; el poder no le cambió las costumbres."
+          }
+        }
+      }
+    },
+    "tier.desc.homeless" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "He's slept on the same corner so long the hot dog guy saves him the burnt ones. Lost his ID in 2008 and never went back to the DMV, because nobody goes back to the DMV. Starts out with one quarter and a shopping cart with a wobbly wheel."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Durmió tantos años en la misma esquina que el kiosquero le guarda el diario. Los papeles se le perdieron en 2001 y nunca los volvió a tramitar: para el Estado no existe, para el barrio es una institución. Arranca con una moneda y el mate lavado de ayer."
+          }
+        }
+      }
+    },
+    "tier.desc.junior" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Has a diploma, a cap he threw and never found, and $80,000 in student loans. Every entry-level job wants five years of experience. Time to pick a path: code, blueprints, scrubs or briefs."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hizo en siete años una carrera de cinco, y la familia lo festejó con huevos y harina. Ahora busca su primer laburo: todos piden tres años de experiencia y «proactividad». Le toca elegir camino: código, planos, guardias o expedientes."
+          }
+        }
+      }
+    },
+    "tier.desc.junior_architect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Renders glass mansions all night for clients who end up wanting \"just a deck.\" Works seventy-hour weeks and calls it passion. His first real built project is a guest bathroom in the suburbs."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hace renders de casas con pileta para clientes que después piden «un quinchito nomás». Dibuja de noche, corrige de día y no duerme nunca. Sueña con firmar una obra; hoy mide un baño en Flores."
+          }
+        }
+      }
+    },
+    "tier.desc.junior_doctor" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twenty-eight-hour shifts, vending machine dinners, and an hourly wage that would make the Burger Flipper feel rich. Can fall asleep standing up in a hallway. His handwriting is still readable, but give it a few years."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Residente: guardias de 36 horas, café de máquina y un sueldo que hace llorar al Trapito. Aprendió a dormir parado en un pasillo. Todavía se le entiende la letra; con los años se le va a ir."
+          }
+        }
+      }
+    },
+    "tier.desc.junior_lawyer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bills in six-minute increments, including the six minutes it takes to fill out the bill. Has reviewed four thousand documents nobody will ever read again. Slept under his desk once and called it \"a late night.\""
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hace la fila de mesa de entradas en Tribunales con una pila de escritos y el traje que le prestó el tío. En el ascensor le dicen «doctor», y con eso aguanta. Procura, notifica, fotocopia y espera."
+          }
+        }
+      }
+    },
+    "tier.desc.junior_programmer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twelve-week bootcamp, one hundred percent confidence. Copies code from forums, asks the AI, and deploys on Friday afternoon like a man with nothing to lose. Wears the hoodie so nobody can see his face when production goes down."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copia código de los foros, le pregunta a la IA y reza antes de cada deploy. Cobra en pesos y se pasa la noche buscando un laburo de afuera que pague en dólares. Usa capucha para que no le vean la cara cuando rompe producción."
+          }
+        }
+      }
+    },
+    "tier.desc.limpiavidrios" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Washes your windshield whether you nod, shake your head or fake a phone call. One red light, one windshield, and he has never once run out of time. The moment you roll the window down, the price goes up."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te lava el parabrisas aunque le digas que no con las dos manos. Trabaja de a cuarenta segundos, lo que dura el rojo en Corrientes y Callao. Con el verde cobra o se resigna, y vuelve al cordón a esperar el próximo."
+          }
+        }
+      }
+    },
+    "tier.desc.magnate_petrolero" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Struck oil in West Texas and now owns more cattle than he can name, plus a hat to match. Gives speeches on energy independence from the back of his private jet. When gas prices go up, so does his mood."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Llegó a Vaca Muerta antes que nadie y hoy tiene un pozo con su apellido en Neuquén. Habla de energía, transición y futuro con un casco blanco que nunca se ensució. Cuando aumenta la nafta, a él le aumenta el humor."
+          }
+        }
+      }
+    },
+    "tier.desc.magnate_solar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Owns a stake in every planet, Pluto included, and he will fight anyone who says it doesn't count. Charges tolls on the asteroid belt like it's the New Jersey Turnpike. To him, the Sun is just another vendor."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiene acciones en todos los planetas, incluido Plutón, aunque le avisaron que ya no cuenta. Cobra peaje en el cinturón de asteroides y patente por cada órbita. Para él, el Sol es un proveedor más."
+          }
+        }
+      }
+    },
+    "tier.desc.mantero" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sells luxury watches with the logo slightly crooked and movies filmed in a theater by a guy who kept coughing. When the cops turn the corner, the entire store folds into a blanket and leaves. No receipts, no returns, no fixed address."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arma la manta en una vereda de Once: anteojos, medias y cargadores que cargan a veces. Cuando aparece la policía, junta las cuatro puntas y se va con todo el local en la espalda. Tiene la mudanza más rápida del país."
+          }
+        }
+      }
+    },
+    "tier.desc.millonario" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lake house, a pickup that doesn't fit in any parking space and a boat he takes out twice a summer. Swears he's \"basically middle class.\" Now he's shopping for a second boat, because the first one was a starter boat."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Casa en un country, una camioneta que no entra en ningún estacionamiento y un plazo fijo que ya ni mira. Es millonario en pesos, que no es lo mismo, pero en el country nadie pregunta. Ahora va por la casa en Punta."
+          }
+        }
+      }
+    },
+    "tier.desc.multimillonario" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keeps his money in places you can only find with a lawyer and a map. Owns a chalet in Aspen he visits one week a year. Pays a lower tax rate than his assistant and thinks that's just good planning."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiene la plata afuera y un contador que sabe más de él que su mujer. Veranea en José Ignacio y cuando habla de Argentina dice «allá». Cada blanqueo lo agarra sonriendo."
+          }
+        }
+      }
+    },
+    "tier.desc.oficinista" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lives in a cubicle and runs on break-room coffee and the hope that somebody brought donuts. Has perfected the art of looking busy when the boss walks by. Starts counting down to Friday on Monday at 9:01."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entra a las nueve, prende la compu y pone la pava. De nueve a diez es el mate; de diez a once, «se cayó el sistema». Espera el viernes desde el lunes y el aguinaldo desde enero."
+          }
+        }
+      }
+    },
+    "tier.desc.rentista_soles" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rents out suns to star systems that don't have their own. Wants first month, last month, a security deposit and proof of income three times the rent, in light-years. Late by one day? He shuts off your sun."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les alquila soles a los sistemas que no tienen uno propio. El contrato se ajusta cada tres meses por inflación galáctica y pide garantía propietaria en la Vía Láctea. Si te atrasás un día, te apaga el sol."
+          }
+        }
+      }
+    },
+    "tier.desc.repartidor" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Has climbed more fifth-floor walk-ups than the fire department. The app says tipping is optional, and he remembers every address that took it literally. If your fries are cold, the elevator was broken. It's always the elevator."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hace Palermo–Caballito en bici en doce minutos, con una mochila térmica más grande que él. Vive pendiente del celular, de la propina y de la lluvia, que trae pedidos y resfríos. Si la pizza llegó fría, fue el semáforo."
+          }
+        }
+      }
+    },
+    "tier.desc.rey_asteroides" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plants a flag on every rock that drifts by and files the claim in triplicate. Mines metals worth more than a small country and still haggles over shipping. Keeps a sample in his pocket for show-and-tell at dinner parties."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A cada piedra que pasa le clava una bandera y la anota a su nombre. Saca metales que valen más que un país entero, y aun así regatea el flete. Siempre lleva una roca en el bolsillo para mostrar en los asados."
+          }
+        }
+      }
+    },
+    "tier.desc.rey_ladrillo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every American uncle says it at Thanksgiving: \"They're not making any more land.\" He listened, and bought all of it. Lives off rent hikes and \"luxury\" condos with no closets, and his only advice at every cookout is \"never sell.\""
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En Argentina, el que ahorra compra ladrillo: el peso se derrite y «el ladrillo nunca baja». Él se compró el edificio entero. Vive de las expensas, de los departamentos en pozo que vende antes de cavar el pozo y de un consejo que da en todos los asados: «dolarizate en metros cuadrados»."
+          }
+        }
+      }
+    },
+    "tier.desc.semidios" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Half god, half guy from New Jersey. Performs small miracles: finds parking in Manhattan, makes the DMV line move, gets the subway there on time. He's this close, and he knows it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mitad dios, mitad conurbano. Hace milagros chiquitos: encuentra lugar para estacionar en el centro, consigue turno en el banco, hace que pase el colectivo. Le falta poco, y lo sabe."
+          }
+        }
+      }
+    },
+    "tier.desc.senior_architect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Running three projects, and on all three the contractor is \"coming Tuesday.\" Tells clients six months, knowing it's eighteen. Dresses head to toe in black with round glasses, because that's the uniform."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dirige tres obras a la vez y en ninguna vino el albañil el lunes. Al cliente le dice «dos meses» sabiendo que son ocho. Igual las casas le quedan lindas."
+          }
+        }
+      }
+    },
+    "tier.desc.senior_doctor" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sees you for seven minutes after ninety in the waiting room, and you thank him on the way out. His handwriting has fully evolved into hieroglyphics. Diagnosis: \"probably viral, drink fluids, that'll be $350.\""
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consultorio propio, cartilla de tres prepagas y una letra que ni la farmacia descifra. Te atiende cinco minutos con dos horas de demora, y encima le agradecés. Te dice «es viral» y te manda a casa con reposo."
+          }
+        }
+      }
+    },
+    "tier.desc.senior_lawyer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cufflinks, a corner office and one answer to every question: \"it depends.\" Bills $900 an hour, and yes, that includes the small talk. If he loses, he appeals. If he wins, he invoices."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Socio del estudio, gemelos en los puños y una sola respuesta para todo: «depende». Te cobra la consulta aunque le preguntes la hora. Si pierde, apela; si gana, factura."
+          }
+        }
+      }
+    },
+    "tier.desc.senior_programmer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rubber duck, noise-canceling headphones and the sacred words \"works on my machine.\" Hasn't turned his camera on in a meeting since 2020. Explains every bug to the duck, and the duck has never once pushed back."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Patito de goma, auriculares enormes y la frase «en mi máquina anda». Cobra en dólares para una empresa de afuera y a las cinco de la tarde ya terminó el día de Estados Unidos. Le explica sus bugs al pato, y el pato nunca le discute."
+          }
+        }
+      }
+    },
+    "tier.desc.senor_galaxia" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rules over a hundred billion stars and still gets put on hold by customer service. Every planet bows to him except the one where his in-laws live. Has a cape, a throne and a reserved parking spot he's very proud of."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manda sobre cien mil millones de estrellas y todavía no consigue turno en el Registro Civil. Le hacen reverencias en todos los planetas, menos en el de la suegra. Tiene capa, trono y un fernet en la mano derecha."
+          }
+        }
+      }
+    },
+    "tier.desc.ser_ascendido" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No body, no debt, no family group chat. Floats in pure light and speaks only in whispers. Still drops back down to Earth now and then for a ballpark hot dog."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ya no tiene cuerpo, ni deudas, ni grupo de la familia. Flota en luz pura y habla en susurros. Igual, cada tanto baja a la Tierra por un choripán."
+          }
+        }
+      }
+    },
+    "tier.desc.space_billionaire" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Got bored of Earth and built his own rocket, in a shape that raised some questions. Calls the Moon \"a huge opportunity\" and Mars \"Plan B.\" What he's really looking for is an orbit the IRS can't reach."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se aburrió de la Tierra y se mandó su propio cohete, con una forma sospechosa. Ahora habla en inglés hasta para pedir un café y te explica que «la humanidad tiene que ser multiplanetaria». Lo que busca es un lugar donde no le cobren impuestos."
+          }
+        }
+      }
+    },
+    "tier.desc.trapito" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Red vest, a podium he found in an alley, and nobody has ever asked if he works for the restaurant. Parking is twenty bucks, cash. Your car comes back with two hundred extra miles and the seat pushed all the way back."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«¿Te lo cuido, jefe?» no es una pregunta. Nadie sabe de quién es la cuadra, pero él la cobra igual, por adelantado y en efectivo. Si no le pagás, a la vuelta encontrás el espejito mirando para otro lado."
+          }
+        }
+      }
+    },
+    "tier.desc.trillonario" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Has so many zeros the bank added a scroll bar to his account. Thinks about a billion dollars the way you think about a twenty. Still clips coupons, out of habit."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiene tantos ceros que el banco le tuvo que agrandar la pantalla del home banking. Cuenta la plata por kilo, como los billetes de antes. Si es en pesos, el trillón le alcanza para el alquiler de marzo."
+          }
+        }
+      }
+    },
     "tier.name.administrativo" : {
       "extractionState" : "manual",
       "localizations" : {

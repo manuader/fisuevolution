@@ -101,7 +101,11 @@ final class PrizesUITests: XCTestCase {
         app.buttons["mattress.collect"].tap()
         XCTAssertTrue(app.buttons["mattress.collect"].waitForNonExistence(timeout: 5))
 
-        XCTAssertTrue(chip.waitForExistence(timeout: 3))
-        XCTAssertNotEqual(chip.value as? String, "ready", "pagado, el sello deja de estar listo")
+        // E14 D8: los sellos no disponibles no aparecen. Pagado el colchón, el
+        // sello se va de la columna; si todavía estuviera, no puede estar listo.
+        XCTAssertTrue(
+            chip.waitForNonExistence(timeout: 5) || chip.value as? String != "ready",
+            "pagado, el sello se va de la columna (D8) o, si queda, deja de estar listo"
+        )
     }
 }

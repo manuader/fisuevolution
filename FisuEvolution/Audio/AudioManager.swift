@@ -127,6 +127,39 @@ final class AudioManager {
         }
     }
 
+    // MARK: Pausa por anuncio
+
+    /// Si hay un anuncio de pantalla completa en curso: nada suena hasta que se cierre.
+    @ObservationIgnored private(set) var isPausedForAd = false
+    /// Los players que sonaban al empezar el anuncio: son los únicos que se reanudan, así que
+    /// una música apagada en Ajustes (o un SFX que no sonaba) no se prende sola al volver.
+    @ObservationIgnored private var pausedForAd: [AVAudioPlayer] = []
+
+    /// Empieza un anuncio: pausa la música y los efectos que suenan. Idempotente.
+    func pauseForAd() {
+        guard !isPausedForAd else { return }
+        isPausedForAd = true
+        var playing: [AVAudioPlayer] = []
+        if let musicPlayer { playing.append(musicPlayer) }
+        playing += floorPlayers.values
+        playing += sfxPlayers.values
+        pausedForAd = playing.filter(\.isPlaying)
+        pausedForAd.forEach { $0.pause() }
+    }
+
+    /// Terminó el anuncio, por el desenlace que sea: reanuda lo que pausó. Idempotente.
+    func resumeAfterAd() {
+        guard isPausedForAd else { return }
+        isPausedForAd = false
+        // Sólo lo que sigue siendo del manager: un tema de piso cortado durante el anuncio no vuelve.
+        var owned = Set(floorPlayers.values.map(ObjectIdentifier.init))
+        owned.formUnion(sfxPlayers.values.map(ObjectIdentifier.init))
+        if let musicPlayer { owned.insert(ObjectIdentifier(musicPlayer)) }
+        let toResume = pausedForAd.filter { owned.contains(ObjectIdentifier($0)) }
+        pausedForAd = []
+        toResume.forEach { $0.play() }
+    }
+
     var sfxVolume: Double {
         didSet {
             UserDefaults.standard.set(sfxVolume, forKey: Self.sfxVolumeKey)
@@ -174,6 +207,8 @@ final class AudioManager {
 
     #if DEBUG
     func debugRate(of sfx: SFX) -> Float? { sfxPlayers[sfx]?.rate }
+    func debugIsPlaying(_ sfx: SFX) -> Bool { sfxPlayers[sfx]?.isPlaying ?? false }
+    var debugIsMusicPlaying: Bool { musicPlayer?.isPlaying ?? false }
     #endif
 
     func prepare() {
@@ -220,7 +255,16 @@ final class AudioManager {
         player.numberOfLoops = -1
         player.volume = effectiveMusicVolume
         musicPlayer = player
-        player.play()
+        startOrHold(player)
+    }
+
+    /// Arranca un player, salvo que haya un anuncio en pantalla: entonces queda esperando a que se cierre.
+    private func startOrHold(_ player: AVAudioPlayer) {
+        if isPausedForAd {
+            pausedForAd.append(player)
+        } else {
+            player.play()
+        }
     }
 
     /// `AVAudioPlayer` no es `Sendable`, así que no puede cruzar desde una tarea
@@ -284,7 +328,7 @@ final class AudioManager {
         player.numberOfLoops = -1
         player.volume = 0
         floorPlayers[track] = player
-        player.play()
+        startOrHold(player)
         player.setVolume(effectiveMusicVolume, fadeDuration: FloorMusicDirector.crossfade)
     }
 
@@ -352,7 +396,7 @@ final class AudioManager {
     }
 
     private func play(_ sfx: SFX, volume: Float, rate: Float) {
-        guard sfxVolume > 0 else { return }
+        guard sfxVolume > 0, !isPausedForAd else { return }
         let now = Date().timeIntervalSince1970
         guard now - (lastPlayed[sfx] ?? 0) > Self.throttleWindow else { return }
         lastPlayed[sfx] = now
@@ -365,7 +409,7 @@ final class AudioManager {
 
     /// Un ambiente en loop a -18 dB. Si ya suena, no lo reinicia.
     func startAmbient(_ sfx: SFX) {
-        guard sfxVolume > 0, let player = player(for: sfx), !player.isPlaying else { return }
+        guard sfxVolume > 0, !isPausedForAd, let player = player(for: sfx), !player.isPlaying else { return }
         player.numberOfLoops = -1
         player.currentTime = 0
         player.rate = 1
@@ -410,7 +454,9 @@ final class AudioManager {
 
     /// Corta un SFX que todavía suena (el motor del ascensor al saltear el viaje).
     func stop(_ sfx: SFX) {
-        sfxPlayers[sfx]?.stop()
+        guard let player = sfxPlayers[sfx] else { return }
+        pausedForAd.removeAll { $0 === player }
+        player.stop()
     }
 
     private func url(forResource name: String) -> URL? {

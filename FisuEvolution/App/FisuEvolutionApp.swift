@@ -48,6 +48,7 @@ struct FisuEvolutionApp: App {
                     }
                     gameState.attachHaptics(haptics)
                     gameState.attachAudio(audio)
+                    ads.attachAudio(audio)
                     gameState.attachConsentGate(ads.consentGate)
                     gameState.attachBackgroundTasks(UIKitBackgroundTasks())
                     attachElevator()

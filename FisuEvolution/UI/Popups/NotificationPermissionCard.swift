@@ -9,6 +9,8 @@ import SwiftUI
 /// `TutorialInlineCard`).
 struct NotificationPermissionCard: View {
     static let lessonID = "notifications.permission"
+    /// La campana: la imagen principal de la tarjeta.
+    static let imageSide: CGFloat = 88
 
     let accept: () -> Void
     let decline: () -> Void
@@ -16,22 +18,22 @@ struct NotificationPermissionCard: View {
     var body: some View {
         GameCard(style: .highlighted(Color("PaletteBlue"))) {
             VStack(spacing: Tokens.s8) {
-                HStack(spacing: Tokens.s8) {
-                    Image(systemName: "bell.badge.fill")
-                        .font(.system(size: 22, weight: .black))
-                        .foregroundStyle(Color("PaletteBlue"))
-                        .accessibilityHidden(true)
-                    Text("notifications.card.title")
-                        .font(Tokens.body)
-                        .foregroundStyle(Color("PaletteInk"))
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                GameIcon(artKey: "ui_notif_campana", size: Self.imageSide) {
+                    IconCanvas { MarkDisc(mark: "!", fill: Color("PaletteBlue")) }
                 }
+                .accessibilityHidden(true)
+                Text("notifications.card.title")
+                    .font(Tokens.body)
+                    .foregroundStyle(Color("PaletteInk"))
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity)
                 Text("notifications.card.body")
                     .font(Tokens.caption)
                     .foregroundStyle(Color("PaletteInk").opacity(0.7))
+                    .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(maxWidth: .infinity)
                 HStack(spacing: Tokens.s8) {
                     ActionPill(
                         titleKey: "notifications.card.decline",

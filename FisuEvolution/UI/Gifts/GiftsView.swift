@@ -740,7 +740,7 @@ private struct StreakHelpPopup: View {
     var body: some View {
         PopupContainer("gifts.section.daily", onClose: close, closeIdentifier: "gifts.help.close") {
             VStack(spacing: Tokens.s12) {
-                RewardIllustration(kind: .gift, size: 72)
+                RewardIllustration(kind: .gift, size: 100)
                 Text("gifts.daily.note")
                     .font(Tokens.body)
                     .foregroundStyle(Color("PaletteInk"))

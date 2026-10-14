@@ -78,6 +78,7 @@ struct WheelView: View {
                         .multilineTextAlignment(.center)
                 }
                 buttons(availability)
+                PrizePileHero()
                 OddsDisclosureView(titleKey: "wheel.odds.title", rows: oddsRows, identifier: "wheel.odds")
             }
             .padding(.horizontal, WoodPanelBackground.columnInset)
@@ -121,6 +122,7 @@ struct WheelView: View {
         }
         .frame(width: WheelStage.size.width, height: WheelStage.size.height)
         .clipped()
+        .modifier(WheelStageFit())
         .contentShape(Rectangle())
         .simultaneousGesture(
             DragGesture(minimumDistance: 24).onEnded { drag in
@@ -290,8 +292,33 @@ enum WheelStage {
         CGSize(width: (discCenter.x - 256) * scale, height: (discCenter.y - 256) * scale)
     }
 
+    /// El factor que entra el escenario en `available` puntos de ancho (nunca lo
+    /// agranda): en el SE la columna de la hoja es más angosta que el marco y el
+    /// escenario se cortaba por los costados.
+    static func fitScale(availableWidth: CGFloat) -> CGFloat {
+        guard availableWidth > 0 else { return 1 }
+        return min(1, availableWidth / size.width)
+    }
+
     /// Un deslizón lateral tira la ruleta; uno vertical es el scroll de la hoja.
     static func isSwipe(_ translation: CGSize) -> Bool {
         abs(translation.width) >= 60 && abs(translation.width) > abs(translation.height) * 1.5
+    }
+}
+
+/// Achica el escenario de la Ruleta para que entre en el ancho que le da la
+/// hoja, sin recortarlo: el marco ocupado se achica con él (el `.scaleEffect`
+/// solo no cambia el layout y dejaría el hueco del tamaño original).
+private struct WheelStageFit: ViewModifier {
+    @State private var scale: CGFloat = 1
+
+    func body(content: Content) -> some View {
+        content
+            .scaleEffect(scale)
+            .frame(width: WheelStage.size.width * scale, height: WheelStage.size.height * scale)
+            .frame(maxWidth: .infinity)
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width in
+                scale = WheelStage.fitScale(availableWidth: width)
+            }
     }
 }

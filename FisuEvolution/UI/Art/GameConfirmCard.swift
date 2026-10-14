@@ -7,6 +7,8 @@ import SwiftUI
 /// Va como `.overlay` de la pantalla que pregunta y no como otra hoja: una hoja
 /// sobre otra apila dos marcos, y el arrastre podría cerrarla a medias.
 struct GameConfirmCard: View {
+    /// La imagen principal de la tarjeta (B9): grande, arriba del título.
+    var artKey: String?
     let titleKey: LocalizedStringKey
     let message: Text
     let confirmTitleKey: LocalizedStringKey
@@ -20,6 +22,8 @@ struct GameConfirmCard: View {
     let onConfirm: () -> Void
     let onCancel: () -> Void
 
+    static let artSide: CGFloat = 96
+
     var body: some View {
         ZStack {
             Color.black.opacity(0.45)
@@ -29,6 +33,12 @@ struct GameConfirmCard: View {
                 .accessibilityHidden(true)
             PanelCard {
                 VStack(spacing: Tokens.s12) {
+                    if let artKey {
+                        GameIcon(artKey: artKey, size: Self.artSide) {
+                            IconCanvas { MarkDisc(mark: "!", fill: confirmTint) }
+                        }
+                        .accessibilityHidden(true)
+                    }
                     Text(titleKey)
                         .font(Tokens.title)
                         .foregroundStyle(Color("PaletteInk"))

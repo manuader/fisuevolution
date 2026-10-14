@@ -23,6 +23,8 @@ struct StageVisit: Identifiable, Equatable {
     /// La oferta del visitante, cotizada al llegar (`VisitPlanner`). `nil` después
     /// de elegir: el chip desaparece.
     var offer: VisitOffer?
+    /// El piso donde está (E14b B7): se queda ahí y, si se deja de mirar, se congela.
+    var floorOrdinal = 0
 }
 
 /// El popup de quien está en escena: lo abrió el jugador (chip o toque).
@@ -71,6 +73,11 @@ struct StageRuntime {
     /// El reloj del reto en curso: arranca en el `now` de la elección y avanza sólo
     /// con el delta del juego activo (`advanceStage`), nunca con la fecha de pared.
     var challengeClock: TimeInterval = 0
+    /// Los visitantes congelados en los pisos que no se miran, tal como quedaron
+    /// (E14b B7). Su espera vive en el save (`VisitorsState.waiting`); esto guarda
+    /// el resto (la oferta ya cotizada, el id que la escena conoce). Después de
+    /// relanzar está vacío y el que vuelve se cotiza de nuevo.
+    var parked: [Int: StageVisit] = [:]
 }
 
 extension StageChallenge {

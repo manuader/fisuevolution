@@ -6,6 +6,8 @@ struct ElevatorKeypadModel: Equatable {
         let id: String
         let ordinal: Int
         let isCurrent: Bool
+        /// Un visitante espera congelado en ese piso (E14b B7): una marca chica.
+        let hasVisitor: Bool
         var number: Int { ordinal + 1 }
     }
 
@@ -14,10 +16,12 @@ struct ElevatorKeypadModel: Equatable {
     /// De arriba abajo, sólo los abiertos.
     let floors: [Floor]
 
-    /// `map` viene de Dios para abajo (`GameState.floorMap`).
-    init(map: [FloorMapEntry], visibleOrdinal: Int) {
+    /// `map` viene de Dios para abajo (`GameState.floorMap`). `visitorOrdinals`: los pisos
+    /// con un visitante esperando (`GameState.visitorsWaitingElsewhere`).
+    init(map: [FloorMapEntry], visibleOrdinal: Int, visitorOrdinals: Set<Int> = []) {
         floors = map.filter(\.isUnlocked).prefix(Self.maxButtons).map {
-            Floor(id: $0.id, ordinal: $0.ordinal, isCurrent: $0.ordinal == visibleOrdinal)
+            Floor(id: $0.id, ordinal: $0.ordinal, isCurrent: $0.ordinal == visibleOrdinal,
+                  hasVisitor: visitorOrdinals.contains($0.ordinal))
         }
     }
 }
@@ -100,12 +104,20 @@ struct ElevatorKeypadButton: View {
             .overlay(alignment: .leading) {
                 if floor.isCurrent { Sparkle().offset(x: -side * 0.42) }
             }
+            .overlay(alignment: .topTrailing) {
+                if floor.hasVisitor { VisitorMark(side: side * 0.36).offset(x: side * 0.08, y: -side * 0.08) }
+            }
             .contentShape(Circle())
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("hud.elevator.keypad.floor.\(floor.id)")
         .accessibilityLabel(Text("elevator.floor.ax \(String(floor.number)) \(TowerNaming.displayName(for: floor.id, isUnlocked: true))"))
-        .accessibilityValue(floor.isCurrent ? Text("elevator.floor.current") : Text(verbatim: ""))
+        .accessibilityValue(accessibilityValue)
+    }
+
+    private var accessibilityValue: Text {
+        if floor.isCurrent { return Text("elevator.floor.current") }
+        return floor.hasVisitor ? Text("elevator.floor.visitor") : Text(verbatim: "")
     }
 
     private var face: LinearGradient {
@@ -116,6 +128,21 @@ struct ElevatorKeypadButton: View {
 }
 
 // MARK: - Piezas
+
+/// La marca del piso con un visitante esperando: un «!» naranja con contorno, como el del chip.
+private struct VisitorMark: View {
+    let side: CGFloat
+
+    var body: some View {
+        Text(verbatim: "!")
+            .font(.system(size: side * 0.72, weight: .black, design: .rounded))
+            .foregroundStyle(.white)
+            .frame(width: side, height: side)
+            .background(Circle().fill(Color("PaletteOrange")))
+            .overlay(Circle().strokeBorder(Color("PaletteInk"), lineWidth: 1.5))
+            .accessibilityHidden(true)
+    }
+}
 
 /// El resorte: cinco espiras aplastadas, del metal claro al oscuro.
 private struct SpringCoil: View {

@@ -28,6 +28,15 @@ struct ElevatorKeypadModelTests {
         #expect(model.floors.map(\.isCurrent) == [true, false])
     }
 
+    @Test("los pisos con un visitante esperando llevan su marca (E14b B7)")
+    func floorsWithAVisitorAreMarked() {
+        let model = ElevatorKeypadModel(map: map([
+            ("corporate", 0, 10, true), ("urban", 4, 10, true), ("alley", 10, 10, true),
+        ]), visibleOrdinal: 1, visitorOrdinals: [0, 2])
+        #expect(model.floors.map(\.hasVisitor) == [true, false, true])
+        #expect(ElevatorKeypadModel(map: map([("alley", 1, 10, true)]), visibleOrdinal: 0).floors.map(\.hasVisitor) == [false])
+    }
+
     @Test("la placa crece con los pisos abiertos, de 1 a 10")
     func growsWithTheTower() {
         let ids = ["god_realm", "galaxy", "solar", "mars", "moon", "island", "luxury", "corporate", "urban", "alley"]

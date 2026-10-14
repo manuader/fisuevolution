@@ -68,6 +68,7 @@ struct CelebrationWiringTests {
         gameState.offlineReward = nil
         gameState.dailyClaim = nil
         gameState.careerPrompt = nil
+        gameState.newCharacterCard = nil
         gameState.achievementToast = nil
         gameState.pendingAchievementToasts.removeAll()
         // Sin escena nadie marca el reveal, y la red de seguridad volvería a
@@ -101,6 +102,7 @@ struct CelebrationWiringTests {
         case .chestOpening: #expect(gameState.chestReward != nil)
         case .cinematic: #expect(gameState.cinematic != nil)
         case .offer: #expect(gameState.offerToPresent != nil)
+        case .newCharacter: #expect(gameState.newCharacterCard != nil)
         }
     }
 
@@ -437,6 +439,8 @@ struct CelebrationWiringTests {
         #expect(gameState.showing == .boardCelebration)
         gameState.markRevealed(tier: 3)
         gameState.celebrationFinished(.boardCelebration)
+        #expect(gameState.showing == .newCharacter, "el personaje revelado abre su card después del tablero")
+        gameState.finishNewCharacterCard(shared: false)
         #expect(gameState.showing == nil)
     }
 

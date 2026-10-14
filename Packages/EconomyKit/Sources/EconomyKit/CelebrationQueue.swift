@@ -46,6 +46,10 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
     /// después vive en el chip: comparte el último lugar con los avisos, así que
     /// nunca le pasa por encima a un premio ni a una celebración.
     case offer
+    /// La card de un personaje nunca visto (E14 C24): el personaje grande con su
+    /// skin y, debajo, compartir o seguir. Bloquea el juego hasta que el jugador
+    /// elige; espera al fin de la celebración del tablero que la trajo.
+    case newCharacter
 
     /// Menor es antes. Los de arranque de sesión primero —cobrás y seguís—, la
     /// carrera antes que las celebraciones porque BLOQUEA la progresión (hasta
@@ -56,7 +60,7 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
         case .offlineEarnings, .dailyReward: 1
         case .careerChoice, .cinematic: 2
         case .boardCelebration: 3
-        case .skinAward, .specialDrop, .chestOpening: 4
+        case .skinAward, .specialDrop, .chestOpening, .newCharacter: 4
         case .visitorEncounter: 5
         case .achievements, .towerNotice, .offer: 6
         // Una lección puede esperar a todo el mundo: enseña una pantalla que
@@ -79,6 +83,9 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
         // Una lección no se va sola: la cierra su último paso, o el watchdog de
         // 3 min del tutorial (PLAN-v2 E9).
         case .tutorialTip: nil
+        // La cierra el jugador (compartir o seguir) y la hoja del sistema para
+        // compartir puede tardar: el margen es una red, no un reloj.
+        case .newCharacter: 180
         // Cubre destacar el par, fundirlo, el vuelo del ascenso y el reveal.
         // En una cadena, por eslabón (`renew`).
         case .boardCelebration: 14
@@ -100,7 +107,7 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
     public var isSkippable: Bool {
         switch self {
         case .offlineEarnings, .dailyReward, .careerChoice, .skinAward, .specialDrop,
-             .chestOpening, .cinematic, .offer, .tutorialTip: false
+             .chestOpening, .cinematic, .offer, .tutorialTip, .newCharacter: false
         case .boardCelebration, .visitorEncounter, .achievements, .towerNotice: true
         }
     }

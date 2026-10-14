@@ -101,6 +101,7 @@ extension GameState {
         achievementToast = nil
         pendingAchievementToasts.removeAll()
         shareCardMoment = nil
+        newCharacterCard = nil
         shareOffer = nil
         pendingShareMoment = nil
         tutorialRun = nil

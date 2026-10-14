@@ -168,15 +168,6 @@ struct GameBoardView: View {
             }
             #endif
 
-            // El botón de compartir un momento viral: mismo patrón de los toasts
-            // (la transición necesita que el PADRE abra la transacción).
-            ZStack {
-                if let offer = gameState.shareOffer {
-                    ShareMomentChip(moment: offer)
-                }
-            }
-            .animation(.spring(duration: 0.32), value: gameState.shareOffer?.id)
-
             // La animación del cofre va ÚLTIMA en el `ZStack`: es la única
             // celebración que ocupa la pantalla entera con su propio telón, así
             // que tiene que quedar por encima de todo lo demás —incluido el
@@ -232,6 +223,8 @@ struct GameBoardView: View {
         // El selector del atajo va ANTES del overlay del tutorial: así su cara fijada le llega.
         .modifier(QuickHirePickerLayer(isPresented: $showQuickHirePicker))
         .modifier(NoticesLayer())
+        .modifier(ShareOfferLayer())
+        .modifier(NewCharacterCardPopup())
         // El overlay se monta acá y no dentro del `ZStack` porque necesita los
         // anchors que publican los controles de adentro: `overlayPreferenceValue`
         // los entrega ya recolectados, y el `GeometryReader` a pantalla completa

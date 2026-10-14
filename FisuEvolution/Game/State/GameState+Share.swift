@@ -26,12 +26,44 @@ extension GameState {
     }
 
     /// El reveal de un tier (lo llama `markRevealed`): personaje nuevo, o Dios.
+    /// Cada uno abre su card bloqueante (C24) cuando termina la celebración del
+    /// tablero; el núcleo del tutorial no la abre (la fase obligatoria no
+    /// comparte pantalla con nada).
     func noteRevealedTier(_ tier: Int) {
         guard let content, let player else { return }
         let candidates = content.tiers.concreteTypes.filter { $0.tier == tier }
         guard let type = candidates.first(where: { player.run.seenTypes.contains($0.id) }) ?? candidates.first
         else { return }
-        queueShareMoment(tier == content.tiers.maxTier ? .god(type) : .newCharacter(type))
+        queueNewCharacterCard(tier == content.tiers.maxTier ? .god(type) : .newCharacter(type))
+    }
+
+    /// Los primeros personajes salen en minutos: su card no ofrece compartir
+    /// (sólo «¡Genial!») para no cortar el arranque cada 30 s. Dios nunca cae acá.
+    static let tutorialTierCeiling = 3
+
+    /// Si la card de este momento trae el botón de compartir.
+    func newCharacterCardCanShare(_ moment: ShareMoment) -> Bool {
+        guard case .newCharacter(let type) = moment else { return true }
+        return type.tier > Self.tutorialTierCeiling
+    }
+
+    /// Un personaje nuevo pide su card. Uno cuyo momento ya se compartió (en
+    /// otra vida) no la vuelve a pedir, como la oferta de siempre.
+    func queueNewCharacterCard(_ moment: ShareMoment) {
+        guard shareOffersEnabled, !tutorialPhaseActive, let player,
+              !player.meta.engagement.sharedMoments.contains(moment.key)
+        else { return }
+        newCharacterCard = moment
+        syncCelebrations()
+    }
+
+    /// El jugador eligió en la card: `shared` = la hoja del sistema se completó.
+    /// El bonus se cobra una vez y, elija lo que elija, el juego sigue.
+    func finishNewCharacterCard(shared: Bool) {
+        guard let moment = newCharacterCard else { return }
+        newCharacterCard = nil
+        if shared { registerShareCompleted(moment) }
+        celebrationFinished(.newCharacter)
     }
 
     func openShareCard() {
@@ -91,6 +123,14 @@ extension GameState {
         guard let content, content.floorTable.floors.count > 1 else { return }
         queueShareMoment(.newFloor(floorID: content.floorTable[1].id))
         refreshProjections()
+    }
+
+    /// La puerta de los tests de UI: la card de un personaje nuevo (de los que
+    /// ofrecen compartir), ya mismo.
+    func debugOfferNewCharacterCard() {
+        guard let type = content?.tiers.concreteTypes.first(where: { $0.tier == Self.tutorialTierCeiling + 1 })
+        else { return }
+        queueNewCharacterCard(.newCharacter(type))
     }
     #endif
 }

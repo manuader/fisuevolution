@@ -7,10 +7,12 @@ import UIKit
 /// dispara el bonus viral (`registerShareCompleted(_:)`), cosa que ShareLink no permite.
 ///
 /// Vive en el `PopupContainer` de la casa (E14 C15): la card es la ilustración
-/// y abajo van compartir y la salida. La card misma es de T23.
+/// y abajo van compartir y la salida. La abre la oferta chica de un piso nuevo
+/// o de una reencarnación; el personaje nuevo comparte desde su propia card.
 struct ShareCardSheet: View {
     @Environment(GameState.self) private var gameState
     let moment: ShareMoment
+    @State private var artwork = ShareArtwork.empty
     @State private var showActivity = false
 
     /// La vista previa a escala: la card entera cabe en el SE sin scrollear.
@@ -18,7 +20,7 @@ struct ShareCardSheet: View {
 
     var body: some View {
         PopupContainer("share.title", ribbonTint: Color("PaletteGreen"), onClose: { gameState.dismissShareCard() }) {
-            ShareCardContent(moment: moment)
+            ShareCardPreview(moment: moment, artwork: artwork)
                 .frame(width: 270, height: 480)
                 .clipShape(RoundedRectangle(cornerRadius: CardMaterials.cornerRadius, style: .continuous))
                 // El contorno de tarjeta v3 va en la VISTA PREVIA y no dentro
@@ -39,38 +41,66 @@ struct ShareCardSheet: View {
                 gameState.dismissShareCard()
             }
         }
-        .sheet(isPresented: $showActivity) {
-            ActivityShareView(image: renderCard()) { completed in
-                if completed {
-                    gameState.registerShareCompleted(moment)
-                }
-                gameState.dismissShareCard()
+        .task { artwork = ShareArt.artwork(for: moment, in: gameState) }
+        .shareActivity(isPresented: $showActivity, moment: moment, artwork: artwork) { completed in
+            if completed {
+                gameState.registerShareCompleted(moment)
             }
+            gameState.dismissShareCard()
         }
+    }
+}
+
+/// La imagen que sale a las redes.
+enum ShareCardRenderer {
+    static let size = CGSize(width: 540, height: 960)
+
+    /// 1080×1920, formato video vertical. Sin arte cargado (el popup todavía no
+    /// terminó su `task`) lo carga acá: nunca sale la card vacía.
+    @MainActor
+    static func render(_ moment: ShareMoment, artwork: ShareArtwork, in gameState: GameState) -> UIImage {
+        let art = artwork.portrait == nil && artwork.background == nil
+            ? ShareArt.artwork(for: moment, in: gameState) : artwork
+        return render(moment, artwork: art)
     }
 
     @MainActor
-    private func renderCard() -> UIImage {
-        let renderer = ImageRenderer(content: ShareCardContent(moment: moment).frame(width: 540, height: 960))
-        renderer.scale = 2 // 1080×1920, formato video vertical
+    static func render(_ moment: ShareMoment, artwork: ShareArtwork) -> UIImage {
+        let renderer = ImageRenderer(
+            content: ShareCardContent(moment: moment, artwork: artwork).frame(width: size.width, height: size.height)
+        )
+        renderer.scale = 2
         return renderer.uiImage ?? UIImage()
     }
 }
 
-/// El diseño de la card. El layout del póster (retrato, nombre, remate, sello)
-/// es el de siempre; los materiales son los del rediseño v3 —pergamino con la
-/// luz arriba, plato crema para el retrato, tinta rounded— para que la imagen
-/// compartida sea una postal del juego y no un placard genérico. Ojo al elegir
-/// materiales acá adentro: esto lo dibuja ImageRenderer, así que todo es
-/// vectorial y de paleta, sin arte del atlas que pueda faltar en el render.
-private struct ShareCardContent: View {
+/// La card entera (540×960) achicada al marco de la vista previa.
+struct ShareCardPreview: View {
     let moment: ShareMoment
+    let artwork: ShareArtwork
 
-    private var headline: String {
+    var body: some View {
+        ShareCardContent(moment: moment, artwork: artwork)
+            .frame(width: ShareCardRenderer.size.width, height: ShareCardRenderer.size.height)
+            .scaleEffect(270 / ShareCardRenderer.size.width, anchor: .topLeading)
+            .frame(width: 270, height: 480, alignment: .topLeading)
+    }
+}
+
+/// El diseño de la card (540×960): el personaje real, grande y con su skin,
+/// sobre el fondo de su piso, dentro del pergamino con el marco de la casa; el
+/// título del logro arriba del personaje y el logo del juego arriba de todo.
+/// Lo dibuja ImageRenderer, así que todo es vectorial o `UIImage` ya cargado.
+/// Si el retrato no está, el respaldo es el de la casa, nunca un SF Symbol.
+struct ShareCardContent: View {
+    let moment: ShareMoment
+    let artwork: ShareArtwork
+
+    private var name: String {
         switch moment {
-        case .newCharacter(let type), .god(let type): type.localizedName.uppercased()
-        case .newFloor(let floorID): TowerNaming.floorName(for: floorID).uppercased()
-        case .reincarnation(let level): String(localized: "share.card.reincarnation.title \(String(level))").uppercased()
+        case .newCharacter(let type), .god(let type): type.localizedName
+        case .newFloor(let floorID): TowerNaming.floorName(for: floorID)
+        case .reincarnation(let level): String(localized: "share.card.reincarnation.title \(String(level))")
         }
     }
 
@@ -83,78 +113,165 @@ private struct ShareCardContent: View {
         }
     }
 
-    private var symbolName: String {
-        switch moment {
-        case .newCharacter(let type), .god(let type):
-            type.spritePlaceholder.hasPrefix("sf:") ? String(type.spritePlaceholder.dropFirst(3)) : "person.fill"
-        case .newFloor: "building.2.fill"
-        case .reincarnation: "arrow.triangle.2.circlepath"
-        }
-    }
-
     var body: some View {
         ZStack {
-            // El interior de panel v3 (el patrón de `PanelBackground`): el
-            // gradiente amarillo→naranja anterior era del placeholder y no
-            // pertenecía a ninguna pantalla del juego rediseñado.
-            Color("PaletteParchment")
-            LinearGradient(
-                colors: [
-                    Color.white.opacity(0.35),
-                    .clear,
-                    Color("PaletteBrown").opacity(0.10)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
+            backdrop
             VStack(spacing: Tokens.s16) {
-                Spacer()
-                // `resizable` y no font fijo de 110: hay placeholders más
-                // anchos que altos (box.truck, banknote) que con font se
-                // salían del plato; encajado ocupa ~2/3 del plato, el mismo
-                // reparto glifo/plato que usa el HUD.
-                Image(systemName: symbolName)
-                    .resizable()
-                    .scaledToFit()
-                    .fontWeight(.bold)
-                    .foregroundStyle(Color("PaletteInk"))
-                    .frame(width: 116, height: 116)
-                    .frame(width: 176, height: 176)
-                    .background(portraitPlate)
-                Text(verbatim: headline)
-                    .font(.system(size: 34, design: .rounded).weight(.heavy))
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(Color("PaletteInk"))
-                caption
-                    .font(Tokens.body)
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(Color("PaletteInk").opacity(0.8))
-                Spacer()
-                Text(verbatim: "FisuEvolution")
-                    .font(Tokens.body)
-                    .foregroundStyle(Color("PaletteInk").opacity(0.6))
-                    .padding(.bottom, Tokens.s16)
+                logo
+                scroll
+                storeLine
             }
-            .padding(Tokens.s24)
+            .padding(.horizontal, Tokens.s24)
+            .padding(.vertical, Tokens.s24)
         }
     }
 
-    /// El plato de retrato v3, en grande: es el héroe del póster, así que
-    /// lleva el radio y el borde de tarjeta (18 / brown 0.55 a 2 pt) y no los
-    /// del plato chico de icono.
-    private var portraitPlate: some View {
-        RoundedRectangle(cornerRadius: CardMaterials.cornerRadius, style: .continuous)
-            .fill(Color("PaletteCream"))
-            .overlay(
-                RoundedRectangle(cornerRadius: CardMaterials.cornerRadius, style: .continuous)
-                    .strokeBorder(Color("PaletteBrown").opacity(0.55), lineWidth: 2)
-            )
-            .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
+    /// El fondo del piso; sin él, el pergamino liso de siempre.
+    private var backdrop: some View {
+        ZStack {
+            Color("PaletteParchment")
+            if let background = artwork.background {
+                Image(uiImage: background)
+                    .resizable()
+                    .scaledToFill()
+                LinearGradient(
+                    colors: [.black.opacity(0.10), .black.opacity(0.45)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            } else {
+                LinearGradient(
+                    colors: [Color.white.opacity(0.35), .clear, Color("PaletteBrown").opacity(0.10)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            }
+        }
+        .frame(width: ShareCardRenderer.size.width, height: ShareCardRenderer.size.height)
+        .clipped()
+    }
+
+    @ViewBuilder
+    private var logo: some View {
+        if let logo = artwork.logo {
+            Image(uiImage: logo)
+                .resizable()
+                .scaledToFit()
+                .frame(height: 96)
+                .shadow(color: .black.opacity(0.35), radius: 6, y: 2)
+        } else {
+            Text(verbatim: "FISU EVOLUTION")
+                .font(.system(size: 40, weight: .black, design: .rounded))
+                .foregroundStyle(Color("PaletteCream"))
+                .shadow(color: .black.opacity(0.5), radius: 0, y: 3)
+                .frame(height: 96)
+        }
+    }
+
+    /// El pergamino con el marco de la casa: título, personaje y la frase.
+    private var scroll: some View {
+        VStack(spacing: Tokens.s12) {
+            Text(verbatim: name.uppercased())
+                .font(.system(size: 36, design: .rounded).weight(.heavy))
+                .multilineTextAlignment(.center)
+                .foregroundStyle(Color("PaletteInk"))
+                .lineLimit(2)
+                .minimumScaleFactor(0.6)
+            hero
+            caption
+                .font(.system(size: 24, design: .rounded).weight(.bold))
+                .multilineTextAlignment(.center)
+                .foregroundStyle(Color("PaletteInk").opacity(0.85))
+                .lineLimit(3)
+                .minimumScaleFactor(0.7)
+        }
+        .padding(Tokens.s16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background {
+            let shape = RoundedRectangle(cornerRadius: 28, style: .continuous)
+            shape.fill(Color("PaletteParchment"))
+                .overlay(shape.fill(LinearGradient(
+                    colors: [Color.white.opacity(0.35), .clear, Color("PaletteBrown").opacity(0.10)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )))
+                .overlay(shape.strokeBorder(Color("PaletteBrown"), lineWidth: 6))
+                .overlay(shape.inset(by: 8).strokeBorder(Color("PaletteBrown").opacity(0.35), lineWidth: 2))
+                .shadow(color: .black.opacity(0.3), radius: 10, y: 4)
+        }
+    }
+
+    /// El personaje con los rayos detrás.
+    private var hero: some View {
+        ZStack {
+            RayFan(rays: 16)
+                .fill(Color("PaletteYellow").opacity(0.7))
+                .mask {
+                    RadialGradient(
+                        colors: [.black, .black.opacity(0.5), .clear],
+                        center: .center,
+                        startRadius: 40,
+                        endRadius: 250
+                    )
+                }
+                .frame(width: 500, height: 500)
+            portrait
+                .frame(width: 360, height: 360)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    @ViewBuilder
+    private var portrait: some View {
+        if let portrait = artwork.portrait {
+            Image(uiImage: portrait)
+                .resizable()
+                .scaledToFit()
+                .colorMultiply(artwork.portraitTint ?? .white)
+                .shadow(color: .black.opacity(0.25), radius: 8, y: 6)
+        } else {
+            MarkDisc(mark: String(name.prefix(1)).uppercased(), fill: Color("PaletteYellow"))
+                .frame(width: 260, height: 260)
+        }
+    }
+
+    private var storeLine: some View {
+        Text("share.card.store")
+            .font(.system(size: 22, design: .rounded).weight(.heavy))
+            .foregroundStyle(Color("PaletteCream"))
+            .shadow(color: .black.opacity(0.6), radius: 0, y: 2)
+            .frame(height: 36)
+    }
+}
+
+extension View {
+    /// La hoja del sistema para compartir la imagen del momento; `onFinish`
+    /// dice si se completó. Es el único lugar que la presenta (el guardia de
+    /// hojas la autoriza en este archivo).
+    func shareActivity(
+        isPresented: Binding<Bool>, moment: ShareMoment, artwork: ShareArtwork,
+        onFinish: @escaping (Bool) -> Void
+    ) -> some View {
+        modifier(ShareActivityPresenter(isPresented: isPresented, moment: moment, artwork: artwork, onFinish: onFinish))
+    }
+}
+
+private struct ShareActivityPresenter: ViewModifier {
+    @Environment(GameState.self) private var gameState
+    @Binding var isPresented: Bool
+    let moment: ShareMoment
+    let artwork: ShareArtwork
+    let onFinish: (Bool) -> Void
+
+    func body(content: Content) -> some View {
+        content.sheet(isPresented: $isPresented) {
+            ActivityShareView(image: ShareCardRenderer.render(moment, artwork: artwork, in: gameState), onFinish: onFinish)
+        }
     }
 }
 
 /// UIActivityViewController con completion real (ShareLink no la expone).
-private struct ActivityShareView: UIViewControllerRepresentable {
+struct ActivityShareView: UIViewControllerRepresentable {
     let image: UIImage
     let onFinish: (Bool) -> Void
 

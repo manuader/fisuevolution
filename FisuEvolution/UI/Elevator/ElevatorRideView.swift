@@ -276,6 +276,18 @@ struct ElevatorRideView: View {
     }
 }
 
+/// La punta de flecha del display: un triángulo que apunta arriba.
+private struct LEDArrow: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.closeSubpath()
+        return path
+    }
+}
+
 /// El display chico de la cabina: el piso en LED y una flecha hacia donde va.
 private struct LEDIndicator: View {
     let number: Int
@@ -284,8 +296,10 @@ private struct LEDIndicator: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            Image(systemName: direction == .up ? "arrowtriangle.up.fill" : "arrowtriangle.down.fill")
-                .font(.system(size: 9))
+            LEDArrow()
+                .fill(ElevatorLED.lit)
+                .frame(width: 9, height: 8)
+                .rotationEffect(.degrees(direction == .up ? 0 : 180))
             Text(String(number))
                 .font(.system(size: 17, weight: .heavy, design: .monospaced))
                 .contentTransition(animated ? .numericText() : .identity)

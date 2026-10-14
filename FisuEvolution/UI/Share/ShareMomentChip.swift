@@ -100,7 +100,8 @@ struct ShareMomentChip: View {
 /// La oferta de compartir arriba, bajo el HUD y entre las dos columnas de las
 /// esquinas (C20), como `NoticesLayer`: ahí es donde caen los avisos. Se
 /// esconde mientras otra celebración tiene el turno —un logro, el aviso de la
-/// torre—, así que nunca se apilan ni se tapan (D14). Es un `ViewModifier`
+/// torre—, así que nunca se apilan ni se tapan (D14); la lección de compartir
+/// es la excepción, porque es la que lo señala. Es un `ViewModifier`
 /// porque `RootView.body` está al límite del type-checker.
 struct ShareOfferLayer: ViewModifier {
     @Environment(GameState.self) private var gameState
@@ -111,12 +112,12 @@ struct ShareOfferLayer: ViewModifier {
                 let hudBottom = anchors[.hudBar].map { proxy[$0].maxY } ?? 0
                 // La transición necesita que el PADRE abra la transacción.
                 ZStack {
-                    if let offer = gameState.shareOffer, gameState.showing == nil {
+                    if let offer = gameState.shareOffer, gameState.shareOfferIsOnScreen {
                         ShareMomentChip(moment: offer)
                     }
                 }
                 .animation(.spring(duration: 0.32), value: gameState.shareOffer?.id)
-                .animation(.spring(duration: 0.32), value: gameState.showing == nil)
+                .animation(.spring(duration: 0.32), value: gameState.shareOfferIsOnScreen)
                 .padding(.horizontal, NoticesLayout.sideInset)
                 .padding(.top, hudBottom + Tokens.s8)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)

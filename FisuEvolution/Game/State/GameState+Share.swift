@@ -25,6 +25,13 @@ extension GameState {
         shareOffer = moment
     }
 
+    /// El chip de la oferta se ve cuando nadie más tiene el turno, o cuando el que lo tiene es la
+    /// lección que lo señala: si se esconde, el tip queda sin recorte y sin nada que tocar (B11).
+    var shareOfferIsOnScreen: Bool {
+        guard shareOffer != nil else { return false }
+        return showing == nil || (showing == .tutorialTip && tutorialTip?.lesson == .share)
+    }
+
     /// El reveal de un tier (lo llama `markRevealed`): personaje nuevo, o Dios.
     /// Cada uno abre su card bloqueante (C24) cuando termina la celebración del
     /// tablero; el núcleo del tutorial no la abre (la fase obligatoria no

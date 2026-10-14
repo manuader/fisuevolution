@@ -177,7 +177,8 @@ struct TutorialOverlay: View {
                 lockProgress: { gameState.tutorialLockProgress },
                 confirmKey: isCoreClose ? "tutorial.done" : "tutorial.confirm",
                 onConfirm: gameState.confirmTutorialStep,
-                onEnd: endAction(run)
+                onEnd: endAction(run),
+                onClose: gameState.tutorialTipIsClosable(run) ? { gameState.closeTutorialTip() } : nil
             )
             .frame(maxWidth: PlayColumn.tutorialCardMaxWidth)
             .padding(.horizontal, 14)

@@ -49,10 +49,42 @@ final class ShareMomentUITests: XCTestCase {
         XCTAssertFalse(app.buttons["share.offer"].exists, "seguir cierra la card y no deja la oferta chica")
     }
 
+    /// El caso de la captura del dueño (B11): la lección de compartir toma el turno y el chip que
+    /// señala tiene que seguir a la vista, o la tarjeta queda colgada sin nada que tocar.
     @MainActor
-    private func launch() -> XCUIApplication {
+    func testElTipDeCompartirSeNalaElChipYSeCierraConSuBoton() throws {
+        let app = launch(extra: ["--uitest-lesson=share", "--uitest-tutorial-lock=0.3"])
+        let tip = app.otherElements["tutorial.tip"]
+        XCTAssertTrue(tip.waitForExistence(timeout: 20), "la lección de compartir no salió")
+        offer(in: app)
+        XCTAssertTrue(app.buttons["share.offer"].waitForExistence(timeout: 8),
+                      "el tip señala un chip que no está a la vista: queda colgado")
+        let lit = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "NOT (value BEGINSWITH 'missing') AND value != 'none'"),
+            object: app.otherElements["tutorial.spotlight"])
+        XCTAssertEqual(XCTWaiter().wait(for: [lit], timeout: 5), .completed, "el recorte no encuentra el chip")
+        let close = app.buttons["tutorial.tip.close"]
+        XCTAssertTrue(close.waitForExistence(timeout: 3), "el tip no tiene botón de cerrar")
+        close.tap()
+        XCTAssertTrue(tip.waitForNonExistence(timeout: 5), "el botón no cerró el tip")
+    }
+
+    /// Aunque el chip no esté (la oferta se fue), el tip de una lección se cierra con su botón.
+    @MainActor
+    func testUnTipSinNadaQueSenalarSeCierraConSuBoton() throws {
+        let app = launch(extra: ["--uitest-lesson=share", "--uitest-tutorial-lock=0.3"])
+        let tip = app.otherElements["tutorial.tip"]
+        XCTAssertTrue(tip.waitForExistence(timeout: 15), "la lección forzada no salió")
+        let close = app.buttons["tutorial.tip.close"]
+        XCTAssertTrue(close.waitForExistence(timeout: 3), "el tip no tiene botón de cerrar")
+        close.tap()
+        XCTAssertTrue(tip.waitForNonExistence(timeout: 5), "el botón no cerró el tip")
+    }
+
+    @MainActor
+    private func launch(extra: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-share"]
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-share"] + extra
         app.launch()
         XCTAssertTrue(app.buttons["hud.hire"].waitForExistence(timeout: 20))
         return app

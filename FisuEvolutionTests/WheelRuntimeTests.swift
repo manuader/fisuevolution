@@ -197,10 +197,11 @@ struct WheelRuntimeTests {
         let gameState = await makeGameState()
         gameState.player?.meta.oro = 500
         for _ in 0..<6 { _ = try #require(gameState.spinWheel(.video, now: noon)) }
+        let oroAfterVideos = try #require(gameState.player?.meta.oro, "los giros por video pueden dar blue de premio")
         let availability = gameState.wheelAvailability(storefrontAllows: true, now: noon)
         #expect(availability.oroLeft == 0 && !availability.canPayOro)
         #expect(gameState.spinWheel(.oro, storefrontAllows: true, now: noon) == nil)
-        #expect(gameState.player?.meta.oro == 500, "sin cupo no cobra")
+        #expect(gameState.player?.meta.oro == oroAfterVideos, "sin cupo no cobra")
         #expect(gameState.player?.meta.engagement.wheel.oroSpinsUsed == 0)
     }
 

@@ -29,6 +29,7 @@ revisión según el riesgo.
 | D8 | **Imágenes nuevas:** se generan con Automatic Image Generation y se **integran directo**, sin pasar por la aprobación del dueño. Si alguna no le gusta, la cambia después. |
 | D10 | **Visitantes entre un 20 y un 30 % más grandes**, a la escala de los demás personajes (B3 punto 6). |
 | D11 | **Ruleta: 6 giros por día en total, con video o con blue.** Los giros gratis de un evento o un premio no cuentan. Todos los demás sí, hasta 6. La mejora permanente que se compra con blue (`wheelDailySpins`) sube ese máximo. Con el cupo agotado no se gira ni con video ni con blue, aunque sobre blue (B15). Precisado por el dueño, 2026-10-14 ~12:40. |
+| D12 | **Descripción de cada personaje en la hoja**, aprobada por el dueño (44 personajes, `es` y `en`, en `Docs/DESCRIPCIONES-personajes.md`). El español con humor argentino, el inglés con humor de Estados Unidos, escrito aparte y no traducido. Sin marcas ni personas reales. **Todo el juego internacionalizado** (B16). |
 | D9 | **Todo pop-up lleva una imagen principal**, grande, vistosa y centrada. Las pantallas que dan recompensa llevan además la imagen de «todos los premios juntos» (tesoros con el mate, como en Cow Evolution), grande y arriba de la lista de posibilidades. |
 
 ---
@@ -195,6 +196,27 @@ revisión según el riesgo.
   cupo en 0 no hay giro con blue aunque sobre blue; `bonusSpins` no toca el cupo; reseteo diario), `WheelUITests`
   en verde y el pacing en ~45 h. Revisión: **opus**, porque toca plata y pacing.
 
+### B16 — Descripción de cada personaje en la hoja e internacionalización completa (D12)
+1. **Textos:** `Docs/DESCRIPCIONES-personajes.md` (aprobado por el dueño el 2026-10-14; copiarlo a la integración).
+   44 personajes, todos los de `tiers.json`, incluidos los 5 del tier 11 y los 4 del tier 12. Se cargan **tal
+   cual**, sin reescribir ni «mejorar». Cualquier cambio de texto lo aprueba el dueño.
+2. **Catálogo:** se agregan 44 claves `tier.desc.<id>` en `Localizable.xcstrings`, con `es` y `en`, y se aplican
+   en el momento (regla de las claves del relevo 54). Si el catálogo tiene más idiomas, se copia el inglés como
+   respaldo y se anota como carry para traducir.
+3. **Hoja de personaje** (la que se abre al mantener apretado; `CharacterSheet`): la descripción va **debajo de las
+   skins**, con la tipografía de cuerpo de la casa y en un bloque de pergamino. En el SE no se corta: la hoja
+   scrollea. Los personajes que todavía no se descubrieron no muestran su descripción, o la muestran tapada,
+   igual que hoy con el nombre y la foto.
+4. **Todo el juego internacionalizado:** se audita que no queden textos visibles fuera del catálogo (literales en
+   `Text("…")`, `String` armados a mano, textos en JSON de config que se muestran sin clave, alertas, avisos,
+   accesibilidad) y que las claves tengan `en` y `es` completos. Se agrega un test que falle si aparece un literal
+   visible nuevo o si una clave en uso no tiene alguno de los dos idiomas. Esto se coordina con E14 T26 (textos):
+   si T26 todavía no corrió, la auditoría va con T26. Si ya corrió, va acá.
+- **Listo cuando:** las 44 claves están en el catálogo con los dos idiomas, un test unitario verifica que cada
+  `tier.id` tiene su `tier.desc` en `es` y `en`, el test anti-literales está en verde, y se revisan capturas de la
+  hoja (SE y Pro Max, en español y en inglés) con un personaje de texto largo (Fondo Buitre Estelar). Revisión:
+  sonnet.
+
 ---
 
 ## Orden (≤ 2 compilando)
@@ -205,7 +227,7 @@ revisión según el riesgo.
 | 2 | B3 · B4 + B10 | B3 depende de que B2 haya cerrado las capas. B4 y B10 tocan el mismo pager: van en la misma tarea o una detrás de la otra. |
 | 3 | B5 · B8 + B12 | B5 toca `PickupNode` después de B2 y B3. B8 y B12 son independientes (B12 puede entrar antes, en cualquier hueco). |
 | 4 | B6 · B9 | B6 va después de B5 (`PickupNode`). B9 corre en paralelo: el arte se genera mientras tanto. |
-| 5 | B7 · B15 | B7 es la que más riesgo tiene en el ritmo. B15 es chica, pero también corre el pacing-sim: si chocan en `balance-log.md`, una detrás de la otra. B15 puede adelantarse a cualquier hueco anterior. (B13 y B14 los agregó el relevo 55 más abajo, con su propio orden.) |
+| 5 | B7 · B15 + B16 | B7 es la que más riesgo tiene en el ritmo. B15 es chica, pero también corre el pacing-sim: si chocan en `balance-log.md`, una detrás de la otra. B15 puede adelantarse a cualquier hueco anterior. B16 no toca la economía: puede entrar en cualquier hueco libre, y si E14 T26 todavía no corrió, su auditoría de textos va junto con T26. (B13 y B14 los agregó el relevo 55 más abajo, con su propio orden.) |
 
 Al terminar se corre un `completo` solo, se instala en el iPhone del dueño y él mira: el duplicado, las capas y el
 horizonte en los 10 escenarios, la caja y el colchón en el tablero, los visitantes simultáneos, el menú, el audio

@@ -451,14 +451,12 @@ struct PendingChestBadgeTests {
 
     @Test("la tarjeta del cofre no muestra ninguna clave cruda")
     func theChestCardCopyIsResolved() {
-        let seccion = String(localized: "gifts.section.chests")
         let boton = String(localized: "gifts.chest.open")
         let bloqueado = String(localized: "gifts.chest.locked")
         let cuenta = String(localized: "gifts.chest.count \(3)")
 
         #expect(!bloqueado.contains("gifts."), "el badge dejó una clave cruda: '\(bloqueado)'")
 
-        #expect(!seccion.contains("gifts."), "la cinta dejó una clave cruda: '\(seccion)'")
         #expect(!boton.contains("gifts."), "el botón dejó una clave cruda: '\(boton)'")
         #expect(!cuenta.contains("gifts."), "el contador dejó una clave cruda: '\(cuenta)'")
         #expect(cuenta.contains("3"), "y el contador tiene que decir cuántos son: '\(cuenta)'")

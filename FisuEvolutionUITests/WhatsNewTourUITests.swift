@@ -32,6 +32,6 @@ final class WhatsNewTourUITests: XCTestCase {
         XCTAssertTrue(step.waitForNonExistence(timeout: 5))
         XCTAssertEqual(seen.first, "tour.intro")
         XCTAssertEqual(seen.last, "tour.done", "recorrió el Tour entero: \(seen)")
-        XCTAssertEqual(seen.count, 10, "los diez pasos, en orden: \(seen)")
+        XCTAssertEqual(seen.count, 12, "los doce pasos, en orden: \(seen)")
     }
 }

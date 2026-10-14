@@ -1070,12 +1070,12 @@ Olas de ≤ 2 compilando: 1 = B11 · B2 · B1 · 2 = B3 · B4 + B10 · 3 = B5 ·
 | E14b-B6 | Nuevo recorrido del colchón (`onBoard`, 1 de 4 de regalo) | ⛔ | B5 | EK colchón, save, pacing | | **opus**; Dios ~45 h |
 | E14b-B7 | Visitantes congelados por piso y simultáneos | ⛔ | B6 | `VisitorScheduler`, save, aviso | | **opus**; pacing ~45 h; sola |
 | E14b-B8 | Skin del cofre en tarjeta de figurita | ⛔ | — | `ChestOpeningView` | | sonnet; ola 3 |
-| E14b-B9 | Todo pop-up con su imagen (auditoría + arte) | ⛔ | — | pop-ups, arte `fisu-v2-premios` | | sonnet; ola 4; D8 |
+| E14b-B9 | Todo pop-up con su imagen (auditoría + arte) | ⛔ | — | pop-ups, arte `fisu-v2-premios` | | sonnet; ola 4; D8; **arte APROBADO por el dueño (14/10): `automatic-image-generation/projects/fisu-v2-blue` (8 de B9), destinos en su OBJETIVO.md** |
 | E14b-B10 | Cabecera de menús: flechas a la altura del título, pestañas a todo el ancho | ⛔ | — | `MenuPagerView`, cabecera de menús | | sonnet; con B4 (mismo pager) |
 | E14b-B11 | **BUG:** el tip «Share it and grab a bonus!» queda colgado sin salida; todo tip con botón de cerrar | ⏳ | — | `ShareOfferLayer`, tips/avisos | | sonnet; **primer hueco**; captura `build/capturas-dueno/b11-tip-colgado.webp` (checkout principal) |
 | E14b-B12 | Ajustes con menos ruido: margen entre secciones, ningún botón naranja, sin SF Symbols en Legal/restaurar | ⏳ | — | `SettingsView` | | sonnet; cualquier hueco; captura `build/capturas-dueno/b12-ajustes.webp` |
 | E14b-B13 | Toda recompensa se ve llegar: monto, monedas que vuelan del personaje al contador y el contador que sube (código) | ⏳ | — | componente nuevo `RewardFlight`, HUD (contadores), fuentes de recompensa | | sonnet (opus si toca `grant()`); pedido del dueño 14/10 en el chat del relevo 55 |
-| E14b-B14 | **Cero rastro de «ORO»:** textos, código, assets e imágenes a dólar blue (arte nuevo con Gemini Flash, D8); sólo quedan IDs de ASC y claves del save viejo | ⏳ | — | todo lo que diga `oro` (renombre amplio: va sola o con tareas sin archivos en común) | | **opus**; pedido del dueño 14/10 en el chat del relevo 55 |
+| E14b-B14 | **Cero rastro de «ORO»:** textos, código, assets e imágenes a dólar blue (arte nuevo con Gemini Flash, D8); sólo quedan IDs de ASC y claves del save viejo | ⏳ | — | todo lo que diga `oro` (renombre amplio: va sola o con tareas sin archivos en común) | | **opus**; pedido del dueño 14/10; **arte APROBADO: `fisu-v2-blue` ui_blue_pack_small/medium/large; resto por código (OroIcon→ui_dolar_blue, borrar ui_oro y wheel_seg_jackpot, renombrar icon_ui_oro_*.mov): ver OBJETIVO.md** |
 | E14b-B15 | Ruleta: los giros con blue gastan el cupo diario (D11); `bonusSpins` no | ⏳ | — | EK `WheelRoller`/`WheelConfig`, Ruleta UI, `balance-log.md` | | **opus**; mutantes, pacing ~45 h; ola 5 o cualquier hueco |
 
 ## 6. Gates humanos y 🔒 del dueño

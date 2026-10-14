@@ -167,20 +167,20 @@ class Identificadores(unittest.TestCase):
         self.assertEqual(target("visitante", "npc_vecina_talk"), ("talking", "npc_vecina"))
         self.assertEqual(target("visitante", "npc_vecina_action"), ("visitorActions", "npc_vecina"))
         self.assertEqual(target("visitante", "sp_zombie_ceo_talk"), ("talking", "sp_zombie_ceo"))
-        self.assertEqual(target("icono", "ui_oro_autotap"), ("shopIcons", "ui_oro_autotap"))
+        self.assertEqual(target("icono", "ui_blue_autotap"), ("shopIcons", "ui_blue_autotap"))
 
     def test_el_pack_odr_sale_de_la_clase(self):
         self.assertEqual(odr_tag("personaje", "sp_lizard"), "anim-especiales")
         self.assertEqual(odr_tag("visitante", "npc_vecina_action"), "anim-visitantes")
         self.assertEqual(odr_tag("evento", "aguinaldo"), "anim-eventos")
-        self.assertEqual(odr_tag("icono", "ui_oro_autotap"), "anim-tienda")
+        self.assertEqual(odr_tag("icono", "ui_blue_autotap"), "anim-tienda")
         for kind in ("retrato", "objeto", "cabina", "cinematica"):
             self.assertIsNone(odr_tag(kind, "x"), kind)
 
     def test_eventos_e_iconos_son_los_del_plan(self):
         self.assertEqual(len(EVENT_IDS), 8)
         self.assertEqual(len(ICON_IDS), 10)
-        for kind, invalido in (("evento", "boda"), ("icono", "ui_oro_nada")):
+        for kind, invalido in (("evento", "boda"), ("icono", "ui_blue_nada")):
             with self.subTest(kind=kind), self.assertRaises(ValueError):
                 validate_id(kind, invalido)
 
@@ -556,9 +556,9 @@ class DePuntaAPunta(unittest.TestCase):
 
     def test_un_icono_sale_a_256_recortado(self):
         master = self.master(480, 480, fondo="0xFFFFFF", caja="0x101010", t="6")
-        entry = video_assets.process("icono", "ui_oro_autotap", master)
+        entry = video_assets.process("icono", "ui_blue_autotap", master)
 
-        mov = self.resources / "AnimPacks" / "anim-tienda" / "icon_ui_oro_autotap.mov"
+        mov = self.resources / "AnimPacks" / "anim-tienda" / "icon_ui_blue_autotap.mov"
         self.assertEqual((entry["width"], entry["height"], entry["matte"]), (256, 256, "blanco"))
         self.assertEqual(entry["odrTag"], "anim-tienda")
         self.assert_recortado(self.cuadro(mov))

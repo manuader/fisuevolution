@@ -6,8 +6,8 @@ import SpriteKit
 /// sale de `GameState.prizeAccess`, lo mismo que los chips.
 @MainActor
 final class PickupController {
-    /// Delante de la multitud, detrás del visitante (190) y del reveal (195).
-    static let layerZ: CGFloat = 186
+    /// Detrás de los personajes: los empleados (campo, `fieldBaseZ` 10) y los visitantes (190) los pisan siempre.
+    static let layerZ: CGFloat = PickupNode.layerZ
 
     let layer = SKNode()
     private weak var gameState: GameState?

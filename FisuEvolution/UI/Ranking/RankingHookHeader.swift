@@ -24,8 +24,8 @@ struct RankingHookHeader: View {
                         .frame(maxWidth: .infinity)
                         .accessibilityIdentifier("ranking.hook")
                     if showsStore {
-                        ActionPill(
-                            titleKey: "ranking.hook.store", systemImage: "cart.fill",
+                        GameButton(
+                            "ranking.hook.store", role: .free, medallion: .glyph(.cart), fullWidth: true,
                             identifier: "ranking.hook.store", action: onStore)
                     }
                 }

@@ -97,9 +97,7 @@ struct RankingView: View {
                         .font(Tokens.title)
                         .foregroundStyle(Color("PaletteInk"))
                     Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 15, weight: .black))
-                        .foregroundStyle(Color("PaletteInk").opacity(0.6))
+                    GameGlyphView(glyph: .chevron, size: 18)
                 }
             }
         }
@@ -126,8 +124,8 @@ struct RankingView: View {
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
                     .accessibilityIdentifier("ranking.pending")
-                ActionPill(
-                    titleKey: "ranking.pending.name", systemImage: "pencil",
+                GameButton(
+                    "ranking.pending.name", role: .free, medallion: .glyph(.pencil), fullWidth: true,
                     identifier: "ranking.pending.name") { isNaming = true }
             }
         }

@@ -76,11 +76,9 @@ struct RankingEntryCard: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     if !prompt.termsAccepted { termsNotice }
-                    ActionPill(
-                        titleKey: "ranking.entry.submit", systemImage: "trophy.fill",
-                        identifier: "ranking.entry.submit") { onSubmit(name) }
-                        .disabled(!canSubmit)
-                        .opacity(canSubmit ? 1 : 0.45)
+                    GameButton(
+                        "ranking.entry.submit", role: .free, medallion: .glyph(.trophy), fullWidth: true,
+                        available: canSubmit, identifier: "ranking.entry.submit") { if canSubmit { onSubmit(name) } }
                     Button(action: onLater) {
                         Text("ranking.entry.later")
                             .font(Tokens.body)

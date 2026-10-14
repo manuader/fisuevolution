@@ -28,6 +28,7 @@ revisión según el riesgo.
 | D7 | **Tarjeta de la skin en el cofre:** fondo liso del **mismo color para todas**. Según la rareza cambian **el color del brillo y el del sello** que dice la rareza. |
 | D8 | **Imágenes nuevas:** se generan con Automatic Image Generation y se **integran directo**, sin pasar por la aprobación del dueño. Si alguna no le gusta, la cambia después. |
 | D10 | **Visitantes entre un 20 y un 30 % más grandes**, a la escala de los demás personajes (B3 punto 6). |
+| D11 | **Ruleta: los giros con dólar blue gastan el cupo diario.** Si el día tiene 6 giros, comprar uno con blue descuenta uno de esos 6. Con el cupo agotado no se puede girar ni con video ni con blue: comprar mucho blue no permite girar sin fin (B15). |
 | D9 | **Todo pop-up lleva una imagen principal**, grande, vistosa y centrada. Las pantallas que dan recompensa llevan además la imagen de «todos los premios juntos» (tesoros con el mate, como en Cow Evolution), grande y arriba de la lista de posibilidades. |
 
 ---
@@ -167,6 +168,31 @@ revisión según el riesgo.
 - **Listo cuando:** hay capturas de Ajustes en el SE y el Pro Max sin botones naranjas y con más separación, y
   `SettingsPrivacyUITests` está en verde. Revisión: sonnet. Es independiente: puede ir en cualquier ola.
 
+### B15 — Los giros con blue gastan el cupo diario de la Ruleta (D11)
+- **Hoy (verificado en `integ-r54`):** `WheelRoller` lleva dos cupos separados, `videoSpinsPerDay` →
+  `videoSpinsUsed` y `oroSpinsPerDay` → `oroSpinsUsed` (`.oro` es el dólar blue en el código). Los giros con blue
+  no tocan el cupo de video. Quien compra mucho blue suma los dos cupos y gira de más, y acelera el juego.
+- **Qué cambia (EconomyKit, `WheelRoller`/`WheelConfig`):**
+  1. Hay **un solo cupo diario** de giros: `videoSpinsPerDay`, más lo que sume la mejora permanente
+     `wheelDailySpins`. Un giro con video **o** con blue descuenta de ese cupo.
+  2. `spinsLeft(.oro)` = el mínimo entre lo que queda del cupo diario y el tope propio de blue
+     (`oroSpinsPerDay`, si se mantiene), y además requiere tener el blue. Con el cupo en 0, ni video ni blue.
+  3. Los **giros de premio** (`bonusSpins`, los que da un visitante, un evento, etc.) **no** gastan el cupo
+     diario, como hoy. Si el relevo ve que eso abre otra puerta a girar sin fin con blue (por ejemplo, un premio
+     comprable que da giros), lo anota y se lo consulta al dueño; no lo decide solo.
+  4. El reseteo diario sigue igual (los dos contadores vuelven a 0 al cambiar el día).
+- **Save:** si hace falta un campo nuevo, va opcional y sin cambiar la versión. Si alcanza con sumar a
+  `videoSpinsUsed`, no se toca el save.
+- **UI:** el botón de blue muestra el cupo que queda (el mismo número que el de video, por ejemplo «4 left») y se
+  apaga con el mismo mensaje cuando no queda. Hay que revisar que la Ruleta de la columna y la de Regalos digan lo
+  mismo, y que el texto de la tienda de la mejora `wheelDailySpins` (`OroShopCopy`) siga siendo cierto.
+- **Pacing:** con menos giros con blue se corre el pacing-sim. Dios tiene que seguir en ~45 h (el cambio sólo
+  le saca recompensas a quien compra blue, así que el camino sin pagar no debería moverse). Se anota en
+  `balance-log.md`.
+- **Listo cuando:** hay tests de EconomyKit con RED por mutación (un giro con blue baja el cupo de video; con el
+  cupo en 0 no hay giro con blue aunque sobre blue; `bonusSpins` no toca el cupo; reseteo diario), `WheelUITests`
+  en verde y el pacing en ~45 h. Revisión: **opus**, porque toca plata y pacing.
+
 ---
 
 ## Orden (≤ 2 compilando)
@@ -177,7 +203,7 @@ revisión según el riesgo.
 | 2 | B3 · B4 + B10 | B3 depende de que B2 haya cerrado las capas. B4 y B10 tocan el mismo pager: van en la misma tarea o una detrás de la otra. |
 | 3 | B5 · B8 + B12 | B5 toca `PickupNode` después de B2 y B3. B8 y B12 son independientes (B12 puede entrar antes, en cualquier hueco). |
 | 4 | B6 · B9 | B6 va después de B5 (`PickupNode`). B9 corre en paralelo: el arte se genera mientras tanto. |
-| 5 | B7 | Es la que más riesgo tiene en el ritmo. Va sola y con el pacing-sim. |
+| 5 | B7 · B15 | B7 es la que más riesgo tiene en el ritmo. B15 es chica, pero también corre el pacing-sim: si chocan en `balance-log.md`, una detrás de la otra. B15 puede adelantarse a cualquier hueco anterior. (B13 y B14 los agregó el relevo 55 más abajo, con su propio orden.) |
 
 Al terminar se corre un `completo` solo, se instala en el iPhone del dueño y él mira: el duplicado, las capas y el
 horizonte en los 10 escenarios, la caja y el colchón en el tablero, los visitantes simultáneos, el menú, el audio

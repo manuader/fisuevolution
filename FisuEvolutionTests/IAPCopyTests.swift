@@ -60,7 +60,8 @@ struct IAPCopyTests {
     }
 
     /// Los packs de ORO cambian de monto en la 2.0 (160/550/1.400): el número
-    /// sale de `oroAmount` y el texto no se toca.
+    /// sale de `oroAmount` y el texto no se toca. Desde E14 T7 la moneda se
+    /// presenta como «blue» (el dólar blue), no como «ORO».
     @Test func theOroDescriptionTakesTheAmountFromTheData() throws {
         let pack = try product("oro_small")
         let retuned = ProductCatalog.Entry(
@@ -77,8 +78,8 @@ struct IAPCopyTests {
         let en = IAPCopy.description(
             for: pack.id, quantity: quantity, fallback: "", bundle: english, locale: Locale(identifier: "en")
         )
-        #expect(es.hasPrefix("160 de ORO"))
-        #expect(en.hasPrefix("160 ORO"))
+        #expect(es.hasPrefix("160 blue"))
+        #expect(en.hasPrefix("160 Blue"))
     }
 
     @Test func everyOroPackSaysItsOwnAmount() throws {

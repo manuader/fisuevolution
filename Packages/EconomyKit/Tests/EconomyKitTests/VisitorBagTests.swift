@@ -162,6 +162,31 @@ struct VisitorBagTests {
                                           isOfferable: onlyVendor, rng: &rng) == nil)
     }
 
+    @Test("un visitante que no es el vendedor repite si es el único con cupo")
+    func nonVendorRepeatsWhenAlone() throws {
+        let config = fxCrowd()
+        let all = VisitContext(maxTier: 99, ownedSpecials: [], grantable: everything)
+        let onlySindicalista: (VisitorsConfig.Script) -> Bool = { $0.visitor == "npc_sindicalista" }
+        for seed in UInt64(1)...10 {
+            var state = VisitorsState(visitorBag: ["npc_turista", "npc_sindicalista"], lastVisitor: "npc_sindicalista")
+            var rng = SeededRNG(seed: seed)
+            let script = try #require(VisitorScheduler.pickNext(config: config, state: &state, context: all,
+                                                                isOfferable: onlySindicalista, rng: &rng))
+            #expect(script.visitor == "npc_sindicalista", "semilla \(seed)")
+        }
+    }
+
+    @Test("con otro candidato, el último no repite aunque pueda")
+    func nonVendorYieldsToAnotherCandidate() throws {
+        let config = fxCrowd()
+        let all = VisitContext(maxTier: 99, ownedSpecials: [], grantable: everything)
+        var state = VisitorsState(visitorBag: ["npc_sindicalista", "npc_turista"], lastVisitor: "npc_sindicalista")
+        var rng = SeededRNG(seed: 1)
+        let script = try #require(VisitorScheduler.pickNext(config: config, state: &state, context: all,
+                                                            isOfferable: { _ in true }, rng: &rng))
+        #expect(script.visitor == "npc_turista")
+    }
+
     @Test("el único desbloqueado puede repetir: mejor eso que nadie")
     func aLoneVisitorRepeats() throws {
         let config = fxVisitors(scripts: [fxScript("propina", mechanic: .gift(rewards: [.coinsSeconds(1)], videoDoubles: false))])

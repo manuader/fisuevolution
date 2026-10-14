@@ -18,7 +18,8 @@ public struct VisitContext: Sendable, Equatable {
 
 /// Cuándo viene alguien y quién (PLAN-v2 E4, E14 C5): un solo reloj de juego
 /// ACTIVO y una bolsa barajada de VISITANTES. Entre los desbloqueados, cada uno
-/// sale una vez antes de que alguno repita; el vendedor es uno más.
+/// sale una vez antes de que alguno repita; el vendedor es uno más. Nadie viene
+/// dos veces seguidas si hay otro candidato; sólo el vendedor no repite nunca.
 public enum VisitorScheduler {
     /// Avanza el reloj. Devuelve si ya le toca a alguien: sigue tocándole hasta
     /// que alguien entra.
@@ -92,9 +93,12 @@ public enum VisitorScheduler {
         if bag.isEmpty {
             bag = shuffled(unlocked, notFirst: state.lastVisitor, rng: &rng)
         }
-        // Nadie dos veces seguidas, salvo que sea el único desbloqueado.
-        let blocked = unlocked.count > 1 ? state.lastVisitor : nil
-        func firstAvailable() -> VisitorsConfig.Script? {
+        // Nadie dos veces seguidas mientras haya otro candidato. Si no lo hay, repite
+        // cualquiera menos el vendedor, que espera al siguiente.
+        let last = state.lastVisitor
+        let lastIsVendor = last.map { isVendor($0, config: config) } ?? false
+        func firstAvailable(repeating: Bool = false) -> VisitorsConfig.Script? {
+            let blocked = (repeating && !lastIsVendor) || unlocked.count == 1 ? nil : last
             for visitorId in bag where visitorId != blocked {
                 let scripts = availableScripts(of: visitorId, config: config, state: state,
                                                context: context, isOfferable: isOfferable)
@@ -111,7 +115,15 @@ public enum VisitorScheduler {
         let rest = unlocked.filter { !bag.contains($0) }
         bag += shuffled(rest, notFirst: state.lastVisitor, rng: &rng)
         state.visitorBag = bag
-        return firstAvailable()
+        return firstAvailable() ?? firstAvailable(repeating: true)
+    }
+
+    /// El vendedor es el que ofrece cartas por video.
+    private static func isVendor(_ visitorId: String, config: VisitorsConfig) -> Bool {
+        config.scripts.contains { script in
+            if case .vendor = script.mechanic { return script.visitor == visitorId }
+            return false
+        }
     }
 
     /// Entró: sale de la bolsa, queda como el último, cuenta el día y programa el

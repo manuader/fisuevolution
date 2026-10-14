@@ -19,9 +19,11 @@ public struct WheelConfig: Codable, Sendable, Equatable {
     public static let totalWeight = 100
 
     public let schemaVersion: Int
+    /// El cupo diario único: lo gastan los giros por video y los de blue.
     public let videoSpinsPerDay: Int
     public let oroSpinCost: Int
-    /// 0 apaga el giro con ORO en todas las tiendas.
+    /// Sólo un interruptor: 0 apaga el giro con blue en todas las tiendas. Con
+    /// otro valor no suma giros aparte: el de blue gasta `videoSpinsPerDay`.
     public let oroSpinsPerDay: Int
     /// Lo que dura la animación del giro (la usa la vista).
     public let spinSeconds: Double

@@ -15,6 +15,10 @@ public struct WheelState: Codable, Sendable, Equatable {
 
     public static let initial = WheelState()
 
+    /// Lo gastado hoy del cupo único (video y blue juntos). Un contador
+    /// negativo en el dato no devuelve giros.
+    public var dailySpinsUsed: Int { max(0, videoSpinsUsed) + max(0, oroSpinsUsed) }
+
     public init(
         day: String? = nil,
         videoSpinsUsed: Int = 0,

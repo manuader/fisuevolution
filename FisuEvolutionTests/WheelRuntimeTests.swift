@@ -182,14 +182,69 @@ struct WheelRuntimeTests {
         #expect(gameState.player?.meta.engagement.wheel.oroSpinsUsed == 1)
     }
 
-    @Test("el giro con ORO no toca los cupos de video ni los regalados")
+    @Test("el giro con blue gasta el cupo del día (D11) pero no los regalados")
     func oroSpinLeavesOtherQuotas() async throws {
         let gameState = await makeGameState()
         gameState.player?.meta.oro = 50
         gameState.debugAddWheelSpins(2)
         _ = try #require(gameState.spinWheel(.oro, storefrontAllows: true, now: noon))
         let availability = gameState.wheelAvailability(storefrontAllows: true, now: noon)
-        #expect(availability.videoLeft == 6 && availability.bonus == 2 && availability.oroLeft == 5)
+        #expect(availability.videoLeft == 5 && availability.bonus == 2 && availability.oroLeft == 5)
+    }
+
+    @Test("D11: con el cupo gastado por video no hay giro con blue, aunque sobre blue")
+    func videoSpinsExhaustTheOroSpin() async throws {
+        let gameState = await makeGameState()
+        gameState.player?.meta.oro = 500
+        for _ in 0..<6 { _ = try #require(gameState.spinWheel(.video, now: noon)) }
+        let availability = gameState.wheelAvailability(storefrontAllows: true, now: noon)
+        #expect(availability.oroLeft == 0 && !availability.canPayOro)
+        #expect(gameState.spinWheel(.oro, storefrontAllows: true, now: noon) == nil)
+        #expect(gameState.player?.meta.oro == 500, "sin cupo no cobra")
+        #expect(gameState.player?.meta.engagement.wheel.oroSpinsUsed == 0)
+    }
+
+    @Test("D11: seis con blue agotan también los de video, hasta mañana")
+    func oroSpinsExhaustTheVideoSpins() async throws {
+        let gameState = await makeGameState()
+        gameState.player?.meta.oro = 500
+        for _ in 0..<6 { _ = try #require(gameState.spinWheel(.oro, storefrontAllows: true, now: noon)) }
+        #expect(gameState.wheelAvailability(storefrontAllows: false, now: noon).videoLeft == 0)
+        #expect(gameState.spinWheel(.video, now: noon) == nil)
+        #expect(gameState.wheelAvailability(storefrontAllows: true, now: noon + day).videoLeft == 6)
+        #expect(gameState.wheelAvailability(storefrontAllows: true, now: noon + day).oroLeft == 6)
+    }
+
+    @Test("D11: la ruleta de Regalos y la de la columna cuentan el mismo cupo")
+    func giftsAndRailAgree() async throws {
+        let gameState = await makeGameState()
+        gameState.player?.meta.oro = 500
+        _ = try #require(gameState.spinWheel(.oro, storefrontAllows: true, now: noon))
+        _ = try #require(gameState.spinWheel(.video, now: noon))
+        let gifts = gameState.wheelAvailability(storefrontAllows: false, now: noon)
+        let wheel = gameState.wheelAvailability(storefrontAllows: true, now: noon)
+        #expect(gifts.videoLeft == 4 && wheel.videoLeft == 4 && wheel.oroLeft == 4)
+    }
+
+    @Test("D11: la mejora de la tienda sube el máximo, se gire con video o con blue")
+    func theShopPerkRaisesTheSharedQuota() async throws {
+        let gameState = await makeGameState()
+        gameState.player?.meta.oro = 500
+        gameState.player?.meta.engagement.shop.levels["wheel_spins"] = 1
+        #expect(gameState.bonusDailyWheelSpins == 1)
+        for _ in 0..<7 { _ = try #require(gameState.spinWheel(.oro, storefrontAllows: true, now: noon)) }
+        #expect(gameState.spinWheel(.oro, storefrontAllows: true, now: noon) == nil)
+        #expect(gameState.spinWheel(.video, now: noon) == nil)
+    }
+
+    @Test("D11: un regalado se gira con el cupo agotado y no lo toca")
+    func aGiftedSpinIgnoresTheQuota() async throws {
+        let gameState = await makeGameState()
+        for _ in 0..<6 { _ = try #require(gameState.spinWheel(.video, now: noon)) }
+        gameState.debugAddWheelSpins(1)
+        #expect(gameState.spinWheel(.bonus, now: noon) != nil)
+        #expect(gameState.player?.meta.engagement.wheel.videoSpinsUsed == 6)
+        #expect(gameState.player?.meta.engagement.wheel.oroSpinsUsed == 0)
     }
 
     @Test("sin ORO no gira ni cobra")

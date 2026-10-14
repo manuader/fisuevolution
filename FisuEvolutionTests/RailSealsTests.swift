@@ -36,6 +36,21 @@ struct RailSealsTests {
         #expect(kinds == [.wheel, .packages])
     }
 
+    @Test("sin paquetes, el sello de Paquetes vive mientras se pueda ofrecer la lluvia por video")
+    func packagesStayForTheRainVideo() {
+        var state = rail([.wheel: .ready(count: 1)])
+
+        state.packageRain = .available
+        #expect(state.shownItems(lessonTarget: nil).map(\.kind) == [.wheel, .packages])
+        #expect(state.shownItems(lessonTarget: nil).last?.status == .ready(count: nil))
+
+        state.packageRain = .coolingDown(seconds: 90)
+        #expect(state.shownItems(lessonTarget: nil).last?.status == .waiting(seconds: 90))
+
+        state.packageRain = .notApplicable
+        #expect(state.shownItems(lessonTarget: nil).map(\.kind) == [.wheel])
+    }
+
     @Test("sin columna no hay sellos")
     func nothingWhenTheRailIsHidden() {
         #expect(SideRailState.hidden.shownItems(lessonTarget: .sideWheel).isEmpty)

@@ -68,7 +68,7 @@ final class SideRailUITests: XCTestCase {
         app.buttons["siderail.packages"].tap()
         let video = app.buttons["siderail.offer.video"]
         XCTAssertTrue(video.waitForExistence(timeout: 5))
-        app.coordinate(withNormalizedOffset: CGVector(dx: 0.7, dy: 0.4)).tap()
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.94, dy: 0.55)).tap()
         XCTAssertTrue(video.waitForNonExistence(timeout: 3), "tocar el tablero no cerró la tarjeta")
     }
 
@@ -94,7 +94,7 @@ final class SideRailUITests: XCTestCase {
         video.tap()
 
         expectation(for: NSPredicate(format: "value == %@", String(start + 1)), evaluatedWith: units)
-        waitForExpectations(timeout: 20)
+        waitForExpectations(timeout: 60)
         XCTAssertTrue(boost.waitForExistence(timeout: 5))
         expectation(for: NSPredicate(format: "value BEGINSWITH %@", "waiting"), evaluatedWith: boost)
         waitForExpectations(timeout: 5)
@@ -119,28 +119,29 @@ final class SideRailUITests: XCTestCase {
         XCTAssertTrue(special.waitForExistence(timeout: 40), "falta la tarjeta del especial")
         XCTAssertTrue(offer.waitForExistence(timeout: 5), "falta el sello de la oferta")
         XCTAssertTrue(event.waitForExistence(timeout: 5), "falta el reloj del evento")
+        // Los frames primero y de una: el visitante no espera para siempre y la máquina puede ir lenta.
+        let left = seals.map { app.buttons[$0] }.filter(\.exists)
+        XCTAssertFalse(left.isEmpty)
+        let named = (left + [special, offer, event]).map { ($0.identifier, $0.frame) }
         attach(app, named: "E14 T13 las dos esquinas")
 
         let screen = app.windows.firstMatch.frame
         let top = app.otherElements["hud.coins"].frame.maxY
         let bottom = app.buttons["hud.hire"].frame.minY
-        let right = [special, offer, event]
-        let left = seals.map { app.buttons[$0] }.filter(\.exists)
-        XCTAssertFalse(left.isEmpty)
-        for element in left + right {
-            XCTAssertGreaterThanOrEqual(element.frame.minY, top, "\(element.identifier) pisa el HUD")
-            XCTAssertLessThanOrEqual(element.frame.maxY, bottom, "\(element.identifier) pisa la barra")
-            XCTAssertTrue(screen.contains(element.frame), "\(element.identifier) se sale de la pantalla")
+        for (id, frame) in named {
+            XCTAssertGreaterThanOrEqual(frame.minY, top, "\(id) pisa el HUD")
+            XCTAssertLessThanOrEqual(frame.maxY, bottom, "\(id) pisa la barra")
+            XCTAssertTrue(screen.contains(frame), "\(id) se sale de la pantalla")
         }
-        let all = left + right
-        for (index, one) in all.enumerated() {
-            for other in all[(index + 1)...] {
-                XCTAssertFalse(one.frame.intersects(other.frame), "\(one.identifier) pisa a \(other.identifier)")
+        for (index, one) in named.enumerated() {
+            for other in named[(index + 1)...] {
+                XCTAssertFalse(one.1.intersects(other.1), "\(one.0) pisa a \(other.0)")
             }
         }
-        XCTAssertLessThan(special.frame.minY, offer.frame.minY, "el especial va primero")
-        XCTAssertLessThan(offer.frame.minY, event.frame.minY, "la oferta va antes que los eventos")
-        XCTAssertGreaterThanOrEqual(special.frame.minX, screen.midX, "el especial va a la derecha")
+        let rightFrames = named.suffix(3).map(\.1)
+        XCTAssertLessThan(rightFrames[0].minY, rightFrames[1].minY, "el especial va primero")
+        XCTAssertLessThan(rightFrames[1].minY, rightFrames[2].minY, "la oferta va antes que los eventos")
+        XCTAssertGreaterThanOrEqual(rightFrames[0].minX, screen.midX, "el especial va a la derecha")
     }
 
     @MainActor

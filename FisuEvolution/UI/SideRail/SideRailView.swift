@@ -86,9 +86,24 @@ struct SideRailView: View {
 extension SideRailState {
     /// Los sellos que se dibujan: los disponibles (D8). El que una lección
     /// señala se queda aunque esté apagado, porque el ancla tiene que existir.
+    /// Sin paquetes a la vista, el de Paquetes sigue disponible mientras se
+    /// pueda ofrecer la lluvia por video: listo, o con su reloj.
     func shownItems(lessonTarget: TutorialTarget?) -> [SideRailItem] {
         guard isVisible else { return [] }
-        return items.filter { $0.status != .idle || $0.kind.tutorialTarget == lessonTarget }
+        return items.compactMap { item in
+            let status = effectiveStatus(of: item)
+            guard status != .idle || item.kind.tutorialTarget == lessonTarget else { return nil }
+            return SideRailItem(kind: item.kind, status: status)
+        }
+    }
+
+    private func effectiveStatus(of item: SideRailItem) -> SideRailStatus {
+        guard item.kind == .packages, item.status == .idle else { return item.status }
+        switch packageRain {
+        case .available: return .ready(count: nil)
+        case .coolingDown(let seconds): return .waiting(seconds: Int(seconds.rounded(.up)))
+        case .notApplicable: return .idle
+        }
     }
 }
 

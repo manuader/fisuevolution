@@ -73,11 +73,23 @@ struct StageControllerTests {
         let (gameState, controller) = await stage()
         gameState.presentOnStage(actorId: "npc_vecina", role: .visitor(scriptId: "vecina_chisme"))
         gameState.stageActorArrived(id: try #require(gameState.stageVisit?.id))
+        gameState.stageVisit?.offer = nil
         gameState.stageVisit?.bubble = "¡Hola, vecino!"
         controller.update(delta: 0.5, reduceMotion: false)
         #expect(controller.bubble?.text == "¡Hola, vecino!")
         gameState.stageVisit?.bubble = nil
         controller.update(delta: 1.0 / 60, reduceMotion: false)
+        #expect(controller.bubble == nil)
+    }
+
+    @Test("con un trato abierto no hay globo de texto: la frase vive en el popup")
+    func noTextBubbleWithAnOffer() async throws {
+        let (gameState, controller) = await stage()
+        gameState.presentOnStage(actorId: "npc_vecina", role: .visitor(scriptId: "vecina_chisme"))
+        gameState.stageActorArrived(id: try #require(gameState.stageVisit?.id))
+        #expect(gameState.stageVisit?.offer != nil)
+        gameState.stageVisit?.bubble = "¡Hola, vecino!"
+        controller.update(delta: 0.5, reduceMotion: false)
         #expect(controller.bubble == nil)
     }
 
@@ -178,6 +190,7 @@ struct StageControllerTests {
     func waitingWithBubbleShowsTalking() async throws {
         let (gameState, controller, _) = try await videoStage()
         try arrive(gameState, controller)
+        gameState.stageVisit?.offer = nil
         gameState.stageVisit?.bubble = "¡Hola, vecino!"
         controller.update(delta: 1.0 / 60, reduceMotion: false)
         #expect(controller.actor?.videoClip == .talking("npc_vecina"))

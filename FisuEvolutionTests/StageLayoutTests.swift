@@ -54,4 +54,32 @@ struct StageLayoutTests {
         let clamped = BubbleGeometry.path(in: rect, tailX: -500, yUp: false)
         #expect(clamped.boundingBoxOfPath.minX >= rect.minX - 0.5, "una cola fuera del globo se acomoda adentro")
     }
+
+    @Test("se para en el horizonte: lejos de la barra de abajo y adentro de la pantalla, en los diez fondos")
+    func standsOnTheHorizon() {
+        for (size, cell) in Self.screens {
+            let layout = StageLayout(sceneSize: size, bottomInset: 118, cellSize: cell)
+            for background in StageLayout.horizons.keys {
+                let y = layout.standY(background: background)
+                #expect(y >= 118 + cell, "\(size) \(background): pisa la barra de abajo")
+                #expect(y + layout.actorSide < size.height * 0.85, "\(size) \(background): se sale por arriba")
+            }
+        }
+    }
+
+    @Test("cada fondo tiene su horizonte, y uno desconocido cae al de siempre")
+    func horizonPerBackground() {
+        let layout = StageLayout(sceneSize: CGSize(width: 393, height: 852), bottomInset: 118, cellSize: 72)
+        #expect(layout.standY(background: "moon") > layout.standY(background: "solar"))
+        #expect(layout.standY(background: "no_existe") == layout.standY(background: nil))
+        #expect(Set(StageLayout.horizons.keys).count == 10)
+    }
+
+    @Test("un fondo bajado un poco baja la línea, con el tope del sobrante del fondo")
+    func backgroundOffsetLowersTheLine() {
+        let layout = StageLayout(sceneSize: CGSize(width: 393, height: 852), bottomInset: 118, cellSize: 72)
+        let base = layout.standY(background: "urban")
+        #expect(layout.standY(background: "urban", backgroundOffset: 0.05) < base)
+        #expect(layout.standY(background: "urban", backgroundOffset: 5) >= 118 + 72)
+    }
 }

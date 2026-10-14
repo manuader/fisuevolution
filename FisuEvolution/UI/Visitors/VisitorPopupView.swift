@@ -46,6 +46,9 @@ struct VisitorPopupView: View {
                         .padding(Tokens.s12)
                         .padding(.top, BubbleGeometry.tailHeight)
                         .background(bubble)
+                    if offer.subjectTypeId != nil {
+                        requestRow(offer: offer, content: content)
+                    }
                     if isVendor {
                         VendorCardsView(script: script, offer: offer)
                     }
@@ -75,6 +78,64 @@ struct VisitorPopupView: View {
             // Sin identifier en el contenedor: pisaría el de los botones (trampa 9a-bis).
             .inlineLesson(.visitorPopup)
         }
+    }
+
+    /// A quién pide (C16) y qué da a cambio: la cara con «×N» si son varios, una flecha y el premio.
+    /// La misma cara es la del globo de la escena.
+    @ViewBuilder
+    private func requestRow(offer: VisitOffer, content: GameContent) -> some View {
+        if let typeId = offer.subjectTypeId,
+           let option = offer.options.first(where: { !$0.departures.isEmpty }) {
+            let count = option.departures.count
+            HStack(alignment: .top, spacing: Tokens.s12) {
+                VStack(spacing: Tokens.s4) {
+                    employeeFace(typeId)
+                        .overlay(alignment: .bottomTrailing) {
+                            if count > 1 {
+                                Text(verbatim: "×\(count)")
+                                    .font(Tokens.caption.weight(.heavy))
+                                    .foregroundStyle(.white)
+                                    .padding(.horizontal, Tokens.s4)
+                                    .background(PillBackground(fill: Color("PaletteOrange"), lip: 2))
+                                    .offset(x: 6, y: 4)
+                            }
+                        }
+                    Text("visit.request.asks")
+                        .font(Tokens.caption)
+                        .foregroundStyle(Color("PaletteInk").opacity(0.7))
+                }
+                Text(verbatim: "→")
+                    .font(.system(size: 26, design: .rounded).weight(.heavy))
+                    .foregroundStyle(Color("PaletteInk").opacity(0.55))
+                    .frame(height: Self.requestFace)
+                VStack(spacing: Tokens.s4) {
+                    RewardArt(kind: option.coins > 0 ? .coins : .gift)
+                        .frame(width: Self.requestFace, height: Self.requestFace)
+                    Text("visit.request.gives")
+                        .font(Tokens.caption)
+                        .foregroundStyle(Color("PaletteInk").opacity(0.7))
+                }
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("visit.request")
+        }
+    }
+
+    private static let requestFace: CGFloat = 52
+
+    @ViewBuilder
+    private func employeeFace(_ typeId: String) -> some View {
+        Group {
+            if let image = UIArt.image("\(typeId)_face") {
+                image.resizable().scaledToFit()
+            } else {
+                IconCanvas { MarkDisc(mark: "?", fill: Color("PaletteOrange")) }
+            }
+        }
+        .frame(width: Self.requestFace, height: Self.requestFace)
+        .background(Color("PaletteCream"))
+        .clipShape(Circle())
+        .overlay(Circle().strokeBorder(Color("PaletteInk"), lineWidth: 2))
     }
 
     static func isVendor(_ script: VisitorsConfig.Script) -> Bool {

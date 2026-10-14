@@ -91,6 +91,7 @@ public enum EventScheduler {
         rng: inout some RandomNumberGenerator
     ) {
         state.lastFiredAt[event.id] = state.clock
+        if event.shopOffer != nil { state.lastShopEventAt = state.clock }
         let jitter = catalog.intervalJitterSeconds > 0
             ? Double.random(in: 0..<catalog.intervalJitterSeconds, using: &rng)
             : 0

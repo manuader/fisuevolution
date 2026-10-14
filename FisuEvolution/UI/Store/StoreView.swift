@@ -50,29 +50,37 @@ struct StoreView: View {
 
     private let tick = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
+    /// El producto que un evento de compra destaca al abrir (C25).
+    @State private var focusItem: String?
+
     var body: some View {
         NavigationStack {
-            ScrollView {
-                // ⚠️ `VStack` y no `LazyVStack`: son diez productos, los tres
-                // tests de UI que miran esta pantalla no scrollean, y la grilla
-                // perezosa además rompe el podado de accesibilidad de las
-                // tarjetas (medido en la T11). El costo es el del primer armado.
-                VStack(spacing: Tokens.s12) {
-                    moneySide
+            ScrollViewReader { proxy in
+                ScrollView {
+                    // ⚠️ `VStack` y no `LazyVStack`: son diez productos, los tres
+                    // tests de UI que miran esta pantalla no scrollean, y la grilla
+                    // perezosa además rompe el podado de accesibilidad de las
+                    // tarjetas (medido en la T11). El costo es el del primer armado.
+                    VStack(spacing: Tokens.s12) {
+                        moneySide
+                    }
+                    .padding(.horizontal, Self.panelInset)
+                    .padding(.top, Tokens.s12)
+                    .padding(.bottom, Tokens.s24)
                 }
-                .padding(.horizontal, Self.panelInset)
-                .padding(.top, Tokens.s12)
-                .padding(.bottom, Tokens.s24)
-            }
-            .panelSheet(awning: true) { header }
-            .navigationTitle(Text(verbatim: ""))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) { ArtCloseButton { dismiss() } }
-            }
-            .onReceive(tick) { _ in
-                let waiting = store.loadState == .loading || store.loadState == .idle
-                waitedSeconds = waiting ? waitedSeconds + 1 : 0
+                .panelSheet(awning: true) { header }
+                .navigationTitle(Text(verbatim: ""))
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) { ArtCloseButton { dismiss() } }
+                }
+                .onReceive(tick) { _ in
+                    let waiting = store.loadState == .loading || store.loadState == .idle
+                    waitedSeconds = waiting ? waitedSeconds + 1 : 0
+                }
+                .environment(\.shopFocusItem, focusItem)
+                .environment(\.shopFocusScroll, { id in withAnimation { proxy.scrollTo(id, anchor: .center) } })
+                .onAppear { focusItem = gameState.takeShopRequest(for: .store)?.focus }
             }
         }
     }
@@ -240,6 +248,7 @@ struct StoreView: View {
         ) {
             Task { await store.purchase(product) }
         }
+        .shopFocus(id: product.id)
     }
 
     // MARK: Carga y caída

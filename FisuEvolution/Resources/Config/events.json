@@ -65,6 +65,20 @@
      "effects": [{"kind": "modifier", "effect": "packageRateMultiplier", "magnitude": 0}], "escapes": [{"kind": "video"}]},
     {"id": "ola_calor", "polarity": "negative", "durationSeconds": 45, "weight": 10, "minTier": 3, "cooldownSeconds": 1500,
      "titleKey": "event.ola_calor.title", "phraseKey": "event.ola_calor.phrase", "presenters": ["npc_vecina"],
-     "effects": [{"kind": "modifier", "effect": "tapMultiplier", "magnitude": 0.5}], "escapes": [{"kind": "video"}]}
-  ]
+     "effects": [{"kind": "modifier", "effect": "tapMultiplier", "magnitude": 0.5}], "escapes": [{"kind": "video"}]},
+    {"id": "cyber_monday", "polarity": "positive", "durationSeconds": 0, "weight": 2, "minTier": 5, "cooldownSeconds": 14400,
+     "titleKey": "event.cyber_monday.title", "phraseKey": "event.cyber_monday.phrase", "presenters": ["npc_vendedor"],
+     "effects": [{"kind": "openShop", "destination": "store", "focus": "com.fisuevolution.iap.starter_pack"}], "escapes": []},
+    {"id": "llego_el_blue", "polarity": "positive", "durationSeconds": 0, "weight": 2, "minTier": 4, "cooldownSeconds": 14400,
+     "titleKey": "event.llego_el_blue.title", "phraseKey": "event.llego_el_blue.phrase", "presenters": ["npc_turista"],
+     "effects": [{"kind": "openShop", "destination": "boosts", "focus": "income_x2"}], "escapes": []},
+    {"id": "mudanza_oficinas", "polarity": "positive", "durationSeconds": 0, "weight": 2, "minTier": 6, "cooldownSeconds": 14400,
+     "titleKey": "event.mudanza_oficinas.title", "phraseKey": "event.mudanza_oficinas.phrase", "presenters": ["npc_conductor"],
+     "effects": [{"kind": "openShop", "destination": "permanent", "focus": "extra_slots"}], "escapes": []},
+    {"id": "cuevita_abierta", "polarity": "positive", "durationSeconds": 0, "weight": 2, "minTier": 7, "cooldownSeconds": 14400,
+     "titleKey": "event.cuevita_abierta.title", "phraseKey": "event.cuevita_abierta.phrase", "presenters": ["sp_arbolito", "npc_vendedor"],
+     "effects": [{"kind": "openShop", "destination": "store", "focus": "com.fisuevolution.iap.oro_medium"}], "escapes": []}
+  ],
+  "shopEvents": {"maxPerSession": 1, "minSeparationSeconds": 14400, "purchaseQuietSeconds": 86400,
+                 "minSessionSeconds": 180, "minPlayedSeconds": 1800}
 }

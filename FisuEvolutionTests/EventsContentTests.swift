@@ -3,7 +3,7 @@ import Foundation
 import Testing
 @testable import FisuEvolution
 
-/// Los 18 eventos del Anexo A, tal como quedaron en el dato.
+/// Los 18 eventos del Anexo A (más los 4 de compra de C25), tal como quedaron en el dato.
 @Suite("Eventos v2: el contenido real")
 struct EventsContentTests {
     let content: GameContent
@@ -16,12 +16,13 @@ struct EventsContentTests {
         try #require(content.events.event(id: id))
     }
 
-    @Test("los 18 del Anexo A: los 8 de siempre y los 10 nuevos")
+    @Test("los 18 del Anexo A y los 4 de compra de C25")
     func theEighteen() {
         #expect(Set(content.events.events.map(\.id)) == [
             "plan_platita", "startup_comprada", "devaluacion", "blanqueo", "home_banking", "inversion_alienigena",
             "corralito", "aguinaldo", "campeones", "liquidacion", "feriado_puente", "lluvia_paquetes",
             "paro_general", "apagon", "hiperinflacion", "cepo", "piquete", "ola_calor",
+            "cyber_monday", "llego_el_blue", "mudanza_oficinas", "cuevita_abierta",
         ])
         #expect(content.events.event(id: "cayo_mercado_pago") == nil, "la marca real se fue (guía 5.2.1)")
     }
@@ -35,6 +36,8 @@ struct EventsContentTests {
             "liquidacion": "npc_vendedor", "feriado_puente": "npc_sindicalista", "lluvia_paquetes": "npc_puntero",
             "paro_general": "npc_sindicalista", "apagon": "npc_vecina", "hiperinflacion": "npc_ministro",
             "cepo": "npc_ministro", "piquete": "npc_vecina", "ola_calor": "npc_vecina",
+            "cyber_monday": "npc_vendedor", "llego_el_blue": "npc_turista", "mudanza_oficinas": "npc_conductor",
+            "cuevita_abierta": "sp_arbolito",
         ]
         #expect(Dictionary(uniqueKeysWithValues: content.events.events.map { ($0.id, $0.presenters.first ?? "") }) == expected)
     }

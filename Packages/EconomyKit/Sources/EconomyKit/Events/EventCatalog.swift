@@ -12,6 +12,23 @@ public struct EventCatalog: Codable, Sendable, Equatable {
         case blackout, champions, sale
     }
 
+    /// Adónde lleva un evento de compra (C25): la Tienda de plata real, o Mejoras en la pestaña
+    /// que se paga con blue.
+    public enum ShopDestination: String, Codable, Sendable, CaseIterable {
+        case store, boosts, permanent
+    }
+
+    /// Lo que un evento `openShop` promociona: el destino y, si lo hay, el ítem que se destaca.
+    public struct ShopOffer: Sendable, Equatable {
+        public let destination: ShopDestination
+        public let focus: String?
+
+        public init(destination: ShopDestination, focus: String?) {
+            self.destination = destination
+            self.focus = focus
+        }
+    }
+
     public enum Effect: Sendable, Equatable {
         /// Dura lo que dura el evento.
         case modifier(effect: ActiveModifier.Effect, magnitude: Double)
@@ -23,6 +40,8 @@ public struct EventCatalog: Codable, Sendable, Equatable {
         case grantUnit(tiersBelowFrontier: Int)
         /// Un guion que entra por el evento (Cepo → el blue del Arbolito).
         case callVisitor(script: String)
+        /// Abre la Tienda o Mejoras con un ítem en foco. No toca la economía ni los precios (C25).
+        case openShop(destination: ShopDestination, focus: String?)
     }
 
     public struct Escape: Codable, Sendable, Equatable {
@@ -83,6 +102,12 @@ public struct EventCatalog: Codable, Sendable, Equatable {
         /// El origen de sus modificadores: así los encuentran el chip y las salidas.
         public var sourceKey: String { "event.\(id)" }
 
+        /// El destino de compra del evento, si es de los que llevan a una tienda.
+        public var shopOffer: ShopOffer? {
+            for case let .openShop(destination, focus) in effects { return ShopOffer(destination: destination, focus: focus) }
+            return nil
+        }
+
         public var modifierEffects: Set<ActiveModifier.Effect> {
             Set(effects.compactMap { effect in
                 if case .modifier(let modifierEffect, _) = effect { return modifierEffect }
@@ -101,11 +126,15 @@ public struct EventCatalog: Codable, Sendable, Equatable {
     /// Un sorteo sin candidatos reintenta a este plazo (E1 T11).
     public let retryWhenNoneApplicableSeconds: Double
     public let events: [Event]
+    /// Los topes de los eventos de compra; sin la clave, los de siempre.
+    public let shopEvents: ShopEventPolicy?
+
+    public var shopPolicy: ShopEventPolicy { shopEvents ?? .standard }
 
     public init(
         schemaVersion: Int, firstEventAfterSeconds: Double, intervalSeconds: Double,
         intervalJitterSeconds: Double, resumeGraceSeconds: Double,
-        retryWhenNoneApplicableSeconds: Double, events: [Event]
+        retryWhenNoneApplicableSeconds: Double, events: [Event], shopEvents: ShopEventPolicy? = nil
     ) {
         self.schemaVersion = schemaVersion
         self.firstEventAfterSeconds = firstEventAfterSeconds
@@ -114,6 +143,7 @@ public struct EventCatalog: Codable, Sendable, Equatable {
         self.resumeGraceSeconds = resumeGraceSeconds
         self.retryWhenNoneApplicableSeconds = retryWhenNoneApplicableSeconds
         self.events = events
+        self.shopEvents = shopEvents
     }
 
     public func event(id: String) -> Event? {
@@ -157,17 +187,21 @@ public struct EventCatalog: Codable, Sendable, Equatable {
                 throw fail("llama a un guion que no existe: \(script)")
             }
             if event.scene == .blackout, (event.candleStep ?? 0) <= 0 { throw fail("el apagón necesita candleStep") }
+            if event.shopOffer != nil {
+                guard event.effects.count == 1, event.polarity == .positive, event.durationSeconds == 0, event.escapes.isEmpty
+                else { throw fail("un evento de compra es positivo, sin duración, sin salidas y con ese único efecto") }
+            }
         }
     }
 }
 
 extension EventCatalog.Effect: Codable {
     private enum CodingKeys: String, CodingKey {
-        case kind, effect, magnitude, seconds, tiersBelowFrontier, script
+        case kind, effect, magnitude, seconds, tiersBelowFrontier, script, destination, focus
     }
 
     private enum Kind: String, Codable {
-        case modifier, coinsSeconds, evolveBestUnit, grantUnit, callVisitor
+        case modifier, coinsSeconds, evolveBestUnit, grantUnit, callVisitor, openShop
     }
 
     public init(from decoder: Decoder) throws {
@@ -182,6 +216,11 @@ extension EventCatalog.Effect: Codable {
         case .evolveBestUnit: self = .evolveBestUnit
         case .grantUnit: self = .grantUnit(tiersBelowFrontier: try container.decode(Int.self, forKey: .tiersBelowFrontier))
         case .callVisitor: self = .callVisitor(script: try container.decode(String.self, forKey: .script))
+        case .openShop:
+            self = .openShop(
+                destination: try container.decode(EventCatalog.ShopDestination.self, forKey: .destination),
+                focus: try container.decodeIfPresent(String.self, forKey: .focus)
+            )
         }
     }
 
@@ -203,6 +242,10 @@ extension EventCatalog.Effect: Codable {
         case .callVisitor(let script):
             try container.encode(Kind.callVisitor, forKey: .kind)
             try container.encode(script, forKey: .script)
+        case let .openShop(destination, focus):
+            try container.encode(Kind.openShop, forKey: .kind)
+            try container.encode(destination, forKey: .destination)
+            try container.encodeIfPresent(focus, forKey: .focus)
         }
     }
 }

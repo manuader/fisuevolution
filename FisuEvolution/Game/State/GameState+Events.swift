@@ -18,6 +18,7 @@ extension GameState {
         // al que ya gastó su cooldown.
         guard engagementAutorun, !tutorialPhaseActive, stageRuntime.pendingEvent == nil,
               let content, var player else { return }
+        if stageRuntime.sessionStartClock == nil { stageRuntime.sessionStartClock = player.meta.engagement.events.clock }
         let due = EventScheduler.advance(&player.meta.engagement.events, delta: delta, catalog: content.events)
         self.player = player
         if due { fireDueEvent(now: Date().timeIntervalSince1970) }
@@ -29,7 +30,7 @@ extension GameState {
         guard let content, var player else { return }
         // Lo aplicable se resuelve ANTES: el sorteo no puede leer `self` mientras
         // `rng` está prestado como `inout`.
-        let applicable = Set(content.events.events.filter(eventIsApplicable).map(\.id))
+        let applicable = Set(content.events.events.filter(eventIsRollable).map(\.id))
         let immune = ModifierMath.isImmuneToEvents(player.run.activeModifiers, now: now)
         guard let event = EventScheduler.takeDue(
             catalog: content.events, state: &player.meta.engagement.events,
@@ -42,6 +43,7 @@ extension GameState {
         }
         EventScheduler.markFired(event, state: &player.meta.engagement.events, catalog: content.events, rng: &rng)
         self.player = player
+        if event.shopOffer != nil { stageRuntime.shopEventsThisSession += 1 }
         presentEvent(event)
     }
 
@@ -55,6 +57,7 @@ extension GameState {
         player.run.activeModifiers += application.modifiers
         self.player = player
         if let called = application.calledScript { stageRuntime.calledScript = called }
+        if application.shopOffer != nil { stageRuntime.pendingShopOffer = event.id }
         if application.coinsSeconds > 0 {
             grant(.coinsSeconds(application.coinsSeconds), source: event.sourceKey, now: now)
         }
@@ -109,6 +112,8 @@ extension GameState {
             case .callVisitor:
                 // El llamado es un plus: si el visitante no puede venir, el evento igual pasa.
                 return true
+            case let .openShop(destination, focus):
+                return shopEventIsApplicable(destination: destination, focus: focus)
             }
         }
     }
@@ -193,7 +198,7 @@ extension GameState {
     func peekUpcomingEvent() -> EventCatalog.Event? {
         guard let content, var player else { return nil }
         let now = Date().timeIntervalSince1970
-        let applicable = Set(content.events.events.filter(eventIsApplicable).map(\.id))
+        let applicable = Set(content.events.events.filter(eventIsRollable).map(\.id))
         let event = EventScheduler.peekUpcoming(
             catalog: content.events, state: &player.meta.engagement.events,
             maxTier: player.run.maxTierReached,
@@ -251,10 +256,18 @@ extension GameState {
         stageRuntime.eventPresenters[event.id] = visit.actorId
         startEvent(event, now: now)
         visit.bubble = VisitCopy.text(event.phraseKey)
+        // El de compra no tiene chip al que volver: la oferta se abre sola, con su «Ahora no».
+        if event.shopOffer != nil { openEventPopup(id: event.id) }
     }
 
     func isEventRunning(id: String, now: TimeInterval = Date().timeIntervalSince1970) -> Bool {
-        player?.run.activeModifiers.contains { $0.sourceKey == "event.\(id)" && $0.isActive(at: now) } == true
+        if stageRuntime.pendingShopOffer == id { return isPresenting(eventId: id) }
+        return player?.run.activeModifiers.contains { $0.sourceKey == "event.\(id)" && $0.isActive(at: now) } == true
+    }
+
+    /// Su presentador sigue en escena: el evento de compra vive lo que dura la visita.
+    private func isPresenting(eventId: String) -> Bool {
+        stageVisit?.role == .presenter(eventId: eventId) && stageVisit?.phase != .leaving
     }
 
     /// El popup de un evento corriendo (su chip o su presentador).
@@ -308,5 +321,66 @@ extension GameState {
         self.player = player
         effectsVersion += 1
         return true
+    }
+}
+
+// MARK: Los eventos de compra (C25)
+
+extension GameState {
+    /// Si el evento puede entrar al sorteo ahora: lo aplicable y, si lleva a una tienda, dentro de los
+    /// topes del dato. Los topes valen al sortear; al llegar el presentador ya los gastó el propio evento.
+    func eventIsRollable(_ event: EventCatalog.Event) -> Bool {
+        eventIsApplicable(event) && (event.shopOffer == nil || shopPolicyAllows(event))
+    }
+
+    /// Un evento de compra sólo sale en un momento calmo, con el tutorial cumplido y dentro de los topes.
+    private func shopPolicyAllows(_ event: EventCatalog.Event) -> Bool {
+        guard let content, let player, isCalmMoment, TutorialFlags.coreCompleted(in: flagDefaults) else { return false }
+        let events = player.meta.engagement.events
+        let session = ShopEventPolicy.Session(
+            activeSeconds: events.clock - (stageRuntime.sessionStartClock ?? events.clock),
+            shopEventsSoFar: stageRuntime.shopEventsThisSession
+        )
+        return content.events.shopPolicy.allows(event, state: events, session: session, now: Date().timeIntervalSince1970)
+    }
+
+    /// El destino existe y tiene algo que mostrar: Mejoras abierta y el ítem sin comprar al máximo.
+    func shopEventIsApplicable(destination: EventCatalog.ShopDestination, focus: String?) -> Bool {
+        if destination == .store { return true }
+        guard unlockedTabsInBarOrder.contains(.upgrades) else { return false }
+        guard let focus else { return true }
+        return oroShopRows(chanceAllowed: false).first { $0.id == focus }.map { $0.quote.blocker != .maxed } ?? false
+    }
+
+    /// La compra con plata real se acreditó: durante las próximas horas el evento de la Tienda no sale.
+    func noteRealPurchase(at date: Date) {
+        guard var player else { return }
+        player.meta.engagement.events.lastPurchaseAt = date.timeIntervalSince1970
+        self.player = player
+        scheduleSave()
+    }
+
+    /// «¡Vamos!»: se cierra la oferta y se pide la pantalla con el ítem en foco.
+    func acceptShopOffer(eventId: String) {
+        guard let offer = content?.events.event(id: eventId)?.shopOffer else { return }
+        closeShopOffer(eventId: eventId)
+        shopRequest = ShopRequest(destination: offer.destination, focus: offer.focus)
+    }
+
+    /// «Ahora no»: se cierra la oferta y no pasa nada más.
+    func declineShopOffer(eventId: String) {
+        closeShopOffer(eventId: eventId)
+    }
+
+    private func closeShopOffer(eventId: String) {
+        if stageRuntime.pendingShopOffer == eventId { stageRuntime.pendingShopOffer = nil }
+        if eventPopup?.eventId == eventId { eventPopup = nil }
+    }
+
+    /// La pantalla que se abrió por un pedido lo toma una sola vez.
+    func takeShopRequest(for screen: GameScreen) -> ShopRequest? {
+        guard let request = shopRequest, request.screen == screen else { return nil }
+        shopRequest = nil
+        return request
     }
 }

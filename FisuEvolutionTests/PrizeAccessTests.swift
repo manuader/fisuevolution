@@ -16,6 +16,10 @@ struct PrizeAccessTests {
         gameState.debugAddWheelSpins(1)
         gameState.refreshProjections()
         #expect(gameState.prizeAccess == PrizeAccess(packagesWaiting: 2, packagesBlocked: false, mattressReady: true, wheelSpinsReady: 7))
+        gameState.debugSpawnMattress(onBoard: true)
+        gameState.refreshProjections()
+        #expect(!gameState.prizeAccess.mattressReady, "ya no está en la columna")
+        #expect(gameState.prizeAccess.mattressOnBoard)
     }
 
     @Test("tocar el paquete abre su pantalla sin gastarlo")
@@ -82,7 +86,7 @@ struct PrizeAccessTests {
         #expect(!gameState.packageTapped(), "no se apila sobre sí misma")
     }
 
-    @Test("el colchón: el popup, el video, lo que salió y otro más")
+    @Test("el colchón (E14b B6): la columna pide el video, cae al tablero, se abre ahí y sale el premio, y otro más")
     func theMattressFlow() async throws {
         let gameState = await makeGameState()
         gameState.mattressTapped()
@@ -90,35 +94,69 @@ struct PrizeAccessTests {
         gameState.debugSpawnMattress()
         gameState.mattressTapped()
         #expect(gameState.mattressPopup?.outcome == nil)
+        #expect(!gameState.boardMattressTapped(), "todavía no está en el tablero")
+        let before = try #require(gameState.player)
         gameState.mattressVideoWatched()
-        let first = try #require(gameState.mattressPopup?.outcome)
+        #expect(gameState.mattressPopup == nil, "el video cierra el popup y el colchón cae")
+        #expect(gameState.mattressOnBoard)
+        #expect(gameState.prizeAccess.mattressOnBoard && !gameState.prizeAccess.mattressReady)
+        #expect(gameState.player?.run.coins == before.run.coins && gameState.player?.meta.oro == before.meta.oro,
+                "pagar el video no acredita nada: el premio sale al abrirlo")
+        #expect(gameState.boardMattressTapped())
+        let first = try #require(gameState.openMattressOnBoard())
+        #expect(gameState.mattressPopup?.outcome == first)
+        #expect(gameState.mattressPopup?.openedOnBoard == true, "el premio se ve directo")
         #expect(first.extraOpensLeft == 1)
-        #expect(!gameState.prizeAccess.mattressReady)
+        #expect(!gameState.mattressInPlay)
         gameState.extraMattressVideoWatched()
         #expect(gameState.mattressPopup?.outcome?.extraOpensLeft == 0)
+        #expect(gameState.mattressPopup?.openedOnBoard == false, "el «otro colchón» se abre tocándolo en el popup")
         gameState.closeMattressPopup()
         #expect(gameState.mattressPopup == nil)
     }
 
-    @Test("un video del colchón que llega dos veces abre uno solo, aunque haya otro esperando")
+    @Test("un video del colchón que llega dos veces lo paga una sola vez")
     func theMattressVideoPaysOnce() async throws {
         let gameState = await makeGameState()
         gameState.debugSpawnMattress()
         gameState.mattressTapped()
         gameState.mattressVideoWatched()
-        let first = try #require(gameState.mattressPopup?.outcome)
-        gameState.debugSpawnMattress()
+        #expect(gameState.mattressOnBoard)
+        let after = gameState.player
         gameState.mattressVideoWatched()
-        #expect(gameState.mattressPopup?.outcome == first, "el resultado a la vista no se pisa")
-        #expect(gameState.mattressWaiting, "el colchón nuevo sigue sin abrir")
+        #expect(gameState.player == after)
+        #expect(gameState.mattressPopup == nil)
+    }
+
+    @Test("el de regalo está en el tablero: la columna no lo abre y el tablero sí, una vez")
+    func theGiftOpensOnTheBoardOnce() async throws {
+        let gameState = await makeGameState()
+        gameState.debugSpawnMattress(onBoard: true)
+        gameState.refreshProjections()
+        #expect(gameState.sideRailTapped(.mattress) == .refused)
+        #expect(gameState.mattressPopup == nil)
+        _ = try #require(gameState.openMattressOnBoard())
+        let after = gameState.player
+        gameState.closeMattressPopup()
+        #expect(gameState.openMattressOnBoard() == nil, "abierto, no paga otra vez")
+        #expect(gameState.player == after)
+    }
+
+    @Test("con otro popup arriba, el colchón del tablero no se abre ni gasta")
+    func theBoardMattressWaitsForACalmScreen() async {
+        let gameState = await makeGameState()
+        gameState.debugSpawnMattress(onBoard: true)
+        gameState.openWheel()
+        #expect(!gameState.boardMattressTapped())
+        #expect(gameState.openMattressOnBoard() == nil)
+        #expect(gameState.mattressOnBoard)
     }
 
     @Test("el segundo video del colchón paga una vez")
     func theExtraVideoPaysOnce() async throws {
         let gameState = await makeGameState()
-        gameState.debugSpawnMattress()
-        gameState.mattressTapped()
-        gameState.mattressVideoWatched()
+        gameState.debugSpawnMattress(onBoard: true)
+        gameState.openMattressOnBoard()
         gameState.extraMattressVideoWatched()
         let second = try #require(gameState.mattressPopup?.outcome)
         let oro = gameState.player?.meta.oro
@@ -129,7 +167,7 @@ struct PrizeAccessTests {
         #expect(gameState.player?.run.coins == coins)
     }
 
-    @Test("sin popup, un video del colchón no abre nada")
+    @Test("sin popup, un video del colchón no lo paga")
     func noPopupNoMattressOpen() async {
         let gameState = await makeGameState()
         gameState.debugSpawnMattress()

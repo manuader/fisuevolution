@@ -40,6 +40,10 @@ struct SideRailTapTests {
         gameState.debugSpawnMattress()
         #expect(gameState.sideRailTapped(.mattress) == .acted)
         #expect(gameState.mattressPopup != nil)
+        gameState.closeMattressPopup()
+        gameState.debugSpawnMattress(onBoard: true)
+        #expect(gameState.sideRailTapped(.mattress) == .refused, "el del tablero se abre en el tablero")
+        #expect(gameState.mattressPopup == nil)
     }
 
     @Test("los paquetes: con alguno esperando abre su pantalla; con el buzón vacío ofrece la lluvia")

@@ -41,6 +41,15 @@ struct SideRailModelTests {
         #expect(SideRailModel.state(input { $0.mattressSecondsUntilNext = nil }).status(of: .mattress) == .idle)
     }
 
+    @Test("el colchón ya en el tablero se va de la columna: ni «!» ni un reloj que no corre (E14b B6)")
+    func mattressOnBoard() {
+        #expect(SideRailModel.state(input { $0.access.mattressOnBoard = true }).status(of: .mattress) == .idle)
+        #expect(SideRailModel.state(input {
+            $0.access.mattressOnBoard = true
+            $0.access.mattressExtraReady = true
+        }).status(of: .mattress) == .ready(count: nil), "un «otro colchón» guardado sigue en la columna")
+    }
+
     @Test("los paquetes: cuántos, LLENO si no entra ninguno, o el reloj del próximo")
     func packages() {
         #expect(SideRailModel.state(input { $0.access.packagesWaiting = 2 }).status(of: .packages) == .ready(count: 2))

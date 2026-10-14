@@ -21,6 +21,9 @@ final class PickupController {
     /// El empleado que acaba de salir de una caja del tablero y dónde estaba la caja (en `layer`):
     /// la escena lo hace caminar de ahí a su lugar cuando juega la llegada (E14b B5).
     private var boxExit: (typeId: String, point: CGPoint)?
+    /// El colchón estaba en la columna en el frame anterior: si ahora está en el tablero, se pagó y
+    /// cae desde arriba; uno de regalo (o el que ya estaba al volver a abrir la app) aparece en su lugar.
+    private var mattressWasInColumn = false
     private var reduceMotion = false
 
     init(gameState: GameState, manifest: LoopsManifest = .main, pool: VideoPlayerPool = .shared,
@@ -53,27 +56,30 @@ final class PickupController {
         layer.isHidden = gameState.celebrationHidesUI
         followHorizon(of: gameState)
         syncBoxes(count: min(access.packagesWaiting, PickupLayout.maxVisibleBoxes), blocked: access.packagesBlocked)
-        syncMattress(present: access.mattressReady)
+        syncMattress(present: access.mattressOnBoard, falling: mattressWasInColumn)
+        mattressWasInColumn = access.mattressReady
         syncWaitingVideos(visible: sceneVisible && !layer.isHidden)
         for (index, box) in boxes.enumerated() {
             box.position = layout.packagePosition(index: index)
             box.update(delta: delta, reduceMotion: reduceMotion)
         }
         if let mattress {
-            mattress.position = layout.mattressPosition
             mattress.update(delta: delta, reduceMotion: reduceMotion)
+            let spot = layout.mattressPosition
+            mattress.position = CGPoint(x: spot.x, y: spot.y + mattress.fallOffset)
         }
-        gameState.publishBoardPackage(boxMarker)
+        gameState.publishBoardPackage(marker(of: boxes.last))
+        gameState.publishBoardMattress(marker(of: mattress?.isFalling == false ? mattress : nil))
     }
 
-    /// La caja de arriba, normalizada a la pantalla con el origen arriba a la izquierda (como la
-    /// coordenada de XCUITest), o "" sin caja.
-    private var boxMarker: String {
-        guard let top = boxes.last, !layer.isHidden, layout.sceneSize.width > 0, layout.sceneSize.height > 0 else {
+    /// La pieza normalizada a la pantalla con el origen arriba a la izquierda (como la coordenada de
+    /// XCUITest), o "" sin pieza.
+    private func marker(of node: PickupNode?) -> String {
+        guard let node, !layer.isHidden, layout.sceneSize.width > 0, layout.sceneSize.height > 0 else {
             return ""
         }
-        let x = top.position.x / layout.sceneSize.width
-        let y = 1 - top.position.y / layout.sceneSize.height
+        let x = node.position.x / layout.sceneSize.width
+        let y = 1 - node.position.y / layout.sceneSize.height
         return String(format: "%.3f,%.3f", x, y)
     }
 
@@ -91,7 +97,12 @@ final class PickupController {
     func handleTap(at point: CGPoint) -> Bool {
         guard let gameState, !layer.isHidden else { return false }
         if let mattress, mattress.hitTest(point) {
-            gameState.mattressTapped()
+            if !mattress.isOpening, gameState.boardMattressTapped() {
+                mattress.playOpening { [weak self, weak mattress] in
+                    guard let self, let mattress else { return }
+                    self.finishOpening(mattress: mattress)
+                }
+            }
             return true
         }
         guard boxes.contains(where: { $0.hitTest(point) }) else { return false }
@@ -120,6 +131,18 @@ final class PickupController {
         boxExit = (typeId, box.position)
         boxes.removeAll { $0 === box }
         box.vanish(reduceMotion: reduceMotion)
+    }
+
+    /// El colchón terminó de abrirse en el tablero (E14b B6, D3): recién ahora se sortea y se acredita,
+    /// sale el pop-up del premio y el colchón abierto se desvanece.
+    private func finishOpening(mattress node: PickupNode) {
+        guard let gameState, node.parent != nil else { return }
+        guard gameState.openMattressOnBoard() != nil else {
+            node.cancelOpening()
+            return
+        }
+        if mattress === node { mattress = nil }
+        node.vanish(reduceMotion: reduceMotion)
     }
 
     /// Dónde estaba la caja de la que salió `typeId`, una sola vez: la llegada que juega la escena.
@@ -157,12 +180,15 @@ final class PickupController {
         }
     }
 
-    private func syncMattress(present: Bool) {
+    private func syncMattress(present: Bool, falling: Bool) {
         if present, mattress == nil {
             let node = PickupNode(kind: .mattress, texture: PickupArt.texture(.mattress), side: layout.side,
                                   waitingClip: .object("colchon_espera"), manifest: manifest, pool: pool, packs: packs)
             layer.addChild(node)
             mattress = node
+            if falling, !reduceMotion {
+                node.drop(from: max(0, layout.sceneSize.height - layout.mattressPosition.y))
+            }
         } else if !present, let node = mattress {
             node.retire()
             mattress = nil

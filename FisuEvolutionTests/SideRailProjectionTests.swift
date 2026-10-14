@@ -33,6 +33,9 @@ struct SideRailProjectionTests {
         #expect(gameState.sideRail.status(of: .packages) == .ready(count: 2))
         #expect(gameState.sideRail.status(of: .mattress) == .ready(count: nil))
         #expect(gameState.sideRail.status(of: .wheel) == .ready(count: gameState.prizeAccess.wheelSpinsReady))
+        gameState.debugSpawnMattress(onBoard: true)
+        gameState.refreshProjections()
+        #expect(gameState.sideRail.status(of: .mattress) == .idle, "cayó al tablero: la columna lo suelta")
     }
 
     @Test("Fusionar todo: con pares en el piso se ofrece y dice cuántos; con uno solo, no")

@@ -12,34 +12,56 @@ struct MattressOutcome: Equatable {
 }
 
 /// El Colchón en la partida (PLAN-v2 E5): "tus empleados escondieron plata en
-/// el colchón". Se abre sólo con video; lo llama la vista al terminar.
+/// el colchón". El recorrido (E14b B6, D3/D4): aparece en la columna y se paga con un
+/// video, o llega de regalo; en los dos casos cae al tablero, y ahí se abre.
 extension GameState {
-    var mattressWaiting: Bool { player?.meta.engagement.treasures.waiting ?? false }
+    private var mattressPhase: TreasuresState.Phase { player?.meta.engagement.treasures.phase ?? .none }
+
+    /// En la columna, esperando su video.
+    var mattressWaiting: Bool { mattressPhase == .waiting }
+
+    /// Pagado o regalado: en el tablero, listo para abrir.
+    var mattressOnBoard: Bool { mattressPhase == .onBoard }
+
+    /// Hay uno en juego, en la columna o en el tablero: el reloj no corre.
+    var mattressInPlay: Bool { mattressPhase != .none }
 
     var mattressExtraOpensLeft: Int { player?.meta.engagement.treasures.extraOpensLeft ?? 0 }
 
     /// El «otro colchón» de uno ya abierto sigue guardado: sobrevive a cerrar el
     /// popup y a matar la app, hasta que aparece un colchón nuevo.
-    var mattressExtraPending: Bool { !mattressWaiting && mattressExtraOpensLeft > 0 }
+    var mattressExtraPending: Bool { mattressPhase == .none && mattressExtraOpensLeft > 0 }
 
     /// El reloj de juego activo. Lo llama `advanceEngagement` con el delta del tick.
     func advanceTreasures(delta: TimeInterval) {
         guard engagementAutorun, !tutorialPhaseActive, mattressPopup == nil, let content, var player else { return }
-        let appeared = TreasureScheduler.advance(&player.meta.engagement.treasures, delta: delta, config: content.treasures)
+        let arrival = TreasureScheduler.advance(&player.meta.engagement.treasures, delta: delta,
+                                                config: content.treasures, using: &rng)
         self.player = player
-        guard appeared else { return }
-        Log.economy.info("mattress appeared")
+        guard let arrival else { return }
+        let kind = arrival == .gift ? "gift" : "column"
+        Log.economy.info("mattress appeared: \(kind)")
         scheduleSave()
     }
 
-    /// Después del video: sortea, acredita y habilita "otro colchón".
+    /// Se miró el video de la columna: el colchón cae al tablero, todavía cerrado.
+    @discardableResult
+    func payMattress() -> Bool {
+        guard var player, TreasureScheduler.markPaid(&player.meta.engagement.treasures) else { return false }
+        self.player = player
+        Log.economy.info("mattress paid")
+        scheduleSave()
+        return true
+    }
+
+    /// Se abrió el del tablero: sortea, acredita y habilita "otro colchón".
     @discardableResult
     func openMattress(now: TimeInterval = Date().timeIntervalSince1970) -> MattressOutcome? {
-        guard let content, player?.meta.engagement.treasures.waiting == true,
+        guard let content, mattressOnBoard,
               let prize = TreasureRoller.roll(content.treasures, using: &rng),
-              var player
+              var player,
+              TreasureScheduler.markOpened(&player.meta.engagement.treasures, config: content.treasures)
         else { return nil }
-        TreasureScheduler.markOpened(&player.meta.engagement.treasures, config: content.treasures)
         self.player = player
         return deliver(prize, now: now)
     }
@@ -65,10 +87,11 @@ extension GameState {
     }
 
     #if DEBUG
-    /// `extraSaved`: el colchón ya se abrió y le queda «otro colchón» guardado.
-    func debugSpawnMattress(extraSaved: Bool = false) {
+    /// En la columna; `onBoard`: ya pagado o regalado, en el tablero; `extraSaved`: el colchón ya
+    /// se abrió y le queda «otro colchón» guardado.
+    func debugSpawnMattress(onBoard: Bool = false, extraSaved: Bool = false) {
         guard var player else { return }
-        player.meta.engagement.treasures.waiting = !extraSaved
+        player.meta.engagement.treasures.phase = extraSaved ? .none : onBoard ? .onBoard : .waiting
         player.meta.engagement.treasures.extraOpensLeft = extraSaved ? 1 : 0
         self.player = player
     }

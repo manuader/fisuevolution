@@ -6,10 +6,13 @@ import Foundation
 struct PrizeAccess: Equatable {
     var packagesWaiting = 0
     var packagesBlocked = false
+    /// En la columna, esperando su video.
     var mattressReady = false
     var wheelSpinsReady = 0
     /// Ya se abrió un colchón y su «otro colchón» sigue sin pedir.
     var mattressExtraReady = false
+    /// Pagado o regalado, en el tablero (E14b B6).
+    var mattressOnBoard = false
 
     static let none = PrizeAccess()
 }
@@ -19,6 +22,8 @@ struct MattressPopup: Identifiable, Equatable {
     let id = UUID()
     /// Se abrió desde el «otro colchón» guardado (no hay uno nuevo esperando).
     var extraOnly = false
+    /// Se abrió en el tablero con su animación: el premio se ve directo, sin tocar el colchón otra vez.
+    var openedOnBoard = false
     var outcome: MattressOutcome?
 }
 

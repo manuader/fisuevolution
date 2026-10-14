@@ -34,6 +34,7 @@ struct PrizesContentTests {
         #expect(treasures.spawnIntervalSeconds == 720)
         #expect(treasures.prizes.map(\.weight) == [60, 25, 5])
         #expect(treasures.extraOpensPerTreasure == 1)
+        #expect(treasures.giftOneIn == 4, "1 de cada 4 llega de regalo (E14b B6, D4)")
         #expect(treasures.prizes.map(\.id) == ["coins", "package", "oro"])
         #expect(treasures.prizes[0].rewards == [.coinsSeconds(1200)])
         #expect(treasures.prizes[1].rewards == [.package(1)])

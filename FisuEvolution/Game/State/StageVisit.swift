@@ -54,6 +54,13 @@ struct StageRuntime {
     var pendingEvent: EventCatalog.Event?
     /// El guion que llamó un evento (el Cepo al Arbolito, T2).
     var calledScript: String?
+    /// El reloj de juego (`events.clock`) en el que arrancó esta sesión; `nil` hasta el primer tick.
+    var sessionStartClock: Double?
+    /// Cuántos eventos de compra salieron en esta sesión (C25).
+    var shopEventsThisSession = 0
+    /// El evento de compra que espera la respuesta del jugador (C25): no es un modificador, así
+    /// que no hay chip ni cuenta regresiva.
+    var pendingShopOffer: String?
     /// El guion que pidió un fixture de arranque (`--uitest-visitor=`): el
     /// bootstrap corre antes de `phase = .ready`, así que entra al primer
     /// momento calmo, salteando el sorteo.

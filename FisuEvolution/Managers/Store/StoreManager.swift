@@ -386,6 +386,7 @@ final class StoreManager {
                 purchasedProductIDs.insert(transaction.productID)
             }
             Log.store.info("entitlement granted: \(transaction.productID)")
+            if settled { gameState?.noteRealPurchase(at: transaction.purchaseDate) }
         }
         pushEntitlementsToGameState()
         if settled {

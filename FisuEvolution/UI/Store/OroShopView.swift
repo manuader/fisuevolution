@@ -73,6 +73,7 @@ struct OroShopShelves: View {
     var titled = true
 
     @Environment(\.loopsManifest) private var loops
+    @Environment(\.shopFocusItem) private var shopFocusItem
     @State private var latch = PurchaseLatch()
     @State private var visibleRows: Set<String> = []
 
@@ -106,6 +107,7 @@ struct OroShopShelves: View {
                         .onScrollVisibilityChange(threshold: 0.8) { isVisible in
                             if isVisible { visibleRows.insert(entry.0.id) } else { visibleRows.remove(entry.0.id) }
                         }
+                        .shopFocus(id: entry.0.id)
                         .staggeredAppearance(index: offset)
                     }
                 }
@@ -141,6 +143,7 @@ struct OroShopShelves: View {
     private func focusedRow(in rows: [OroShopRow]) -> String? {
         let ordered = OroShopCatalog.Shelf.allCases.flatMap { shelf in rows.filter { $0.item.shelf == shelf } }
         let animatable = Set(ordered.map(\.id).filter { ArtClips.shopIcon(item: $0, in: loops) != nil })
+        if let shopFocusItem, animatable.contains(shopFocusItem) { return shopFocusItem }
         return ShopIconFocus.pick(visibleInOrder: ordered.map(\.id).filter(visibleRows.contains), animatable: animatable)
     }
 

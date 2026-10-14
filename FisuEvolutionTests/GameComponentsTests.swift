@@ -117,6 +117,7 @@ struct GameComponentsTests {
         #expect(RewardKind(event: .evolveBestUnit) == .evolve)
         #expect(RewardKind(event: .grantUnit(tiersBelowFrontier: 2)) == .freeUnit)
         #expect(RewardKind(event: .callVisitor(script: "x")) == nil)
+        #expect(RewardKind(event: .openShop(destination: .store, focus: nil)) == nil)
         #expect(RewardKind(modifier: .spendingFrozen) == .frozen)
         #expect(RewardKind(modifier: .packageRateMultiplier) == .packageRain)
     }

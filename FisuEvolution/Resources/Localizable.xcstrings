@@ -3886,6 +3886,74 @@
         }
       }
     },
+    "event.cuevita_abierta.phrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuevita is open, champ. I've got blue packs in the Shop. No rush, eh."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuevita abierta, campeón. Tengo packs de blue en la Tienda. Sin apuro, eh."
+          }
+        }
+      }
+    },
+    "event.cuevita_abierta.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuevita is open"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuevita abierta"
+          }
+        }
+      }
+    },
+    "event.cyber_monday.phrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conurbano Cyber Monday! No discounts, but the featured pack looks gorgeous."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Cyber Monday del Conurbano! Descuentos no hay, pero el pack destacado está divino."
+          }
+        }
+      }
+    },
+    "event.cyber_monday.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conurbano Cyber Monday"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cyber Monday del Conurbano"
+          }
+        }
+      }
+    },
     "event.devaluacion.phrase" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4158,6 +4226,40 @@
         }
       }
     },
+    "event.llego_el_blue.phrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The blue dollar hit the block! Come see the x2 income before it goes up."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Llegó el blue al barrio! Pasá a ver el ×2 de ingresos antes de que suba."
+          }
+        }
+      }
+    },
+    "event.llego_el_blue.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The blue dollar hit the block"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Llegó el blue al barrio"
+          }
+        }
+      }
+    },
     "event.lluvia_paquetes.phrase" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4188,6 +4290,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lluvia de paquetes"
+          }
+        }
+      }
+    },
+    "event.mudanza_oficinas.phrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Office move! If you want more spots in the tower, the truck is at the door."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Mudanza de oficinas! Si querés más lugares en la torre, el camión está en la puerta."
+          }
+        }
+      }
+    },
+    "event.mudanza_oficinas.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Office move"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mudanza de oficinas"
           }
         }
       }
@@ -4375,6 +4511,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No hay con qué zafar: aguantá, que ya pasa."
+          }
+        }
+      }
+    },
+    "event.shop.go" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Let's go!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Vamos!"
+          }
+        }
+      }
+    },
+    "event.shop.later" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not now"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ahora no"
           }
         }
       }

@@ -1,0 +1,12 @@
+{
+  "event.cyber_monday.title": {"es": "Cyber Monday del Conurbano", "en": "Conurbano Cyber Monday"},
+  "event.cyber_monday.phrase": {"es": "¡Cyber Monday del Conurbano! Descuentos no hay, pero el pack destacado está divino.", "en": "Conurbano Cyber Monday! No discounts, but the featured pack looks gorgeous."},
+  "event.llego_el_blue.title": {"es": "Llegó el blue al barrio", "en": "The blue dollar hit the block"},
+  "event.llego_el_blue.phrase": {"es": "¡Llegó el blue al barrio! Pasá a ver el ×2 de ingresos antes de que suba.", "en": "The blue dollar hit the block! Come see the x2 income before it goes up."},
+  "event.mudanza_oficinas.title": {"es": "Mudanza de oficinas", "en": "Office move"},
+  "event.mudanza_oficinas.phrase": {"es": "¡Mudanza de oficinas! Si querés más lugares en la torre, el camión está en la puerta.", "en": "Office move! If you want more spots in the tower, the truck is at the door."},
+  "event.cuevita_abierta.title": {"es": "Cuevita abierta", "en": "Cuevita is open"},
+  "event.cuevita_abierta.phrase": {"es": "Cuevita abierta, campeón. Tengo packs de blue en la Tienda. Sin apuro, eh.", "en": "Cuevita is open, champ. I've got blue packs in the Shop. No rush, eh."},
+  "event.shop.go": {"es": "¡Vamos!", "en": "Let's go!"},
+  "event.shop.later": {"es": "Ahora no", "en": "Not now"}
+}

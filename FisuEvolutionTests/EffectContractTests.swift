@@ -153,6 +153,9 @@ struct EffectContractTests {
                     #expect(content.tiers.type(id: typeId)?.tier == max(1, before.run.maxTierReached - below))
                 case .callVisitor(let script):
                     #expect(content.visitors.script(id: script) != nil)
+                case .openShop:
+                    #expect(after.run.coins == before.run.coins && after.meta.oro == before.meta.oro, "sólo ofrece")
+                    #expect(gameState.stageRuntime.pendingShopOffer == event.id)
                 }
             }
         }

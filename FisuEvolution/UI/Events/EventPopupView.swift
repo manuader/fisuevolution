@@ -46,7 +46,11 @@ struct EventPopupView: View {
                 }
                 waitLine(event)
             } actions: {
-                escapes(event)
+                if event.shopOffer == nil {
+                    escapes(event)
+                } else {
+                    shopActions(event)
+                }
             }
             .onReceive(timer) { tick in
                 now = tick
@@ -66,6 +70,16 @@ struct EventPopupView: View {
 
     private static let illustrationHeight: CGFloat = 120
 
+    /// El premio que ilustra un evento de compra: el pack de plata, el de blue, el boost o los lugares
+    /// extra. El juego no inventa arte para el evento: usa el de lo que promociona (C4, C25).
+    static func shopIllustrationKind(for offer: EventCatalog.ShopOffer) -> RewardKind {
+        switch offer.destination {
+        case .store: offer.focus?.contains("oro") == true ? .blue : .coins
+        case .boosts: .incomeBoost
+        case .permanent: .freeUnit
+        }
+    }
+
     /// El clip del evento, sólo si además tiene póster: sin los dos, el popup queda como siempre.
     static func illustrationClip(for eventId: String, in manifest: LoopsManifest) -> ArtClip? {
         guard UIArt.image(posterKey(eventId)) != nil else { return nil }
@@ -76,7 +90,10 @@ struct EventPopupView: View {
 
     @ViewBuilder
     private func illustration(_ event: EventCatalog.Event) -> some View {
-        if let clip = Self.illustrationClip(for: event.id, in: loops),
+        if let offer = event.shopOffer {
+            RewardIllustration(kind: Self.shopIllustrationKind(for: offer), size: 80, spinsRays: false)
+                .frame(height: Self.illustrationHeight)
+        } else if let clip = Self.illustrationClip(for: event.id, in: loops),
            let poster = UIArt.image(Self.posterKey(event.id)) {
             AnimatedArtView(clip: clip, role: .popup) {
                 poster.resizable().scaledToFit()
@@ -91,10 +108,21 @@ struct EventPopupView: View {
     /// `Text` lo mostraría crudo, sin traducir.
     @ViewBuilder
     private func waitLine(_ event: EventCatalog.Event) -> some View {
-        if gameState.usableEscapes(of: event).isEmpty {
+        if event.shopOffer == nil, gameState.usableEscapes(of: event).isEmpty {
             (event.polarity == .negative ? Text("event.popup.wait") : Text("event.popup.enjoy"))
                 .font(Tokens.caption)
                 .foregroundStyle(Color("PaletteInk").opacity(0.7))
+        }
+    }
+
+    /// El evento de compra no presiona: «Ahora no» pesa lo mismo que «¡Vamos!», sin cuenta regresiva.
+    @ViewBuilder
+    private func shopActions(_ event: EventCatalog.Event) -> some View {
+        GameButton("event.shop.go", role: .free, medallion: .none, identifier: "event.shop.go") {
+            gameState.acceptShopOffer(eventId: event.id)
+        }
+        GameButton("event.shop.later", role: .neutral, medallion: .none, identifier: "event.shop.later") {
+            gameState.declineShopOffer(eventId: event.id)
         }
     }
 

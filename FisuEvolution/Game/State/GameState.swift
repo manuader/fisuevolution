@@ -296,6 +296,9 @@ final class GameState {
     var visitorPopup: VisitorPopup?
     /// El popup de un chip de evento (`+Events`, T4).
     var eventPopup: EventPopup?
+    /// Adónde pidió ir el jugador desde un evento de compra (C25): `RootView` abre la hoja y la
+    /// pantalla de destino lo consume (`takeShopRequest`).
+    var shopRequest: ShopRequest?
     /// El reto de toques en curso (`+Visitors`).
     var stageChallenge: StageChallenge?
     /// Los accesos a paquetes, colchón y ruleta. Lo escribe `+Prizes`.

@@ -13,6 +13,8 @@ public struct EventApplication: Sendable, Equatable {
     public let boardIntent: EventBoardIntent?
     public let calledScript: String?
     public let scene: EventCatalog.Scene?
+    /// El destino de compra que el evento ofrece (C25). Sólo se ofrece: no se aplica nada.
+    public let shopOffer: EventCatalog.ShopOffer?
 }
 
 /// Un evento con algo corriendo: lo que dibuja su chip.
@@ -35,6 +37,7 @@ public enum EventPlanner {
         var coinsSeconds = 0.0
         var intent: EventBoardIntent?
         var called: String?
+        var shopOffer: EventCatalog.ShopOffer?
         for effect in event.effects {
             switch effect {
             case let .modifier(modifierEffect, magnitude):
@@ -50,6 +53,8 @@ public enum EventPlanner {
                 intent = grantedUnitType(tiersBelowFrontier: below, state: state, tiers: tiers).map { .grantUnit(typeId: $0.id) }
             case .callVisitor(let script):
                 called = script
+            case let .openShop(destination, focus):
+                shopOffer = EventCatalog.ShopOffer(destination: destination, focus: focus)
             }
         }
         if modifiers.isEmpty, event.durationSeconds > 0 {
@@ -58,7 +63,7 @@ public enum EventPlanner {
             ))
         }
         return EventApplication(modifiers: modifiers, coinsSeconds: coinsSeconds, boardIntent: intent,
-                                calledScript: called, scene: event.scene)
+                                calledScript: called, scene: event.scene, shopOffer: shopOffer)
     }
 
     /// El que regala el Blanqueo: tantos tiers abajo de tu frontera, respetando la

@@ -12,6 +12,10 @@ public struct EventsState: Codable, Sendable, Equatable {
     public var lastFiredAt: [String: Double]
     /// El próximo, ya sorteado: la Vecina chusma lo adelanta y es el que sale.
     public var upcomingId: String?
+    /// Cuándo salió el último evento de compra, en `clock` (C25).
+    public var lastShopEventAt: Double?
+    /// Cuándo se acreditó la última compra con plata real (segundos desde 1970).
+    public var lastPurchaseAt: Double?
 
     public static let initial = EventsState()
 
@@ -19,12 +23,16 @@ public struct EventsState: Codable, Sendable, Equatable {
         clock: Double = 0,
         secondsUntilNext: Double? = nil,
         lastFiredAt: [String: Double] = [:],
-        upcomingId: String? = nil
+        upcomingId: String? = nil,
+        lastShopEventAt: Double? = nil,
+        lastPurchaseAt: Double? = nil
     ) {
         self.clock = clock
         self.secondsUntilNext = secondsUntilNext
         self.lastFiredAt = lastFiredAt
         self.upcomingId = upcomingId
+        self.lastShopEventAt = lastShopEventAt
+        self.lastPurchaseAt = lastPurchaseAt
     }
 
     public init(from decoder: Decoder) throws {
@@ -33,6 +41,8 @@ public struct EventsState: Codable, Sendable, Equatable {
         secondsUntilNext = try container.decodeIfPresent(Double.self, forKey: .secondsUntilNext)
         lastFiredAt = try container.decodeIfPresent([String: Double].self, forKey: .lastFiredAt) ?? [:]
         upcomingId = try container.decodeIfPresent(String.self, forKey: .upcomingId)
+        lastShopEventAt = try container.decodeIfPresent(Double.self, forKey: .lastShopEventAt)
+        lastPurchaseAt = try container.decodeIfPresent(Double.self, forKey: .lastPurchaseAt)
     }
 
     /// El reloj más avanzado y el cooldown más reciente de cada evento: un
@@ -41,6 +51,8 @@ public struct EventsState: Codable, Sendable, Equatable {
         var resolved = winner
         resolved.clock = max(winner.clock, loser.clock)
         resolved.lastFiredAt = winner.lastFiredAt.merging(loser.lastFiredAt, uniquingKeysWith: max)
+        resolved.lastShopEventAt = [winner.lastShopEventAt, loser.lastShopEventAt].compactMap { $0 }.max()
+        resolved.lastPurchaseAt = [winner.lastPurchaseAt, loser.lastPurchaseAt].compactMap { $0 }.max()
         return resolved
     }
 }

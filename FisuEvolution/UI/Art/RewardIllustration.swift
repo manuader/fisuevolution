@@ -135,7 +135,7 @@ extension RewardKind {
         case .coinsSeconds: self = .coins
         case .evolveBestUnit: self = .evolve
         case .grantUnit: self = .freeUnit
-        case .callVisitor: return nil
+        case .callVisitor, .openShop: return nil
         }
     }
 

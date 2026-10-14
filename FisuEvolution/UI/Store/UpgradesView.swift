@@ -30,6 +30,8 @@ struct UpgradesView: View {
     var onStore: () -> Void = {}
     @State private var selectedTab: Tab = .characters
     @State private var sheet: GameState.CharacterSheet?
+    /// El ítem que un evento de compra destaca al abrir (C25).
+    @State private var focusItem: String?
 
     /// Margen lateral de la columna: el del marco vectorial, publicado por el
     /// componente. Un solo número para las nueve hojas — el marco es el
@@ -44,34 +46,46 @@ struct UpgradesView: View {
         let _ = gameState.oroText
 
         NavigationStack {
-            ScrollView {
-                VStack(spacing: Tokens.s12) {
-                    if selectedTab == .characters {
-                        if let until = gameState.spendingFrozenUntil {
-                            SpendingFrozenStrip(until: until, identifier: "upgrades.spending_frozen")
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: Tokens.s12) {
+                        if selectedTab == .characters {
+                            if let until = gameState.spendingFrozenUntil {
+                                SpendingFrozenStrip(until: until, identifier: "upgrades.spending_frozen")
+                            }
+                            characterRows
+                        } else if selectedTab == .permanent {
+                            permanentTab
+                        } else {
+                            boostsTab
                         }
-                        characterRows
-                    } else if selectedTab == .permanent {
-                        permanentTab
-                    } else {
-                        boostsTab
                     }
+                    .padding(.horizontal, Self.panelInset)
+                    .padding(.top, Tokens.s12)
+                    .padding(.bottom, Tokens.s24)
                 }
-                .padding(.horizontal, Self.panelInset)
-                .padding(.top, Tokens.s12)
-                .padding(.bottom, Tokens.s24)
-            }
-            // Madera como el resto de los negocios (pedido del dueño,
-            // 2026-08-18: el metal la hacía "de otra familia"). El metal quedó
-            // para el Ascensor, que es la única maquinaria de verdad.
-            .panelSheet(awning: true) { header }
-            .navigationTitle(Text(verbatim: ""))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) { ArtCloseButton { dismiss() } }
+                // Madera como el resto de los negocios (pedido del dueño,
+                // 2026-08-18: el metal la hacía "de otra familia"). El metal quedó
+                // para el Ascensor, que es la única maquinaria de verdad.
+                .panelSheet(awning: true) { header }
+                .navigationTitle(Text(verbatim: ""))
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) { ArtCloseButton { dismiss() } }
+                }
+                .environment(\.shopFocusItem, focusItem)
+                .environment(\.shopFocusScroll, { id in withAnimation { proxy.scrollTo(id, anchor: .center) } })
+                .onAppear { applyShopRequest() }
             }
         }
         .fisuSheet(item: $sheet) { CharacterSheetView(sheet: $0) }
+    }
+
+    /// Si llegó por un evento de compra, abre en la pestaña del producto y lo deja en foco (C25).
+    private func applyShopRequest() {
+        guard let request = gameState.takeShopRequest(for: .upgrades) else { return }
+        selectedTab = request.destination == .permanent ? .permanent : .boosts
+        focusItem = request.focus
     }
 
     // MARK: Cabecera

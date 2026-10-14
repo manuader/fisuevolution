@@ -314,6 +314,7 @@ struct GameBoardView: View {
             DebugPanelView()
         }
         #endif
+        .modifier(ShopRequestRouter(open: openRequestedShop))
         .background(uiTestMarkers)
         // La geometría del tablero ("5x2@112·1.25"), para `IPadLayoutUITests`.
         .background(boardLayoutMarker)
@@ -439,6 +440,12 @@ struct GameBoardView: View {
         menuSession = MenuSession(start: screen)
     }
 
+    /// «¡Vamos!» de un evento de compra (C25): abre la hoja en la Tienda o en Mejoras; la pantalla de
+    /// destino toma el pedido y deja el ítem en foco.
+    private func openRequestedShop(_ request: ShopRequest) {
+        open(request.screen)
+    }
+
     /// La franja de abajo: la barra de las 6 pantallas con las solapas de
     /// Contratar y Reencarnar montadas en su borde (C18). Conserva
     /// `.tutorialAnchor(.bottomBar)`, que no ilumina nada —es la franja que el
@@ -536,3 +543,16 @@ struct GameBoardView: View {
 // —Ajustes— murió en la T16: las seis pantallas de la barra y las cuatro del
 // menú existen de verdad.
 
+
+/// Escucha el pedido de un evento de compra y abre la hoja. Aparte del `body` de `RootView`, que ya
+/// está al límite del type-checker.
+private struct ShopRequestRouter: ViewModifier {
+    @Environment(GameState.self) private var gameState
+    let open: (ShopRequest) -> Void
+
+    func body(content: Content) -> some View {
+        content.onChange(of: gameState.shopRequest) { _, request in
+            if let request { open(request) }
+        }
+    }
+}

@@ -3195,23 +3195,6 @@
         }
       }
     },
-    "career.double" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pick it with a ×2 prize (video)"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Elegir con premio ×2 (video)"
-          }
-        }
-      }
-    },
     "career.reward.boost %@ %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4001,23 +3984,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Día 7: Aparece Alguien Turbio"
-          }
-        }
-      }
-    },
-    "daily.double" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Double it with a video"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Duplicar con un video"
           }
         }
       }
@@ -7379,23 +7345,6 @@
         }
       }
     },
-    "offline.double" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Double it with a video"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Duplicar con un video"
-          }
-        }
-      }
-    },
     "offline.title" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -9700,6 +9649,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Escribí %@ para seguir."
+          }
+        }
+      }
+    },
+    "reward.double.decline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No, thanks"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No, gracias"
+          }
+        }
+      }
+    },
+    "reward.double.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Double it?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Lo duplicás?"
+          }
+        }
+      }
+    },
+    "reward.double.video" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "×2 with a video"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "×2 con video"
           }
         }
       }
@@ -17823,13 +17823,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cash from another planet. Double with a video."
+            "value" : "Cash from another planet."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Plata de otro planeta. Con video, el doble."
+            "value" : "Plata de otro planeta."
           }
         }
       }
@@ -18034,23 +18034,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reto: %1$lld de %2$lld toques"
-          }
-        }
-      }
-    },
-    "visit.challenge.double" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You won! Double it with a video?"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "¡Ganaste! ¿Lo duplicamos con un video?"
           }
         }
       }
@@ -18299,13 +18282,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Income %1$@ for %2$@. With a video, it lasts twice as long."
+            "value" : "Income %1$@ for %2$@."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ingresos %1$@ por %2$@. Con video, dura el doble."
+            "value" : "Ingresos %1$@ por %2$@."
           }
         }
       }
@@ -18401,13 +18384,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hiring %1$@ for %2$@. With a video, it lasts twice as long."
+            "value" : "Hiring %1$@ for %2$@."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Contratar %1$@ por %2$@. Con video, dura el doble."
+            "value" : "Contratar %1$@ por %2$@."
           }
         }
       }
@@ -18503,13 +18486,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cash for your company. Double with a video."
+            "value" : "Cash for your company."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Plata para tu empresa. Con video, el doble."
+            "value" : "Plata para tu empresa."
           }
         }
       }
@@ -18561,23 +18544,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¡De una!"
-          }
-        }
-      }
-    },
-    "visit.option.accept_video" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "×2 with a video"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "×2 con video"
           }
         }
       }
@@ -18792,13 +18758,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A Customs Package. Double with a video."
+            "value" : "A Customs Package."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Un Paquete de la Aduana. Con video, el doble."
+            "value" : "Un Paquete de la Aduana."
           }
         }
       }
@@ -19030,13 +18996,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A Customs Package and cash for the block. Double with a video."
+            "value" : "A Customs Package and cash for the block."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Un Paquete de la Aduana y plata para el barrio. Con video, el doble."
+            "value" : "Un Paquete de la Aduana y plata para el barrio."
           }
         }
       }
@@ -19064,13 +19030,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Income %1$@ for %2$@. With a video, it lasts twice as long."
+            "value" : "Income %1$@ for %2$@."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ingresos %1$@ por %2$@. Con video, dura el doble."
+            "value" : "Ingresos %1$@ por %2$@."
           }
         }
       }
@@ -19149,13 +19115,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A cash tip. Double with a video."
+            "value" : "A cash tip."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Una propina en efectivo. Con video, el doble."
+            "value" : "Una propina en efectivo."
           }
         }
       }
@@ -19217,13 +19183,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tap your workers %1$@ times in %2$@ seconds and she gives you a Package. Double with a video."
+            "value" : "Tap your workers %1$@ times in %2$@ seconds and she gives you a Package."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tocá a tus empleados %1$@ veces en %2$@ segundos y te regala un Paquete. Con video, el doble."
+            "value" : "Tocá a tus empleados %1$@ veces en %2$@ segundos y te regala un Paquete."
           }
         }
       }
@@ -19632,23 +19598,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lo que puede tocar"
-          }
-        }
-      }
-    },
-    "wheel.repeat" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Repeat the prize with a video"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Repetir el premio con un video"
           }
         }
       }

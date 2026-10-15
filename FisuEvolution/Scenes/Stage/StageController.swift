@@ -27,6 +27,15 @@ final class StageController {
     static let feedbackDuration: TimeInterval = 0.35
     /// El vendedor ofendido se va a este múltiplo de la velocidad normal.
     static let offendedSpeed: CGFloat = 1.8
+    #if DEBUG
+    /// `--uitest-slow-entrance`: la entrada a un cuarto de velocidad, para que un UI test alcance
+    /// a hacer algo con el visitante todavía caminando (`VisitorUITests`, B21). Con el turno
+    /// suelto en el primer frame, el watchdog de `.visitorEncounter` no la corta.
+    static let entranceSpeed: CGFloat =
+        ProcessInfo.processInfo.arguments.contains("--uitest-slow-entrance") ? 0.25 : 1
+    #else
+    static let entranceSpeed: CGFloat = 1
+    #endif
 
     /// Qué pasó con un empleado soltado sobre quien está en escena.
     enum DropOutcome: Equatable {
@@ -322,7 +331,7 @@ final class StageController {
             return
         }
         let target = layout.standX
-        let step = StageLayout.walkSpeed * CGFloat(delta)
+        let step = StageLayout.walkSpeed * Self.entranceSpeed * CGFloat(delta)
         let x = walkX < target ? min(target, walkX + step) : max(target, walkX - step)
         if x != walkX { heading = x > walkX ? 1 : -1 }
         walkX = x

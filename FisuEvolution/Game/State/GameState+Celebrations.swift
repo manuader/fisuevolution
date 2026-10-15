@@ -83,7 +83,10 @@ extension GameState {
         if boardIsVisibleForChanges, let visit = stageVisit, visit.phase == .entering, !visit.onStage {
             celebrations.enqueue(.visitorEncounter)
         }
-        if let tutorialRun, runTakesAQueueTurn(tutorialRun) { celebrations.enqueue(.tutorialTip) }
+        // Una lección no tapa al visitante que entra caminando (B21): la encola su llegada.
+        if let tutorialRun, runTakesAQueueTurn(tutorialRun), !stageEntranceInProgress {
+            celebrations.enqueue(.tutorialTip)
+        }
         if cinematic != nil { celebrations.enqueue(.cinematic) }
         if boardIsVisibleForChanges, !pendingBoardChanges.isEmpty || typePendingReveal != nil {
             celebrations.enqueue(.boardCelebration)

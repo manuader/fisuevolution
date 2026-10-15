@@ -22,6 +22,8 @@ import Testing
         "tap", "merge", "evolution", "coin", "buy",
         "error", "rare", "prestige", "daily",
         "chestShakeA", "chestShakeB", "revealWhoosh",
+        "chestLand", "chestKnock", "chestBurst",
+        "chestFanfareComun", "chestFanfareRara", "chestFanfareEpica", "chestFanfareLegendaria",
         "mergeAllDone", "wheelTick",
         "visitorArrive", "talkBlip", "shopShimmer",
     ]

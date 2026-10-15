@@ -149,6 +149,45 @@ final class ChestOpeningUITests: XCTestCase {
         add(shot)
     }
 
+    /// r56, el bug del dueño: el cofre se quedaba en su foto quieta y al tocarlo
+    /// aparecía la tarjeta sin animación. Con video permitido (`--uitest-video`)
+    /// el marcador DEBUG `chest.clip` acumula los clips que llegaron a verse
+    /// vivos (`idle+shake+open`): la espera tiene que estar viva, el primer
+    /// toque tiene que poner la sacudida en pantalla y el tercero la apertura.
+    /// Un cofre que se queda en póster dice `still` o `loading` y este test se
+    /// pone rojo.
+    @MainActor
+    func testElCofreReproduceSusClipsConCadaToque() throws {
+        let app = XCUIApplication()
+        app.launchArguments = Self.fixture + ["--uitest-video"]
+        app.launch()
+
+        let area = app.buttons["chest.tap"]
+        XCTAssertTrue(area.waitForExistence(timeout: 15))
+        let clip = app.descendants(matching: .any)["chest.clip"]
+        XCTAssertTrue(clip.waitForExistence(timeout: 5), "falta el marcador del clip")
+        XCTAssertTrue(espera(clip, contiene: "idle", timeout: 10),
+                      "la espera del cofre no arrancó: \(clip.value ?? "nil")")
+
+        area.tap()
+        XCTAssertTrue(espera(clip, contiene: "shake", timeout: 4),
+                      "el primer toque no puso la sacudida en pantalla: \(clip.value ?? "nil")")
+
+        area.tap()
+        area.tap()
+        XCTAssertTrue(espera(clip, contiene: "open", timeout: 5),
+                      "el tercer toque no corrió la apertura: \(clip.value ?? "nil")")
+        XCTAssertTrue(tarjeta(app).waitForExistence(timeout: Self.cinematicTimeout),
+                      "la apertura tiene que terminar en el premio")
+    }
+
+    @MainActor
+    private func espera(_ element: XCUIElement, contiene clip: String, timeout: TimeInterval) -> Bool {
+        let predicate = NSPredicate(format: "value CONTAINS %@", clip)
+        let expectation = XCTNSPredicateExpectation(predicate: predicate, object: element)
+        return XCTWaiter().wait(for: [expectation], timeout: timeout) == .completed
+    }
+
     /// El premio dentro del marco.
     ///
     /// ⚠️ **`app.otherElements["chest.card"]` no lo encuentra**, y no es que no

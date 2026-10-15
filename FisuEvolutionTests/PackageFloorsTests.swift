@@ -31,12 +31,16 @@ struct PackageFloorsTests {
         try #require(gameState.content?.floorTable.floors.firstIndex { $0.id == floorId })
     }
 
-    /// Donde se para la caja de abajo de un piso con el fondo de ese piso.
-    private func spot(onFloor ordinal: Int, x: Double?, in gameState: GameState) throws -> CGPoint {
+    /// La superficie de un piso con el fondo de ese piso.
+    private func layout(onFloor ordinal: Int, in gameState: GameState) throws -> PickupLayout {
         let floor = try #require(gameState.content?.floorTable[ordinal])
-        let layout = PickupLayout(sceneSize: Self.scene, bottomInset: 118, cellSize: 72,
-                                  background: floor.background, backgroundOffset: floor.backgroundOffset)
-        return layout.packagePosition(index: 0, at: x)
+        return PickupLayout(sceneSize: Self.scene, bottomInset: 118, cellSize: 72,
+                            background: floor.background, backgroundOffset: floor.backgroundOffset)
+    }
+
+    /// Donde se para una caja de un piso con el fondo de ese piso (E14b B22: su x y su y).
+    private func spot(onFloor ordinal: Int, of box: PackageBox, in gameState: GameState) throws -> CGPoint {
+        try layout(onFloor: ordinal, in: gameState).packagePosition(at: box.spot)
     }
 
     // MARK: Dónde se dibuja
@@ -58,9 +62,9 @@ struct PackageFloorsTests {
         controller.update(delta: 1, reduceMotion: true)
         let node = try #require(controller.boxes.first)
         #expect(node.packageBox == box)
-        let expected = try spot(onFloor: urban, x: box.x, in: gameState)
+        let expected = try spot(onFloor: urban, of: box, in: gameState)
         #expect(abs(node.position.x - expected.x) < 0.01, "en su x")
-        #expect(abs(node.position.y - expected.y) < 0.01, "en el horizonte de su piso")
+        #expect(abs(node.position.y - expected.y) < 0.01, "en su y, sobre la superficie de su piso")
         #expect(gameState.boardPackageMarker.contains(","))
     }
 
@@ -70,7 +74,7 @@ struct PackageFloorsTests {
         gameState.debugDropPackage(onFloor: "urban")
         let urban = try ordinal(of: "urban", in: gameState)
         let box = try #require(gameState.packageBoxes.first)
-        let rest = try spot(onFloor: urban, x: box.x, in: gameState)
+        let rest = try spot(onFloor: urban, of: box, in: gameState)
         gameState.setVisibleFloor(urban)
         let height = Self.scene.height
         // La cámara todavía en el piso de abajo, a mitad de camino, y llegada.
@@ -94,22 +98,51 @@ struct PackageFloorsTests {
         #expect(controller.boxes(onFloor: corporate).isEmpty)
     }
 
-    @Test("cada piso con su pila: las del mismo piso se apilan sobre el lugar de la de abajo")
-    func eachFloorHasItsStack() async throws {
+    @Test("cada piso con las suyas, cada una en su lugar y separadas de las otras del piso (E14b B22)")
+    func eachFloorHasItsBoxesApart() async throws {
         let (gameState, controller) = await pickups()
         gameState.debugDropPackage(onFloor: "alley")
-        gameState.debugDropPackage(onFloor: "urban")
-        gameState.debugDropPackage(onFloor: "urban")
+        gameState.debugDropPackage(onFloor: "urban", count: 3)
         let urban = try ordinal(of: "urban", in: gameState)
         controller.update(delta: 1, reduceMotion: true)
         #expect(controller.boxes.count == 1, "en el callejón, sólo la suya")
         gameState.setVisibleFloor(urban)
         controller.update(delta: 1, reduceMotion: true)
-        let stack = controller.boxes
-        #expect(stack.count == 2)
-        #expect(stack.allSatisfy { $0.packageBox?.floor == urban })
-        #expect(abs(stack[0].position.x - stack[1].position.x) < 0.01)
-        #expect(stack[1].position.y > stack[0].position.y)
+        let nodes = controller.boxes
+        #expect(nodes.count == 3)
+        #expect(nodes.allSatisfy { $0.packageBox?.floor == urban })
+        let area = gameState.packageArea(onFloor: urban)
+        let spots = nodes.compactMap { $0.packageBox?.spot }
+        #expect(spots.count == 3)
+        for (index, spot) in spots.enumerated() {
+            let others = spots.enumerated().filter { $0.offset != index }.map(\.element)
+            #expect(PackagePlacer.crowding(of: spot, among: others, in: area) == 0, "\(spot) pisa a otra o a una zona prohibida")
+        }
+    }
+
+    @Test("el lugar de las cajas del save: GameState las ubica con la superficie de su piso")
+    func gameStatePlacesWithTheFloorArea() async throws {
+        let gameState = await tower()
+        let urban = try ordinal(of: "urban", in: gameState)
+        let floor = try #require(gameState.content?.floorTable[urban])
+        #expect(gameState.packageArea(onFloor: urban)
+                == PickupLayout.reference(background: floor.background, backgroundOffset: floor.backgroundOffset).packageArea)
+        #expect(gameState.packageArea(onFloor: 999) == .open)
+    }
+
+    @Test("un save de B18 sin y: al asentar cada caja conserva su piso y a quién trae, y cae en un lugar")
+    func aB18SaveIsPlacedOnLoad() async throws {
+        let gameState = await tower()
+        let content = try #require(gameState.content)
+        let urban = try ordinal(of: "urban", in: gameState)
+        let type = try #require(content.tiers.concreteTypes.first { content.floorTable.ordinal(forTier: $0.tier) == urban })
+        gameState.player?.run.markSeen(type.id)
+        gameState.player?.meta.engagement.packages = PackagesState(boxes: [
+            PackageBox(floor: urban, typeId: type.id, x: 0.5), PackageBox(floor: urban, typeId: type.id, x: 0.5),
+        ])
+        #expect(gameState.settlePackageBoxes() == 2)
+        #expect(gameState.packageBoxes.allSatisfy { $0.floor == urban && $0.typeId == type.id && $0.spot != nil })
+        #expect(gameState.settlePackageBoxes() == 0, "ya ubicadas no se mueven")
     }
 
     @Test("abrir la del tablero de otro piso trae a ese, y la caja se va")

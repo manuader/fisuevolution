@@ -74,4 +74,60 @@ final class PackageFloorsUITests: XCTestCase {
         XCTAssertEqual(floor.value as? String, "urban", "el que llegó es del urbano y llega ahí")
         snap(app, "B18: llegó el del urbano")
     }
+
+    /// Las cajas quietas del piso que se mira, del marcador `board.packages` ("x,y;x,y;…").
+    private func spots(_ marker: XCUIElement) -> [CGPoint] {
+        (marker.value as? String ?? "").split(separator: ";").compactMap { pair in
+            let parts = pair.split(separator: ",").compactMap { Double($0) }
+            return parts.count == 2 ? CGPoint(x: parts[0], y: parts[1]) : nil
+        }
+    }
+
+    private func waitForThreeBoxes(_ marker: XCUIElement) {
+        expectation(for: NSPredicate(format: "value MATCHES %@", "^[^;]+;[^;]+;[^;]+$"), evaluatedWith: marker)
+        waitForExpectations(timeout: 10)
+    }
+
+    /// E14b B22: caen tres cajas en el callejón y quedan separadas; se va al urbano, se vuelve, y
+    /// están en el mismo lugar.
+    func testTresCajasCaenSeparadasYSeQuedanEnSuLugar() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-unlock-tower",
+                               "--uitest-package-floor=alley:3"]
+        app.launch()
+
+        XCTAssertTrue(app.otherElements["board.units"].waitForExistence(timeout: 15))
+        let floor = app.otherElements["board.floor"]
+        XCTAssertTrue(floor.waitForExistence(timeout: 5))
+        XCTAssertEqual(floor.value as? String, "alley")
+        let marker = app.otherElements["board.packages"]
+        XCTAssertTrue(marker.waitForExistence(timeout: 5))
+        waitForThreeBoxes(marker)
+        let before = spots(marker)
+        XCTAssertEqual(before.count, 3)
+        snap(app, "B22: tres cajas en el callejón, separadas")
+
+        // Separadas: entre dos centros hay por lo menos media caja (la separación de fondo).
+        let screen = app.windows.firstMatch.frame.size
+        for (index, a) in before.enumerated() {
+            for b in before.dropFirst(index + 1) {
+                let distance = hypot((a.x - b.x) * screen.width, (a.y - b.y) * screen.height)
+                XCTAssertGreaterThan(distance, 30, "dos cajas encimadas: \(a) y \(b)")
+            }
+        }
+
+        ride(app, to: "urban")
+        expectation(for: NSPredicate(format: "NOT (value CONTAINS ',')"), evaluatedWith: marker)
+        waitForExpectations(timeout: 8)
+        XCTAssertTrue(spots(marker).isEmpty, "las del callejón no viajan al urbano")
+        ride(app, to: "alley")
+        waitForThreeBoxes(marker)
+        let after = spots(marker)
+        snap(app, "B22: de vuelta en el callejón, las tres en el mismo lugar")
+        XCTAssertEqual(after.count, before.count)
+        for (old, new) in zip(before, after) {
+            XCTAssertEqual(old.x, new.x, accuracy: 0.002, "la caja se movió")
+            XCTAssertEqual(old.y, new.y, accuracy: 0.002, "la caja se movió")
+        }
+    }
 }

@@ -1,9 +1,11 @@
 import CoreGraphics
+import EconomyKit
 import Testing
 @testable import FisuEvolution
 
-/// Dónde se paran las cajas y el colchón (E14 C10): grandes, en la línea del horizonte, ni
-/// bajo la columna de E7b ni bajo las solapas de la barra, ni encima de quien está en escena.
+/// Dónde se paran las cajas y el colchón (E14 C10): grandes, ni bajo la columna de E7b ni bajo las
+/// solapas de la barra, ni encima de quien está en escena. Desde E14b B22 las cajas van en cualquier
+/// lugar de la superficie del piso, entre el frente y la línea de atrás.
 @Suite("Las cajas y el colchón: dónde se paran")
 struct PickupLayoutTests {
     /// iPhone SE, 16 Pro, Pro Max y el iPad 13", con la celda de `PlayLayout`.
@@ -18,18 +20,22 @@ struct PickupLayoutTests {
     /// Sin borde (el default de los tests puros) y el de la app, `BoardScene.floorBottom`.
     private static let floorBottoms: [CGFloat?] = [nil, 96]
 
-    @Test("lejos de los bordes y a los costados del visitante")
+    /// Los cuatro rincones de la superficie y el medio.
+    private static let spots = [
+        PackageSpot(x: 0, y: 0), PackageSpot(x: 1, y: 0), PackageSpot(x: 0, y: 1), PackageSpot(x: 1, y: 1),
+        PackageSpot(x: 0.5, y: 0.5),
+    ]
+
+    @Test("las cajas lejos de las columnas de los dos bordes; el colchón al costado del visitante")
     func clearOfTheEdgesAndTheVisitor() {
         for (size, cell) in Self.screens {
             let layout = PickupLayout(sceneSize: size, bottomInset: 118, cellSize: cell)
             let stage = StageLayout(sceneSize: size, bottomInset: 118, cellSize: cell)
-            let body = stage.actorSide * PickupLayout.visitorBodyRatio / 2
-            let visitorLeft = stage.standX - body
-            let visitorRight = stage.standX + body
-            for index in 0..<PickupLayout.maxVisibleBoxes {
-                let box = layout.packagePosition(index: index)
-                #expect(box.x - layout.side / 2 >= PickupLayout.edgeClearance, "\(size): la caja \(index) va bajo la columna")
-                #expect(box.x + layout.side / 2 <= visitorLeft + 0.5, "\(size): la caja \(index) pisa al visitante")
+            let visitorRight = stage.standX + stage.actorSide * PickupLayout.visitorBodyRatio / 2
+            for spot in Self.spots {
+                let box = layout.packagePosition(at: spot)
+                #expect(box.x - layout.side / 2 >= PickupLayout.edgeClearance - 0.001, "\(size) \(spot): bajo la columna izquierda")
+                #expect(box.x + layout.side / 2 <= size.width - PickupLayout.edgeClearance + 0.001, "\(size) \(spot): bajo la columna derecha")
             }
             let mattress = layout.mattressPosition
             #expect(mattress.x - layout.side / 2 >= visitorRight - 0.5, "\(size): el colchón pisa al visitante")
@@ -52,14 +58,14 @@ struct PickupLayoutTests {
                     let stage = StageLayout(sceneSize: size, bottomInset: 118, cellSize: cell, floorBottom: floorBottom)
                     let horizon = stage.standY(background: background)
                     let ground = stage.groundY(background: background)
-                    let stackTop = ground + layout.side * (1 + CGFloat(PickupLayout.maxVisibleBoxes - 1) * PickupLayout.stackStep)
+                    let headroomTop = ground + layout.side * PickupLayout.headroomSides
                     let label = "\(size) \(background ?? "-") \(String(describing: floorBottom))"
                     #expect(layout.baselineY <= horizon + 0.5, "\(label): flota sobre el horizonte")
-                    if stackTop < size.height * PickupLayout.maxTopRatio - 0.5 {
-                        #expect(abs(layout.packagePosition(index: 0).y - layout.side / 2 - horizon) < 0.5, "\(label)")
+                    if headroomTop < size.height * PickupLayout.maxTopRatio - 0.5 {
+                        #expect(abs(layout.packageFeet(at: PackageSpot(x: 0, y: 1)).y - horizon) < 0.5, "\(label): la de atrás, en el horizonte")
                         #expect(abs(layout.baselineY - horizon) < 0.5, "\(label)")
                     } else {
-                        #expect(layout.baselineY + layout.side * 1.6 <= size.height * PickupLayout.maxTopRatio, "\(label): la pila llena pasa del tope")
+                        #expect(layout.baselineY + layout.side * PickupLayout.headroomSides <= size.height * PickupLayout.maxTopRatio, "\(label): pasa del tope")
                     }
                 }
             }
@@ -74,7 +80,7 @@ struct PickupLayoutTests {
         #expect(lifted.baselineY < flat.baselineY)
     }
 
-    @Test("nada queda bajo las solapas de la barra y la pila se ve entera")
+    @Test("nada queda bajo las solapas de la barra y la caja de atrás se ve entera")
     @MainActor
     func clearOfTheBarAndTheTopOfTheScreen() {
         for (size, cell) in Self.screens {
@@ -82,8 +88,9 @@ struct PickupLayoutTests {
                 let layout = PickupLayout(sceneSize: size, bottomInset: 118, cellSize: cell, background: background)
                 let barTop = GameTabBar.barHeight + (118 - GameTabBar.panelHeight)
                 #expect(layout.baselineY >= barTop + 8, "\(size) \(background ?? "-"): la caja toca la barra")
-                let top = layout.packagePosition(index: PickupLayout.maxVisibleBoxes - 1).y + layout.side / 2
-                #expect(top < size.height * 0.82, "\(size) \(background ?? "-"): la pila sube hasta \(top)")
+                #expect(layout.packageFeetRange.lowerBound >= barTop + 8, "\(size) \(background ?? "-"): la de adelante toca la barra")
+                let top = layout.packagePosition(at: PackageSpot(x: 0, y: 1)).y + layout.side / 2
+                #expect(top < size.height * 0.82, "\(size) \(background ?? "-"): la caja sube hasta \(top)")
             }
         }
     }
@@ -105,7 +112,8 @@ struct PickupLayoutTests {
                 let stage = StageLayout(sceneSize: size, bottomInset: 118, cellSize: cell, floorBottom: 96)
                 #expect(layout.baselineY >= 118 + cell, "\(size) \(background): la caja toca la barra")
                 #expect(layout.baselineY <= stage.horizonY(background: background), "\(size) \(background): la caja flota sobre el horizonte")
-                #expect(layout.packagePosition(index: PickupLayout.maxVisibleBoxes - 1).y + layout.side / 2 < size.height * PickupLayout.maxTopRatio)
+                #expect(layout.packagePosition(at: PackageSpot(x: 0, y: 1)).y + layout.side / 2 < size.height * PickupLayout.maxTopRatio)
+                #expect(layout.packageFeetRange.lowerBound >= 118 + cell - 0.001, "\(size) \(background): la de adelante toca la barra")
             }
         }
     }
@@ -120,14 +128,13 @@ struct PickupLayoutTests {
                     let layout = PickupLayout(sceneSize: size, bottomInset: 118, cellSize: cell, background: background, floorBottom: floorBottom)
                     let stage = StageLayout(sceneSize: size, bottomInset: 118, cellSize: cell, floorBottom: floorBottom)
                     let ground = stage.groundY(background: background)
-                    let stackHeight = layout.side * (1 + CGFloat(PickupLayout.maxVisibleBoxes - 1) * PickupLayout.stackStep)
-                    let ceiling = size.height * PickupLayout.maxTopRatio - stackHeight - 0.5
+                    let ceiling = size.height * PickupLayout.maxTopRatio - layout.side * PickupLayout.headroomSides - 0.5
                     let label = "\(size) \(background) \(String(describing: floorBottom))"
                     if layout.baselineY > stage.groundFloorY {
                         #expect(abs(min(ground, ceiling) - layout.baselineY - StageLayout.walkDrop) < 0.001, "\(label): bajó \(min(ground, ceiling) - layout.baselineY)")
                     }
                     #expect(layout.baselineY >= stage.floorBase, "\(label): la caja pasa debajo de floorBottom")
-                    #expect(layout.packagePosition(index: 0).y - layout.side / 2 >= stage.floorBase - 0.001)
+                    #expect(layout.packageFeetRange.lowerBound >= stage.floorBase - 0.001)
                     #expect(layout.mattressPosition.y - layout.side * 0.35 >= stage.floorBase - 0.001)
                 }
             }
@@ -146,35 +153,78 @@ struct PickupLayoutTests {
         }
     }
 
-    // MARK: - E14b B18: el lugar de cada caja en su piso
+    // MARK: - E14b B22: la superficie de las cajas
 
-    @Test("en cualquier lugar de su franja la caja no pisa la columna ni al visitante ni al colchón")
-    func anyPlaceStaysClear() {
+    private static func close(_ a: CGPoint, _ b: CGPoint) -> Bool {
+        abs(a.x - b.x) < 0.001 && abs(a.y - b.y) < 0.001
+    }
+
+    @Test("la superficie va de columna a columna y del frente a la línea de atrás; fuera de 0…1 se queda en el borde")
+    func theSurfaceSpansTheFloor() {
         for (size, cell) in Self.screens {
-            let layout = PickupLayout(sceneSize: size, bottomInset: 118, cellSize: cell, background: "alley")
-            let stage = StageLayout(sceneSize: size, bottomInset: 118, cellSize: cell)
-            let visitorLeft = stage.standX - stage.actorSide * PickupLayout.visitorBodyRatio / 2
-            for fraction in stride(from: 0.0, through: 1.0, by: 0.1) {
-                for index in 0..<PickupLayout.maxVisibleBoxes {
-                    let box = layout.packagePosition(index: index, at: fraction)
-                    #expect(box.x - layout.side / 2 >= PickupLayout.edgeClearance - 0.001, "\(size) \(fraction): bajo la columna")
-                    #expect(box.x + layout.side / 2 <= visitorLeft + 0.5, "\(size) \(fraction): pisa al visitante")
-                    #expect(box.x + layout.side / 2 < layout.mattressPosition.x - layout.side / 2, "\(size) \(fraction): pisa el colchón")
-                    #expect(abs(box.y - layout.packagePosition(index: index).y) < 0.001, "la pila sube igual")
-                }
+            for background in Self.backgrounds {
+                let layout = PickupLayout(sceneSize: size, bottomInset: 118, cellSize: cell, background: background, floorBottom: 96)
+                let stage = StageLayout(sceneSize: size, bottomInset: 118, cellSize: cell, floorBottom: 96)
+                let xs = layout.packageXRange
+                let ys = layout.packageFeetRange
+                let label = "\(size) \(background ?? "-")"
+                #expect(abs(xs.lowerBound - (PickupLayout.edgeClearance + layout.side / 2)) < 0.001, "\(label)")
+                #expect(abs(xs.upperBound - (size.width - PickupLayout.edgeClearance - layout.side / 2)) < 0.001, "\(label)")
+                #expect(ys.upperBound == layout.baselineY, "\(label): atrás, la línea del horizonte")
+                #expect(ys.lowerBound == min(stage.groundFloorY, layout.baselineY), "\(label): adelante, arriba de la barra")
+                #expect(Self.close(layout.packageFeet(at: PackageSpot(x: 0, y: 0)), CGPoint(x: xs.lowerBound, y: ys.lowerBound)))
+                #expect(Self.close(layout.packageFeet(at: PackageSpot(x: 1, y: 1)), CGPoint(x: xs.upperBound, y: ys.upperBound)))
+                #expect(Self.close(layout.packageFeet(at: PackageSpot(x: 5, y: -2)), CGPoint(x: xs.upperBound, y: ys.lowerBound)))
+                #expect(layout.packageFeet(at: nil) == layout.packageFeet(at: PickupLayout.unplacedSpot), "sin lugar, atrás a la izquierda")
+                let center = layout.packagePosition(at: PackageSpot(x: 0.3, y: 0.6))
+                #expect(abs(center.y - layout.packageFeet(at: PackageSpot(x: 0.3, y: 0.6)).y - layout.side / 2) < 0.001)
             }
         }
     }
 
-    @Test("el lugar va de un borde al otro de la franja, y sin lugar es el medio de siempre")
-    func placeSpansTheRange() {
-        let layout = PickupLayout(sceneSize: CGSize(width: 1032, height: 1376), bottomInset: 118, cellSize: 112)
-        let range = layout.packageXRange
-        #expect(range.upperBound > range.lowerBound, "en el iPad hay hueco para moverse")
-        #expect(abs(layout.packageCenterX(at: 0) - range.lowerBound) < 0.001)
-        #expect(abs(layout.packageCenterX(at: 1) - range.upperBound) < 0.001)
-        #expect(abs(layout.packageCenterX(at: 5) - range.upperBound) < 0.001, "fuera de rango se queda en el borde")
-        #expect(layout.packageCenterX(at: nil) == layout.packageX)
-        #expect(layout.packageCenterX(at: 0.25) < layout.packageCenterX(at: 0.75))
+    @Test("las reglas de la caída: la separación es de un lado de costado y medio de fondo, en fracciones de la superficie")
+    func theAreaGapIsOneSide() {
+        for (size, cell) in Self.screens {
+            let layout = PickupLayout(sceneSize: size, bottomInset: 118, cellSize: cell, background: "alley", floorBottom: 96)
+            let area = layout.packageArea
+            let width = layout.packageXRange.upperBound - layout.packageXRange.lowerBound
+            let depth = layout.packageFeetRange.upperBound - layout.packageFeetRange.lowerBound
+            #expect(abs(area.gapX * Double(width) - Double(layout.side)) < 0.001, "\(size)")
+            if depth > 0 {
+                #expect(abs(area.gapY * Double(depth) - Double(layout.side * PickupLayout.boxDepthGapSides)) < 0.001, "\(size)")
+            } else {
+                #expect(area.gapY == .infinity, "\(size): sin fondo sólo separa el costado")
+            }
+        }
+    }
+
+    @Test("el centro de ninguna caja cae en la zona de caminata del visitante, ni la caja sobre el colchón")
+    func boxesStayOffTheWalkAndTheMattress() {
+        for (size, cell) in Self.screens {
+            let layout = PickupLayout(sceneSize: size, bottomInset: 118, cellSize: cell, background: "alley", floorBottom: 96)
+            let area = layout.packageArea
+            let depth = layout.packageFeetRange.upperBound - layout.packageFeetRange.lowerBound
+            var rng = SystemRandomNumberGenerator()
+            for _ in 0..<200 {
+                let spot = PackagePlacer.place(among: [], in: area, using: &rng)
+                let box = layout.packagePosition(at: spot)
+                let inWalkDepth = depth <= 0 || PickupLayout.visitorWalkDepth.contains(spot.y)
+                let walk = size.width * PickupLayout.visitorWalkWidth.lowerBound...size.width * PickupLayout.visitorWalkWidth.upperBound
+                if inWalkDepth {
+                    #expect(box.x <= walk.lowerBound + 0.5 || box.x >= walk.upperBound - 0.5,
+                            "\(size) \(spot): la caja cae en la zona de caminata")
+                }
+                #expect(abs(box.x - layout.mattressX) >= layout.side - 0.5 || spot.y < 1 - min(1, area.gapY),
+                        "\(size) \(spot): la caja pisa el colchón")
+            }
+        }
+    }
+
+    @Test("el teléfono de referencia de GameState es el tablero de la app")
+    @MainActor
+    func theReferenceIsTheAppBoard() {
+        let reference = PickupLayout.reference(background: "urban", backgroundOffset: 0.02)
+        #expect(reference == PickupLayout(sceneSize: CGSize(width: 393, height: 852), bottomInset: BoardScene.bottomInset,
+                                          cellSize: 72, background: "urban", backgroundOffset: 0.02, floorBottom: BoardScene.floorBottom))
     }
 }

@@ -26,6 +26,7 @@ import Testing
         "chestFanfareComun", "chestFanfareRara", "chestFanfareEpica", "chestFanfareLegendaria",
         "mergeAllDone", "wheelTick",
         "visitorArrive", "talkBlip", "shopShimmer",
+        "packagePopOut", "packageLand",
     ]
 
     /// Los efectos sintetizados que todavía no tienen call site, con la tarea

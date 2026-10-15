@@ -133,7 +133,9 @@ final class BoardScene: SKScene {
     static let candidateZLift: CGFloat = 5
     static let candidateScale: CGFloat = 1.12
     private static let candidatePopDuration: TimeInterval = 0.1
-    private static let boxExitSeconds: TimeInterval = 0.5
+    /// El fundido de la salida de la caja con Reduce Motion: va aparte del paseo, así agarrarlo
+    /// en el medio no lo deja transparente (E14b B23).
+    private static let boxExitFadeKey = "boxExitFade"
     /// Ventana del doble toque. La de iOS, para que el gesto se sienta como el
     /// del sistema.
     static let doubleTapWindow: TimeInterval = 0.3
@@ -1328,26 +1330,115 @@ final class BoardScene: SKScene {
             resolution, at: node.position, sourceNode: node, withinTurn: true, soundsMerge: soundsMerge
         )
         if case .arrival(let typeId) = change.kind, change.origin == .package,
-           let box = pickups.takeBoxExit(typeId: typeId), let arrived = characterNodes[cell] {
-            walkOutOfTheBox(arrived, from: fieldNode.convert(box, from: pickups.layer))
+           let exit = pickups.takeBoxExit(typeId: typeId), let arrived = characterNodes[cell] {
+            walkOutOfTheBox(arrived, from: exit)
         }
     }
 
-    /// El empleado de un paquete abierto en el tablero sale de la caja y camina a su lugar (E14b B5).
-    private func walkOutOfTheBox(_ node: CharacterNode, from start: CGPoint) {
-        guard !Self.prefersReducedMotion else { return }
-        let target = position(ofCell: node.cellIndex)
-        node.position = start
-        let walk = SKAction.move(to: target, duration: Self.boxExitSeconds)
-        walk.timingMode = .easeOut
+    /// El empleado de un paquete abierto en el tablero sale de adentro de la caja (E14b B5, B23):
+    /// asoma tapado por el frente y se estira, salta en arco al costado, aterriza aplastándose con
+    /// polvo y camina a su lugar. La caja vacía se va cuando él salta. Va con la clave del paseo:
+    /// agarrarlo en el medio corta la salida y lo deja donde lo suelten, como a cualquiera.
+    private func walkOutOfTheBox(_ node: CharacterNode, from exit: PickupController.BoxExit) {
+        let feet = fieldNode.convert(exit.feet, from: pickups.layer)
+        let rimY = fieldNode.convert(CGPoint(x: exit.feet.x, y: exit.rimY), from: pickups.layer).y
+        let edge = fieldNode.convert(CGPoint(x: exit.feet.x + exit.width, y: exit.feet.y), from: pickups.layer)
+        let path = BoxExitPath(boxFeet: feet, rimY: rimY, boxWidth: abs(edge.x - feet.x),
+                               target: position(ofCell: node.cellIndex))
+        // El pop de la llegada (`presentResolution`) le pelearía la escala al estirón.
+        node.removeAllActions()
+        node.setScale(1)
+        startFacingFlip(node)
+        guard !Self.prefersReducedMotion else {
+            appearBesideTheBox(node, path: path, box: exit.node)
+            return
+        }
+        let box = exit.node
+        node.position = path.start
+        node.yScale = BoxExitPath.hiddenYScale
+        node.setFacing(left: path.landing.x < path.start.x)
+        gameState.packageExitPoppedOut()
+
+        let rise = SKAction.group([
+            .move(to: path.peek, duration: BoxExitPath.riseSeconds),
+            .scaleX(to: BoxExitPath.stretchXScale, y: BoxExitPath.stretchYScale, duration: BoxExitPath.riseSeconds),
+        ])
+        rise.timingMode = .easeOut
+        let half = BoxExitPath.jumpSeconds / 2
+        let up = SKAction.moveTo(y: path.apexY, duration: half)
+        up.timingMode = .easeOut
+        let down = SKAction.moveTo(y: path.landing.y, duration: half)
+        down.timingMode = .easeIn
+        let jump = SKAction.group([
+            .moveTo(x: path.landing.x, duration: BoxExitPath.jumpSeconds),
+            .sequence([up, down]),
+            .scale(to: 1, duration: half),
+        ])
+        let squash = SKAction.sequence([
+            .scaleX(to: BoxExitPath.squashXScale, y: BoxExitPath.squashYScale, duration: BoxExitPath.squashSeconds * 0.4),
+            .scale(to: 1, duration: BoxExitPath.squashSeconds * 0.6),
+        ])
+        let walk = SKAction.move(to: path.target, duration: path.walkSeconds)
+        walk.timingMode = .easeInEaseOut
         node.run(.sequence([
-            .run { [weak node] in node?.setFacing(left: target.x < start.x) },
+            rise,
+            .run { [weak box] in box?.leaveEmpty(reduceMotion: false) },
+            jump,
+            .run { [weak self] in
+                guard let self else { return }
+                self.gameState.packageExitLanded()
+                self.puffDust(at: path.landing, width: path.boxWidth)
+            },
+            squash,
+            .run { [weak node] in node?.setFacing(left: path.target.x < path.landing.x) },
             walk,
             .run { [weak self, weak node] in
                 guard let self, let node else { return }
                 self.startWander(node)
             },
         ]), withKey: "wander")
+    }
+
+    /// Con Reduce Motion el empleado aparece al lado de la caja con un fundido y, con otro, en su
+    /// lugar: nada salta ni camina. La caja vacía se desvanece.
+    private func appearBesideTheBox(_ node: CharacterNode, path: BoxExitPath, box: PickupNode) {
+        box.leaveEmpty(reduceMotion: true)
+        node.position = path.landing
+        node.alpha = 0
+        let fade = BoxExitPath.fadeSeconds
+        node.run(.sequence([
+            .fadeIn(withDuration: fade),
+            .wait(forDuration: BoxExitPath.holdSeconds),
+            .fadeOut(withDuration: fade / 2),
+            .fadeIn(withDuration: fade / 2),
+        ]), withKey: Self.boxExitFadeKey)
+        node.run(.sequence([
+            .wait(forDuration: fade + BoxExitPath.holdSeconds + fade / 2),
+            .move(to: path.target, duration: 0),
+        ]), withKey: "wander")
+    }
+
+    /// El polvo del aterrizaje: unas nubecitas que se abren a los costados de los pies y se apagan,
+    /// apenas delante de quien aterriza.
+    private func puffDust(at point: CGPoint, width: CGFloat) {
+        let z = depthZ(for: point) + DepthOrder.innerStep
+        for index in 0..<6 {
+            let puff = SKShapeNode(circleOfRadius: max(3, width * 0.09))
+            puff.fillColor = SKColor(white: 0.93, alpha: 0.85)
+            puff.strokeColor = .clear
+            puff.position = point
+            puff.zPosition = z
+            fieldNode.addChild(puff)
+            let side: CGFloat = index.isMultiple(of: 2) ? 1 : -1
+            let spread = width * (0.25 + 0.14 * CGFloat(index / 2))
+            let drift = SKAction.group([
+                .moveBy(x: side * spread, y: width * 0.08, duration: 0.35),
+                .scale(to: 1.6, duration: 0.35),
+                .fadeOut(withDuration: 0.35),
+            ])
+            drift.timingMode = .easeOut
+            puff.run(.sequence([drift, .removeFromParent()]))
+        }
     }
 
     private func finishBoardChangeTurn() {

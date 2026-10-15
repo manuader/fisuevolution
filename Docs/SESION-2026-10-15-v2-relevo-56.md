@@ -40,19 +40,20 @@ arreglados en el momento; las siguientes compilaron a la primera porque esos cas
 | T26 | `444aa887` | Catálogo limpio (10 huérfanas fuera), Tour de 12 pasos, 8 textos **aprobados por el dueño**, `VisibleLiteralsGuardTests`. |
 | fix-wheel | `f6726179` | Test viejo de B15: la Ruleta da blue de premio legítimo. |
 | fix-dueno | `079f6f29` → `0fe18cea` | Bugs del dueño en su iPhone: la tarjeta de tip a pantalla completa (B11 le puso `maxHeight: .infinity` a la X) y el hueco abajo en el cofre (la barra se apagaba con la UI); **la barra inferior nunca desaparece** (decisión del dueño). |
+| cofre-r56 | `e4bb594f` → `6ee79bf3` | Bug del dueño: el cofre de skins mostraba el póster fijo y la tarjeta. C26 (`c56d5e4e`) colgó los clips de `VideoPlaybackPolicy.allowsLoops`, que Bajo consumo, el térmico o «Auto-Play Video Previews» apagan. Rehecho con `ChestClipDeck` (los 3 clips montados), cofre de 460 pt, golpes 1-2-3, estallido de la rareza, la figurita volando y 7 SFX sintetizados. |
 | fix-ui | `41d39b5f` → `bc6610cd` | Bug real: con la lección de compartir con el turno, el momento nunca salía como chip. Los demás rojos eran carga o tests viejos frente a B7. |
 
 ## Verificación
 
 - `completo` de `ce26b978`: EK 959 · unit 2009 · store-unit 18 · store-ui 3 · iPad 4 · SE 2 · pipeline 99 · Release 0 ·
   Dios 45,40 h VERDES; UI 170 + 10 rojos → fix-dueno y fix-ui.
-- `completo` de `bc6610cd`: ver el journal y el handoff del 56 (corría al cierre).
+- `completo` de `bc6610cd`: cortado en se-ui. EK, unit, Release y store-unit VERDES; UI 166 + 16 rojos, y los runners de store-ui e ipad-ui caídos, con carga 500–850 (el agente del cofre compiló ~7 h encima). **`version-2` no se adelantó:** el 57 corre el `completo` con la máquina sola.
 - Instalada en el iPhone 15 Pro del dueño la Release de `0fe18cea`.
 
 ## Para el próximo relevo (en orden)
 
 1. Si el `completo` de `bc6610cd` quedó VERDE (o con rojos de carga verdes aislados): fast-forward de `version-2`.
-2. Integrar el cofre rehecho (`v2i/cofre-r56`) si no se integró: bug del dueño (el cofre no reproducía su animación).
+2. El cofre rehecho ya está integrado; falta verlo en el iPhone con Bajo consumo prendido.
 3. **B17 y B18** (pedidos del dueño del 2026-10-15; briefs `ola-r56/e14b-b17.md` y `e14b-b18.md`).
 4. Cierres: E14 T27, E8d T15, E8e T9, E12 T17/T18 y E10 (T9, T11–T13).
 

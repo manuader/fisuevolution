@@ -145,4 +145,36 @@ struct PickupLayoutTests {
             }
         }
     }
+
+    // MARK: - E14b B18: el lugar de cada caja en su piso
+
+    @Test("en cualquier lugar de su franja la caja no pisa la columna ni al visitante ni al colchón")
+    func anyPlaceStaysClear() {
+        for (size, cell) in Self.screens {
+            let layout = PickupLayout(sceneSize: size, bottomInset: 118, cellSize: cell, background: "alley")
+            let stage = StageLayout(sceneSize: size, bottomInset: 118, cellSize: cell)
+            let visitorLeft = stage.standX - stage.actorSide * PickupLayout.visitorBodyRatio / 2
+            for fraction in stride(from: 0.0, through: 1.0, by: 0.1) {
+                for index in 0..<PickupLayout.maxVisibleBoxes {
+                    let box = layout.packagePosition(index: index, at: fraction)
+                    #expect(box.x - layout.side / 2 >= PickupLayout.edgeClearance - 0.001, "\(size) \(fraction): bajo la columna")
+                    #expect(box.x + layout.side / 2 <= visitorLeft + 0.5, "\(size) \(fraction): pisa al visitante")
+                    #expect(box.x + layout.side / 2 < layout.mattressPosition.x - layout.side / 2, "\(size) \(fraction): pisa el colchón")
+                    #expect(abs(box.y - layout.packagePosition(index: index).y) < 0.001, "la pila sube igual")
+                }
+            }
+        }
+    }
+
+    @Test("el lugar va de un borde al otro de la franja, y sin lugar es el medio de siempre")
+    func placeSpansTheRange() {
+        let layout = PickupLayout(sceneSize: CGSize(width: 1032, height: 1376), bottomInset: 118, cellSize: 112)
+        let range = layout.packageXRange
+        #expect(range.upperBound > range.lowerBound, "en el iPad hay hueco para moverse")
+        #expect(abs(layout.packageCenterX(at: 0) - range.lowerBound) < 0.001)
+        #expect(abs(layout.packageCenterX(at: 1) - range.upperBound) < 0.001)
+        #expect(abs(layout.packageCenterX(at: 5) - range.upperBound) < 0.001, "fuera de rango se queda en el borde")
+        #expect(layout.packageCenterX(at: nil) == layout.packageX)
+        #expect(layout.packageCenterX(at: 0.25) < layout.packageCenterX(at: 0.75))
+    }
 }

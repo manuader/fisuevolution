@@ -38,8 +38,8 @@ final class BoardPackageUITests: XCTestCase {
 
         // La primera: la pantalla de C28, como siempre.
         tapTheBoardBox(app)
-        XCTAssertTrue(app.descendants(matching: .any)["package.odds"].waitForExistence(timeout: 5),
-                      "la primera vez la caja del tablero abre la pantalla del paquete")
+        XCTAssertTrue(app.descendants(matching: .any)["package.inside"].waitForExistence(timeout: 5),
+                      "la primera vez la caja del tablero abre la pantalla del paquete, con quién trae (B18)")
         app.buttons["package.open"].tap()
         let box = app.buttons["package.tap"]
         XCTAssertTrue(box.waitForExistence(timeout: 8))
@@ -54,7 +54,7 @@ final class BoardPackageUITests: XCTestCase {
         // La segunda: un toque, se abre en el tablero y el empleado llega, sin pop-up.
         tapTheBoardBox(app)
         snap(app, "paquete en el tablero abriéndose")
-        XCTAssertFalse(app.descendants(matching: .any)["package.odds"].waitForExistence(timeout: 2),
+        XCTAssertFalse(app.descendants(matching: .any)["package.inside"].waitForExistence(timeout: 2),
                        "desde la segunda no hay pop-up")
         expectation(for: NSPredicate(format: "value == %@", String(before + 2)), evaluatedWith: units)
         waitForExpectations(timeout: 10)

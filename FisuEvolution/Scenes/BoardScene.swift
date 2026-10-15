@@ -389,7 +389,8 @@ final class BoardScene: SKScene {
                      cameraOffsetY: cameraNode.position.y - size.height / 2)
         stage.markRequested(Array(characterNodes.values))
         stageEffects.update(delta: delta, reduceMotion: Self.prefersReducedMotion, units: Array(characterNodes.values))
-        pickups.update(delta: delta, reduceMotion: Self.prefersReducedMotion)
+        pickups.update(delta: delta, reduceMotion: Self.prefersReducedMotion,
+                       cameraOffsetY: cameraNode.position.y - size.height / 2)
         refreshCrowdDepth()
         updateFTUEHint()
         publishTutorialSpotlight()

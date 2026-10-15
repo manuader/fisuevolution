@@ -192,7 +192,7 @@ extension GameState {
         switch change.origin {
         case .rewardedRareUnit: compensateRewardedVideo()
         case .rewardedMergeAll: noteVideoChainLink(change, applied: false)
-        case .package: refundPackage()
+        case .package: refundPackage(change)
         case .eventStartup, .eventBlanqueo, .career, .debug, .visitor, .blueShop: break
         }
     }

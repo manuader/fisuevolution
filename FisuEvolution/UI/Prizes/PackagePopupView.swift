@@ -72,18 +72,23 @@ struct PackagePopupView: View {
         AnimatedArtView(clip: .object("paquete_espera"), role: .popup) {
             GameIcon(artKey: "pickup_package", size: Self.waitingSide) { RewardArt(kind: .package) }
         }
-        if gameState.packagesBlocked {
+        if gameState.packagePopupBlocked {
             Text("package.full")
                 .font(Tokens.body)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(Color("PaletteInk"))
                 .accessibilityIdentifier("package.full")
         }
-        PackageChancesView(chances: gameState.packageChances)
+        // B18: lo que trae ya está decidido desde que cayó; sólo la caja sin sortear muestra la tabla.
+        if let inside = gameState.packagePopupArrival {
+            PackageInsideView(arrival: inside)
+        } else {
+            PackageChancesView(chances: gameState.packageChances)
+        }
     }
 
     @ViewBuilder private var openActions: some View {
-        if gameState.packagesBlocked {
+        if gameState.packagePopupBlocked {
             GameButton("package.full.ok", role: .neutral, identifier: "package.full.ok", action: onClose)
         } else {
             // Apilados: con dos botones lado a lado «Abrir todos» no entra en el SE.
@@ -210,6 +215,34 @@ struct PackageFace: View {
         } else {
             IconCanvas { MarkDisc(mark: "?", fill: Color("PaletteBrown").lifted(0.3)) }
         }
+    }
+}
+
+/// «Adentro viene»: la cara chica de quien trae la caja y el piso al que llega (E14b B18). La
+/// caja se sorteó al caer, así que ya no hay tabla de chances.
+struct PackageInsideView: View {
+    let arrival: PackageArrival
+
+    var body: some View {
+        GameCard {
+            HStack(spacing: Tokens.s8) {
+                PackageFace(faceKey: "\(arrival.typeId)_face", side: 64)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("package.inside")
+                        .font(Tokens.caption)
+                        .foregroundStyle(Color("PaletteInk").opacity(0.7))
+                    Text("package.arrives \(TowerNaming.floorName(for: arrival.floorId))")
+                        .font(Tokens.body)
+                        .foregroundStyle(Color("PaletteInk"))
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.7)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("package.inside")
+        .accessibilityValue(Text(verbatim: arrival.floorId))
     }
 }
 

@@ -8,6 +8,8 @@ struct ElevatorKeypadModel: Equatable {
         let isCurrent: Bool
         /// Un visitante espera congelado en ese piso (E14b B7): una marca chica.
         let hasVisitor: Bool
+        /// Hay una caja del Paquete esperando en ese piso (E14b B18): un paquetito chico.
+        var hasPackage = false
         var number: Int { ordinal + 1 }
     }
 
@@ -17,11 +19,13 @@ struct ElevatorKeypadModel: Equatable {
     let floors: [Floor]
 
     /// `map` viene de Dios para abajo (`GameState.floorMap`). `visitorOrdinals`: los pisos
-    /// con un visitante esperando (`GameState.visitorsWaitingElsewhere`).
-    init(map: [FloorMapEntry], visibleOrdinal: Int, visitorOrdinals: Set<Int> = []) {
+    /// con un visitante esperando (`GameState.visitorsWaitingElsewhere`). `packageOrdinals`: los
+    /// pisos con alguna caja (`GameState.packageFloorOrdinals`).
+    init(map: [FloorMapEntry], visibleOrdinal: Int, visitorOrdinals: Set<Int> = [], packageOrdinals: Set<Int> = []) {
         floors = map.filter(\.isUnlocked).prefix(Self.maxButtons).map {
             Floor(id: $0.id, ordinal: $0.ordinal, isCurrent: $0.ordinal == visibleOrdinal,
-                  hasVisitor: visitorOrdinals.contains($0.ordinal))
+                  hasVisitor: visitorOrdinals.contains($0.ordinal),
+                  hasPackage: packageOrdinals.contains($0.ordinal))
         }
     }
 }
@@ -107,6 +111,9 @@ struct ElevatorKeypadButton: View {
             .overlay(alignment: .topTrailing) {
                 if floor.hasVisitor { VisitorMark(side: side * 0.36).offset(x: side * 0.08, y: -side * 0.08) }
             }
+            .overlay(alignment: .bottomTrailing) {
+                if floor.hasPackage { PackageMark(side: side * 0.4).offset(x: side * 0.1, y: side * 0.08) }
+            }
             .contentShape(Circle())
         }
         .buttonStyle(.plain)
@@ -117,7 +124,8 @@ struct ElevatorKeypadButton: View {
 
     private var accessibilityValue: Text {
         if floor.isCurrent { return Text("elevator.floor.current") }
-        return floor.hasVisitor ? Text("elevator.floor.visitor") : Text(verbatim: "")
+        if floor.hasVisitor { return Text("elevator.floor.visitor") }
+        return floor.hasPackage ? Text("elevator.floor.package") : Text(verbatim: "")
     }
 
     private var face: LinearGradient {
@@ -140,6 +148,18 @@ private struct VisitorMark: View {
             .frame(width: side, height: side)
             .background(Circle().fill(Color("PaletteOrange")))
             .overlay(Circle().strokeBorder(Color("PaletteInk"), lineWidth: 1.5))
+            .accessibilityHidden(true)
+    }
+}
+
+/// La marca del piso con una caja del Paquete esperando (E14b B18): la caja ilustrada, chiquita.
+private struct PackageMark: View {
+    let side: CGFloat
+
+    var body: some View {
+        GameIcon(artKey: "pickup_package", size: side) { RewardArt(kind: .package) }
+            .frame(width: side, height: side)
+            .shadow(color: .black.opacity(0.35), radius: 1, y: 1)
             .accessibilityHidden(true)
     }
 }

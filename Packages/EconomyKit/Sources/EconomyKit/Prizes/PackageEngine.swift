@@ -17,7 +17,9 @@ public enum PackageScheduler {
         var remaining = (state.secondsUntilNext ?? config.firstPackageAfterSeconds) - delta * rateMultiplier
         var dropped = 0
         while remaining <= 0, state.waiting < config.maxWaiting {
-            state.waiting += 1
+            // Cae sin asignar: a quién trae lo decide `PackageRoller.assignPending` con el estado
+            // de este momento (E14b B18), que el reloj no conoce.
+            state.boxes.append(.unassigned)
             dropped += 1
             remaining += config.spawnIntervalSeconds
         }
@@ -26,8 +28,9 @@ public enum PackageScheduler {
     }
 }
 
-/// A quién trae un paquete. El sorteo es al tocarlo: los candidatos son los que
-/// FisuJobs vende con lugar, y entre ellos pesan más los tiers de abajo.
+/// A quién trae un paquete. El sorteo es cuando la caja aparece (E14b B18): los
+/// candidatos son los que FisuJobs vende con lugar, y entre ellos pesan más los
+/// tiers de abajo. El tipo sorteado fija el piso de la caja.
 public enum PackageRoller {
     /// Un tier de la ventana con su chance (sus tipos se la reparten parejo).
     public struct Odds: Sendable, Equatable {
@@ -112,5 +115,79 @@ public enum PackageRoller {
               let typeId = table[pick].typeIds.randomElement(using: &rng)
         else { return nil }
         return eligible.first { $0.id == typeId }
+    }
+
+    // MARK: - La caja de un piso (E14b B18)
+
+    /// Sortea una caja que aparece: el mismo sorteo de siempre (`roll`), y el tipo fija su piso
+    /// (`floorTable.ordinal(forTier:)`) y un lugar al azar de la franja del piso. `nil` sin
+    /// nadie a quien traer.
+    public static func rollBox<R: RandomNumberGenerator>(
+        eligible: [CharacterType],
+        windowTiers: Int,
+        ratio: Double,
+        floorTable: FloorTable,
+        using rng: inout R
+    ) -> PackageBox? {
+        guard let type = roll(eligible: eligible, windowTiers: windowTiers, ratio: ratio, using: &rng) else {
+            return nil
+        }
+        return PackageBox(
+            floor: floorTable.ordinal(forTier: type.tier),
+            typeId: type.id,
+            x: Double.random(in: 0...1, using: &rng)
+        )
+    }
+
+    /// Si una caja ya sorteada sigue valiendo en esta run: su tipo existe, se vio y es de su
+    /// piso, y el piso está abierto. Una reencarnación cierra los pisos: lo que cayó arriba se
+    /// vuelve a sortear (`assignPending`). Que el piso esté lleno no la invalida: espera lugar.
+    public static func belongs(
+        _ box: PackageBox,
+        state: PlayerState,
+        tiers: TierRepository,
+        floorTable: FloorTable
+    ) -> Bool {
+        guard let floor = box.floor, let typeId = box.typeId,
+              floorTable.floors.indices.contains(floor),
+              let type = tiers.type(id: typeId), !type.isChoiceNode
+        else { return false }
+        return floorTable.ordinal(forTier: type.tier) == floor
+            && state.run.seenTypes.contains(typeId)
+            && state.run.unlockedFloors.contains(floorTable[floor].id)
+    }
+
+    /// Sortea las cajas sin asignar y las que dejaron de valer (`belongs`), con el estado de
+    /// ahora. Las que no tienen a quién traer quedan sin asignar. Devuelve cuántas se sortearon.
+    @discardableResult
+    public static func assignPending<R: RandomNumberGenerator>(
+        _ packages: inout PackagesState,
+        state: PlayerState,
+        tiers: TierRepository,
+        floorTable: FloorTable,
+        config: EconomyConfig,
+        occupancy: [Int],
+        windowTiers: Int,
+        ratio: Double,
+        using rng: inout R
+    ) -> Int {
+        var eligible: [CharacterType]?
+        var assigned = 0
+        for index in packages.boxes.indices
+        where !belongs(packages.boxes[index], state: state, tiers: tiers, floorTable: floorTable) {
+            let candidates = eligible ?? eligibleTypes(
+                state: state, tiers: tiers, floorTable: floorTable, config: config, occupancy: occupancy
+            )
+            eligible = candidates
+            guard let box = rollBox(
+                eligible: candidates, windowTiers: windowTiers, ratio: ratio, floorTable: floorTable, using: &rng
+            ) else {
+                packages.boxes[index] = .unassigned
+                continue
+            }
+            packages.boxes[index] = box
+            assigned += 1
+        }
+        return assigned
     }
 }

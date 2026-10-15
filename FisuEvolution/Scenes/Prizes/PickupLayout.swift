@@ -64,6 +64,28 @@ struct PickupLayout: Equatable {
         CGPoint(x: packageX, y: baselineY + side / 2 + CGFloat(index) * side * Self.stackStep)
     }
 
+    /// Por dónde puede pararse el centro de una caja (E14b B18): entre la columna izquierda y el
+    /// visitante, sin pisar ninguno de los dos; el colchón va del otro lado. En un teléfono el
+    /// hueco es apenas más ancho que la caja; en el iPad, holgado.
+    var packageXRange: ClosedRange<CGFloat> {
+        let lower = Self.edgeClearance + side / 2
+        let upper = visitorSpan.lowerBound - side / 2
+        return upper > lower ? lower...upper : packageX...packageX
+    }
+
+    /// El centro de una caja cuyo lugar es `fraction` (0 a 1, `PackageBox.x`) del hueco. Sin
+    /// lugar (una caja sin asignar), el medio.
+    func packageCenterX(at fraction: Double?) -> CGFloat {
+        guard let fraction else { return packageX }
+        let range = packageXRange
+        return range.lowerBound + CGFloat(min(max(fraction, 0), 1)) * (range.upperBound - range.lowerBound)
+    }
+
+    /// La caja `index` de la pila de un piso: todas sobre el lugar de la de abajo (`fraction`).
+    func packagePosition(index: Int, at fraction: Double?) -> CGPoint {
+        CGPoint(x: packageCenterX(at: fraction), y: packagePosition(index: index).y)
+    }
+
     var mattressPosition: CGPoint {
         CGPoint(x: mattressX, y: baselineY + side * 0.35)
     }

@@ -23,7 +23,10 @@ extension PacingSimulator {
     /// juego, como en el juego) y los regalos con cooldown en segundos de PARED.
     struct SourceClocks {
         var nextPackageAt: Double
-        var waitingPackages = 0
+        /// Las cajas que esperan, la más vieja primero (E14b B18): lo que traen se decide al
+        /// caer (`nil` = cayó sin nadie a quien traer, se sortea al abrir). Con los sorteos
+        /// esperados una caja puede traer cero, uno o más.
+        var packageBoxes: [[String]?] = []
         var lastBoostAt: [String: Double] = [:]
         var lastDailyDay = -1
         var cycleDay = 0
@@ -166,32 +169,41 @@ extension PacingSimulator {
     // MARK: - El Paquete de la Aduana
 
     /// Cae el paquete que toque en el reloj activo y abre los que esperan.
-    /// Devuelve cuántos abrió (cada uno cuesta un toque de la sesión). Un
-    /// paquete sin lugar donde caer espera, como en el juego.
+    /// Devuelve cuántos abrió (cada uno cuesta un toque de la sesión). Lo que
+    /// trae se sortea al caer, con el estado de ese momento (E14b B18); una
+    /// caja cuyo piso está lleno espera, como en el juego.
     func tickPackages(
         state: inout PlayerState, clocks: inout SourceClocks, report: inout Report, active: Double
     ) -> Int {
         guard profile.usesFreeGifts, let packages = sources.packages else { return 0 }
         while active >= clocks.nextPackageAt {
-            if clocks.waitingPackages >= packages.maxWaiting {
+            if clocks.packageBoxes.count >= packages.maxWaiting {
                 clocks.nextPackageAt = active + packages.spawnIntervalSeconds
                 break
             }
-            clocks.waitingPackages += 1
+            clocks.packageBoxes.append(rollPackage(state: state, clocks: &clocks, packages: packages))
             clocks.nextPackageAt += packages.spawnIntervalSeconds
         }
 
         var opened = 0
-        while clocks.waitingPackages > 0, openPackage(state: &state, clocks: &clocks, packages: packages) {
-            clocks.waitingPackages -= 1
+        var index = 0
+        while index < clocks.packageBoxes.count {
+            if clocks.packageBoxes[index] == nil {
+                clocks.packageBoxes[index] = rollPackage(state: state, clocks: &clocks, packages: packages)
+            }
+            guard let content = clocks.packageBoxes[index], deliver(content, state: &state) else {
+                index += 1
+                continue
+            }
+            clocks.packageBoxes.remove(at: index)
             report.sourceTotals["packages.opened", default: 0] += 1
             opened += 1
         }
         return opened
     }
 
-    /// Sortea y entrega un paquete. `false` si no hay a quién traer.
-    private func openPackage(state: inout PlayerState, clocks: inout SourceClocks, packages: PackagesConfig) -> Bool {
+    /// Sortea lo que trae una caja que aparece. `nil` si no hay a quién traer.
+    private func rollPackage(state: PlayerState, clocks: inout SourceClocks, packages: PackagesConfig) -> [String]? {
         let occupancy = (0..<floorTable.count).map { floorCount($0, state: state) }
         let eligible = PackageRoller.eligibleTypes(
             state: state, tiers: tiers, floorTable: floorTable, config: config, occupancy: occupancy
@@ -200,16 +212,28 @@ extension PacingSimulator {
             eligible: eligible, windowTiers: packages.windowTiers,
             ratio: packages.tierRatio(bestSupplierLevel: activeShop?.bestSupplierLevel ?? 0)
         )
-        guard !table.isEmpty else { return false }
+        guard !table.isEmpty else { return nil }
+        var content: [String] = []
         for odds in table {
             let arrivals = clocks.draws.add(odds.probability, to: "pkg.T\(odds.tier)")
             guard arrivals > 0, let type = packageType(among: odds.typeIds) else { continue }
-            let ordinal = floorTable.ordinal(forTier: type.tier)
-            for _ in 0..<arrivals where floorCount(ordinal, state: state) < floorTable[ordinal].capacity {
-                state.run.units[type.id, default: 0] += 1
-            }
+            content.append(contentsOf: Array(repeating: type.id, count: arrivals))
         }
-        return true
+        return content
+    }
+
+    /// Abre una caja ya sorteada: entran los que tienen lugar en su piso. `false` (y la caja
+    /// espera) si traía a alguien y ninguno entra.
+    private func deliver(_ content: [String], state: inout PlayerState) -> Bool {
+        var delivered = content.isEmpty
+        for typeId in content {
+            guard let type = tiers.type(id: typeId) else { continue }
+            let ordinal = floorTable.ordinal(forTier: type.tier)
+            guard floorCount(ordinal, state: state) < floorTable[ordinal].capacity else { continue }
+            state.run.units[typeId, default: 0] += 1
+            delivered = true
+        }
+        return delivered
     }
 
     private func packageType(among typeIds: [String]) -> CharacterType? {
@@ -351,7 +375,8 @@ extension PacingSimulator {
             report.sourceTotals["blue.fromSources", default: 0] += Double(whole)
             clocks.hasUnspentBlue = true
         case .package(let count):
-            clocks.waitingPackages += clocks.draws.add(Double(count) * probability, to: "pkg.extra")
+            let won = clocks.draws.add(Double(count) * probability, to: "pkg.extra")
+            clocks.packageBoxes.append(contentsOf: [[String]?](repeating: nil, count: won))
         case .nextOfflineMultiplier(let multiplier):
             clocks.pendingOfflineMultiplier *= 1 + (multiplier - 1) * probability
         case .nextDailyMultiplier(let multiplier):

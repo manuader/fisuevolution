@@ -309,6 +309,8 @@ struct GameBoardView: View {
         }
         .modifier(PrizeSheets(syncCover: { gameState.uiCoversBoard = boardIsCovered }))
         .modifier(OfferSheets(selection: $offerSelection, syncCover: { gameState.uiCoversBoard = boardIsCovered }))
+        // El paso 2 de las recompensas gratis (E14b B29): encima de los pop-ups que lo dieron.
+        .modifier(RewardDoubleLayer(host: .board, syncCover: { gameState.uiCoversBoard = boardIsCovered }))
         #if DEBUG
         .sheet(isPresented: $showDebugPanel) {
             DebugPanelView()
@@ -365,6 +367,7 @@ struct GameBoardView: View {
             || gameState.shareCardMoment != nil || gameState.visitorPopup != nil
             || gameState.eventPopup != nil || gameState.mattressPopup != nil || gameState.wheelSheet != nil
             || gameState.packagePopup != nil || gameState.adBreakOffer != nil || offerSelection != nil
+            || gameState.rewardDouble?.host == .board
     }
 
     private var boardLayoutMarker: some View {

@@ -9,6 +9,8 @@ struct MattressOutcome: Equatable {
     let coins: Double
     /// Los "otro colchón" que le quedan.
     let extraOpensLeft: Int
+    /// Llegó de regalo (D4): al cobrarlo ofrece su ×2 con video (E14b B29). El pagado y el «otro colchón», no.
+    var isGift = false
 }
 
 /// El Colchón en la partida (PLAN-v2 E5): "tus empleados escondieron plata en
@@ -59,11 +61,12 @@ extension GameState {
     func openMattress(now: TimeInterval = Date().timeIntervalSince1970) -> MattressOutcome? {
         guard let content, mattressOnBoard,
               let prize = TreasureRoller.roll(content.treasures, using: &rng),
-              var player,
-              TreasureScheduler.markOpened(&player.meta.engagement.treasures, config: content.treasures)
+              var player
         else { return nil }
+        let gifted = player.meta.engagement.treasures.gifted
+        guard TreasureScheduler.markOpened(&player.meta.engagement.treasures, config: content.treasures) else { return nil }
         self.player = player
-        return deliver(prize, now: now)
+        return deliver(prize, now: now, gifted: gifted)
     }
 
     /// Después del segundo video: otro sorteo, una vez por colchón.
@@ -79,11 +82,12 @@ extension GameState {
     }
 
     /// El colchón ya quedó gastado: acredita su premio por el único punto de premios.
-    private func deliver(_ prize: TreasuresConfig.Prize, now: TimeInterval) -> MattressOutcome {
+    private func deliver(_ prize: TreasuresConfig.Prize, now: TimeInterval, gifted: Bool = false) -> MattressOutcome {
         let coins = grant(prize.rewards, source: "treasure.\(prize.id)", now: now)
         announceReward(prize.rewards, coins: coins)
         Log.economy.info("mattress opened: \(prize.id)")
-        return MattressOutcome(prizeId: prize.id, rewards: prize.rewards, coins: coins, extraOpensLeft: mattressExtraOpensLeft)
+        return MattressOutcome(prizeId: prize.id, rewards: prize.rewards, coins: coins,
+                               extraOpensLeft: mattressExtraOpensLeft, isGift: gifted)
     }
 
     #if DEBUG

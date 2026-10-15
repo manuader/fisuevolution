@@ -76,12 +76,13 @@ extension GameState {
         Task { await persistNow(includingCloud: false) }
     }
 
-    /// El jugador cerró el popup de la vuelta: la plata (con el ×2 del video, las dos pagas) vuela al contador.
+    /// El jugador cobró la vuelta (paso 1): la plata vuela al contador y sale el ×2 con video (paso 2, E14b B29).
     func dismissOfflineReward() {
-        if let reward = offlineReward {
-            announceCoins(reward.amount * (offlineRewardDoubled ? 2 : 1))
-        }
+        let reward = offlineReward
         offlineReward = nil
+        guard let reward else { return }
+        announceCoins(reward.amount)
+        offerOfflineDouble(reward)
     }
 
     /// La llama también `+Debug`, para simular una vuelta después de N horas.

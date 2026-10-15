@@ -5,6 +5,7 @@ import SwiftUI
 /// El premio ya está acreditado cuando se abre —el daily se cobra solo en el
 /// bootstrap y al volver a foreground— así que acá no se decide nada: es la
 /// celebración. Por eso el botón dice "Cobrar" pero lo único que hace es cerrar.
+/// El ×2 con video sale después, en su propio pop-up (paso 2, E14b B29).
 ///
 /// Vive en el `PopupContainer` de la casa (E14 C15): el título en la cinta, el
 /// premio ilustrado al centro —el mismo acento amarillo con el que la tira de
@@ -15,20 +16,6 @@ struct DailyRewardView: View {
     /// Cierra el popup (lo pone quien lo presenta).
     let onClose: () -> Void
 
-    /// El ×2 se miró en esta hoja: el botón se va por estado local (el `player`
-    /// no se observa acá), como en el popup offline.
-    @State private var doubled = false
-    @State private var watching = false
-
-    private var offersDouble: Bool {
-        !doubled && gameState.canDoubleDailyReward(claim)
-    }
-
-    /// Duplicado, el monto que se muestra es el TOTAL (el mismo criterio del offline).
-    private var shownCoins: Double {
-        doubled ? claim.coinsGranted * 2 : claim.coinsGranted
-    }
-
     /// ⚠️ **El monto NO rueda con `.contentTransition(.numericText())`, y se
     /// probó.** La versión que arrancaba en `+0` y rodaba hasta el premio
     /// terminaba **antes de que la hoja terminara de subir**: medido cuadro a
@@ -37,7 +24,7 @@ struct DailyRewardView: View {
     /// una animación muerta con dos propiedades de estado atrás. El contador del
     /// HUD, que sí cambia con la hoja quieta, es el que la usa de verdad.
     private var amountText: String {
-        "+\(CoinFormatter.string(from: shownCoins))"
+        "+\(CoinFormatter.string(from: claim.coinsGranted))"
     }
 
     /// Los tres premios que puede traer el ciclo. Excluyentes: la tarjeta muestra
@@ -66,28 +53,11 @@ struct DailyRewardView: View {
     }
 
     var body: some View {
-        PopupContainer("daily.title", ribbonTint: Color("PaletteGreen"), onClose: close) {
+        PopupContainer("daily.title", ribbonTint: Color("PaletteGreen"), onClose: onClose) {
             prizeCard
         } actions: {
-            if offersDouble || watching {
-                RewardedOfferButton(
-                    title: String(localized: "daily.double"),
-                    identifier: "daily.double",
-                    placement: .daily,
-                    isBusy: $watching,
-                    gameRole: .video
-                ) {
-                    gameState.doubleDailyReward(claim)
-                    doubled = true
-                }
-            }
-            GameButton("offline.collect", role: .free, identifier: "daily.collect", action: close)
+            GameButton("offline.collect", role: .free, identifier: "daily.collect", action: onClose)
         }
-    }
-
-    /// Con el anuncio en vuelo no cierra (como el offline).
-    private func close() {
-        if !watching { onClose() }
     }
 
     /// El premio: qué día es y qué te dio. Es **una** parada de VoiceOver

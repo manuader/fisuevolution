@@ -194,6 +194,8 @@ final class GameState {
     /// `@ObservationIgnored`: lo lee la hoja al abrirse, no un `body` que se
     /// recomponga.
     @ObservationIgnored var offlineRewardDoubled = false
+    /// El paso 2 de una recompensa gratis: «×2 con video» o «No, gracias» (E14b B29, `+RewardDouble`).
+    var rewardDouble: RewardDouble?
     var skinAward: SkinAward?
     /// El premio del cofre que el jugador acaba de abrir. Lo escribe `+Chests`
     /// (`openChest`) y lo suelta el dismiss de su animación, como `skinAward`.

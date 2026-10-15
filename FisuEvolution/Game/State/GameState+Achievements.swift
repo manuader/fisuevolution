@@ -256,6 +256,8 @@ extension GameState {
               let kind = achievement.reward.rewardKind
         else { return }
 
+        // Lo que el ×2 con video vuelve a pagar después de cobrar (paso 2, E14b B29).
+        var double: (coins: Double, rewards: [RewardSpec])?
         switch kind {
         case .coins:
             let chest = Self.coinReward(
@@ -265,6 +267,7 @@ extension GameState {
             player.meta.lifetimeEarnings += chest
             announceCoins(chest)
             audio?.play(.coin)
+            double = (chest, [])
         case .blue:
             // ⚠️ SÓLO el balance. `blueEarnedLifetime` es de donde sale el
             // multiplicador global y sube ÚNICAMENTE al reencarnar; tocarlo acá
@@ -273,6 +276,7 @@ extension GameState {
             player.meta.blue += achievement.reward.amount ?? 0
             announceBlue(achievement.reward.amount ?? 0)
             audio?.play(.coin)
+            if let amount = achievement.reward.amount, amount > 0 { double = (0, [.blue(amount)]) }
         case .freeBoost:
             grantFreeBoost(id: achievement.reward.boostId, player: &player, content: content, economy: economy, now: now)
         }
@@ -283,6 +287,9 @@ extension GameState {
         refreshProjections()
         scheduleSave()
         Log.economy.info("achievement claimed: \(id) (\(kind.rawValue))")
+        if let double {
+            offerAchievementDouble(coins: double.coins, rewards: double.rewards, achievementId: id)
+        }
     }
 
     /// "Gratis" es literal: se activa por el MISMO camino que el botón de

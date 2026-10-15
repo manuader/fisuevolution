@@ -59,7 +59,10 @@ extension GameState {
         if let called = application.calledScript { stageRuntime.calledScript = called }
         if application.shopOffer != nil { stageRuntime.pendingShopOffer = event.id }
         if application.coinsSeconds > 0 {
-            announceCoins(grant(.coinsSeconds(application.coinsSeconds), source: event.sourceKey, now: now))
+            let coins = grant(.coinsSeconds(application.coinsSeconds), source: event.sourceKey, now: now)
+            announceCoins(coins)
+            // Plata gratis (el Aguinaldo): su ×2 con video sale enseguida, si el momento está calmo (B29).
+            offerEventDouble(eventId: event.id, coins: coins, source: event.sourceKey)
         }
         if let player = self.player {
             let change: BoardChange? = switch application.boardIntent {

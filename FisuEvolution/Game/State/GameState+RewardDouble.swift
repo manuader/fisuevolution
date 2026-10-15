@@ -1,0 +1,235 @@
+import EconomyKit
+import Foundation
+
+/// Toda recompensa gratis en dos pasos (E14b B29, D17): el pop-up de la fuente cobra con un solo botón y
+/// recién después sale `RewardDouble` con «×2 con video». Nunca se ofrece duplicar de entrada.
+///
+/// Las reglas, en un solo lugar:
+/// - **Sólo lo gratis.** Lo que ya costó un video (el colchón pagado, el giro por video, una carta del
+///   Vendedor) o se pagó (blue, plata, un intercambio) no tiene paso 2.
+/// - **Sólo lo que se duplica** (`doublableRewardKinds`): una skin o un personaje de la caja son únicos;
+///   un giro de ruleta tiene su propio paso 2 en la Ruleta; vaciar los cooldowns no es una cantidad.
+/// - **Sin video listo, no hay paso 2**: sin anuncio cargado, sin consentimiento o sin conexión, el
+///   proveedor no tiene inventario (`isRewardedReady`) y la oferta no aparece.
+/// - **Una sola vez.** El video premiado paga exactamente lo del paso 1, y el paso 2 se borra ANTES de
+///   pagar: un segundo premio del mismo video no encuentra nada que cobrar.
+extension GameState {
+    /// Lo que el paso 2 vuelve a dar además de la plata (que va cotizada aparte, en `coins`). Un efecto con
+    /// duración no pega dos veces: dura el doble, como el `scaled(by: 2)` de siempre.
+    static let doublableRewardKinds: Set<RewardSpec.Kind> = [.blue, .package, .modifier, .autoTap, .eventImmunity]
+
+    static func doublableRewards(_ rewards: [RewardSpec]) -> [RewardSpec] {
+        rewards.filter { doublableRewardKinds.contains($0.kind) }
+    }
+
+    /// Las celebraciones que son un pop-up: con una de ellas en pantalla, el paso 2 del tablero no sale
+    /// (D14). Los avisos, los logros y las animaciones del tablero no tapan nada.
+    static let popupCelebrations: Set<CelebrationKind> = [
+        .offlineEarnings, .dailyReward, .careerChoice, .skinAward, .specialDrop, .chestOpening, .cinematic,
+        .offer, .newCharacter, .tutorialTip,
+    ]
+
+    /// Hay un video listo para esta unidad: sin él, el paso 2 no se ofrece.
+    func isRewardDoubleAdReady(_ placement: RewardedPlacement) -> Bool {
+        ads?.isRewardedReady(for: placement) == true
+    }
+
+    /// Ofrece el paso 2. `during` es la celebración que lo dio, si todavía está en curso (el offline, el
+    /// diario): otro pop-up de la cola en pantalla lo deja sin paso 2 para no encimarlos (D14).
+    @discardableResult
+    func offerRewardDouble(
+        site: String,
+        placement: RewardedPlacement,
+        host: RewardDouble.Host = .board,
+        payout: RewardDouble.Payout,
+        coins: Double,
+        rewards: [RewardSpec],
+        during celebration: CelebrationKind? = nil
+    ) -> Bool {
+        let coins = coins.isFinite ? max(0, coins) : 0
+        guard rewardDouble == nil, coins > 0 || !rewards.isEmpty, isRewardDoubleAdReady(placement) else { return false }
+        if host == .board, let current = showing, current != celebration,
+           Self.popupCelebrations.contains(current) { return false }
+        rewardDouble = RewardDouble(site: site, placement: placement, host: host, payout: payout,
+                                    shownCoins: coins, shownRewards: rewards)
+        Log.ads.info("reward double offered: \(site)")
+        return true
+    }
+
+    /// El paso 2 de algo que se entregó por `grant`: la misma plata ya cotizada y los mismos premios.
+    @discardableResult
+    func offerGrantDouble(
+        site: String,
+        placement: RewardedPlacement,
+        host: RewardDouble.Host = .board,
+        coins: Double,
+        rewards: [RewardSpec],
+        source: String
+    ) -> Bool {
+        let again = Self.doublableRewards(rewards)
+        let coins = coins.isFinite ? max(0, coins) : 0
+        return offerRewardDouble(site: site, placement: placement, host: host,
+                                 payout: .grant(coins: coins, rewards: again, source: source),
+                                 coins: coins, rewards: again)
+    }
+
+    // MARK: - Las fuentes
+
+    /// Un regalo, un chisme o un reto ganado de un visitante. Lo que se llevó a alguien o cobró algo
+    /// es un trato, no un regalo: no tiene paso 2.
+    @discardableResult
+    func offerVisitDouble(scriptId: String, coins: Double, rewards: [RewardSpec], departures: [BoardChange] = [],
+                          source: String) -> Bool {
+        guard departures.isEmpty, coins >= 0 else { return false }
+        return offerGrantDouble(site: "double.visit.\(scriptId)", placement: .visitor, coins: coins,
+                                rewards: rewards, source: source)
+    }
+
+    /// Lo que juntó mientras no estabas: ya está acreditado; el paso 2 lo paga otra vez, una vez por vuelta.
+    @discardableResult
+    func offerOfflineDouble(_ reward: OfflineReward) -> Bool {
+        guard !offlineRewardDoubled else { return false }
+        return offerRewardDouble(site: "double.offline", placement: .offlineX2, payout: .offline(reward),
+                                 coins: reward.amount, rewards: [], during: .offlineEarnings)
+    }
+
+    /// El diario: sólo la plata, una vez por día (el special y el cofre del día 7 no se duplican).
+    @discardableResult
+    func offerDailyDouble(_ claim: DailyRewardManager.Claim, now: Date = Date()) -> Bool {
+        guard canDoubleDailyReward(claim, now: now) else { return false }
+        return offerRewardDouble(site: "double.daily", placement: .daily, payout: .daily(claim),
+                                 coins: claim.coinsGranted, rewards: [], during: .dailyReward)
+    }
+
+    /// Elegir carrera (paso 1) y, si su premio de una vez es plata, el paso 2. La plata se cotiza ANTES de
+    /// elegir: `chooseCareer` acredita antes del merge, y el ×2 paga lo mismo aunque el merge suba la
+    /// producción.
+    func chooseCareerOfferingDouble(optionId: String) {
+        guard let prompt = careerPrompt, prompt.options.contains(where: { $0.id == optionId }) else { return }
+        var coins = 0.0
+        if let minutes = careerLumpMinutes(optionId: optionId), let content, let economy, let player {
+            coins = Self.coinReward(seconds: minutes * 60, player: player, content: content, economy: economy)
+        }
+        chooseCareer(optionId: optionId)
+        guard careerPrompt == nil, coins > 0 else { return }
+        offerGrantDouble(site: "double.career", placement: .daily, coins: coins, rewards: [],
+                         source: "career.x2.\(optionId)")
+    }
+
+    /// El giro GRATIS de la Ruleta: su «repetir premio» es este paso 2, el mismo gajo otra vez. El de video
+    /// ya costó uno y el de blue se pagó; el cofre trae una skin única.
+    @discardableResult
+    func offerWheelDouble(_ outcome: WheelSpinOutcome, source: WheelSpinSource) -> Bool {
+        guard source == .bonus, outcome.segment.reward.kind != .skinChest,
+              player?.meta.engagement.wheel.repeatableSegmentId == outcome.segment.id
+        else { return false }
+        return offerGrantDouble(site: "double.wheel", placement: .wheel, host: .wheel, coins: outcome.coins,
+                                rewards: [outcome.segment.reward], source: "wheel.\(outcome.segment.id)")
+    }
+
+    /// El colchón de regalo (D4) se cobra y ofrece su ×2; el pagado con video y el «otro colchón», no.
+    @discardableResult
+    func offerMattressDouble(_ outcome: MattressOutcome) -> Bool {
+        guard outcome.isGift else { return false }
+        return offerGrantDouble(site: "double.mattress", placement: .treasure, coins: outcome.coins,
+                                rewards: outcome.rewards, source: "treasure.\(outcome.prizeId)")
+    }
+
+    /// La plata o el blue de un logro, en el Menú.
+    @discardableResult
+    func offerAchievementDouble(coins: Double, rewards: [RewardSpec], achievementId: String) -> Bool {
+        offerGrantDouble(site: "double.achievement", placement: .gifts, host: .menu, coins: coins,
+                         rewards: rewards, source: "achievement.\(achievementId)")
+    }
+
+    /// La plata de un evento (el Aguinaldo). Llega sola, así que sólo con el tablero a la vista y fuera de la
+    /// fase obligatoria del tutorial: nunca encima de otra cosa. (La entrada del presentador todavía ocupa
+    /// la cola cuando el evento arranca: por eso no es `isCalmMoment`.)
+    @discardableResult
+    func offerEventDouble(eventId: String, coins: Double, source: String) -> Bool {
+        guard !isBoardBusy, !tutorialPhaseActive else { return false }
+        return offerGrantDouble(site: "double.event.\(eventId)", placement: .visitor, coins: coins, rewards: [],
+                                source: source)
+    }
+
+    // MARK: - El paso 2
+
+    /// El video se premió: paga lo del paso 1 otra vez. `false` si ya no había nada (otro premio del mismo
+    /// video, o se resolvió por otro lado).
+    @discardableResult
+    func claimRewardDouble(id: UUID, now: TimeInterval = Date().timeIntervalSince1970) -> Bool {
+        guard let double = rewardDouble, double.id == id else { return false }
+        rewardDouble = nil
+        switch double.payout {
+        case let .grant(coins, rewards, source):
+            creditCoins(coins)
+            let granted = rewards.reduce(0.0) { $0 + grantAgain($1, source: source, now: now) }
+            announceReward(rewards, coins: coins + granted)
+            noteRewardDoubleVideo()
+        case .offline(let reward):
+            guard !offlineRewardDoubled else { break }
+            doubleOfflineReward(reward)
+            announceCoins(reward.amount)
+            noteRewardDoubleVideo()
+        case .daily(let claim):
+            let day = Date(timeIntervalSince1970: now)
+            guard canDoubleDailyReward(claim, now: day) else { break }
+            // `doubleDailyReward` ya cuenta el video y evalúa los logros.
+            doubleDailyReward(claim, now: day)
+            announceCoins(claim.coinsGranted)
+        }
+        Log.economy.info("reward double claimed: \(double.site)")
+        double.followUps.forEach { $0() }
+        return true
+    }
+
+    /// «No, gracias»: no cobra nada y sigue lo que esperaba.
+    func declineRewardDouble(id: UUID) {
+        guard let double = rewardDouble, double.id == id else { return }
+        rewardDouble = nil
+        double.followUps.forEach { $0() }
+    }
+
+    /// Corre `action` cuando el paso 2 en curso se resuelva, o ya si no hay ninguno.
+    func whenRewardDoubleResolved(_ action: @escaping @MainActor () -> Void) {
+        guard rewardDouble != nil else { return action() }
+        rewardDouble?.followUps.append(action)
+    }
+
+    /// Un efecto con duración que sigue vivo con el mismo origen dura `seconds` más (el ×2 dura el doble,
+    /// no pega dos veces); lo demás se entrega otra vez por el punto único de premios.
+    private func grantAgain(_ reward: RewardSpec, source: String, now: TimeInterval) -> Double {
+        guard let durable = Self.durableEffect(of: reward), var player,
+              let index = player.run.activeModifiers.lastIndex(where: {
+                  $0.sourceKey == source && $0.effect == durable.effect && $0.isActive(at: now)
+              })
+        else { return grant(reward, source: source, now: now) }
+        let live = player.run.activeModifiers[index]
+        player.run.activeModifiers[index] = ActiveModifier(
+            id: live.id, effect: live.effect, magnitude: live.magnitude,
+            expiresAt: live.expiresAt + durable.seconds, sourceKey: live.sourceKey
+        )
+        self.player = player
+        effectsVersion += 1
+        refreshProjections()
+        scheduleSave()
+        return 0
+    }
+
+    private static func durableEffect(of reward: RewardSpec) -> (effect: ActiveModifier.Effect, seconds: Double)? {
+        switch reward {
+        case let .modifier(effect, _, seconds): return (effect, seconds)
+        case let .autoTap(_, seconds): return (.autoTapPerSecond, seconds)
+        case .eventImmunity(let seconds): return (.eventImmunity, seconds)
+        default: return nil
+        }
+    }
+
+    private func noteRewardDoubleVideo() {
+        guard var player else { return }
+        player.meta.stats.videosWatchedEver += 1
+        self.player = player
+        evaluateAchievements()
+        scheduleSave()
+    }
+}

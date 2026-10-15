@@ -213,13 +213,16 @@ extension GameState {
     }
 
     func dismissDailyClaim() {
-        // El popup se cierra y la plata vuela al contador: con el ×2 del video, las dos pagas.
-        if let claim = dailyClaim {
-            let chest: [RewardSpec] = claim.chestGranted ? [.skinChest(1)] : []
-            announceReward(chest, coins: claim.coinsGranted * (dailyRewardDoubled() ? 2 : 1))
-        }
+        // Se cobró (paso 1): la plata vuela al contador y sale el ×2 con video (paso 2, E14b B29). La
+        // cola de celebraciones espera a que se resuelva, para no encimar pop-ups.
+        let claim = dailyClaim
         dailyClaim = nil
-        celebrationFinished(.dailyReward)
+        if let claim {
+            let chest: [RewardSpec] = claim.chestGranted ? [.skinChest(1)] : []
+            announceReward(chest, coins: claim.coinsGranted)
+            offerDailyDouble(claim)
+        }
+        whenRewardDoubleResolved { [weak self] in self?.celebrationFinished(.dailyReward) }
     }
 
     /// La semana del daily como la dibuja `GiftsView` (spec §9).

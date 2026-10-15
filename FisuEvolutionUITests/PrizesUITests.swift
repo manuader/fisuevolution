@@ -17,6 +17,16 @@ final class PrizesUITests: XCTestCase {
         add(shot)
     }
 
+    /// Lo que falta para diagnosticar un rojo: la captura y el árbol de accesibilidad entero, por si
+    /// otro pop-up modal tapa lo que se busca (E14b B24).
+    private func diagnose(_ app: XCUIApplication, _ name: String) {
+        snap(app, name)
+        let tree = XCTAttachment(string: app.debugDescription)
+        tree.name = "\(name): árbol"
+        tree.lifetime = .keepAlways
+        add(tree)
+    }
+
     func testAPackageBringsAWorker() {
         let app = XCUIApplication()
         app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-packages=1"]
@@ -103,7 +113,13 @@ final class PrizesUITests: XCTestCase {
         let open = app.buttons["mattress.open"]
         XCTAssertTrue(open.waitForExistence(timeout: 10), "el popup ofrece el video")
         open.tap()
-        XCTAssertTrue(open.waitForNonExistence(timeout: 12), "al terminar el video (stub) el popup se cierra")
+        // Al tocar, el botón cambia de id («Cargando…», `mattress.open.watching`): esperar que se vaya
+        // `open` no prueba nada. Se espera que termine el video y que el popup se haya ido.
+        let watching = app.descendants(matching: .any)["mattress.open.watching"]
+        _ = watching.waitForExistence(timeout: 2)
+        XCTAssertTrue(watching.waitForNonExistence(timeout: 12), "el video (stub) terminó")
+        XCTAssertTrue(app.descendants(matching: .any)["mattress.odds.coins"].waitForNonExistence(timeout: 5),
+                      "al terminar el video el popup se cierra")
 
         let center = boardMattressCenter(app)
         snap(app, "B24 el colchón quieto en el piso")
@@ -183,12 +199,13 @@ final class PrizesUITests: XCTestCase {
 
         tapTheBoardMattress(app)
         let result = app.descendants(matching: .any)["mattress.result"]
-        XCTAssertTrue(result.waitForExistence(timeout: 10), "el pop-up del premio sale siempre")
+        if !result.waitForExistence(timeout: 10) { diagnose(app, "colchon de regalo: sin el premio") }
+        XCTAssertTrue(result.exists, "el pop-up del premio sale siempre")
         XCTAssertFalse(app.buttons["mattress.open"].exists, "sin video")
         assertThePrizeShowsItsArt(app)
         snap(app, "colchon de regalo abierto")
         let collect = app.buttons["mattress.collect"]
-        if !collect.waitForExistence(timeout: 5) { snap(app, "colchon de regalo: sin Cobrar") }
+        if !collect.waitForExistence(timeout: 5) { diagnose(app, "colchon de regalo: sin Cobrar") }
         XCTAssertTrue(collect.exists, "el pop-up del premio cobra")
         collect.tap()
         XCTAssertTrue(collect.waitForNonExistence(timeout: 5))
@@ -211,7 +228,7 @@ final class PrizesUITests: XCTestCase {
 
         let extra = app.buttons["mattress.extra"]
         // Mientras el video se precarga el botón dice «Cargando…» con otro id: se lo espera de sobra.
-        if !extra.waitForExistence(timeout: 12) { snap(app, "otro colchon: sin el video") }
+        if !extra.waitForExistence(timeout: 12) { diagnose(app, "otro colchon: sin el video") }
         XCTAssertTrue(extra.exists, "el popup ofrece el video")
         XCTAssertFalse(app.buttons["mattress.open"].exists, "el colchón ya se abrió: nada de abrir gratis")
         XCTAssertFalse(app.descendants(matching: .any)["mattress.result"].exists)
@@ -219,11 +236,13 @@ final class PrizesUITests: XCTestCase {
 
         tapTheMattressOpen(app)
         let result = app.descendants(matching: .any)["mattress.result"]
-        XCTAssertTrue(result.waitForExistence(timeout: 8), "el video pagó")
+        if !result.waitForExistence(timeout: 8) { diagnose(app, "otro colchon: sin el premio") }
+        XCTAssertTrue(result.exists, "el video pagó")
         XCTAssertTrue(["coins", "package", "blue"].contains(result.value as? String ?? ""))
         XCTAssertTrue(extra.waitForNonExistence(timeout: 8), "otro colchón es uno solo")
         let collect = app.buttons["mattress.collect"]
-        XCTAssertTrue(collect.waitForExistence(timeout: 5))
+        if !collect.waitForExistence(timeout: 5) { diagnose(app, "otro colchon: sin Cobrar") }
+        XCTAssertTrue(collect.exists)
         collect.tap()
         XCTAssertTrue(collect.waitForNonExistence(timeout: 5))
 

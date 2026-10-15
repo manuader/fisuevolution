@@ -44,6 +44,38 @@ struct MattressBoardTests {
         #expect(gameState.mattressFloor == gameState.visibleFloorOrdinal)
     }
 
+    @Test("reencarnar con el colchón en un piso que se cierra: al tick cae en un piso abierto")
+    func reincarnatingMovesItOffAClosedFloor() async throws {
+        let gameState = await makeGameState()
+        gameState.debugUnlockFloors(throughTier: 9)
+        gameState.setVisibleFloor(2)
+        try #require(gameState.visibleFloorOrdinal == 2)
+        gameState.debugSpawnMattress(onBoard: true)
+        #expect(gameState.mattressFloor == 2)
+        gameState.giveEarningsForPrestigeTesting(blue: 3)
+        gameState.confirmPrestige()
+        gameState.advanceTreasures(delta: 0.016)
+        let open = Set(gameState.floorMap.filter(\.isUnlocked).map(\.ordinal))
+        #expect(!open.contains(2), "la run nueva cerró ese piso")
+        #expect(gameState.mattressOnBoard, "sigue en el tablero, cerrado")
+        let floor = try #require(gameState.mattressFloor)
+        #expect(open.contains(floor))
+        #expect(floor == gameState.visibleFloorOrdinal, "el que se mira, si está abierto")
+        let spot = try #require(gameState.mattressSpot)
+        #expect(spot.y < GameState.mattressBackDepth.lowerBound)
+    }
+
+    @Test("asomado al piso cerrado de adelante, el nuevo cae en el más alto abierto")
+    func itNeverLandsOnThePeekFloor() async throws {
+        let gameState = await makeGameState()
+        let open = Set(gameState.floorMap.filter(\.isUnlocked).map(\.ordinal))
+        let highest = try #require(open.max())
+        gameState.setVisibleFloor(highest + 1)
+        try #require(gameState.visibleFloorOrdinal == highest + 1, "se asoma al de adelante")
+        gameState.debugSpawnMattress(onBoard: true)
+        #expect(gameState.mattressFloor == highest)
+    }
+
     @Test("el de regalo sigue el mismo camino: lugar en el piso, se abre ahí y su cobro ofrece el ×2 (B29)")
     func theGiftTakesTheSamePath() async throws {
         let gameState = await makeGameState()

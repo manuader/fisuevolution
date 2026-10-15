@@ -61,8 +61,8 @@ public struct TreasuresState: Codable, Sendable, Equatable {
         y = spot.y
     }
 
-    /// Ya no está en el tablero: se olvida su lugar.
-    mutating func clearPlacement() {
+    /// Ya no está en el tablero, o su piso se cerró (una reencarnación): se olvida su lugar.
+    public mutating func clearPlacement() {
         floor = nil
         x = nil
         y = nil

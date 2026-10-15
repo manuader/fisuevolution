@@ -63,3 +63,32 @@ nodo y lo hace caer). Lo que fallaba era lo que se veía y quién recibía el to
 Capturas en el SE y el Pro Max: el colchón quieto con «¡Tocame!» y el pop-up del premio (las adjunta
 el UI test de B24: «B24 el colchón quieto en el piso», «B24 el pop-up del premio»). En el iPhone del
 dueño con un video real: el log `reward after dismiss`.
+
+## Revisión opus (segunda pasada, sobre `056b5259`)
+
+| # | Hallazgo | Arreglo |
+|---|---|---|
+| 1 crítico | Reencarnar (`applyReincarnation`: `run = .fresh`) no toca `treasures`: el colchón quedaba con `floor` en un piso cerrado → oculto, sin toque, `dropHeld` para siempre y, con `isPresent`, no llegaba otro. | `placeMattressIfNeeded` (y su variante `using:` con el sorteo de afuera) considera inválido un `floor` que no está entre los pisos abiertos de la run y lo vuelve a ubicar (`clearPlacement`, ahora público en EK, + el placer). Lo llama el tick (`advanceTreasures`) y, para no esperar al tick, `confirmPrestige` después de `reconcileTower`. |
+| 2 | `marker(of: restingMattress)` usaba `node.position` con `hopOffset`: el marcador observable cambiaba casi cada cuadro mientras saltaba. | `mattressRestPosition`: pies + medio alto + `floorShift`, sin caída ni salto. `marker(at:)` recibe la posición. |
+| 3 | `visibleFloorOrdinal` puede ser el piso de adelante (`maxUnlocked + 1`, el que uno se asoma). | El piso destino es el que se mira sólo si está abierto; si no, el más alto abierto. |
+| 4 | Brillo y «¡Tocame!» creados también en las cajas; `hitTest` con `calculateAccumulatedFrame` agrandaba el toque con los carteles. | Se crean sólo para `.mattress` (opcionales). `hitTest` usa el marco del arte (`sprite.frame` con la escala de la pieza), más los 8 pt y el mínimo de 60. |
+| 5 | `dropHeld` sólo miraba el pop-up del colchón; un save viejo ubicado no se guardaba. | `dropHeld` usa `isBoardBusy` (hojas, pop-ups, paso 2 de B29, escena inactiva) además de la capa oculta, la escena fuera y otro piso. `placeMattressIfNeeded` hace `scheduleSave()` cuando ubica. |
+| 6 | UI tests. | `diagnose` adjunta captura + `app.debugDescription` cuando falta el premio, «Cobrar» o el video en los dos tests del colchón. La aserción de `open.waitForNonExistence` era vacía (el botón cambia de id al tocarlo): ahora espera que se vaya `mattress.open.watching` y que se cierre el popup (`mattress.odds.coins`). |
+
+Además, nunca cae atrás: si el sorteo no halla lugar libre, `y` se recorta a la mitad de adelante
+(el `spot.y < 0.5` de los tests deja de depender del azar). `boxesKeepClearOfTheMattress` pone las
+cajas en lugares fijos y siembra el sorteo del colchón (`ChestRandom(seed: 24)`).
+
+Dato del controlador: `testTheGiftedMattressOpensOnTheBoard` y
+`testTheSavedExtraMattressPaysWithOnlyTheVideo` dieron VERDE aislados en un simulador propio sobre
+`c6034332`: el rojo era carga de la máquina, no un modal.
+
+Tests nuevos (sin correr, regla del dueño): `MattressBoardTests.reincarnatingMovesItOffAClosedFloor`,
+`itNeverLandsOnThePeekFloor`; `PickupControllerTests.theMarkerIgnoresTheHop`,
+`theDropWaitsUnderACoveringSheet`, `afterReincarnationItCanBeTapped`, `theTapAreaIsTheArt`.
+`swift test` de EconomyKit: verde (1012).
+
+**Pendientes del controlador** (no los puede hacer este agente): la reproducción en simulador del
+recorrido y de los dos UI tests en el build único, las capturas en el SE y el Pro Max («B24 el colchón
+quieto en el piso», «B24 el pop-up del premio») y el log H4 (`rewarded … reward after dismiss`) en el
+iPhone del dueño con un video real.

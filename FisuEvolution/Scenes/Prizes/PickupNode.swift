@@ -88,9 +88,10 @@ final class PickupNode: SKNode {
     var callsForTap = false {
         didSet { if callsForTap != oldValue { syncCall() } }
     }
-    private let glow: SKSpriteNode
-    private let tapMeSign = SKLabelNode(fontNamed: "AvenirNext-Heavy")
-    private let tapMeShadow = SKLabelNode(fontNamed: "AvenirNext-Heavy")
+    /// El brillo y el «¡Tocame!» (con su sombra) son sólo del colchón: la caja no los tiene.
+    private let glow: SKSpriteNode?
+    private let tapMeSign: SKLabelNode?
+    private let tapMeShadow: SKLabelNode?
     /// Cuánto más arriba de su lugar está por el salto (0 quieto). Lo suma quien lo ubica, como la caída.
     private(set) var hopOffset: CGFloat = 0
     /// Cuánto más arriba de su lugar está mientras cae (0 quieto). Lo suma quien lo ubica.
@@ -104,7 +105,10 @@ final class PickupNode: SKNode {
         self.pool = pool
         self.packs = packs
         sprite = SKSpriteNode(texture: texture)
-        glow = SKSpriteNode(texture: texture)
+        let calls = kind == .mattress
+        glow = calls ? SKSpriteNode(texture: texture) : nil
+        tapMeSign = calls ? SKLabelNode(fontNamed: "AvenirNext-Heavy") : nil
+        tapMeShadow = calls ? SKLabelNode(fontNamed: "AvenirNext-Heavy") : nil
         waitingVideo = waitingClip.map {
             // El póster va transparente: el arte quieto es `sprite`, y dos copias del PNG se sumarían.
             LoopingVideoNode(clip: $0, poster: Self.clearTexture, size: .zero, role: .icon, manifest: manifest, pool: pool,
@@ -112,12 +116,14 @@ final class PickupNode: SKNode {
         }
         super.init()
         // El brillo es el mismo arte en amarillo y sumado, detrás del colchón.
-        glow.color = UIColor(named: "PaletteYellow") ?? .yellow
-        glow.colorBlendFactor = 1
-        glow.blendMode = .add
-        glow.zPosition = -DepthOrder.innerStep
-        glow.isHidden = true
-        addChild(glow)
+        if let glow {
+            glow.color = UIColor(named: "PaletteYellow") ?? .yellow
+            glow.colorBlendFactor = 1
+            glow.blendMode = .add
+            glow.zPosition = -DepthOrder.innerStep
+            glow.isHidden = true
+            addChild(glow)
+        }
         addChild(sprite)
         if let waitingVideo {
             waitingVideo.zPosition = DepthOrder.innerStep
@@ -129,16 +135,18 @@ final class PickupNode: SKNode {
         fullSign.isHidden = true
         fullSign.zPosition = Self.labelZ
         addChild(fullSign)
-        for (label, color) in [(tapMeShadow, UIColor(named: "PaletteInk") ?? .black),
-                               (tapMeSign, UIColor(named: "PaletteCream") ?? .white)] {
-            label.text = String(localized: "mattress.board.tapme")
-            label.fontColor = color
-            label.verticalAlignmentMode = .center
-            label.isHidden = true
-            label.zPosition = Self.labelZ
-            addChild(label)
+        if let tapMeSign, let tapMeShadow {
+            for (label, color) in [(tapMeShadow, UIColor(named: "PaletteInk") ?? .black),
+                                   (tapMeSign, UIColor(named: "PaletteCream") ?? .white)] {
+                label.text = String(localized: "mattress.board.tapme")
+                label.fontColor = color
+                label.verticalAlignmentMode = .center
+                label.isHidden = true
+                label.zPosition = Self.labelZ
+                addChild(label)
+            }
+            tapMeShadow.zPosition = Self.labelZ - DepthOrder.innerStep
         }
-        tapMeShadow.zPosition = Self.labelZ - DepthOrder.innerStep
         resize(side: side)
         setScale(0.01)
     }
@@ -169,24 +177,24 @@ final class PickupNode: SKNode {
         for clip in openingClips { clip.resize(sprite.size) }
         fullSign.fontSize = side * 0.3
         fullSign.position = CGPoint(x: 0, y: sprite.size.height * 0.75)
-        glow.size = CGSize(width: sprite.size.width * 1.16, height: sprite.size.height * 1.16)
-        for label in [tapMeSign, tapMeShadow] { label.fontSize = side * 0.24 }
+        glow?.size = CGSize(width: sprite.size.width * 1.16, height: sprite.size.height * 1.16)
+        for label in [tapMeSign, tapMeShadow].compactMap({ $0 }) { label.fontSize = side * 0.24 }
         placeTapMe(bob: 0)
     }
 
     /// «¡Tocame!» arriba del colchón, con su sombra corrida un punto y medio.
     private func placeTapMe(bob: CGFloat) {
         let y = sprite.size.height * 0.72 + bob
-        tapMeSign.position = CGPoint(x: 0, y: y)
-        tapMeShadow.position = CGPoint(x: 0, y: y - 1.5)
+        tapMeSign?.position = CGPoint(x: 0, y: y)
+        tapMeShadow?.position = CGPoint(x: 0, y: y - 1.5)
     }
 
     /// El brillo y el cartel se ven sólo mientras pide que lo toquen y está quieto en su lugar.
     private func syncCall() {
         let shown = callsForTap && !isFalling && !isOpening
-        glow.isHidden = !shown
-        tapMeSign.isHidden = !shown
-        tapMeShadow.isHidden = !shown
+        glow?.isHidden = !shown
+        tapMeSign?.isHidden = !shown
+        tapMeShadow?.isHidden = !shown
         if !shown { hopOffset = 0 }
     }
 
@@ -194,7 +202,7 @@ final class PickupNode: SKNode {
     /// brillo que respira y el cartel que sube y baja. Con Reduce Motion, quieto y brillando.
     private func advanceCall(reduceMotion: Bool) {
         syncCall()
-        guard !glow.isHidden else { return }
+        guard let glow, !glow.isHidden else { return }
         let pulse = CGFloat(0.5 + 0.5 * sin(age * 4))
         glow.alpha = reduceMotion ? 0.45 : 0.25 + 0.4 * pulse
         guard !reduceMotion else {
@@ -422,9 +430,14 @@ final class PickupNode: SKNode {
     }
 
     /// `point` en las coordenadas del padre, con un margen generoso para el dedo: el
-    /// área crece con la caja (8 pt de aire) y nunca baja de `minTouchSide` (C10).
+    /// área crece con la caja (8 pt de aire) y nunca baja de `minTouchSide` (C10). Es la del arte,
+    /// con la escala de la pieza: el brillo, el «¡Tocame!» y el «LLENO» no agrandan el toque (B24).
     func hitTest(_ point: CGPoint) -> Bool {
-        var area = calculateAccumulatedFrame().insetBy(dx: -8, dy: -8)
+        let art = sprite.frame
+        let scaleX = abs(xScale)
+        let scaleY = abs(yScale)
+        var area = CGRect(x: position.x + art.minX * scaleX, y: position.y + art.minY * scaleY,
+                          width: art.width * scaleX, height: art.height * scaleY).insetBy(dx: -8, dy: -8)
         let missingWidth = max(0, PickupLayout.minTouchSide - area.width)
         let missingHeight = max(0, PickupLayout.minTouchSide - area.height)
         area = area.insetBy(dx: -missingWidth / 2, dy: -missingHeight / 2)

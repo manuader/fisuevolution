@@ -39,16 +39,39 @@ extension GameState {
     /// El del tablero cae en el piso que se mira, en un lugar libre de la mitad de adelante (E14b
     /// B24): la regla de las cajas (B22), lejos de ellas y de la zona del visitante, y adelante para
     /// que quede delante de las hileras (B19). El recién pagado, el de regalo y el de un save
-    /// anterior a B24; uno que ya tiene lugar no se mueve.
+    /// anterior a B24; uno que ya tiene lugar no se mueve, salvo que su piso se haya cerrado (una
+    /// reencarnación): ahí no se ve ni se toca, así que vuelve a caer en un piso abierto.
     func placeMattressIfNeeded() {
-        guard var player, player.meta.engagement.treasures.needsPlacement else { return }
-        let floor = visibleFloorOrdinal
+        placeMattressIfNeeded(using: &rng)
+    }
+
+    /// Lo mismo con el sorteo de afuera: los tests lo siembran.
+    func placeMattressIfNeeded<R: RandomNumberGenerator>(using generator: inout R) {
+        guard var player, player.meta.engagement.treasures.phase == .onBoard else { return }
+        let open = unlockedFloorOrdinals
+        let stranded = !open.isEmpty && player.meta.engagement.treasures.floor.map { !open.contains($0) } ?? false
+        guard player.meta.engagement.treasures.needsPlacement || stranded else { return }
+        // El que se mira puede ser el piso cerrado al que uno se asoma (`setVisibleFloor`): ahí no.
+        let floor = open.isEmpty || open.contains(visibleFloorOrdinal) ? visibleFloorOrdinal : open.max() ?? 0
+        player.meta.engagement.treasures.clearPlacement()
         let taken = player.meta.engagement.packages.boxes(onFloor: floor).compactMap(\.spot)
+        // El colchón propio no cuenta: su piso viejo está cerrado y no es éste.
         let areas = packageAreas(onFloor: floor).map { $0.keepingToTheFront(Self.mattressBackDepth) }
-        let spot = PackagePlacer.place(among: taken, in: areas, using: &rng)
+        var spot = PackagePlacer.place(among: taken, in: areas, using: &generator)
+        // Si el sorteo no encontró lugar libre se queda con el menos pisado: nunca atrás.
+        spot.y = min(spot.y, Self.mattressBackDepth.lowerBound * 0.98)
         player.meta.engagement.treasures.land(onFloor: floor, at: spot)
         self.player = player
+        if stranded { Log.economy.info("mattress left a closed floor") }
         Log.economy.info("mattress landed on floor \(floor)")
+        scheduleSave()
+    }
+
+    /// Los ordinales de los pisos abiertos de esta run.
+    private var unlockedFloorOrdinals: Set<Int> {
+        guard let content, let player else { return [] }
+        let unlocked = Set(player.run.unlockedFloors)
+        return Set(content.floorTable.floors.indices.filter { unlocked.contains(content.floorTable[$0].id) })
     }
 
     /// La parte de atrás de la superficie, de 0 (el frente) a 1 (el horizonte), donde el colchón no
@@ -61,7 +84,8 @@ extension GameState {
 
     /// El reloj de juego activo. Lo llama `advanceEngagement` con el delta del tick.
     func advanceTreasures(delta: TimeInterval) {
-        // El del tablero de un save anterior a B24 todavía no tiene lugar: se ubica al cargar.
+        // El del tablero de un save anterior a B24 todavía no tiene lugar, y el de un piso que se
+        // cerró al reencarnar no se ve: se ubican al cargar (y se guarda).
         placeMattressIfNeeded()
         guard engagementAutorun, !tutorialPhaseActive, mattressPopup == nil, let content, var player else { return }
         let arrival = TreasureScheduler.advance(&player.meta.engagement.treasures, delta: delta,

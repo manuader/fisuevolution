@@ -334,8 +334,20 @@ struct PickupControllerTests {
     @Test("una caja nueva no cae encima del colchón, ni el colchón encima de una caja")
     func boxesKeepClearOfTheMattress() async throws {
         let (gameState, _) = await pickups()
-        gameState.debugAddPackages(2)
-        gameState.debugSpawnMattress(onBoard: true)
+        gameState.debugDropPackage(onFloor: "alley", count: 2)
+        // Las cajas en lugares fijos y el sorteo del colchón sembrado: el test no depende del azar.
+        let fixed = [PackageSpot(x: 0.2, y: 0.2), PackageSpot(x: 0.8, y: 0.3)]
+        var player = try #require(gameState.player)
+        let placed = player.meta.engagement.packages.boxes.indices.filter { player.meta.engagement.packages.boxes[$0].spot != nil }
+        #expect(placed.count == 2)
+        for (index, spot) in zip(placed, fixed) {
+            player.meta.engagement.packages.boxes[index].x = spot.x
+            player.meta.engagement.packages.boxes[index].y = spot.y
+        }
+        player.meta.engagement.treasures = TreasuresState(phase: .onBoard)
+        gameState.player = player
+        var seeded = ChestRandom(seed: 24)
+        gameState.placeMattressIfNeeded(using: &seeded)
         let floor = try #require(gameState.mattressFloor)
         let spot = try #require(gameState.mattressSpot)
         let areas = gameState.packageAreas(onFloor: floor)
@@ -346,6 +358,82 @@ struct PickupControllerTests {
                                                backgroundOffset: gameState.visibleFloorDef?.backgroundOffset ?? 0)
         #expect(PackagePlacer.crowding(of: spot, among: boxes, in: bare.map { $0.keepingToTheFront(GameState.mattressBackDepth) }) == 0,
                 "cayó en un lugar libre de las cajas y adelante")
+    }
+
+    @Test("el marcador del colchón es su lugar de reposo: no cambia mientras salta (B24)")
+    func theMarkerIgnoresTheHop() async throws {
+        let (gameState, controller) = await pickups()
+        gameState.debugSpawnMattress(onBoard: true)
+        gameState.refreshPrizeAccess()
+        controller.update(delta: 1, reduceMotion: false)
+        var markers: Set<String> = []
+        var hopped = false
+        for _ in 0..<90 {
+            controller.update(delta: 1.0 / 60, reduceMotion: false)
+            markers.insert(gameState.boardMattressMarker)
+            hopped = hopped || (controller.mattress?.hopOffset ?? 0) > 0
+        }
+        #expect(hopped, "en un segundo y medio salta al menos una vez")
+        #expect(markers.count == 1, "un solo marcador: \(markers)")
+        #expect(markers.first?.contains(",") == true)
+    }
+
+    @Test("con otra hoja tapando el tablero, el de regalo no cae debajo (B24)")
+    func theDropWaitsUnderACoveringSheet() async throws {
+        let (gameState, controller) = await pickups()
+        controller.update(delta: 0.016, reduceMotion: false)
+        gameState.uiCoversBoard = true
+        gameState.debugSpawnMattress(onBoard: true, gifted: true)
+        gameState.refreshPrizeAccess()
+        run(controller, seconds: 2)
+        let mattress = try #require(controller.mattress)
+        #expect(mattress.isAwaitingDrop, "la caída espera a que se vaya la hoja")
+        gameState.uiCoversBoard = false
+        run(controller, seconds: PickupNode.popupCloseSeconds + PickupNode.fallSeconds + 0.2)
+        #expect(!mattress.isFalling)
+    }
+
+    @Test("reencarnar con el colchón en un piso que se cierra: cae en el piso que se mira y se toca (B24)")
+    func afterReincarnationItCanBeTapped() async throws {
+        let (gameState, controller) = await pickups()
+        gameState.debugUnlockFloors(throughTier: 9)
+        gameState.setVisibleFloor(2)
+        try #require(gameState.visibleFloorOrdinal == 2)
+        gameState.debugSpawnMattress(onBoard: true)
+        #expect(gameState.mattressFloor == 2)
+        gameState.refreshPrizeAccess()
+        controller.update(delta: 1, reduceMotion: true)
+        gameState.giveEarningsForPrestigeTesting(blue: 3)
+        gameState.confirmPrestige()
+        gameState.advanceTreasures(delta: 0.016)
+        let floor = try #require(gameState.mattressFloor)
+        let open = Set(gameState.floorMap.filter(\.isUnlocked).map(\.ordinal))
+        #expect(!open.contains(2), "la run nueva cerró el piso donde estaba")
+        #expect(open.contains(floor) && floor == gameState.visibleFloorOrdinal)
+        // La cinemática de la reencarnación no es lo que se prueba: el tablero a la vista.
+        gameState.celebrationHidesUI = false
+        gameState.refreshPrizeAccess()
+        run(controller, seconds: 1, reduceMotion: true)
+        let mattress = try #require(controller.mattress)
+        #expect(!mattress.isHidden && !mattress.isFalling)
+        #expect(gameState.boardMattressMarker.contains(","))
+        #expect(controller.handleTap(at: mattress.position))
+        #expect(gameState.mattressPopup?.openedOnBoard == true)
+    }
+
+    @Test("el toque es el del arte: el «¡Tocame!» no agranda el área, y la caja no lleva brillo ni cartel")
+    func theTapAreaIsTheArt() {
+        let mattress = PickupNode(kind: .mattress, texture: PickupArt.texture(.mattress), side: 300)
+        mattress.setScale(1)
+        mattress.callsForTap = true
+        mattress.position = CGPoint(x: 200, y: 300)
+        let half = mattress.boxSize.height / 2
+        #expect(mattress.hitTest(CGPoint(x: 200, y: 300 + half + 4)), "8 pt de aire para el dedo")
+        #expect(!mattress.hitTest(CGPoint(x: 200, y: 300 + mattress.boxSize.height * 0.72)), "el cartel de arriba no es toque")
+        #expect(mattress.children.filter { $0 is SKLabelNode }.count == 3, "LLENO y «¡Tocame!» con su sombra")
+        let box = PickupNode(kind: .package, texture: PickupArt.texture(.package), side: 300)
+        #expect(box.children.filter { $0 is SKLabelNode }.count == 1, "la caja sólo tiene el LLENO")
+        #expect(box.children.filter { $0 is SKSpriteNode }.count == 1, "sin brillo")
     }
 
     @Test("con Reduce Motion el pagado no cae: aparece en su lugar")

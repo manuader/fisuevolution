@@ -1,3 +1,4 @@
+import EconomyKit
 import Foundation
 
 /// Los seis eventos que existen (C4). Un nombre nuevo es un cambio de contrato: también lo es en
@@ -63,10 +64,11 @@ enum TelemetryPayload: Sendable, Equatable {
     /// `number`: el número de sesión de esta instalación.
     case sessionStart(number: Int)
     case sessionEnd(seconds: Int)
-    /// C1, en crudo: `format`/`precision` son los `rawValue` de `AdFormat`/`AdValuePrecision`.
-    case adImpression(format: String, site: String, micros: Int64, currency: String, precision: String, source: String?)
-    /// C3: `stage` es el `rawValue` de `OfferStage`.
-    case offer(site: String, stage: String)
+    /// C1: el formato y la precisión llegan tipados; viajan como su `rawValue`.
+    case adImpression(
+        format: AdFormat, site: String, micros: Int64, currency: String, precision: AdValuePrecision, source: String?)
+    /// C3: la etapa llega tipada; viaja como su `rawValue`.
+    case offer(site: String, stage: OfferStage)
     /// Sólo el producto: ni precio ni transacción.
     case purchase(product: String)
     /// Las reencarnaciones de la cuenta.
@@ -91,21 +93,28 @@ enum TelemetryPayload: Sendable, Equatable {
             return ["seconds": .int(Int64(max(0, seconds)))]
         case .adImpression(let format, let site, let micros, let currency, let precision, let source):
             var values: [String: TelemetryValue] = [
-                "format": .token(format, maxLength: 32),
+                "format": .token(format.rawValue, maxLength: 32),
                 "site": .token(site),
                 "micros": .int(micros),
                 "currency": .currency(currency),
-                "precision": .token(precision, maxLength: 32),
+                "precision": .token(precision.rawValue, maxLength: 32),
             ]
             if let source { values["source"] = .token(source, maxLength: 32) }
             return values
         case .offer(let site, let stage):
-            return ["site": .token(site), "stage": .token(stage, maxLength: 32)]
+            return ["site": .token(site), "stage": .token(stage.rawValue, maxLength: 32)]
         case .purchase(let product):
             return ["product": .token(product, maxLength: 128)]
         case .prestige(let count):
             return ["count": .int(Int64(count))]
         }
+    }
+
+    /// Una impresión del ledger (C1), tal cual la anotó `GameState.recordImpression`.
+    static func impression(_ impression: AdImpression) -> TelemetryPayload {
+        .adImpression(
+            format: impression.format, site: impression.site, micros: impression.valueMicros,
+            currency: impression.currency, precision: impression.precision, source: impression.adSource)
     }
 }
 

@@ -1,3 +1,4 @@
+import EconomyKit
 import Foundation
 import Testing
 @testable import FisuEvolution
@@ -53,11 +54,11 @@ struct TelemetryEventTests {
     static let closedKeys: [(TelemetryPayload, Set<String>)] = [
         (.sessionStart(number: 4), ["n"]),
         (.sessionEnd(seconds: 90), ["seconds"]),
-        (.adImpression(format: "rewarded", site: "offline.x2", micros: 1, currency: "USD", precision: "precise", source: "Google"),
+        (.adImpression(format: .rewarded, site: "offline.x2", micros: 1, currency: "USD", precision: .precise, source: "Google"),
          ["format", "site", "micros", "currency", "precision", "source"]),
-        (.adImpression(format: "appOpen", site: "appOpen", micros: 1, currency: "USD", precision: "estimated", source: nil),
+        (.adImpression(format: .appOpen, site: "appOpen", micros: 1, currency: "USD", precision: .estimated, source: nil),
          ["format", "site", "micros", "currency", "precision"]),
-        (.offer(site: "ads.watch.double_earnings", stage: "accepted"), ["site", "stage"]),
+        (.offer(site: "ads.watch.double_earnings", stage: .accepted), ["site", "stage"]),
         (.purchase(product: "com.adergames.fisu.blue.small"), ["product"]),
         (.prestige(count: 1), ["count"]),
     ]
@@ -71,23 +72,23 @@ struct TelemetryEventTests {
     @Test("los números viajan como números y los ids, tal cual")
     func propsValues() {
         let impression = TelemetryPayload.adImpression(
-            format: "rewarded", site: "offline.x2", micros: 12_500, currency: "usd", precision: "precise", source: "Unity")
+            format: .rewarded, site: "offline.x2", micros: 12_500, currency: "usd", precision: .precise, source: "Unity")
         #expect(impression.props == [
             "format": .string("rewarded"), "site": .string("offline.x2"), "micros": .int(12_500),
             "currency": .string("USD"), "precision": .string("precise"), "source": .string("Unity"),
         ])
         #expect(TelemetryPayload.sessionEnd(seconds: -5).props == ["seconds": .int(0)])
-        #expect(TelemetryPayload.offer(site: "offline.x2", stage: "shown").name == .offer)
+        #expect(TelemetryPayload.offer(site: "offline.x2", stage: .shown).name == .offer)
     }
 
     @Test("ningún texto libre: lo que no es un identificador se cae y todo queda recortado")
     func noFreeText() {
-        let offer = TelemetryPayload.offer(site: "Hola, soy Manu <manu@mail.com>", stage: "shown")
+        let offer = TelemetryPayload.offer(site: "Hola, soy Manu <manu@mail.com>", stage: .shown)
         #expect(offer.props["site"] == .string("HolasoyManumanumail.com"))
-        let long = TelemetryPayload.offer(site: String(repeating: "a", count: 500), stage: "shown")
+        let long = TelemetryPayload.offer(site: String(repeating: "a", count: 500), stage: .shown)
         #expect(long.props["site"] == .string(String(repeating: "a", count: 64)))
         #expect(TelemetryPayload.adImpression(
-            format: "rewarded", site: "x", micros: 1, currency: "dólares", precision: "precise", source: nil
+            format: .rewarded, site: "x", micros: 1, currency: "dólares", precision: .precise, source: nil
         ).props["currency"] == .string("XXX"))
     }
 
@@ -133,7 +134,7 @@ struct TelemetryEventTests {
     @Test("ida y vuelta por JSON sin perder nada")
     func roundTrip() throws {
         let event = Self.event(.adImpression(
-            format: "interstitial", site: "adBreak", micros: 7_000, currency: "USD", precision: "estimated", source: "Meta"))
+            format: .interstitial, site: "adBreak", micros: 7_000, currency: "USD", precision: .estimated, source: "Meta"))
         let data = try TelemetryEvent.makeEncoder().encode(event)
         #expect(try TelemetryEvent.makeDecoder().decode(TelemetryEvent.self, from: data) == event)
     }

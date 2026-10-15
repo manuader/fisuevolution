@@ -1,3 +1,4 @@
+import EconomyKit
 import Foundation
 import Testing
 @testable import FisuEvolution
@@ -106,8 +107,8 @@ private final class CountingIdentityStore: InstallIdentityStore, @unchecked Send
 struct TelemetryGateTests {
     private static let events: [TelemetryPayload] = [
         .sessionStart(number: 1),
-        .adImpression(format: "rewarded", site: "offline.x2", micros: 12_500, currency: "USD", precision: "precise", source: "Google"),
-        .offer(site: "ads.watch.double_earnings", stage: "shown"),
+        .adImpression(format: .rewarded, site: "offline.x2", micros: 12_500, currency: "USD", precision: .precise, source: "Google"),
+        .offer(site: "ads.watch.double_earnings", stage: .shown),
         .purchase(product: "com.adergames.fisu.blue.small"),
         .prestige(count: 2),
         .sessionEnd(seconds: 300),
@@ -283,8 +284,8 @@ struct TelemetryGateTests {
         #expect(network.requests.isEmpty)
 
         consent.allows = true
-        service.record(.offer(site: "offline.x2", stage: "shown"))
-        service.record(.offer(site: "offline.x2", stage: "accepted"))
+        service.record(.offer(site: "offline.x2", stage: .shown))
+        service.record(.offer(site: "offline.x2", stage: .accepted))
         service.flush()
         await service.settle()
 

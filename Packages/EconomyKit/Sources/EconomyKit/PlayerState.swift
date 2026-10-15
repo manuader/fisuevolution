@@ -402,6 +402,10 @@ public struct MetaState: Codable, Sendable, Equatable {
     /// La partida rankeada (E12). Toda cuenta nacida en la 2.0 arranca elegible; un save sin la
     /// clave es de antes y no compite hasta resetear.
     public var ranking: RankingState
+    /// Lo que pagó cada impresión de anuncio (E15). Medición: ningún cálculo de economía lo lee.
+    public var adRevenue: AdRevenueLedger
+    /// Cómo convierte cada oferta con video, por lugar (E15). Medición, como `adRevenue`.
+    public var offerFunnel: OfferFunnel
 
     public init(
         lifetimeEarnings: Double,
@@ -439,7 +443,9 @@ public struct MetaState: Codable, Sendable, Equatable {
         unlockedTabs: Set<String> = [],
         engagement: EngagementState = .initial,
         resetEpoch: Int = 0,
-        ranking: RankingState = .newGame
+        ranking: RankingState = .newGame,
+        adRevenue: AdRevenueLedger = .empty,
+        offerFunnel: OfferFunnel = .empty
     ) {
         self.lifetimeEarnings = lifetimeEarnings
         self.blue = blue
@@ -477,6 +483,8 @@ public struct MetaState: Codable, Sendable, Equatable {
         self.engagement = engagement
         self.resetEpoch = resetEpoch
         self.ranking = ranking
+        self.adRevenue = adRevenue
+        self.offerFunnel = offerFunnel
     }
 
     /// Decodificador a mano por los campos que llegaron después de v4
@@ -560,6 +568,9 @@ public struct MetaState: Codable, Sendable, Equatable {
         resetEpoch = try container.decodeIfPresent(Int.self, forKey: .resetEpoch) ?? 0
         // `try?`: un ranking ilegible (escrito por una versión futura) vale `.legacy`, no la partida entera.
         ranking = (try? container.decodeIfPresent(RankingState.self, forKey: .ranking)) ?? .legacy
+        // `try?` como `ranking`: la medición ilegible vuelve a empezar, la partida no se toca.
+        adRevenue = (try? container.decodeIfPresent(AdRevenueLedger.self, forKey: .adRevenue)) ?? .empty
+        offerFunnel = (try? container.decodeIfPresent(OfferFunnel.self, forKey: .offerFunnel)) ?? .empty
     }
 
     /// Las claves con que se guardaba el blue hasta E14b B14, cuando la moneda tenía otro nombre.

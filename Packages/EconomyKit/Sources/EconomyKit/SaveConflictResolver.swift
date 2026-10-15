@@ -86,6 +86,8 @@ public enum SaveConflictResolver {
         winner.meta.stats.blueSpentEver = max(local.meta.stats.blueSpentEver, remote.meta.stats.blueSpentEver)
         winner.meta.engagement = EngagementState.resolve(winner: winner.meta.engagement, loser: loser.meta.engagement)
         winner.meta.ranking = RankingState.resolve(winner: winner.meta.ranking, loser: loser.meta.ranking)
+        winner.meta.adRevenue = AdRevenueLedger.resolve(winner: winner.meta.adRevenue, loser: loser.meta.adRevenue)
+        winner.meta.offerFunnel = OfferFunnel.resolve(winner.meta.offerFunnel, loser.meta.offerFunnel)
         return winner
     }
 

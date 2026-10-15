@@ -217,6 +217,24 @@ struct TwinkleView: View {
 
 // MARK: - La carpeta
 
+/// El vaivén de la carpeta. Vive fuera de `FolderPlate` porque el cierre de
+/// `keyframeAnimator` es `@Sendable` y no puede capturar el genérico `Face`.
+private struct FolderFloat: ViewModifier {
+    let tick: Int
+
+    func body(content: Content) -> some View {
+        content
+            .keyframeAnimator(initialValue: 0.0, trigger: tick) { view, dy in
+                view.offset(y: dy)
+            } keyframes: { _ in
+                KeyframeTrack {
+                    CubicKeyframe(-3, duration: 0.7)
+                    CubicKeyframe(0, duration: 0.7)
+                }
+            }
+    }
+}
+
 /// El plato de Contratar: una carpeta de FisuJobs amarilla con su pestaña, un
 /// legajo que asoma, la cara del Fisura en el círculo y el sello rosa. Se dibuja
 /// en un cuadrado de `side` (el mismo que tenía el plato de arte).
@@ -228,15 +246,7 @@ struct FolderPlate<Face: View>: View {
 
     var body: some View {
         PulseClock(interval: 3.4, active: floating) { tick in
-            folder
-                .keyframeAnimator(initialValue: 0.0, trigger: tick) { view, dy in
-                    view.offset(y: dy)
-                } keyframes: { _ in
-                    KeyframeTrack {
-                        CubicKeyframe(-3, duration: 0.7)
-                        CubicKeyframe(0, duration: 0.7)
-                    }
-                }
+            folder.modifier(FolderFloat(tick: tick))
         }
     }
 

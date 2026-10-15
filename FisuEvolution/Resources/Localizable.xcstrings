@@ -6784,6 +6784,23 @@
         }
       }
     },
+    "mattress.board.tapme" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap me!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Tocame!"
+          }
+        }
+      }
+    },
     "mattress.collect" : {
       "extractionState" : "manual",
       "localizations" : {

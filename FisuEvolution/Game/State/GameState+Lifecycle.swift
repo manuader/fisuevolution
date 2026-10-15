@@ -8,6 +8,7 @@ extension GameState {
         to new: ScenePhase,
         now: TimeInterval = Date().timeIntervalSince1970
     ) {
+        telemetrySceneChanged(to: new, now: now)
         switch (old, new) {
         case (_, .background), (.active, .inactive):
             let wasActive = isSceneActive

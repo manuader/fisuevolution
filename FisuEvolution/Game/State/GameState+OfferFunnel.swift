@@ -8,6 +8,7 @@ extension GameState {
         guard player != nil else { return }
         player?.meta.offerFunnel.record(stage, site: site)
         scheduleSave()
+        telemetryOffer(stage, site: site)
     }
 
     /// Lo que se pone en el entorno para que todo `RewardedOfferButton` —el paso 2 de B29 incluido—

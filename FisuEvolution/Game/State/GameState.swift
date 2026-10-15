@@ -427,6 +427,8 @@ final class GameState {
     /// Los anuncios. `@ObservationIgnored` como los otros servicios: el estado
     /// del inventario de anuncios no dibuja nada.
     @ObservationIgnored var ads: AdsCoordinator?
+    /// La telemetría de E15 (`+Telemetry`). `nil` en los tests que no la piden.
+    @ObservationIgnored var telemetry: TelemetryHookup?
     /// La señal del consentimiento que la intro de una partida nueva espera (`+Cinematics`).
     @ObservationIgnored var consentGate: ConsentGate?
     @ObservationIgnored var introWait: Task<Void, Never>?

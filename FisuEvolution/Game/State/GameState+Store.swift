@@ -295,14 +295,17 @@ extension GameState {
             }
             self.player = player
             creditOffer(entry.offerId, transactionID: transactionID)
+            telemetryPurchase(entry)
             return true
         case .removeAds, .skin:
+            telemetryPurchase(entry)
             return true
         }
 
         self.player = player
         refreshProjections()
         scheduleSave()
+        telemetryPurchase(entry)
         return true
     }
 

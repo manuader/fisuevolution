@@ -130,14 +130,15 @@ struct PackageBoxesTests {
 
         let roomy = try open()
         #expect(assign(&packages, roomy) == 2)
-        #expect(packages.boxes.allSatisfy(\.isAssigned))
+        #expect(packages.boxes.allSatisfy { $0.isAssigned })
     }
 
     @Test("una caja de un piso que se cerró (reencarnación) se vuelve a sortear entre los abiertos")
     func aLockedFloorRerollsItsBox() throws {
         var fx = try fxStateAndTower(units: ["a": 1], unlockedFloors: ["f1"])
         fx.state.run.raiseFrontier(to: 4)
-        fx.state.run.seenTypes = ["a", "b"]
+        // `d` se vio (en otra vida): lo que la invalida es que su piso está cerrado.
+        fx.state.run.seenTypes = ["a", "b", "d"]
         var packages = PackagesState(boxes: [PackageBox(floor: 1, typeId: "d", x: 0.5)])
         #expect(assign(&packages, fx) == 1)
         #expect(packages.boxes[0].floor == 0)
@@ -178,9 +179,11 @@ struct PackageBoxesTests {
         let second = PackageBox(floor: 1, typeId: "d", x: 0.7)
         let third = PackageBox(floor: 0, typeId: "b", x: 0.9)
         var packages = PackagesState(boxes: [first, second, third])
-        #expect(packages.remove(second))
+        let removed = packages.remove(second)
+        #expect(removed)
         #expect(packages.boxes == [first, third])
-        #expect(!packages.remove(second), "ya no estaba")
+        let again = packages.remove(second)
+        #expect(!again, "ya no estaba")
         #expect(packages.boxes(onFloor: 0) == [first, third])
         #expect(packages.boxes(onFloor: 1).isEmpty)
     }
@@ -220,7 +223,7 @@ struct PackageBoxesTests {
         let fx = try open()
         #expect(assign(&migrated, fx) == 3)
         #expect(migrated.waiting == 3)
-        #expect(migrated.boxes.allSatisfy(\.isAssigned))
+        #expect(migrated.boxes.allSatisfy { $0.isAssigned })
     }
 
     @Test("un save con cajas manda sobre el contador viejo")

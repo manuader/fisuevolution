@@ -223,7 +223,7 @@ struct PackageFloorsTests {
         let gameState = await tower()
         gameState.player?.meta.engagement.packages = PackagesState(waiting: 3)
         #expect(gameState.settlePackageBoxes() == 3)
-        #expect(gameState.packageBoxes.allSatisfy(\.isAssigned))
+        #expect(gameState.packageBoxes.allSatisfy { $0.isAssigned })
         #expect(gameState.packageFloorOrdinals.isSubset(of: Set(0..<(gameState.content?.floorTable.count ?? 0))))
     }
 
@@ -244,7 +244,7 @@ struct PackageFloorsTests {
         let gameState = await tower()
         gameState.grant(.package(3), source: "visit.puntero_bolson")
         #expect(gameState.packagesWaiting == 3)
-        #expect(gameState.packageBoxes.allSatisfy(\.isAssigned))
+        #expect(gameState.packageBoxes.allSatisfy { $0.isAssigned })
     }
 
     @Test("el ascensor marca los pisos con cajas")
@@ -255,6 +255,6 @@ struct PackageFloorsTests {
         #expect(gameState.packageFloorOrdinals == [urban])
         let model = ElevatorKeypadModel(map: gameState.floorMap, visibleOrdinal: 0,
                                         packageOrdinals: gameState.packageFloorOrdinals)
-        #expect(model.floors.filter(\.hasPackage).map(\.ordinal) == [urban])
+        #expect(model.floors.filter { $0.hasPackage }.map(\.ordinal) == [urban])
     }
 }

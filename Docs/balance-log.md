@@ -2461,3 +2461,31 @@ que nunca mira videos recibe un regalo sólo mientras no le toque uno de columna
 en esperanza, 1/3 de colchón en toda la partida. Despreciable para el pacing.
 
 Comando: el de «Cómo re-correr» de la calibración 2.0, con `--profile free | ads | max`.
+
+# E14b B18 — cada caja es de un piso: el sorteo pasa de abrir a aparecer (2026-10-15)
+
+**Qué cambió:** `PackagesState.waiting` (un contador) pasa a `boxes: [PackageBox]` con `{floor, typeId, x}`, campo
+nuevo sin subir el schema (se sigue escribiendo `waiting` = cuántas hay, para una versión vieja de la app). A quién
+trae una caja se sortea **cuando aparece** (`PackageRoller.rollBox`: el mismo `eligibleTypes` + `odds` de siempre,
+con el estado de ese momento) y el tipo fija el piso. Abrirla trae sí o sí a ese tipo; si su piso está lleno, LLENO
+y la caja espera (aunque otro piso tenga lugar). Una caja que cae sin nadie a quien traer, la de un save viejo
+(`waiting = N` → N sin asignar) o la de un piso que se cerró al reencarnar se sortea con `assignPending` apenas hay
+candidatos. Sin reservas: dos cajas pueden apuntar al último lugar de un piso (la segunda espera).
+
+**Simulador:** `SourceClocks.packageBoxes` guarda lo que trae cada caja al caer (`nil` = sin nadie, se sortea al
+abrir); el bot abre en el mismo tick, así que el sorteo esperado (`pkg.T<tier>`) corre en el mismo orden y con el
+mismo estado que antes. Cambia sólo la caja cuyo piso se llenó entre caer y abrir: ahora espera en vez de perderse.
+
+**Pacing (medido, sin cambio):**
+
+| Perfil | Dios (h activas) | de pared | blue a Dios | Reencarnaciones |
+|---|---|---|---|---|
+| `.free` | 45,40 | 816,07 | 5.996 | 6 |
+| `.ads` | 30,60 | 542,26 | 6.139 | 6 |
+| `.max` | 30,02 | 537,02 | 7.823 | 6 |
+
+Con `--seed-fraction 0.1` y `0.9`: `.free` 45,40 / 45,34 h (2724,1 y 2720,4 min). Idéntico a B6: no hizo falta tocar
+`packages.json`. EconomyKit: 975 tests en verde; `PackageBoxesTests` mata 7 mutantes (piso fijo, sin piso abierto,
+sin tipo-piso, migración, sin `waiting`, x fija, reloj que asigna).
+
+Comando: el de «Cómo re-correr» de la calibración 2.0, con `--profile free | ads | max`.

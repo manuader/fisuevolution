@@ -20,6 +20,8 @@
 > mockups aprobados (`Docs/correcciones-v2/mockups/`), 30 tareas en `tasks.md` §5 «E14» y §4.0. Va antes que
 > todo lo demás de la cola. Detalle: `Docs/SESION-2026-10-12-v2-e14-correcciones-dueno.md`.
 >
+> 📍 **Estado al cierre del relevo 58 (2026-10-15; manda sobre los párrafos de abajo):** **`version-2` = `36697cac`** (integ-r54 VERDE con el `completo` `20261015-154752` + aislamiento: E14 T13–T26, E14b B1–B19, B26, B27 y el cofre rehecho). Lo nuevo está en **`v2i/integ-r58` (pusheada, sin `completo`)**: E14b B20–B24, B28 y B29 (visitante que pasea y llegada sin cortes, cajas con x/y y el personaje saliendo de la caja, el colchón visible tras el video, la barra con diseño B, recompensas en dos pasos), E15 F0 T1–T7 y T9 (ledger de impresiones, embudo de ofertas, telemetría a Supabase con interruptor apagado, privacidad publicada; O1/O2/O3/O5 hechos por el dueño), `tabsMoved` sólo veteranos y el ícono del Ranking. Build único ✅ (EK 1017 · Release 0 · unit 2259 verde tras 4 tests viejos); **UI de las tareas nuevas: 60 verdes · 5 rojos** (B28, B24/B29, B29, B21 ×2) que el 59 aísla primero; después el `completo` de integ-r58, B25, B30 aparte, E15 T8 y los cierres. Detalle: `Docs/SESION-2026-10-15-v2-relevo-58.md` y `handoffs/HANDOFF-2026-10-15-v2-relevo-58.md`.
+>
 > 📍 **Estado al cierre del relevo 57 (2026-10-15; manda sobre los párrafos de abajo):** `version-2` sigue en `d53a4098`; lo nuevo está en **`v2i/integ-r54` (pusheada)**: E14b B17–B19, B26 y B27 (cajas por piso, capas por profundidad con el globo del visitante arriba, la Tienda a la barra y el Ranking dentro del Menú, el crema de FisuJobs) y sus arreglos de revisión. El `completo` de `4e6dcecc` dio 20 de 21 rojos de UI por carga (~150 por Spotlight) y no se repitió sobre la punta: **el 58 lo corre con la máquina sola, aísla y recién ahí fast-forward de `version-2`.** Después E14b B20–B25, B28–B30, E15 «Valor por jugador» sólo F0 (`Docs/PLAN-v2-E15-valor-por-jugador.md`) y los cierres. El cofre rehecho ya está en el iPhone del dueño. Detalle: `Docs/SESION-2026-10-15-v2-relevo-57.md` y `handoffs/HANDOFF-2026-10-15-v2-relevo-57.md`.
 >
 > 📍 **Estado al cierre del relevo 56 (2026-10-15; manda sobre los párrafos de abajo):** lo nuevo está en **`v2i/integ-r54` (pusheada)**: E14b B1–B16 enteras, E14 T25 (cero SF Symbols) y T26 (textos, Tour de 12 pasos), y los arreglos de los bugs que el dueño vio en su iPhone (tip del tutorial a pantalla completa, hueco abajo en el cofre: **la barra inferior nunca desaparece**). **Regla nueva del dueño: los agentes no compilan por tarea; la ola se integra, se compila una vez y un agente arregla lo que falle.** Pendiente: B17/B18 (cajas por piso), el cofre rehecho (`v2i/cofre-r56`) y los cierres. Si `version-2` avanzó o no, lo dice `handoffs/HANDOFF-2026-10-15-v2-relevo-56.md`. Detalle: `Docs/SESION-2026-10-15-v2-relevo-56.md`.
@@ -393,6 +395,10 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-10-15 (relevo 58) — version-2 a 36697cac, E14b olas 7–8, E15 F0 y el build único de integ-r58
+
+El `completo` de integ-r54 con la máquina sola dio 1 rojo de unit y 6 de UI; aislados, 6 de 7 eran carga y el de `RankingTabUITests` era del test (`36697cac`): **fast-forward de `version-2` a `36697cac`**. Por pedido del dueño («desplegá agentes de mientras») la ola 7 corrió en paralelo: B20+B21, B22+B23, B28, después B29 y B24, y E15 F0 entero salvo T8 (plan, T1–T7, T9), todo con revisión opus. En vivo, el dueño decidió `tabsMoved` sólo veteranos y el ícono `ui_menu_ranking`. Desde su sesión aprobó O1, aplicó O2, hizo O3 y O5, postergó O4 al día del envío y publicó el mensaje RGPD de UMP con español. Defaults del controlador: Opción A que falla cerrado, id propio de telemetría, la medición cruza el reset. El build único de integ-r58 salió de a un error por vez (un agente con permiso de compilar lo cerró); unit verde tras 4 tests viejos; UI de las tareas nuevas 60 · 5 rojos. Detalle: `Docs/SESION-2026-10-15-v2-relevo-58.md` (B24: `Docs/SESION-2026-10-15-v2-e14b-b24-colchon.md`).
 
 ### Sesión del 2026-10-15 (relevo 57) — B17, B18, B19, B26, B27 y un completo cargado por Spotlight
 
@@ -5057,6 +5063,14 @@ Siguen vigentes y no estaban en ningún otro lado:
 - **El repaso se retira si el núcleo volvió a vivir** y no arranca con el núcleo sin hacer: no hay que "arreglarlo" para que arranque igual, pisaría la fase.
 - **El reset del ORO es `min(saldo, comprado)`:** devolver el comprado entero regala ORO gastado; devolver el saldo entero regala el ORO ganado jugando. Cualquier cambio a `ResetPlan` o a `resolveAcrossReset` se prueba con `ResetEpochTests`.
 
+### Del relevo 58 (2026-10-15)
+
+- **El stash de git es compartido entre todos los worktrees:** un agente lo usó. `git stash list` antes de mergear; nunca `git stash` a secas en los briefs.
+- **Integrar varias tareas sin compilar da los errores de Swift de a uno:** cada `rapido` frena en el primero. Un agente con permiso de compilar sólo el build hasta verde lo cierra en una pasada.
+- **`keyframeAnimator` con genéricos pide tipos `Sendable`:** `Face.Type` no lo era; la animación va a un `ViewModifier` propio.
+- **Con agentes que no compilan, hay tests que nunca corrieron hasta el build único:** 3 de los 4 rojos de unit eran tests viejos contra APIs que otra rama cambió. Leer el test antes de tocar el código.
+- **`canRequestAds` de UMP no es consentimiento:** sólo dice que el formulario se completó. Lo que se promete en privacidad se mira en TCF (fines 1/8/9/10).
+
 ### Del relevo 57 (2026-10-15)
 
 - **El `completo` puede cargarse solo:** `mds_stores`/Spotlight + CoreSimulator llevaron la carga a ~150 sin un solo agente; los rojos de UI de esa corrida eran carga (20 de 21). Aislar una vez antes de creerlos.
@@ -5698,6 +5712,8 @@ Anotado por si algún día importa, con su medición:
 - **`Docs/SESION-2026-10-12-v2-relevo-38-ola-aj.md`**: el relevo 38 (los eventos de 25 s dicen «En curso»; fuera `tutorial.tip.wheel`).
 - **`Docs/SESION-2026-10-12-v2-relevo-37-ola-ai.md`**: el relevo 37 (el UI test del otro colchón `extraOnly`; el pager asienta con el scroll quieto).
 - **`Docs/SESION-2026-10-13-v2-relevo-50.md`**: el relevo 50 (E14 T4, T6, T28; la carga de la máquina).
+- **`Docs/SESION-2026-10-15-v2-relevo-58.md`**: el relevo 58 (`version-2` = `36697cac`, E14b B20–B24/B28/B29, E15 F0, el inventario de B29, el build único de integ-r58 y sus 5 rojos de UI).
+- **`Docs/SESION-2026-10-15-v2-e14b-b24-colchon.md`**: B24, el colchón después del video (causas H1/H2/H5, H4 con log para el iPhone).
 - **`Docs/SESION-2026-10-15-v2-relevo-57.md`**: el relevo 57 (E14b B17–B19, B26, B27, el completo cargado por Spotlight, los carries y E15).
 - **`Docs/SESION-2026-10-15-v2-relevo-56.md`**: el relevo 56 (E14b B3–B16, T25, T26, la regla de no compilar por tarea, los bugs del dueño y el plan de B17/B18).
 - **`Docs/SESION-2026-10-14-v2-relevo-55.md`**: el relevo 55 (los 6 rojos, E14 T16/T20/T24, el cofre de C26, E14b B1/B2 y el spec de E14b).

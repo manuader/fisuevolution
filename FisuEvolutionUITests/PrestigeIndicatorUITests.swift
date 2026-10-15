@@ -75,4 +75,30 @@ final class PrestigeIndicatorUITests: XCTestCase {
         assertNoRawKeys(app, context: "popup de la segunda vida")
         attach(app, named: "RF-16 segunda vida: el antes ya no es ×1")
     }
+
+    /// E14b B28: el billete de Reencarnar y la etiqueta de Contratar quedan cada uno
+    /// en su mitad y ninguno pisa el plato del medio.
+    @MainActor
+    func testLosBotonesDeLaBarraNoPisanElPlato() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitest-reset", "--uitest-prestige", "--uitest-skip-tutorial", "--uitest-coins"]
+        app.launch()
+
+        let prestige = app.buttons["hud.prestige"]
+        let quickHire = app.buttons["hud.quickhire"]
+        let hire = app.buttons["hud.hire"]
+        XCTAssertTrue(prestige.waitForExistence(timeout: 15), "el billete nunca apareció")
+        XCTAssertTrue(quickHire.waitForExistence(timeout: 5), "la etiqueta nunca apareció")
+        XCTAssertTrue(hire.exists)
+
+        XCTAssertFalse(prestige.frame.intersects(hire.frame),
+                       "el billete \(prestige.frame) pisa el plato \(hire.frame)")
+        XCTAssertFalse(quickHire.frame.intersects(hire.frame),
+                       "la etiqueta \(quickHire.frame) pisa el plato \(hire.frame)")
+        XCTAssertFalse(quickHire.frame.intersects(prestige.frame), "las solapas se pisan entre sí")
+        XCTAssertGreaterThanOrEqual(quickHire.frame.minX, 0)
+        XCTAssertLessThanOrEqual(prestige.frame.maxX, app.frame.maxX)
+        attach(app, named: "B28 botones de la barra")
+        XCTAssertTrue(hire.isHittable, "Contratar quedó tapado")
+    }
 }

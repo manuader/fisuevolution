@@ -1,91 +1,68 @@
 import SwiftUI
 
-/// Las dos solapas de la barra de abajo (C18): Contratar a la izquierda y
-/// Reencarnar a la derecha, montadas sobre el borde de arriba de la barra. No son
-/// una franja aparte: miden `GameTabBar.flapHeight`, se meten `flapOverlap` en el
-/// panel y comparten su material, así que se leen como la barra que crece en esos
-/// dos lugares.
+/// Los dos botones de la barra de abajo (C18, rediseño E14b B28 «Etiqueta y
+/// billete»): Contratar a la izquierda, hecho etiqueta de precio, y Reencarnar a
+/// la derecha, hecho billete de dólar blue. Se montan sobre el borde de arriba de
+/// la barra: miden `GameTabBar.flapHeight` y se meten `flapOverlap` en el panel.
 ///
 /// Se apilan sobre `BottomMenuBar` desde arriba (`overlay(alignment: .top)`): el
 /// alto de la pila lo manda `GameTabBar.barHeight`, que ya cuenta lo que sobresalen.
 ///
-/// El hueco del medio es el plato de Contratar, que sobresale entre las dos: las
-/// solapas se achican antes que pisarlo.
+/// Cada uno ocupa SU mitad: el ancho máximo (`BarFlapLayout`) es la mitad de la
+/// barra menos el hueco del plato de Contratar y un margen, así que nunca entran
+/// al plato, que va arriba de todo. En el SE se achican antes que pisarlo.
 struct BarFlaps: View {
     /// Abre el selector del atajo (mantener presionado, o la acción de VoiceOver).
     let onChooseHire: () -> Void
     let onPrestige: () -> Void
 
     var body: some View {
-        HStack(alignment: .bottom, spacing: Tokens.s8) {
-            QuickHireButton(onChoose: onChooseHire)
-                .tutorialAnchor(.quickHire)
-            Spacer(minLength: GameTabBar.centerPlateSide + Tokens.s8)
-            PrestigeButton(action: onPrestige)
-                .tutorialAnchor(.prestige)
-        }
-        .padding(.horizontal, Tokens.s8)
-        .playColumn()
-        .frame(maxHeight: .infinity, alignment: .top)
-    }
-}
-
-/// La forma de una solapa: esquinas redondas arriba y recta abajo, donde se funde
-/// con el panel de la barra.
-struct BarFlapShape: InsettableShape {
-    var inset: CGFloat = 0
-    static let radius: CGFloat = 14
-
-    func path(in rect: CGRect) -> Path {
-        UnevenRoundedRectangle(
-            topLeadingRadius: Self.radius, topTrailingRadius: Self.radius, style: .continuous
-        ).path(in: rect.insetBy(dx: inset, dy: inset))
-    }
-
-    func inset(by amount: CGFloat) -> BarFlapShape {
-        var copy = self
-        copy.inset += amount
-        return copy
-    }
-}
-
-/// El contorno ink de 3 pt de la solapa: sólo los tres lados que dan al tablero.
-/// Abajo no hay línea —sería una raya adentro del panel—.
-private struct BarFlapOutline: Shape {
-    func path(in rect: CGRect) -> Path {
-        let line: CGFloat = 1.5
-        let box = rect.insetBy(dx: line, dy: line)
-        let r = BarFlapShape.radius
-        var path = Path()
-        path.move(to: CGPoint(x: box.minX, y: rect.maxY))
-        path.addLine(to: CGPoint(x: box.minX, y: box.minY + r))
-        path.addQuadCurve(to: CGPoint(x: box.minX + r, y: box.minY),
-                          control: CGPoint(x: box.minX, y: box.minY))
-        path.addLine(to: CGPoint(x: box.maxX - r, y: box.minY))
-        path.addQuadCurve(to: CGPoint(x: box.maxX, y: box.minY + r),
-                          control: CGPoint(x: box.maxX, y: box.minY))
-        path.addLine(to: CGPoint(x: box.maxX, y: rect.maxY))
-        return path
-    }
-}
-
-extension View {
-    /// El material de una solapa: crema con el contorno de la barra y un tinte
-    /// suave según lo que hace. El contenido queda centrado en la parte que se ve
-    /// (arriba de lo que se mete en el panel).
-    func barFlapSurface(tint: Color?) -> some View {
-        padding(.horizontal, Tokens.s8)
-            .padding(.top, 3)
-            .padding(.bottom, GameTabBar.flapOverlap)
-            .frame(height: GameTabBar.flapHeight)
-            .background {
-                BarFlapShape().fill(Color("PaletteParchment"))
-                if let tint {
-                    BarFlapShape().fill(tint.opacity(0.24))
-                }
+        GeometryReader { proxy in
+            let layout = BarFlapLayout.make(barWidth: proxy.size.width)
+            HStack(alignment: .bottom, spacing: 0) {
+                QuickHireButton(onChoose: onChooseHire)
+                    .frame(width: layout.left.width, alignment: .leading)
+                    .tutorialAnchor(.quickHire)
+                Spacer(minLength: 0)
+                PrestigeButton(action: onPrestige)
+                    .frame(width: layout.right.width, alignment: .trailing)
+                    .tutorialAnchor(.prestige)
             }
-            .overlay(BarFlapOutline().stroke(Color("PaletteInk"), style: StrokeStyle(lineWidth: 3, lineJoin: .round)))
-            .contentShape(BarFlapShape())
+            .padding(.horizontal, BarFlapLayout.sideMargin)
+            .playColumn()
+            .frame(maxHeight: .infinity, alignment: .top)
+        }
+    }
+}
+
+/// La geometría de las dos solapas contra el plato del medio, en una función
+/// pura para poder probarla sin dibujar nada.
+struct BarFlapLayout: Equatable {
+    /// El marco de cada solapa y el hueco del plato, en coordenadas de la barra
+    /// (x desde el borde izquierdo de la pantalla).
+    let left: CGRect
+    let right: CGRect
+    let plate: CGRect
+
+    /// Margen con el borde de la barra.
+    static let sideMargin: CGFloat = Tokens.s8
+    /// Aire que cada solapa le deja al plato.
+    static let plateGap: CGFloat = 6
+
+    /// - Parameter barWidth: el ancho de la pantalla; la columna de juego lo topa.
+    ///   El hueco es el del botón de Contratar (`GameTabBar.centerButtonWidth`),
+    ///   así que sirve para cualquier cantidad de pestañas.
+    static func make(barWidth: CGFloat) -> BarFlapLayout {
+        let plateSide = GameTabBar.centerButtonWidth
+        let usable = min(barWidth, PlayColumn.maxWidth)
+        let origin = (barWidth - usable) / 2
+        let lane = max(0, (usable - plateSide) / 2 - plateGap - sideMargin)
+        let height = GameTabBar.flapHeight
+        return BarFlapLayout(
+            left: CGRect(x: origin + sideMargin, y: 0, width: lane, height: height),
+            right: CGRect(x: origin + usable - sideMargin - lane, y: 0, width: lane, height: height),
+            plate: CGRect(x: origin + (usable - plateSide) / 2, y: 0, width: plateSide, height: height)
+        )
     }
 }
 

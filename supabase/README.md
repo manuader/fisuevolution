@@ -41,7 +41,15 @@ próximo deploy la aplica.
 reportes, aprobar u ocultar una partida, perdonar reportes, cambiar el piso de tiempo y el
 interruptor del ranking.
 
-## Telemetría (E15 F0) — en el repo, SIN aplicar
+## Telemetría (E15 F0) — APLICADA (2026-10-15, interruptor en false)
+
+> **Aplicada en `oejmjpwfxpwzzakdjxwp` el 2026-10-15** (🔒 O2, con el OK del dueño): las dos migraciones de `37ff5f26`,
+> registradas en `supabase_migrations.schema_migrations` como `20261015000001` y `20261015000002` (las mismas del repo,
+> así `db push` no las reaplica). Verificado: `telemetry_enabled` en false, RLS y política, cron `telemetry-retention`,
+> insert de anon rechazado, 0 filas. **Desde ahora, cualquier cambio a este SQL va en una migración NUEVA; no se editan
+> las aplicadas.**
+>
+> Lo que sigue abajo describe el esquema tal como quedó.
 
 Las migraciones `…20261015000001_telemetry_schema.sql` y `…20261015000002_telemetry_retention.sql` están escritas y
 probadas en local (`05_telemetry_test.sql`), pero **no están aplicadas** en el proyecto real. Aplicarlas es del dueño

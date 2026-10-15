@@ -40,6 +40,19 @@ struct ChestStageTests {
         #expect(ChestStage.prizeY - ChestStage.prizeHeight / 2 > -half)
     }
 
+    /// La barra de abajo queda a la vista durante el cofre (r56): en el SE el
+    /// escenario entero —premio, cofre y botones— entra arriba de ella (D14).
+    @MainActor @Test func elEscenarioEntraArribaDeLaBarraEnElSE() {
+        let seClearance = GameTabBar.barHeight + GameTabBar.minimumBottomGap + ChestStage.barGap
+        let available = 667 - seClearance
+        let fit = ChestStage.fit(height: available)
+        #expect(fit < 1, "en el SE no entra a tamaño natural: tiene que achicarse")
+        #expect(ChestStage.halfHeight * 2 * fit <= available)
+        // En un 15 Pro (852 pt, 59 arriba, 34 abajo) entra entero sin achicarse.
+        let proAvailable = 852 - 59 - (GameTabBar.barHeight + 34 + ChestStage.barGap)
+        #expect(ChestStage.fit(height: proAvailable) == 1)
+    }
+
     /// Los recursos viejos del cofre se retiraron: nada del bundle los nombra.
     @Test func losRecursosViejosYaNoEstan() {
         #expect(Bundle.main.url(forResource: "chest_open", withExtension: "mov") == nil)

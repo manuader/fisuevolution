@@ -394,26 +394,31 @@ struct GameBoardView: View {
     /// rama es el remedio estándar y además hace legible el orden de capas.
     @ViewBuilder private var hudColumn: some View {
         VStack(spacing: 8) {
-            HUDView(
-                onStoreTap: { open(.store) },
-                onMapOpen: { gameState.tutorialTipCompleted(.elevator) }
-            )
-            // Las esquinas: sellos de premios a la izquierda; el especial, los
-            // eventos y los boosts a la derecha (C9).
-            CornersView(railOffer: $railOffer) {
-                gameState.markOfferPresented(id: $0)
-                offerSelection = OfferPresentation(id: $0)
+            VStack(spacing: 8) {
+                HUDView(
+                    onStoreTap: { open(.store) },
+                    onMapOpen: { gameState.tutorialTipCompleted(.elevator) }
+                )
+                // Las esquinas: sellos de premios a la izquierda; el especial, los
+                // eventos y los boosts a la derecha (C9).
+                CornersView(railOffer: $railOffer) {
+                    gameState.markOfferPresented(id: $0)
+                    offerSelection = OfferPresentation(id: $0)
+                }
             }
+            // Durante la celebración a pantalla completa el HUD de arriba se va: el
+            // reveal va centrado y no tiene que esquivar nada. Sólo esa celebración
+            // lo hace — un toast de logro de 4 s no justifica apagar la interfaz.
+            .opacity(hidesUIForCelebration ? 0 : 1)
             Spacer()
+            // La barra de abajo NO se apaga nunca (regla del dueño, r56): el fondo del
+            // escenario termina arriba de ella (`BoardScene.floorBottom`) y sin la barra
+            // quedaba a la vista un rectángulo vacío.
             bottomBar
         }
-        // Durante la celebración a pantalla completa la UI se va del todo: el
-        // reveal va centrado en la pantalla entera y no tiene que esquivar nada.
-        // Con `allowsHitTesting` atado a lo mismo, además, no se puede tocar algo
-        // que no se ve. Sólo esa celebración lo hace — un toast de logro de 4 s
-        // no justifica apagar la interfaz.
+        // Con `allowsHitTesting` atado a la celebración no se toca nada durante ella:
+        // ni lo que no se ve ni la barra, que queda a la vista pero quieta.
         .modifier(SideRailTapAway(offer: $railOffer))
-        .opacity(hidesUIForCelebration ? 0 : 1)
         .allowsHitTesting(!hidesUIForCelebration)
         .animation(.easeInOut(duration: 0.25), value: hidesUIForCelebration)
     }

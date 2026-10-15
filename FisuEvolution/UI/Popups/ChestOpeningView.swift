@@ -75,6 +75,33 @@ enum ChestStage {
     static var lidTopY: CGFloat { clipY + (openLidTop - 256) * scale }
     /// Y del borde de abajo del bloque del premio.
     static var prizeBottomY: CGFloat { prizeY + prizeHeight / 2 }
+    /// El centro de los botones, debajo del cofre.
+    static let controlsY: CGFloat = 212
+    /// Media altura de la pila de botones más alta (equipar + otro cofre + después).
+    static let controlsHalfHeight: CGFloat = 84
+    /// Lo que el sello de la rareza sobresale arriba de la tarjeta del premio.
+    static let sealOverhang: CGFloat = 16
+    /// Aire entre los botones y la barra de abajo.
+    static let barGap: CGFloat = 8
+
+    /// La mitad del alto del escenario entero, desde su centro: el escenario es
+    /// simétrico porque todo va con offsets desde el centro.
+    static var halfHeight: CGFloat {
+        max(-(prizeY - prizeHeight / 2) + sealOverhang, controlsY + controlsHalfHeight)
+    }
+
+    /// La escala que hace entrar el escenario en el alto libre arriba de la barra
+    /// (en el SE no entra a tamaño natural). Nunca agranda.
+    static func fit(height: CGFloat) -> CGFloat {
+        min(1, max(0.5, height / (halfHeight * 2)))
+    }
+
+    /// Lo que ocupa la barra inferior desde el borde físico: la barra NO se apaga
+    /// durante el cofre (regla del dueño, r56) y el escenario vive arriba de ella
+    /// (D14). Alto con las solapas + su piso + la safe area de abajo.
+    @MainActor static var barClearance: CGFloat {
+        GameTabBar.barHeight + GameTabBar.bottomFloor + ScreenInsets.shared.bottom + barGap
+    }
 }
 
 /// Qué clip corre en cada momento del cofre. Pura: la vista sólo la consulta.
@@ -158,7 +185,7 @@ struct ChestOpeningView: View {
     /// El centro del cofre, en puntos desde el centro de la pantalla.
     private static let chestY = ChestStage.clipY
     /// Los botones, debajo del cofre.
-    private static let controlsY: CGFloat = 212
+    private static let controlsY = ChestStage.controlsY
     /// Cuándo sale el premio del brillo: a mitad de `cofre_abre` (73 cuadros a
     /// 24 fps), con la cola de destellos todavía corriendo.
     private static let revealSecondsIntoOpening = 1.4
@@ -172,8 +199,14 @@ struct ChestOpeningView: View {
         // lector NO mide la pantalla —mide lo que le proponen— y el layout
         // terminaba a media altura. Centrado + offsets no depende de qué le
         // propongan.
-        ZStack {
-            // El telón al 55 %: el HUD ya está apagado por la cola
+        //
+        // El telón cubre la pantalla entera —también la barra de abajo, que
+        // queda a la vista pero apagada—; el escenario vive en el alto libre
+        // entre el borde de arriba y la barra (`stageArea`).
+        let top = ScreenInsets.shared.top
+        let bottom = ChestStage.barClearance
+        return ZStack {
+            // El telón al 55 %: el HUD de arriba ya está apagado por la cola
             // (`celebrationHidesUI`), esto apaga el tablero.
             Color.black.opacity(0.55)
                 .ignoresSafeArea()
@@ -187,12 +220,48 @@ struct ChestOpeningView: View {
                 startRadius: 150,
                 endRadius: 430
             )
-            .offset(y: Self.chestY)
+            .offset(y: Self.chestY + (top - bottom) / 2)
             .ignoresSafeArea()
             .opacity(beat >= .forced1 ? 1 : 0)
             .animation(reduceMotion ? nil : .easeInOut(duration: 0.4), value: beat >= .forced1)
             .allowsHitTesting(false)
 
+            GeometryReader { proxy in
+                stageArea
+                    .frame(width: proxy.size.width, height: proxy.size.height)
+                    .scaleEffect(ChestStage.fit(height: proxy.size.height))
+            }
+            .padding(.top, top)
+            .padding(.bottom, bottom)
+
+            // El área tappable: una capa propia, ARRIBA del arte y ABAJO de
+            // los botones, que se retira en el reposo para no comerse sus
+            // toques. El identifier va acá —en el control de verdad— y no en
+            // ningún contenedor.
+            if beat < .resting {
+                Button(action: tap) {
+                    Rectangle()
+                        .fill(.clear)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("chest.tap")
+                .accessibilityLabel(Text("chest.tap.hint"))
+            }
+        }
+        .ignoresSafeArea()
+        // Sin esto VoiceOver se va al HUD apagado que quedó debajo.
+        .accessibilityAddTraits(.isModal)
+        .task(id: beat) { await choreograph(beat) }
+        .task {
+            await offerExtraChestIfAllowed()
+        }
+    }
+
+    /// El escenario: el cofre, el premio arriba y los botones abajo, con offsets
+    /// en puntos desde su centro.
+    private var stageArea: some View {
+        ZStack {
             stageCanvas
                 .scaleEffect(breathing ? 1.04 : 1)
                 .animation(
@@ -229,44 +298,27 @@ struct ChestOpeningView: View {
                     .allowsHitTesting(false)
                     .accessibilityHidden(true)
             }
+        }
+    }
 
-            // El área tappable: una capa propia, ARRIBA del arte y ABAJO de
-            // los botones, que se retira en el reposo para no comerse sus
-            // toques. El identifier va acá —en el control de verdad— y no en
-            // ningún contenedor.
-            if beat < .resting {
-                Button(action: tap) {
-                    Rectangle()
-                        .fill(.clear)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("chest.tap")
-                .accessibilityLabel(Text("chest.tap.hint"))
-            }
-        }
-        .ignoresSafeArea()
-        // Sin esto VoiceOver se va al HUD apagado que quedó debajo.
-        .accessibilityAddTraits(.isModal)
-        .task(id: beat) { await choreograph(beat) }
-        .task {
-            // ⚠️ **Durante el tutorial no se ofrece NADA.** El cofre de
-            // bienvenida cae al cerrar la fase obligatoria, y un jugador que
-            // todavía está aprendiendo a fusionar no tiene que elegir si mira
-            // publicidad. Es la misma regla que `isCalmMoment`
-            // aplica del otro lado, y la que hace que la primera sesión no
-            // arranque vendiendo.
-            //
-            // Vale de más bajo `--uitest*`, donde el stub contesta "hay
-            // anuncio" al instante: sin este guard el botón aparecería en el
-            // cofre del tutorial en toda corrida de tests.
-            guard !gameState.tutorialPhaseActive else { return }
-            // El cofre de un video no vuelve a ofrecer otro: sin este freno la
-            // cadena no tiene fin y las 41 pintas se vacían en una tarde. Y no
-            // se ofrece un cofre que no tendría nada desbloqueado que dar.
-            guard gameState.canOfferExtraChest else { return }
-            offersExtraChest = true
-        }
+    /// El cofre extra por video se decide una vez, al abrir.
+    private func offerExtraChestIfAllowed() async {
+        // ⚠️ **Durante el tutorial no se ofrece NADA.** El cofre de
+        // bienvenida cae al cerrar la fase obligatoria, y un jugador que
+        // todavía está aprendiendo a fusionar no tiene que elegir si mira
+        // publicidad. Es la misma regla que `isCalmMoment`
+        // aplica del otro lado, y la que hace que la primera sesión no
+        // arranque vendiendo.
+        //
+        // Vale de más bajo `--uitest*`, donde el stub contesta "hay
+        // anuncio" al instante: sin este guard el botón aparecería en el
+        // cofre del tutorial en toda corrida de tests.
+        guard !gameState.tutorialPhaseActive else { return }
+        // El cofre de un video no vuelve a ofrecer otro: sin este freno la
+        // cadena no tiene fin y las 41 pintas se vacían en una tarde. Y no
+        // se ofrece un cofre que no tendría nada desbloqueado que dar.
+        guard gameState.canOfferExtraChest else { return }
+    offersExtraChest = true
     }
 
     // MARK: El escenario

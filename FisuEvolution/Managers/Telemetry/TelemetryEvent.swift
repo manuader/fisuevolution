@@ -43,10 +43,13 @@ enum TelemetryValue: Codable, Sendable, Equatable {
         .string(String(raw.unicodeScalars.filter(isTokenScalar).prefix(maxLength).map(Character.init)))
     }
 
-    /// Un código ISO 4217: tres letras en mayúscula, o vacío.
+    /// ISO 4217 para «sin moneda»: la tabla exige tres mayúsculas, así que lo ilegible viaja así.
+    static let noCurrency = "XXX"
+
+    /// Un código ISO 4217: tres letras en mayúscula, o `XXX` si no lo es.
     static func currency(_ raw: String) -> TelemetryValue {
         let letters = raw.uppercased().unicodeScalars.filter { $0.isASCII && CharacterSet.uppercaseLetters.contains($0) }
-        return .string(letters.count == 3 ? String(letters) : "")
+        return .string(letters.count == 3 ? String(letters) : noCurrency)
     }
 
     private static func isTokenScalar(_ scalar: Unicode.Scalar) -> Bool {

@@ -5,14 +5,19 @@ import OSLog
 ///
 /// `Prefer: return=minimal` es obligatorio: `anon` no tiene `select` sobre la tabla y un
 /// `return=representation` fallaría. 2xx confirma el lote; 4xx lo descarta (es un bug del cliente
-/// o el interruptor del servidor apagado: reintentar no lo arregla); 5xx o sin red lo deja en la
-/// cola para el próximo intento.
+/// o el interruptor del servidor apagado: reintentar no lo arregla), salvo 408 y 429, que son
+/// «ahora no»; 5xx o sin red lo deja en la cola para el próximo intento. Un lote que no se puede
+/// codificar tampoco tiene arreglo: se descarta como un 4xx.
 struct TelemetryUploader: Sendable {
     enum Outcome: Equatable, Sendable {
         case accepted
         case rejected(status: Int)
+        case unencodable
         case retryLater
     }
+
+    /// Los 4xx que no son culpa del lote: el servidor pide esperar.
+    static let retryableClientErrors: Set<Int> = [408, 429]
 
     enum DrainOutcome: Equatable, Sendable {
         case drained
@@ -34,15 +39,17 @@ struct TelemetryUploader: Sendable {
 
     func upload(_ events: [TelemetryEvent]) async -> Outcome {
         guard !events.isEmpty else { return .accepted }
-        guard let body = try? TelemetryEvent.makeEncoder().encode(events),
-              var request = TelemetryNetwork.post("telemetry_events", body: body, config: config) else {
+        guard let body = try? TelemetryEvent.makeEncoder().encode(events) else { return .unencodable }
+        guard var request = TelemetryNetwork.post("telemetry_events", body: body, config: config) else {
             return .retryLater
         }
         request.setValue("return=minimal", forHTTPHeaderField: "Prefer")
         guard let reply = await TelemetryNetwork.send(request, with: fetch) else { return .retryLater }
-        switch reply.1.statusCode {
+        let status = reply.1.statusCode
+        switch status {
         case 200...299: return .accepted
-        case 400...499: return .rejected(status: reply.1.statusCode)
+        case _ where Self.retryableClientErrors.contains(status): return .retryLater
+        case 400...499: return .rejected(status: status)
         default: return .retryLater
         }
     }
@@ -57,6 +64,9 @@ struct TelemetryUploader: Sendable {
                 await queue.ack(batch)
             case .rejected(let status):
                 Self.log.error("telemetría rechazada (HTTP \(status)): se descartan \(batch.entries.count) eventos")
+                await queue.ack(batch)
+            case .unencodable:
+                Self.log.error("telemetría que no se puede codificar: se descartan \(batch.entries.count) eventos")
                 await queue.ack(batch)
             case .retryLater:
                 return .retryLater

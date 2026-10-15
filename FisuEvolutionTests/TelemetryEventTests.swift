@@ -88,7 +88,7 @@ struct TelemetryEventTests {
         #expect(long.props["site"] == .string(String(repeating: "a", count: 64)))
         #expect(TelemetryPayload.adImpression(
             format: "rewarded", site: "x", micros: 1, currency: "dólares", precision: "precise", source: nil
-        ).props["currency"] == .string(""))
+        ).props["currency"] == .string("XXX"))
     }
 
     @Test("nada de IDFA, IDFV ni nombre: ninguna clave ni valor los lleva")

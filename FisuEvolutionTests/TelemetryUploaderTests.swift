@@ -7,7 +7,7 @@ struct TelemetryUploaderTests {
     private static func event(_ number: Int) -> TelemetryEvent {
         TelemetryEvent(
             .sessionStart(number: number), installId: "11111111-2222-4333-8444-555555555555",
-            sessionId: UUID(), at: Date(timeIntervalSince1970: 1_790_000_000), device: TelemetryFakeNetwork.device)
+            sessionId: UUID(), at: Date(), device: TelemetryFakeNetwork.device)
     }
 
     private static func filledQueue(_ count: Int) async -> TelemetryQueue {
@@ -60,9 +60,11 @@ struct TelemetryUploaderTests {
         #expect(await queue.count == 0)
     }
 
-    @Test("5xx o sin red conserva el lote en la cola", arguments: [
+    @Test("5xx, 408, 429 o sin red conserva el lote en la cola", arguments: [
         TelemetryFakeNetwork.Reply.status(500, body: ""),
         .status(503, body: ""),
+        .status(408, body: ""),
+        .status(429, body: ""),
         .failure(URLError(.notConnectedToInternet)),
         .failure(URLError(.timedOut)),
     ])
@@ -91,6 +93,39 @@ struct TelemetryUploaderTests {
         }
         #expect(sizes == [50, 50, 20])
         #expect(await queue.count == 0)
+    }
+
+    @Test("un lote que no se puede codificar se descarta sin pedir nada (como un 4xx)")
+    func unencodableBatchDrops() async throws {
+        let network = TelemetryFakeNetwork()
+        let queue = TelemetryFakeNetwork.temporaryQueue()
+        let broken = try Self.eventWithNaN()
+        await queue.append(broken)
+        let uploader = TelemetryUploader(config: TelemetryFakeNetwork.config, fetch: network.fetch)
+
+        #expect(await uploader.upload([broken]) == .unencodable)
+        #expect(await uploader.drain(queue) == .drained)
+        #expect(await queue.count == 0)
+        #expect(network.requests.isEmpty)
+    }
+
+    /// Un evento con un `NaN` en `props`: `JSONEncoder` no lo puede escribir. Por la puerta de
+    /// `TelemetryPayload` no se arma; se lee con un decoder que acepta «nan».
+    private static func eventWithNaN() throws -> TelemetryEvent {
+        let json = """
+        {"install_id": "11111111-2222-4333-8444-555555555555", "session_id": "0b7d9a1e-6c3f-4e2a-8d5b-7f1a2c3d4e5f",
+         "client_ts": "\(ISO8601DateFormatter().string(from: Date()))", "name": "session_end",
+         "app_version": "2.0", "build": "42", "os_version": "18.2", "device_model": "iPhone16,2", "storefront": null,
+         "props": {"seconds": "nan"}}
+        """
+        let decoder = TelemetryEvent.makeDecoder()
+        decoder.nonConformingFloatDecodingStrategy = .convertFromString(
+            positiveInfinity: "inf", negativeInfinity: "-inf", nan: "nan")
+        let event = try decoder.decode(TelemetryEvent.self, from: Data(json.utf8))
+        guard case .double(let value) = event.props["seconds"], value.isNaN else {
+            throw CocoaError(.coderInvalidValue)
+        }
+        return event
     }
 
     @Test("sin config usable no pide nada y conserva la cola")

@@ -9,6 +9,11 @@ import UserMessagingPlatform
 /// tiempo. Lo que se pide antes de que el interruptor conteste espera en memoria detrás de esa
 /// pregunta (nunca en disco) y entra a la cola sólo si la respuesta fue `true`.
 ///
+/// Ni siquiera la pregunta al interruptor sale si la compuerta local está cerrada (sin
+/// consentimiento, UI test, DEBUG sin `--telemetry-debug`): si el consentimiento llega a mitad de
+/// sesión, se pregunta la primera vez que `record` o `flush` lo vean. Sin consentimiento, o con un
+/// `false` explícito del servidor, la cola se vacía: lo juntado no sale nunca.
+///
 /// Nada de esto bloquea el main actor: el trabajo corre en tareas encadenadas (en orden) que
 /// esperan a la cola y a la red fuera de él.
 @MainActor
@@ -24,12 +29,15 @@ final class TelemetryService {
     private let now: @MainActor () -> Date
 
     private(set) var remoteEnabled = false
+    /// Si ya se le preguntó al interruptor en esta sesión (con respuesta o sin ella).
+    private var switchAsked = false
     private var sessionId = UUID()
     private var recordedSinceFlush = 0
     private var failedUploads = 0
     private var nextAttemptAt: Date?
     private var tail: Task<Void, Never>?
-    private lazy var installId = identity.installId()
+    /// El Keychain se lee una sola vez y fuera del main actor, recién cuando hace falta.
+    private var installIdTask: Task<String, Never>?
 
     init(
         queue: TelemetryQueue,
@@ -82,22 +90,32 @@ final class TelemetryService {
 
     // MARK: - El ciclo de vida
 
-    /// Al arrancar: pregunta el interruptor en segundo plano y, si quedó algo de otra vez, lo manda.
+    /// Al arrancar: si la compuerta local deja, pregunta el interruptor en segundo plano y, si
+    /// quedó algo de otra vez, lo manda.
     func start() {
         chain { service in
+            guard await service.localGateAllows() else { return }
             await service.refreshSwitch(force: true)
             await service.drain()
         }
     }
 
-    /// Al volver del background: re-pregunta el interruptor si la respuesta tiene 6 h o más.
+    /// Al volver del background: re-pregunta el interruptor si la respuesta tiene 6 h o más (o si
+    /// todavía no se preguntó, porque el consentimiento llegó después del arranque).
     func didBecomeActive() {
-        chain { service in await service.refreshSwitch(force: false) }
+        chain { service in
+            guard await service.localGateAllows() else { return }
+            await service.refreshSwitch(force: !service.switchAsked)
+        }
     }
 
     /// Al irse a background (y cada 50 eventos): manda lo que haya en la cola.
     func flush() {
-        chain { service in await service.drain() }
+        chain { service in
+            guard await service.localGateAllows() else { return }
+            await service.askSwitchIfNeeded()
+            await service.drain()
+        }
     }
 
     /// Espera a que termine todo lo pedido hasta ahora. Para los tests y para quien necesite orden.
@@ -114,9 +132,11 @@ final class TelemetryService {
         let session = sessionId
         let at = now()
         chain { service in
+            await service.askSwitchIfNeeded()
             guard service.gate.canSend else { return }
             let device = await service.device.snapshot()
-            let row = TelemetryEvent(event, installId: service.installId, sessionId: session, at: at, device: device)
+            let installId = await service.resolvedInstallId()
+            let row = TelemetryEvent(event, installId: installId, sessionId: session, at: at, device: device)
             await service.queue.append(row)
             service.recordedSinceFlush += 1
             if service.recordedSinceFlush >= TelemetryQueue.batchSize { await service.drain() }
@@ -136,7 +156,30 @@ final class TelemetryService {
     }
 
     private func refreshSwitch(force: Bool) async {
+        switchAsked = true
         remoteEnabled = await telemetrySwitch.refresh(force: force)
+        if await telemetrySwitch.saidNo { await queue.removeAll() }
+    }
+
+    /// La pregunta perezosa: la primera vez que la compuerta local deja pasar algo en la sesión.
+    private func askSwitchIfNeeded() async {
+        guard !switchAsked, gate.localAllows else { return }
+        await refreshSwitch(force: true)
+    }
+
+    /// La compuerta local, leída ahora. Sin consentimiento de UMP, además, se vacía la cola.
+    private func localGateAllows() async -> Bool {
+        let gate = self.gate
+        if !gate.canRequestAds { await queue.removeAll() }
+        return gate.localAllows
+    }
+
+    private func resolvedInstallId() async -> String {
+        if let installIdTask { return await installIdTask.value }
+        let identity = identity
+        let task = Task.detached(priority: .utility) { identity.installId() }
+        installIdTask = task
+        return await task.value
     }
 
     /// Con la compuerta cerrada no sale nada, ni siquiera lo que quedó en la cola de antes.

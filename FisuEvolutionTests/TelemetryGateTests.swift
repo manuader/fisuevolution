@@ -79,6 +79,26 @@ final class TelemetryFakeNetwork: @unchecked Sendable {
     }
 }
 
+/// Un Keychain de mentira que cuenta las lecturas.
+private final class CountingIdentityStore: InstallIdentityStore, @unchecked Sendable {
+    private let lock = NSLock()
+    private var value: String?
+    private var readCount = 0
+
+    init(_ value: String?) { self.value = value }
+
+    var reads: Int { lock.withLock { readCount } }
+
+    func read() -> String? {
+        lock.withLock {
+            readCount += 1
+            return value
+        }
+    }
+
+    func write(_ newValue: String) { lock.withLock { value = newValue } }
+}
+
 /// El «Listo cuando» de la spec de E15: con cualquier insumo dudoso, nada sale del teléfono y
 /// nada se junta en la cola.
 @MainActor
@@ -115,15 +135,17 @@ struct TelemetryGateTests {
         #expect(service.gate.canSend == false)
     }
 
-    @Test("(b) interruptor prendido sin consentimiento de UMP: 0 inserts y la cola vacía")
+    @Test("(b) interruptor prendido sin consentimiento de UMP: ningún pedido (ni la pregunta) y la cola vacía")
     func noConsentSendsNothing() async {
         let network = TelemetryFakeNetwork(switchBody: "true")
         let queue = TelemetryFakeNetwork.temporaryQueue()
         let service = network.service(queue: queue, canRequestAds: false)
 
         await play(service)
+        service.didBecomeActive()
+        await service.settle()
 
-        #expect(network.inserts.isEmpty)
+        #expect(network.requests.isEmpty)
         #expect(await queue.count == 0)
     }
 
@@ -176,17 +198,20 @@ struct TelemetryGateTests {
             let queue = TelemetryFakeNetwork.temporaryQueue()
             await play(network.service(queue: queue, arguments: arguments))
 
-            #expect(network.inserts.isEmpty)
+            #expect(network.requests.isEmpty)
             #expect(await queue.count == 0)
         }
     }
 
-    @Test("un build DEBUG no manda nada salvo con --telemetry-debug")
+    @Test("un build DEBUG no pide nada (ni la pregunta) salvo con --telemetry-debug")
     func debugNeedsTheOverride() async {
         let closed = TelemetryFakeNetwork(switchBody: "true")
         let closedQueue = TelemetryFakeNetwork.temporaryQueue()
-        await play(closed.service(queue: closedQueue, isDebug: true))
-        #expect(closed.inserts.isEmpty)
+        let closedService = closed.service(queue: closedQueue, isDebug: true)
+        await play(closedService)
+        closedService.didBecomeActive()
+        await closedService.settle()
+        #expect(closed.requests.isEmpty)
         #expect(await closedQueue.count == 0)
 
         let open = TelemetryFakeNetwork(switchBody: "true")
@@ -225,21 +250,12 @@ struct TelemetryGateTests {
         #expect(await queue.count == 0)
     }
 
-    @Test("si el consentimiento se retira, lo que quedó en la cola no sale")
-    func revokedConsentHoldsTheQueue() async {
+    @Test("si el consentimiento se retira, lo que quedó en la cola no sale: se vacía")
+    func revokedConsentPurgesTheQueue() async {
         let network = TelemetryFakeNetwork(switchBody: "true")
         let queue = TelemetryFakeNetwork.temporaryQueue()
         let consent = ConsentFlag()
-        let service = TelemetryService(
-            queue: queue,
-            telemetrySwitch: TelemetrySwitch(config: TelemetryFakeNetwork.config, fetch: network.fetch),
-            uploader: TelemetryUploader(config: TelemetryFakeNetwork.config, fetch: network.fetch),
-            device: DeviceContext(appVersion: "2.0", build: "1", osVersion: "18.2", deviceModel: "iPhone16,2", storefront: { nil }),
-            identity: InstallIdentity(store: MemoryIdentityStore()),
-            canRequestAds: { consent.allows },
-            arguments: [],
-            isDebug: false
-        )
+        let service = Self.service(network: network, queue: queue, consent: consent)
         service.start()
         service.record(.sessionStart(number: 1))
         await service.settle()
@@ -250,11 +266,93 @@ struct TelemetryGateTests {
         await service.settle()
 
         #expect(network.inserts.isEmpty)
+        #expect(await queue.count == 0)
+    }
+
+    @Test("el consentimiento que llega a mitad de sesión: recién ahí se pregunta, una vez, y sale")
+    func consentArrivingLaterAsksLazily() async {
+        let network = TelemetryFakeNetwork(switchBody: "true")
+        let queue = TelemetryFakeNetwork.temporaryQueue()
+        let consent = ConsentFlag(allows: false)
+        let service = Self.service(network: network, queue: queue, consent: consent)
+
+        service.start()
+        service.record(.sessionStart(number: 1))
+        service.flush()
+        await service.settle()
+        #expect(network.requests.isEmpty)
+
+        consent.allows = true
+        service.record(.offer(site: "offline.x2", stage: "shown"))
+        service.record(.offer(site: "offline.x2", stage: "accepted"))
+        service.flush()
+        await service.settle()
+
+        #expect(network.switchQueries.count == 1)
+        #expect(network.inserts.count == 1)
+        #expect(await queue.count == 0)
+    }
+
+    @Test("un false explícito del interruptor vacía la cola; un error no")
+    func explicitSwitchOffPurgesTheQueue() async {
+        let network = TelemetryFakeNetwork(switchBody: "true")
+        let queue = TelemetryFakeNetwork.temporaryQueue()
+        let service = Self.service(network: network, queue: queue, consent: ConsentFlag())
+        service.start()
+        service.record(.sessionStart(number: 1))
+        await service.settle()
+        #expect(await queue.count == 1)
+
+        network.answerSwitch(.status(500, body: ""))
+        service.start()
+        await service.settle()
+        #expect(service.remoteEnabled == false)
+        #expect(await queue.count == 1)
+
+        network.answerSwitch(.status(200, body: "false"))
+        service.start()
+        await service.settle()
+        #expect(await queue.count == 0)
+        #expect(network.inserts.isEmpty)
+    }
+
+    @Test("el id de instalación se lee del Keychain una sola vez por servicio")
+    func installIdIsReadOnce() async throws {
+        let network = TelemetryFakeNetwork(switchBody: "true")
+        let store = CountingIdentityStore("11111111-2222-4333-8444-555555555555")
+        let service = Self.service(
+            network: network, queue: TelemetryFakeNetwork.temporaryQueue(), consent: ConsentFlag(), store: store)
+
+        await play(service)
+
+        #expect(store.reads == 1)
+        let body = try #require(network.inserts.first?.httpBody)
+        let rows = try #require(JSONSerialization.jsonObject(with: body) as? [[String: Any]])
+        #expect(Set(rows.compactMap { $0["install_id"] as? String }) == ["11111111-2222-4333-8444-555555555555"])
+    }
+
+    private static func service(
+        network: TelemetryFakeNetwork,
+        queue: TelemetryQueue,
+        consent: ConsentFlag,
+        store: any InstallIdentityStore = MemoryIdentityStore()
+    ) -> TelemetryService {
+        TelemetryService(
+            queue: queue,
+            telemetrySwitch: TelemetrySwitch(config: TelemetryFakeNetwork.config, fetch: network.fetch),
+            uploader: TelemetryUploader(config: TelemetryFakeNetwork.config, fetch: network.fetch),
+            device: DeviceContext(appVersion: "2.0", build: "1", osVersion: "18.2", deviceModel: "iPhone16,2", storefront: { nil }),
+            identity: InstallIdentity(store: store),
+            canRequestAds: { consent.allows },
+            arguments: [],
+            isDebug: false
+        )
     }
 
     @MainActor
     private final class ConsentFlag {
-        var allows = true
+        var allows: Bool
+        init(allows: Bool = true) { self.allows = allows }
     }
 
     // MARK: - La compuerta pura

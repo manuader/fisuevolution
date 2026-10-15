@@ -51,6 +51,9 @@ actor TelemetrySwitch {
     private let fetch: TelemetryNetwork.Fetch
     private let now: @Sendable () -> Date
     private(set) var isEnabled = false
+    /// `true` sólo si el servidor contestó un `false` explícito (no un error ni la falta de red):
+    /// es lo único del interruptor que autoriza a vaciar la cola.
+    private(set) var saidNo = false
     private var answeredAt: Date?
 
     init(
@@ -68,7 +71,10 @@ actor TelemetrySwitch {
     func refresh(force: Bool) async -> Bool {
         if !force, let answeredAt, now().timeIntervalSince(answeredAt) < Self.maxAge { return isEnabled }
         let answer = await ask()
-        if answer != nil { answeredAt = now() }
+        if let answer {
+            answeredAt = now()
+            saidNo = !answer
+        }
         isEnabled = answer == true
         return isEnabled
     }

@@ -10,10 +10,10 @@ struct TelemetryQueueTests {
             .appending(path: "telemetry-queue.json")
     }
 
-    private static func event(_ number: Int) -> TelemetryEvent {
+    private static func event(_ number: Int, at date: Date = Date()) -> TelemetryEvent {
         TelemetryEvent(
             .sessionStart(number: number), installId: "11111111-2222-4333-8444-555555555555",
-            sessionId: UUID(), at: Date(timeIntervalSince1970: 1_790_000_000), device: TelemetryFakeNetwork.device)
+            sessionId: UUID(), at: date, device: TelemetryFakeNetwork.device)
     }
 
     private static func numbers(_ batch: TelemetryQueue.Batch) -> [Int64] {
@@ -82,5 +82,48 @@ struct TelemetryQueueTests {
     func emptyQueue() async {
         let queue = TelemetryQueue(fileURL: Self.fileURL())
         #expect(await queue.nextBatch().isEmpty)
+    }
+
+    @Test("el lote no lleva eventos con la hora corrida más de 29 días (la tabla los rechazaría) y se caen")
+    func staleEventsNeverLeave() async {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let day: TimeInterval = 24 * 60 * 60
+        #expect(TelemetryQueue.maxClockSkew == 29 * day)
+
+        let url = Self.fileURL()
+        let queue = TelemetryQueue(fileURL: url, now: { now })
+        await queue.append(Self.event(1, at: now - 40 * day))
+        await queue.append(Self.event(2, at: now - 28 * day))
+        await queue.append(Self.event(3, at: now))
+        await queue.append(Self.event(4, at: now + 28 * day))
+        await queue.append(Self.event(5, at: now + 31 * day))
+
+        #expect(Self.numbers(await queue.nextBatch()) == [2, 3, 4])
+        #expect(await queue.count == 3)
+        #expect(await TelemetryQueue(fileURL: url, now: { now }).count == 3)
+    }
+
+    @Test("removeAll vacía la cola y borra el archivo")
+    func removeAllPurges() async {
+        let url = Self.fileURL()
+        let queue = TelemetryQueue(fileURL: url)
+        for number in 1...3 { await queue.append(Self.event(number)) }
+
+        await queue.removeAll()
+
+        #expect(await queue.count == 0)
+        #expect(FileManager.default.fileExists(atPath: url.path()) == false)
+        #expect(await TelemetryQueue(fileURL: url).count == 0)
+    }
+
+    @Test("el archivo de la cola queda fuera del backup de iCloud, también después de reescribirlo")
+    func excludedFromBackup() async throws {
+        let url = Self.fileURL()
+        let queue = TelemetryQueue(fileURL: url)
+        await queue.append(Self.event(1))
+        await queue.append(Self.event(2))
+
+        let values = try url.resourceValues(forKeys: [.isExcludedFromBackupKey])
+        #expect(values.isExcludedFromBackup == true)
     }
 }

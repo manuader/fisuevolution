@@ -115,6 +115,40 @@ final class ChestOpeningUITests: XCTestCase {
                        "cerrar el cofre tiene que devolver el HUD: la cola quedó trabada")
     }
 
+    /// r56: la barra de abajo NO se apaga durante el cofre —sin ella quedaba a la
+    /// vista el rectángulo vacío debajo del fondo del escenario— y los botones del
+    /// premio terminan arriba de ella (D14).
+    @MainActor
+    func testLaBarraDeAbajoSigueAlaVistaDuranteElCofre() throws {
+        let app = XCUIApplication()
+        app.launchArguments = Self.fixture
+        app.launch()
+
+        let area = app.buttons["chest.tap"]
+        XCTAssertTrue(area.waitForExistence(timeout: 15))
+        let regalos = app.buttons["hud.bonus"]
+        XCTAssertTrue(regalos.exists, "la barra de abajo tiene que seguir en pantalla con el cofre")
+        area.tap()
+        area.tap()
+        area.tap()
+
+        let salir = app.buttons["chest.dismiss"]
+        XCTAssertTrue(salir.waitForExistence(timeout: Self.cinematicTimeout))
+        XCTAssertTrue(regalos.exists, "la barra de abajo tiene que seguir en pantalla con el premio")
+        let screen = app.frame
+        XCTAssertTrue(screen.contains(regalos.frame), "la barra se fue de la pantalla: \(regalos.frame)")
+        XCTAssertGreaterThan(regalos.frame.midY, screen.height * 0.8, "la barra va abajo")
+        for id in ["chest.dismiss", "chest.equip"] where app.buttons[id].exists {
+            XCTAssertLessThanOrEqual(app.buttons[id].frame.maxY, regalos.frame.minY,
+                                     "\(id) pisa la barra de abajo (D14)")
+        }
+
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = "cofre con la barra"
+        shot.lifetime = .keepAlways
+        add(shot)
+    }
+
     /// El premio dentro del marco.
     ///
     /// ⚠️ **`app.otherElements["chest.card"]` no lo encuentra**, y no es que no

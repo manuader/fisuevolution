@@ -44,9 +44,16 @@ struct TutorialCard: View {
                         }
                     }
                 }
+                // La columna de la X sólo reserva su ancho: el texto no se le mete abajo (D14).
+                if onClose != nil {
+                    Color.clear.frame(width: PopupMetrics.closeSide, height: 1)
+                }
+            }
+            // La X va encima, arriba a la derecha de la fila. Puesta EN la fila con
+            // `maxHeight: .infinity` estiraba la tarjeta a la pantalla entera (r56).
+            .overlay(alignment: .topTrailing) {
                 if let onClose {
                     PopupCloseButton(identifier: "tutorial.tip.close", action: onClose)
-                        .frame(maxHeight: .infinity, alignment: .top)
                 }
             }
             if step.clockKind == .explain {
@@ -72,6 +79,9 @@ struct TutorialCard: View {
             // borde tono-sobre-tono. Conserva la sombra grande porque flota
             // sobre el scrim oscuro, donde ese peso es lo que la despega.
             parchment
+                // Medible para los tests: la tarjeta mide lo que su contenido, no la pantalla.
+                .accessibilityElement()
+                .accessibilityIdentifier("tutorial.card")
         )
     }
 

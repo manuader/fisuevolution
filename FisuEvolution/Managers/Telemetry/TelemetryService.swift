@@ -1,7 +1,7 @@
 import Foundation
 import UserMessagingPlatform
 
-/// La telemetría anónima (E15 F0): recibe los eventos del juego, los pasa por la compuerta y los
+/// La telemetría seudónima (E15 F0, con un id al azar propio): recibe los eventos del juego, los pasa por la compuerta y los
 /// manda en lotes. Apagada por defecto en tres capas (C5): la tabla, el interruptor remoto y
 /// `TelemetryGate`.
 ///
@@ -63,6 +63,10 @@ final class TelemetryService {
 
     /// El de la app: la `RankingConfig` del ranking (la misma `baseURL`/`anonKey`). Bajo XCTest o
     /// `--uitest*` no recibe config, así que el interruptor nunca pregunta y queda apagado.
+    ///
+    /// El consentimiento es el de `TelemetryConsent` (más estricto que `canRequestAds` de UMP) y va
+    /// dentro de la compuerta: si se retira, `localGateAllows` vacía la cola igual que sin UMP. El
+    /// id es el propio de la telemetría, no el del ranking.
     static func live(config: RankingConfig?) -> TelemetryService {
         let usable = RankingStore.isLive ? config : nil
         return TelemetryService(
@@ -70,8 +74,15 @@ final class TelemetryService {
             telemetrySwitch: TelemetrySwitch(config: usable),
             uploader: TelemetryUploader(config: usable),
             device: DeviceContext(),
-            identity: InstallIdentity(),
-            canRequestAds: { ConsentInformation.shared.canRequestAds }
+            identity: .telemetry,
+            canRequestAds: {
+                let ump = ConsentInformation.shared
+                return TelemetryConsent.allows(
+                    defaults: .standard,
+                    umpCanRequestAds: ump.canRequestAds,
+                    umpSaysNotRequired: ump.consentStatus == .notRequired
+                )
+            }
         )
     }
 
@@ -167,7 +178,8 @@ final class TelemetryService {
         await refreshSwitch(force: true)
     }
 
-    /// La compuerta local, leída ahora. Sin consentimiento de UMP, además, se vacía la cola.
+    /// La compuerta local, leída ahora. Sin consentimiento (UMP o los propósitos de TCF), además,
+    /// se vacía la cola.
     private func localGateAllows() async -> Bool {
         let gate = self.gate
         if !gate.canRequestAds { await queue.removeAll() }

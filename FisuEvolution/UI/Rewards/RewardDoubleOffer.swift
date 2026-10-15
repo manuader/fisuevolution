@@ -10,8 +10,6 @@ import SwiftUI
 struct RewardDoubleOffer: View {
     let double: RewardDouble
     @Environment(GameState.self) private var gameState
-    /// El video está cargando o en pantalla: «No, gracias» y la X no cierran abajo del anuncio.
-    @State private var watching = false
 
     var body: some View {
         PopupContainer("reward.double.title", ribbonTint: Color("PaletteGreen"), onClose: decline) {
@@ -30,8 +28,11 @@ struct RewardDoubleOffer: View {
                 title: String(localized: "reward.double.video"),
                 identifier: double.site,
                 placement: double.placement,
-                isBusy: $watching,
-                gameRole: .video
+                gameRole: .video,
+                // El «video en curso» vive en el estado, no en la vista: AdMob presenta encima de la hoja y
+                // SwiftUI puede desmontarla, pero el video visto se cobra igual.
+                onWatchStarted: { gameState.beginRewardDoubleWatch(id: double.id) },
+                onWatchEnded: { _ in gameState.endRewardDoubleWatch(id: double.id) }
             ) {
                 gameState.claimRewardDouble(id: double.id)
             }
@@ -40,8 +41,9 @@ struct RewardDoubleOffer: View {
         }
     }
 
+    /// «No, gracias» y la X no hacen nada con el video cargando o en pantalla.
     private func decline() {
-        guard !watching else { return }
+        guard gameState.rewardDouble?.isWatching != true else { return }
         gameState.declineRewardDouble(id: double.id)
     }
 
@@ -74,18 +76,16 @@ struct RewardDoubleLayer: ViewModifier {
                 RewardDoubleOffer(double: double)
             }
             .onChange(of: gameState.rewardDouble?.id) { syncCover() }
-            // La hoja se cerró (o se deslizó a otra página) con el paso 2 abierto: cuenta como «No, gracias»,
-            // así no queda una oferta huérfana trabando las próximas.
-            .onDisappear {
-                guard host != .board, let double = gameState.rewardDouble, double.host == host else { return }
-                gameState.declineRewardDouble(id: double.id)
-            }
+            // Sin `onDisappear`: AdMob presenta a pantalla completa encima de la hoja y SwiftUI puede darla por
+            // desaparecida con el video en curso. El rechazo por cerrar la hoja sale de su cierre real
+            // (`closeWheel`, `menuDidClose`), y aun así espera al video (`declineRewardDouble`).
     }
 
     private var binding: Binding<RewardDouble?> {
         Binding(
             get: { gameState.rewardDouble.flatMap { $0.host == host ? $0 : nil } },
             set: { value in
+                // Con el video en curso, `declineRewardDouble` sólo lo anota: no borra lo que se está mirando.
                 if value == nil, let id = gameState.rewardDouble?.id { gameState.declineRewardDouble(id: id) }
             }
         )

@@ -4,9 +4,10 @@ import Foundation
 /// El embudo de los cambios del tablero que no hizo el jugador: se planean en
 /// el acto y se confirman en su turno, a la vista (PLAN-v2 E1).
 extension GameState {
+    /// El paso 2 del ×2 (E14b B29) cuenta directo, sin esperar a que la vista republique `uiCoversBoard`.
     var boardIsVisibleForChanges: Bool {
         phase == .ready && isSceneActive && !uiCoversBoard && !tutorialPhaseActive
-            && careerPrompt == nil && characterSheet == nil
+            && careerPrompt == nil && characterSheet == nil && rewardDouble?.host != .board
     }
 
     func enqueueBoardChange(_ change: BoardChange) {

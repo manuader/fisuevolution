@@ -36,11 +36,14 @@ final class RewardedOffer {
     }
 
     /// Arranca el video. `false` si ya había uno vivo: el toque se ignora.
+    /// `onFinished` corre siempre que el intento termina —con premio (después de `onRewarded`), sin premio o
+    /// sin inventario—, aunque la vista ya no esté: quien sigue el video fuera de la vista se suelta ahí.
     @discardableResult
     func tap(
         ads: any AdsProvider,
         placement: RewardedPlacement,
-        onRewarded: @escaping () -> Void
+        onRewarded: @escaping () -> Void,
+        onFinished: @escaping (_ earned: Bool) -> Void = { _ in }
     ) -> Bool {
         guard task == nil else { return false }
         fade?.cancel()
@@ -59,6 +62,7 @@ final class RewardedOffer {
                 // anuncio en curso, o la vista se fue: nada que avisar.
                 phase = .idle
             }
+            onFinished(earned)
         }
         return true
     }

@@ -266,6 +266,10 @@ extension GameState {
     }
 
     func publishCelebration() {
+        // Con el paso 2 del ×2 abierto sobre el tablero (E14b B29) no se promueve nada que lo tape o cambie
+        // el tablero: espera en la fila y sale cuando se resuelve (`claimRewardDouble`/`declineRewardDouble`
+        // vuelven a sincronizar).
+        if celebrations.heldKinds != rewardDoubleHold { celebrations.hold(rewardDoubleHold) }
         let kind = celebrations.current
         let finished = showing
         if showing != kind { showing = kind }

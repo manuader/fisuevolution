@@ -131,8 +131,7 @@ struct RewardDoubleTests {
             case .vecinaChisme: try arrive(gameState, "vecina_chisme")
             default:
                 try arrive(gameState, "turista_propina")
-                let terms = ChallengeTerms(taps: 1, windowSeconds: 10, coins: 100, rewards: [.package(1)],
-                                           videoDoubles: false)
+                let terms = ChallengeTerms(taps: 1, windowSeconds: 10, coins: 100, rewards: [.package(1)])
                 gameState.beginChallenge(scriptId: "vecina_favor", terms: terms, now: 0)
             }
         case .offline:
@@ -177,7 +176,7 @@ struct RewardDoubleTests {
     private func collect(_ source: Source, _ gameState: GameState, now: TimeInterval) throws {
         switch source {
         case .ministro, .punteroBolson, .sindicalistaAumento:
-            #expect(gameState.stageVisit?.offer?.options.contains { $0.kind == .acceptWithVideo } == false,
+            #expect(gameState.stageVisit?.offer?.options.contains { $0.requiresVideo } == false,
                     "el primer pop-up no ofrece duplicar")
             #expect(gameState.chooseVisitOption("accept", now: now))
         case .vecinaChisme:
@@ -376,8 +375,8 @@ struct RewardDoubleTests {
         #expect(ran == 2)
     }
 
-    @Test("el offline cobrado y su ×2 esperan para soltar la cola: el corte no cae encima del paso 2")
-    func offlineHoldsTheQueue() async throws {
+    @Test("el offline cobrado ofrece su ×2 por su propia unidad, una sola vez por vuelta")
+    func offlineOffersItsDoubleOncePerReturn() async throws {
         let now = self.now
         let gameState = try await prepare(.offline, ads: ScriptedAdsProvider())
         try collect(.offline, gameState, now: now)
@@ -385,6 +384,133 @@ struct RewardDoubleTests {
         let double = try #require(gameState.rewardDouble)
         #expect(double.placement == .offlineX2)
         #expect(!gameState.offerOfflineDouble(GameState.OfflineReward(amount: 1)), "una vez por vuelta")
+    }
+
+    // MARK: - El video en curso (revisión de B29, C1)
+
+    @Test("con el video en curso, ni «No, gracias» ni el cierre de la hoja lo borran, y el premio paga")
+    func watchingSurvivesDecline() async throws {
+        let gameState = await world()
+        gameState.ads = AdsCoordinator(provider: ScriptedAdsProvider())
+        #expect(gameState.offerGrantDouble(site: "double.test", placement: .wheel, host: .wheel, coins: 10,
+                                           rewards: [], source: "test"))
+        let id = try #require(gameState.rewardDouble?.id)
+        gameState.beginRewardDoubleWatch(id: id)
+        gameState.declineRewardDouble(id: id)
+        gameState.closeWheel()
+        #expect(gameState.rewardDouble?.id == id, "AdMob tapa la hoja: el paso 2 sigue vivo")
+        let before = try #require(gameState.player?.run.coins)
+        #expect(gameState.claimRewardDouble(id: id), "el video visto se cobra")
+        #expect(try #require(gameState.player?.run.coins) == before + 10)
+        gameState.endRewardDoubleWatch(id: id)
+        #expect(gameState.rewardDouble == nil)
+    }
+
+    @Test("el premio tardío paga: la hoja se cerró bajo el anuncio y el premio llega después")
+    func lateRewardPays() async throws {
+        let gameState = await world()
+        gameState.ads = AdsCoordinator(provider: ScriptedAdsProvider())
+        #expect(gameState.offerAchievementDouble(coins: 10, rewards: [], achievementId: "test"))
+        let id = try #require(gameState.rewardDouble?.id)
+        gameState.beginRewardDoubleWatch(id: id)
+        await gameState.menuDidClose()
+        #expect(gameState.rewardDouble?.declinePending == true, "el cierre del Menú queda anotado")
+        let before = try #require(gameState.player?.run.coins)
+        #expect(gameState.claimRewardDouble(id: id))
+        #expect(try #require(gameState.player?.run.coins) == before + 10)
+    }
+
+    @Test("un rechazo con el video en curso se aplica si el anuncio vuelve sin premio")
+    func pendingDeclineAppliesWithoutReward() async throws {
+        let gameState = await world()
+        gameState.ads = AdsCoordinator(provider: ScriptedAdsProvider())
+        #expect(gameState.offerGrantDouble(site: "double.test", placement: .wheel, host: .wheel, coins: 10,
+                                           rewards: [], source: "test"))
+        let id = try #require(gameState.rewardDouble?.id)
+        var resolved = 0
+        gameState.whenRewardDoubleResolved { resolved += 1 }
+        gameState.beginRewardDoubleWatch(id: id)
+        gameState.closeWheel()
+        #expect(resolved == 0)
+        let before = try #require(gameState.player?.run.coins)
+        gameState.endRewardDoubleWatch(id: id)
+        #expect(gameState.rewardDouble == nil)
+        #expect(resolved == 1)
+        #expect(try #require(gameState.player?.run.coins) == before, "sin premio no paga")
+        #expect(!gameState.claimRewardDouble(id: id))
+    }
+
+    @Test("sin video en curso, el video que vuelve sin premio deja el paso 2 a la vista; cerrar la hoja lo rechaza")
+    func noRewardKeepsTheOfferAndClosingDeclines() async throws {
+        let gameState = await world()
+        gameState.ads = AdsCoordinator(provider: ScriptedAdsProvider())
+        #expect(gameState.offerGrantDouble(site: "double.test", placement: .wheel, host: .wheel, coins: 10,
+                                           rewards: [], source: "test"))
+        let id = try #require(gameState.rewardDouble?.id)
+        gameState.beginRewardDoubleWatch(id: id)
+        gameState.endRewardDoubleWatch(id: id)
+        #expect(gameState.rewardDouble?.id == id, "lo cerró a la mitad: puede volver a intentar")
+        #expect(gameState.rewardDouble?.isWatching == false)
+        gameState.closeWheel()
+        #expect(gameState.rewardDouble == nil)
+    }
+
+    // MARK: - La cola espera al paso 2 del tablero (revisión de B29, I1)
+
+    @Test("con el paso 2 del tablero abierto, una skin no toma el turno hasta que se resuelve")
+    func boardStepTwoHoldsTheQueue() async throws {
+        for claims in [true, false] {
+            let gameState = await world()
+            gameState.ads = AdsCoordinator(provider: ScriptedAdsProvider())
+            // Sin la restricción del tutorial, que retendría la skin por su cuenta.
+            if gameState.tutorialPhaseActive { gameState.finishTutorialCore() }
+            calm(gameState)
+            #expect(gameState.showing == nil)
+            #expect(gameState.offerGrantDouble(site: "double.test", placement: .visitor, coins: 10, rewards: [],
+                                               source: "test"))
+            #expect(gameState.isBoardBusy, "el paso 2 tapa el tablero, sin esperar a la vista")
+            #expect(!gameState.boardIsVisibleForChanges)
+            let type = try #require(gameState.content?.tiers.baseType)
+            gameState.skinAward = GameState.SkinAward(id: "urban_trailblazer", characterType: type)
+            gameState.syncCelebrations()
+            #expect(gameState.showing != .skinAward, "la skin espera en la fila")
+            #expect(gameState.celebrations.contains(.skinAward), "pero no se pierde")
+            let id = try #require(gameState.rewardDouble?.id)
+            if claims {
+                #expect(gameState.claimRewardDouble(id: id))
+            } else {
+                gameState.declineRewardDouble(id: id)
+            }
+            #expect(gameState.showing == .skinAward, "resuelto el paso 2, la skin sale")
+        }
+    }
+
+    @Test("el paso 2 de la Ruleta o del Menú no retiene la cola")
+    func sheetStepTwoDoesNotHoldTheQueue() async throws {
+        let gameState = await world()
+        gameState.ads = AdsCoordinator(provider: ScriptedAdsProvider())
+        #expect(gameState.offerAchievementDouble(coins: 10, rewards: [], achievementId: "test"))
+        #expect(gameState.celebrations.heldKinds.isEmpty)
+    }
+
+    @Test("ofrecer el ×2 de la Ruleta gasta su «repetir», se ofrezca o no")
+    func wheelDoubleSpendsTheRepeat() async throws {
+        let gameState = await world()
+        gameState.ads = AdsCoordinator(provider: ScriptedAdsProvider())
+        let outcome = try #require(gameState.spinWheel(.video))
+        #expect(gameState.player?.meta.engagement.wheel.repeatableSegmentId == outcome.segment.id)
+        #expect(!gameState.offerWheelDouble(outcome, source: .video))
+        #expect(gameState.player?.meta.engagement.wheel.repeatableSegmentId == nil)
+    }
+
+    @Test("reiniciar la partida borra el paso 2 de la vieja")
+    func resetClearsTheStepTwo() async throws {
+        let gameState = await world()
+        gameState.ads = AdsCoordinator(provider: ScriptedAdsProvider())
+        #expect(gameState.offerGrantDouble(site: "double.test", placement: .visitor, coins: 10, rewards: [],
+                                           source: "test"))
+        gameState.clearSessionRuntime()
+        #expect(gameState.rewardDouble == nil)
     }
 }
 

@@ -150,9 +150,20 @@ public struct CelebrationQueue: Sendable, Equatable {
     /// vive el turno: al terminar (por el fin, el watchdog o la escena) se baja.
     public private(set) var isSkipLocked = false
 
+    /// Kinds que esperan aunque `allowedKinds` los deje pasar: una pausa del juego (el paso 2 del
+    /// «×2 con video» sobre el tablero, E14b B29) que no pisa la restricción del tutorial ni la de los
+    /// anuncios. Quedan en `pending`; soltarlos promueve en el acto.
+    public private(set) var heldKinds: Set<CelebrationKind> = []
+
     private var pending: [CelebrationKind] = []
 
     public init() {}
+
+    /// Retiene estos kinds (`[]` los suelta). Como `restrict`, no toca `current`.
+    public mutating func hold(_ kinds: Set<CelebrationKind>) {
+        heldKinds = kinds
+        promoteIfIdle()
+    }
 
     /// Restringe qué kinds pueden tomar el turno (`nil` levanta la
     /// restricción). Levantarla promueve en el acto lo que estaba esperando,
@@ -244,7 +255,7 @@ public struct CelebrationQueue: Sendable, Equatable {
         // restricción no deja pasar: eso queda en `pending`, no se pierde.
         var bestIndex: Int?
         for index in pending.indices {
-            guard allowedKinds?.contains(pending[index]) ?? true else { continue }
+            guard allowedKinds?.contains(pending[index]) ?? true, !heldKinds.contains(pending[index]) else { continue }
             if let best = bestIndex {
                 if pending[index].priority < pending[best].priority { bestIndex = index }
             } else {

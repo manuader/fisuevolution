@@ -29,6 +29,16 @@ extension GameState {
         .offer, .newCharacter, .tutorialTip,
     ]
 
+    /// Lo que la cola no promueve con el paso 2 abierto sobre el tablero: los pop-ups, lo que cambia el
+    /// tablero y la entrada de un visitante. Los avisos y los logros siguen, no tapan nada.
+    static let heldDuringRewardDouble: Set<CelebrationKind> =
+        popupCelebrations.union([.boardCelebration, .visitorEncounter])
+
+    /// La retención que corresponde ahora: la del paso 2 del tablero o ninguna.
+    var rewardDoubleHold: Set<CelebrationKind> {
+        rewardDouble?.host == .board ? Self.heldDuringRewardDouble : []
+    }
+
     /// Hay un video listo para esta unidad: sin él, el paso 2 no se ofrece.
     func isRewardDoubleAdReady(_ placement: RewardedPlacement) -> Bool {
         ads?.isRewardedReady(for: placement) == true
@@ -52,6 +62,9 @@ extension GameState {
            Self.popupCelebrations.contains(current) { return false }
         rewardDouble = RewardDouble(site: site, placement: placement, host: host, payout: payout,
                                     shownCoins: coins, shownRewards: rewards)
+        // El del tablero retiene la cola en el acto (`heldDuringRewardDouble`): ni lo próximo que se encole
+        // le pasa por encima.
+        publishCelebration()
         Log.ads.info("reward double offered: \(site)")
         return true
     }
@@ -120,9 +133,15 @@ extension GameState {
     /// ya costó uno y el de blue se pagó; el cofre trae una skin única.
     @discardableResult
     func offerWheelDouble(_ outcome: WheelSpinOutcome, source: WheelSpinSource) -> Bool {
-        guard source == .bonus, outcome.segment.reward.kind != .skinChest,
-              player?.meta.engagement.wheel.repeatableSegmentId == outcome.segment.id
-        else { return false }
+        guard var player else { return false }
+        let repeatable = player.meta.engagement.wheel.repeatableSegmentId == outcome.segment.id
+        // El «repetir» de este giro se gasta acá, se ofrezca o no: no queda colgado en el save.
+        if player.meta.engagement.wheel.repeatableSegmentId != nil {
+            player.meta.engagement.wheel.repeatableSegmentId = nil
+            self.player = player
+            scheduleSave()
+        }
+        guard source == .bonus, outcome.segment.reward.kind != .skinChest, repeatable else { return false }
         return offerGrantDouble(site: "double.wheel", placement: .wheel, host: .wheel, coins: outcome.coins,
                                 rewards: [outcome.segment.reward], source: "wheel.\(outcome.segment.id)")
     }
@@ -180,14 +199,42 @@ extension GameState {
         }
         Log.economy.info("reward double claimed: \(double.site)")
         double.followUps.forEach { $0() }
+        syncCelebrations()
         return true
     }
 
-    /// «No, gracias»: no cobra nada y sigue lo que esperaba.
+    /// «No, gracias»: no cobra nada y sigue lo que esperaba. Con el video en curso no rechaza: queda
+    /// anotado y se aplica si el anuncio vuelve sin premio (`endRewardDoubleWatch`).
     func declineRewardDouble(id: UUID) {
         guard let double = rewardDouble, double.id == id else { return }
+        if double.isWatching {
+            rewardDouble?.declinePending = true
+            return
+        }
         rewardDouble = nil
         double.followUps.forEach { $0() }
+        syncCelebrations()
+    }
+
+    /// La hoja que lo hospeda se cerró de verdad (`closeWheel`, el cierre del Menú): cuenta como
+    /// «No, gracias», así no queda una oferta huérfana trabando las próximas.
+    func declineRewardDouble(host: RewardDouble.Host) {
+        guard let double = rewardDouble, double.host == host else { return }
+        declineRewardDouble(id: double.id)
+    }
+
+    /// El jugador tocó «×2 con video»: desde acá y hasta que el anuncio vuelva, nada lo rechaza.
+    func beginRewardDoubleWatch(id: UUID) {
+        guard rewardDouble?.id == id else { return }
+        rewardDouble?.isWatching = true
+    }
+
+    /// El anuncio volvió. Con premio, `claimRewardDouble` ya pagó y no queda nada; sin premio, el paso 2
+    /// sigue a la vista, salvo que lo hayan rechazado (o cerrado su hoja) mientras se miraba.
+    func endRewardDoubleWatch(id: UUID) {
+        guard let double = rewardDouble, double.id == id else { return }
+        rewardDouble?.isWatching = false
+        if double.declinePending { declineRewardDouble(id: id) }
     }
 
     /// Corre `action` cuando el paso 2 en curso se resuelva, o ya si no hay ninguno.

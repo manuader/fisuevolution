@@ -41,4 +41,11 @@ struct RewardDouble: Identifiable {
     let shownRewards: [RewardSpec]
     /// Lo que espera a que el paso 2 se resuelva (la cola de celebraciones, un corte natural).
     var followUps: [@MainActor () -> Void] = []
+    /// El video del «×2» está cargando o en pantalla: desde el toque hasta que el anuncio vuelve, con premio
+    /// o sin él (y su gracia para el premio tardío). Mientras tanto nada lo rechaza: AdMob presenta encima
+    /// de la hoja y SwiftUI puede dar la hoja por cerrada, pero el video visto se cobra.
+    var isWatching = false
+    /// Un «No, gracias» (o el cierre de la hoja) que llegó con el video en curso: se aplica si el anuncio
+    /// vuelve sin premio.
+    var declinePending = false
 }

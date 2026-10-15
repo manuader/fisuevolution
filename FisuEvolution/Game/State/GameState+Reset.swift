@@ -121,6 +121,8 @@ extension GameState {
         wheelSheet = nil
         mattressPopup = nil
         packagePopup = nil
+        // El paso 2 de la partida vieja (E14b B29): sin esto trabaría las ofertas de la nueva.
+        rewardDouble = nil
         characterSheet = nil
         adBreakOffer = nil
         quickHireOffer = nil

@@ -46,13 +46,14 @@ extension GameState {
     /// El tablero no está a la vista o el jugador está en medio de algo: una
     /// hoja, la ficha, la carrera, el reto de un visitante, el popup de un
     /// visitante o de un evento (que además entran por `uiCoversBoard`), la
-    /// pantalla previa de la pausa, la escena inactiva, el viaje en ascensor o una compra en curso. Es la
+    /// pantalla previa de la pausa, la escena inactiva, el viaje en ascensor, una compra en curso o el paso 2
+    /// del ×2 sobre el tablero (E14b B29, directo: no espera al `uiCoversBoard` de la vista). Es la
     /// única definición: `isCalmMoment` y los cortes naturales la comparten (los dos
     /// suman, además, la entrada del visitante: `stageEntranceInProgress`).
     var isBoardBusy: Bool {
         uiCoversBoard || characterSheet != nil || careerPrompt != nil || stageChallenge != nil
             || visitorPopup != nil || eventPopup != nil || mattressPopup != nil || wheelSheet != nil
-            || packagePopup != nil
+            || packagePopup != nil || rewardDouble?.host == .board
             || adBreakOffer != nil || adBreakInFlight
             || !isSceneActive || fullScreenUIActive()
     }

@@ -38,6 +38,9 @@ struct InventoryWait: Equatable {
     }
 }
 
+/// Cada botón cuenta su embudo (E15 C3) con `identifier` como lugar: mostrado, aceptado,
+/// completado, sin video o cerrado sin aceptar (`OfferFunnelTracker`). Lo anota el
+/// `offerFunnelReporter` del entorno; los pop-ups no se enteran.
 struct RewardedOfferButton: View {
     let title: String
     let identifier: String
@@ -60,7 +63,9 @@ struct RewardedOfferButton: View {
     let onRewarded: () -> Void
 
     @Environment(AdsCoordinator.self) private var ads
+    @Environment(\.offerFunnelReporter) private var funnel
     @State private var offer = RewardedOffer()
+    @State private var tracker = OfferFunnelTracker()
     /// Hay un video listo para mostrar. Lo decide el sondeo, no el toque.
     @State private var inventoryReady = false
     /// Pasaron `InventoryWait.timeout` sin video: el badge dice "Sin conexión".
@@ -98,6 +103,7 @@ struct RewardedOfferButton: View {
         .onDisappear {
             offer.cancel()
             isBusy?.wrappedValue = false
+            track(.disappeared)
         }
         .onChange(of: offer.phase) { old, phase in
             isBusy?.wrappedValue = phase == .busy
@@ -126,6 +132,7 @@ struct RewardedOfferButton: View {
             if ads.isRewardedReady(for: placement) {
                 inventoryReady = true
                 offline = false
+                track(.appearedReady)
                 return
             }
             if wait.isOffline(at: .now) { offline = true }
@@ -135,9 +142,36 @@ struct RewardedOfferButton: View {
     }
 
     private func tap() {
+        // Lo que hace falta cuando el anuncio vuelve se toma ahora: para entonces el botón suele haberse ido.
+        let ads = self.ads
+        let funnel = self.funnel
         let started = offer.tap(ads: ads, placement: placement, onRewarded: Self.releasing(isBusy, then: onRewarded),
-                                onFinished: onWatchEnded)
-        if started { onWatchStarted() }
+                                onFinished: { earned in
+                                    finished(earned, attempt: ads.lastRewardedAttempt, funnel: funnel)
+                                })
+        if started {
+            track(.tapped)
+            onWatchStarted()
+        }
+    }
+
+    /// El anuncio volvió. Corre aunque el botón ya no esté: `completed`/`unfilled` no dependen de su estado.
+    private func finished(_ earned: Bool, attempt: RewardedAttempt, funnel: OfferFunnelReporter) {
+        track(Self.outcome(earned: earned, attempt: attempt), to: funnel)
+        onWatchEnded(earned)
+    }
+
+    /// Cómo terminó el intento, para el embudo.
+    static func outcome(earned: Bool, attempt: RewardedAttempt) -> OfferFunnelTracker.Transition {
+        if earned { return .earned }
+        return attempt == .noInventory ? .noInventory : .endedWithoutReward
+    }
+
+    private func track(_ transition: OfferFunnelTracker.Transition, to reporter: OfferFunnelReporter? = nil) {
+        let reporter = reporter ?? funnel
+        for stage in tracker.handle(transition) {
+            reporter.report(identifier, stage)
+        }
     }
 
     /// El premio suelta el `isBusy` ANTES de entregarse: `onRewarded` suele sacar

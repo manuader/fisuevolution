@@ -120,8 +120,8 @@ public enum PackageRoller {
     // MARK: - La caja de un piso (E14b B18)
 
     /// Sortea una caja que aparece: el mismo sorteo de siempre (`roll`), y el tipo fija su piso
-    /// (`floorTable.ordinal(forTier:)`) y un lugar al azar de la franja del piso. `nil` sin
-    /// nadie a quien traer.
+    /// (`floorTable.ordinal(forTier:)`). El lugar todavía no: depende de las otras cajas de ese
+    /// piso (`PackagePlacer`). `nil` sin nadie a quien traer.
     public static func rollBox<R: RandomNumberGenerator>(
         eligible: [CharacterType],
         windowTiers: Int,
@@ -132,11 +132,7 @@ public enum PackageRoller {
         guard let type = roll(eligible: eligible, windowTiers: windowTiers, ratio: ratio, using: &rng) else {
             return nil
         }
-        return PackageBox(
-            floor: floorTable.ordinal(forTier: type.tier),
-            typeId: type.id,
-            x: Double.random(in: 0...1, using: &rng)
-        )
+        return PackageBox(floor: floorTable.ordinal(forTier: type.tier), typeId: type.id)
     }
 
     /// Si una caja ya sorteada sigue valiendo en esta run: su tipo existe, se vio y es de su
@@ -158,7 +154,10 @@ public enum PackageRoller {
     }
 
     /// Sortea las cajas sin asignar y las que dejaron de valer (`belongs`), con el estado de
-    /// ahora. Las que no tienen a quién traer quedan sin asignar. Devuelve cuántas se sortearon.
+    /// ahora, y les da un lugar en su piso (`area`) a las que no lo tienen: las recién sorteadas y
+    /// las de un save de B18, que no traen `y`. Las que no tienen a quién traer quedan sin asignar.
+    /// Devuelve cuántas cayeron en un lugar nuevo (toda caja sorteada se ubica, así que cuenta a las
+    /// sorteadas y a las de B18): con 0 no hay nada que guardar.
     @discardableResult
     public static func assignPending<R: RandomNumberGenerator>(
         _ packages: inout PackagesState,
@@ -169,10 +168,10 @@ public enum PackageRoller {
         occupancy: [Int],
         windowTiers: Int,
         ratio: Double,
+        area: (Int) -> PackageFloorArea = { _ in .open },
         using rng: inout R
     ) -> Int {
         var eligible: [CharacterType]?
-        var assigned = 0
         for index in packages.boxes.indices
         where !belongs(packages.boxes[index], state: state, tiers: tiers, floorTable: floorTable) {
             let candidates = eligible ?? eligibleTypes(
@@ -186,8 +185,66 @@ public enum PackageRoller {
                 continue
             }
             packages.boxes[index] = box
-            assigned += 1
         }
-        return assigned
+        return PackagePlacer.placeMissing(&packages, area: area, using: &rng)
+    }
+}
+
+/// Dónde cae una caja en su piso (E14b B22): en cualquier lugar de la superficie, lejos de las
+/// otras cajas de ese piso y de las zonas prohibidas (`PackageFloorArea`). Se prueban lugares al
+/// azar y gana el primero libre; si el piso está muy lleno, el que menos se pisa: una caja
+/// siempre cae.
+public enum PackagePlacer {
+    /// Cuántos lugares al azar se prueban antes de quedarse con el que menos se pisa.
+    public static let attempts = 48
+
+    /// Cuánto se pisa `spot` con lo que ya hay: 0 es libre. Cada caja suma lo que se mete en su
+    /// elipse (de 0 a 1) y cada zona prohibida que lo contiene, 1.
+    public static func crowding(of spot: PackageSpot, among taken: [PackageSpot], in area: PackageFloorArea) -> Double {
+        let zones = area.keepOut.filter { $0.contains(spot) }.count
+        guard area.gapX > 0, area.gapY > 0 else { return Double(zones) }
+        let boxes = taken.reduce(0.0) { total, other in
+            let dx = (spot.x - other.x) / area.gapX
+            let dy = (spot.y - other.y) / area.gapY
+            return total + max(0, 1 - (dx * dx + dy * dy).squareRoot())
+        }
+        return boxes + Double(zones)
+    }
+
+    /// Un lugar para una caja nueva entre las `taken` del mismo piso.
+    public static func place<R: RandomNumberGenerator>(
+        among taken: [PackageSpot],
+        in area: PackageFloorArea,
+        using rng: inout R
+    ) -> PackageSpot {
+        var best: (spot: PackageSpot, crowding: Double)?
+        for _ in 0..<attempts {
+            let spot = PackageSpot(x: Double.random(in: 0...1, using: &rng), y: Double.random(in: 0...1, using: &rng))
+            let crowding = crowding(of: spot, among: taken, in: area)
+            if crowding == 0 { return spot }
+            if crowding < best?.crowding ?? .infinity { best = (spot, crowding) }
+        }
+        return best?.spot ?? PackageSpot(x: 0.5, y: 0.5)
+    }
+
+    /// Les da lugar a las cajas sorteadas que no lo tienen, la más vieja primero, cada una lejos
+    /// de las que ya están en su piso. Las sin asignar no tienen piso: esperan. Devuelve cuántas
+    /// ubicó.
+    @discardableResult
+    public static func placeMissing<R: RandomNumberGenerator>(
+        _ packages: inout PackagesState,
+        area: (Int) -> PackageFloorArea,
+        using rng: inout R
+    ) -> Int {
+        var placed = 0
+        for index in packages.boxes.indices where packages.boxes[index].spot == nil {
+            guard packages.boxes[index].isAssigned, let floor = packages.boxes[index].floor else { continue }
+            let taken = packages.boxes(onFloor: floor).compactMap(\.spot)
+            let spot = place(among: taken, in: area(floor), using: &rng)
+            packages.boxes[index].x = spot.x
+            packages.boxes[index].y = spot.y
+            placed += 1
+        }
+        return placed
     }
 }

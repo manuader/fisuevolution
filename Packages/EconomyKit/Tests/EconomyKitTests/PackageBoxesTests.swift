@@ -39,8 +39,8 @@ struct PackageBoxesTests {
 
     // MARK: El sorteo al aparecer
 
-    @Test("el sorteo al aparecer fija el tipo y, con él, el piso de la caja y un lugar de 0 a 1")
-    func theRollFixesTypeFloorAndPlace() throws {
+    @Test("el sorteo al aparecer fija el tipo y, con él, el piso de la caja; el lugar lo pone el piso")
+    func theRollFixesTypeAndFloor() throws {
         let fx = try open()
         let eligible = PackageRoller.eligibleTypes(state: fx.state, tower: fx.tower, tiers: tiers,
                                                    floorTable: fx.floorTable, config: fxConfig())
@@ -54,8 +54,7 @@ struct PackageBoxesTests {
             #expect(eligible.contains { $0.id == type.id })
             let floor = try #require(box.floor)
             #expect(floor == fx.floorTable.ordinal(forTier: type.tier), "\(type.id) cayó en otro piso")
-            let x = try #require(box.x)
-            #expect(x >= 0 && x <= 1)
+            #expect(box.spot == nil, "el lugar depende de las otras cajas del piso (PackagePlacer)")
             #expect(box.isAssigned)
             floors.insert(floor)
         }
@@ -89,16 +88,14 @@ struct PackageBoxesTests {
                                       floorTable: floorTable, using: &rng) == nil)
     }
 
-    @Test("el lugar de cada caja es al azar: no caen todas en el mismo punto")
-    func placesAreRandom() throws {
-        let floorTable = try fxFloorTable()
+    @Test("el lugar de cada caja es al azar en los dos ejes: no caen todas en el mismo punto")
+    func placesAreRandom() {
         var rng = SeededRNG(seed: 5)
-        let xs = (0..<50).compactMap { _ in
-            PackageRoller.rollBox(eligible: [fxType("a", tier: 1)], windowTiers: 4, ratio: 2,
-                                  floorTable: floorTable, using: &rng)?.x
-        }
-        #expect(xs.count == 50)
+        let spots = (0..<50).map { _ in PackagePlacer.place(among: [], in: .open, using: &rng) }
+        let xs = spots.map(\.x)
+        let ys = spots.map(\.y)
         #expect((xs.max() ?? 0) - (xs.min() ?? 0) > 0.5)
+        #expect((ys.max() ?? 0) - (ys.min() ?? 0) > 0.5)
     }
 
     // MARK: Asentar las pendientes
@@ -106,13 +103,14 @@ struct PackageBoxesTests {
     @Test("las que caen sin asignar se sortean al asentarse, y las ya sorteadas no se mueven")
     func pendingBoxesGetAssignedAndAssignedOnesStay() throws {
         let fx = try open()
-        let kept = PackageBox(floor: 1, typeId: "d", x: 0.25)
+        let kept = PackageBox(floor: 1, typeId: "d", x: 0.25, y: 0.6)
         var packages = PackagesState(boxes: [kept, .unassigned, .unassigned])
         #expect(assign(&packages, fx) == 2)
         #expect(packages.boxes.count == 3)
         #expect(packages.boxes[0] == kept, "la que ya estaba en su piso sigue igual, en su lugar")
         for box in packages.boxes {
             #expect(PackageRoller.belongs(box, state: fx.state, tiers: tiers, floorTable: fx.floorTable))
+            #expect(box.spot != nil, "cada sorteada cae en un lugar")
         }
         let again = packages
         #expect(assign(&packages, fx, seed: 8) == 0, "asentar otra vez no vuelve a sortear")
@@ -199,10 +197,10 @@ struct PackageBoxesTests {
         #expect(packages.waiting == 4)
     }
 
-    @Test("ida y vuelta por el save: piso, tipo y lugar intactos, y sigue escribiendo cuántas hay")
+    @Test("ida y vuelta por el save: piso, tipo, x e y intactos, y sigue escribiendo cuántas hay")
     func roundTrip() throws {
         let state = PackagesState(secondsUntilNext: 42, boxes: [
-            PackageBox(floor: 1, typeId: "d", x: 0.25), .unassigned, PackageBox(floor: 0, typeId: "a", x: 1),
+            PackageBox(floor: 1, typeId: "d", x: 0.25, y: 0.75), .unassigned, PackageBox(floor: 0, typeId: "a", x: 1, y: 0),
         ])
         let data = try JSONEncoder().encode(state)
         #expect(try JSONDecoder().decode(PackagesState.self, from: data) == state)
@@ -212,6 +210,8 @@ struct PackageBoxesTests {
         #expect(boxes.first?["floor"] as? Int == 1)
         #expect(boxes.first?["typeId"] as? String == "d")
         #expect(boxes.first?["x"] as? Double == 0.25)
+        #expect(boxes.first?["y"] as? Double == 0.75)
+        #expect(boxes[1]["y"] == nil, "la sin asignar no escribe lugar")
     }
 
     @Test("un save viejo con waiting = N trae N cajas sin asignar, que se sortean al cargar")
@@ -262,5 +262,87 @@ struct PackageBoxesTests {
         #expect(packages == before)
         let data = try JSONEncoder().encode(packages)
         #expect(try JSONDecoder().decode(PackagesState.self, from: data) == before)
+    }
+
+    // MARK: El lugar en el piso (E14b B22)
+
+    /// La superficie de un teléfono: la caja ocupa un cuarto del ancho y medio fondo, y el visitante
+    /// camina por el medio.
+    private static let phoneArea = PackageFloorArea(
+        gapX: 0.25, gapY: 0.4,
+        keepOut: [PackageFloorArea.Zone(x: 0.35...0.65, y: 0.3...0.7), PackageFloorArea.Zone(x: 0.85...1, y: 0.8...1)]
+    )
+
+    @Test("el sorteo del lugar respeta la superficie, la separación entre cajas y las zonas prohibidas")
+    func placementRespectsTheAreaAndTheGap() {
+        var rng = SeededRNG(seed: 20_261_015)
+        for _ in 0..<200 {
+            var taken: [PackageSpot] = []
+            for _ in 0..<3 {
+                let spot = PackagePlacer.place(among: taken, in: Self.phoneArea, using: &rng)
+                #expect((0...1).contains(spot.x) && (0...1).contains(spot.y), "fuera de la superficie: \(spot)")
+                #expect(PackagePlacer.crowding(of: spot, among: taken, in: Self.phoneArea) == 0,
+                        "con lugar libre cae separada y fuera de las zonas: \(spot) entre \(taken)")
+                for zone in Self.phoneArea.keepOut { #expect(!zone.contains(spot)) }
+                for other in taken {
+                    let dx = (spot.x - other.x) / Self.phoneArea.gapX
+                    let dy = (spot.y - other.y) / Self.phoneArea.gapY
+                    #expect(dx * dx + dy * dy >= 1, "\(spot) pisa a \(other)")
+                }
+                taken.append(spot)
+            }
+        }
+    }
+
+    @Test("con el piso lleno igual cae, en el lugar que menos se pisa")
+    func aCrowdedFloorStillDrops() {
+        let tight = PackageFloorArea(gapX: 0.9, gapY: 0.9, keepOut: [])
+        let taken = [PackageSpot(x: 0, y: 0), PackageSpot(x: 1, y: 1), PackageSpot(x: 0, y: 1), PackageSpot(x: 1, y: 0)]
+        var rng = SeededRNG(seed: 3)
+        let spot = PackagePlacer.place(among: taken, in: tight, using: &rng)
+        #expect((0...1).contains(spot.x) && (0...1).contains(spot.y))
+        let crowding = PackagePlacer.crowding(of: spot, among: taken, in: tight)
+        #expect(crowding > 0, "no hay lugar libre: se pisa con alguna")
+        let corner = PackagePlacer.crowding(of: PackageSpot(x: 0.02, y: 0.02), among: taken, in: tight)
+        #expect(crowding < corner, "prefiere el lugar con menos superposición: \(crowding) contra \(corner)")
+    }
+
+    @Test("asentar ubica cada caja nueva lejos de las de su piso; las de otro piso no cuentan")
+    func assigningPlacesEachBoxOnItsFloor() throws {
+        let fx = try open()
+        let other = PackageBox(floor: 1, typeId: "d", x: 0.1, y: 0.1)
+        var packages = PackagesState(boxes: [other, .unassigned, .unassigned, .unassigned])
+        var rng = SeededRNG(seed: 11)
+        PackageRoller.assignPending(
+            &packages, state: fx.state, tiers: tiers, floorTable: fx.floorTable, config: fxConfig(),
+            occupancy: occupancy(fx), windowTiers: 4, ratio: 2, area: { _ in Self.phoneArea }, using: &rng
+        )
+        #expect(packages.boxes[0] == other)
+        for floor in [0, 1] {
+            let spots = packages.boxes(onFloor: floor).compactMap(\.spot)
+            #expect(spots.count == packages.boxes(onFloor: floor).count, "todas las del piso \(floor) tienen lugar")
+            for (index, spot) in spots.enumerated() {
+                let rest = spots.enumerated().filter { $0.offset != index }.map(\.element)
+                #expect(PackagePlacer.crowding(of: spot, among: rest, in: Self.phoneArea) == 0)
+            }
+        }
+    }
+
+    @Test("un save de B18 sin y carga bien: conserva piso y tipo, y su lugar se sortea al asentar")
+    func aB18SaveWithoutYLoads() throws {
+        let json = #"{"secondsUntilNext": 12, "waiting": 2, "boxes": [{"floor": 0, "typeId": "a", "x": 0.3}, {"floor": 1, "typeId": "d", "x": 0.9}]}"#
+        var loaded = try JSONDecoder().decode(PackagesState.self, from: Data(json.utf8))
+        #expect(loaded.secondsUntilNext == 12)
+        #expect(loaded.boxes.map(\.typeId) == ["a", "d"])
+        #expect(loaded.boxes.map(\.floor) == [0, 1])
+        #expect(loaded.boxes.allSatisfy { $0.y == nil && $0.spot == nil })
+        let fx = try open()
+        #expect(assign(&loaded, fx) == 2, "las dos se ubican")
+        #expect(loaded.boxes.map(\.typeId) == ["a", "d"], "no se vuelven a sortear: siguen trayendo al mismo")
+        #expect(loaded.boxes.map(\.floor) == [0, 1])
+        #expect(loaded.boxes.allSatisfy { $0.spot != nil })
+        #expect(assign(&loaded, fx, seed: 99) == 0, "ya ubicadas, no se mueven")
+        let data = try JSONEncoder().encode(loaded)
+        #expect(try JSONDecoder().decode(PackagesState.self, from: data) == loaded)
     }
 }

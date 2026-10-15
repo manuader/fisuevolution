@@ -51,10 +51,9 @@ interruptor del ranking.
 >
 > Lo que sigue abajo describe el esquema tal como quedó.
 
-Las migraciones `…20261015000001_telemetry_schema.sql` y `…20261015000002_telemetry_retention.sql` están escritas y
-probadas en local (`05_telemetry_test.sql`), pero **no están aplicadas** en el proyecto real. Aplicarlas es del dueño
-(🔒 O2), después de la verificación de F0: `supabase db push` con el proyecto enlazado, o el SQL editor (las dos en
-orden). La de retención necesita `pg_cron` (en local se saltea).
+Las migraciones `…20261015000001_telemetry_schema.sql` y `…20261015000002_telemetry_retention.sql` están probadas
+en local (`05_telemetry_test.sql`) y aplicadas en el proyecto real (ver arriba). La de retención necesita `pg_cron`
+(en local se saltea).
 
 Qué guarda `public.telemetry_events`, una fila por evento:
 

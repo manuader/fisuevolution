@@ -128,6 +128,7 @@ struct FisuEvolutionApp: App {
                 }
             }
         }
+        gameState.attachTelemetry(TelemetryService.live(config: RankingConfigLoader().current()?.config))
         gameState.attachRanking(ranking)
         gameState.attachNotifications(notifications)
         await gameState.notificationsLaunched()

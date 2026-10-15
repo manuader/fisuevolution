@@ -160,6 +160,7 @@ extension GameState {
             now: Date().timeIntervalSince1970
         )
         self.player = player
+        telemetryPrestige()
         // El que estaba en escena es de la run que se fue: un regalo, un chisme
         // o un reto se cobrarían en la nueva con el rendimiento de la vieja.
         stageChallenge = nil

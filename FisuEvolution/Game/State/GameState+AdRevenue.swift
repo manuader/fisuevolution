@@ -12,5 +12,6 @@ extension GameState {
         guard player != nil else { return }
         player?.meta.adRevenue.record(impression)
         scheduleSave()
+        telemetryImpression(impression)
     }
 }

@@ -88,12 +88,26 @@ struct AdImpressionMappingTests {
         ads.onImpression = { sink.received.append($0) }
 
         _ = await ads.showRewarded(for: .chestExtra)
-        ads.interstitialSite = NaturalBreak.reincarnation.rawValue
-        await ads.showInterstitial()
+        await ads.showInterstitial(site: NaturalBreak.reincarnation.rawValue)
         await ads.showAppOpen()
 
         #expect(sink.received.map(\.format) == [.rewarded, .interstitial, .appOpen])
         #expect(sink.received.map(\.site) == ["chestExtra", "reincarnation", "appOpen"])
+    }
+
+    @Test("el site del corte dura lo que dura su intersticial: el siguiente sin corte lleva el default")
+    func interstitialSiteDoesNotLeakToTheNextOne() async {
+        let provider = ScriptedAdsProvider()
+        let ads = AdsCoordinator(provider: provider)
+        let sink = ImpressionSink()
+        ads.onImpression = { sink.received.append($0) }
+
+        await ads.showInterstitial(site: NaturalBreak.reincarnation.rawValue)
+        #expect(ads.interstitialSite == AdImpressionMapping.Site.interstitial, "vuelve al default al cerrarse")
+        await ads.showInterstitial()
+        await ads.showInterstitial(site: NaturalBreak.sheetClosed.rawValue)
+
+        #expect(sink.received.map(\.site) == ["reincarnation", "interstitial", "sheetClosed"])
     }
 
     @Test("con remove_ads un forzado no se presenta, así que tampoco deja impresión")

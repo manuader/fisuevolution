@@ -140,9 +140,10 @@ final class AdsCoordinator: AdsProvider {
     /// Quien anota las impresiones (`GameState.recordImpression`). Las recibe ya con su `site`.
     @ObservationIgnored var onImpression: (@MainActor (AdImpression) -> Void)?
 
-    /// El corte natural que está por mostrar un intersticial (`NaturalBreak.rawValue`): lo pone
-    /// `GameState+Ads` antes de pedirlo, y es el `site` de su impresión.
-    @ObservationIgnored var interstitialSite = AdImpressionMapping.Site.interstitial
+    /// El `site` del intersticial en pantalla: lo fija `showInterstitial(site:)` mientras dura y
+    /// vuelve al default al cerrarse, así que uno del panel de debug o dos cortes seguidos no
+    /// heredan el del anterior.
+    @ObservationIgnored private(set) var interstitialSite = AdImpressionMapping.Site.interstitial
 
     /// Engancha al proveedor activo; se llama de nuevo cuando `configure` cambia el stub por AdMob.
     private func listenForImpressions(from provider: any AdsProvider) {
@@ -242,7 +243,15 @@ final class AdsCoordinator: AdsProvider {
 
     @discardableResult
     func showInterstitial() async -> Bool {
+        await showInterstitial(site: AdImpressionMapping.Site.interstitial)
+    }
+
+    /// El intersticial de un corte natural: `site` (`NaturalBreak.rawValue`) es el de su impresión.
+    @discardableResult
+    func showInterstitial(site: String) async -> Bool {
         guard !removedAds, !isPresentingFullScreen else { return false }
+        interstitialSite = site
+        defer { interstitialSite = AdImpressionMapping.Site.interstitial }
         return await presenting { await active.showInterstitial() }
     }
 

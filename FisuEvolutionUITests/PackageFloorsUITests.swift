@@ -23,7 +23,7 @@ final class PackageFloorsUITests: XCTestCase {
         snap(app, "B18: la placa con la marca de la caja en \(floorId)")
         button.tap()
         let arrived = NSPredicate(format: "value == %@", floorId)
-        XCTAssertEqual(XCTWaiter().wait(for: [expectation(for: arrived, evaluatedWith: app.otherElements["board.floor"])],
+        XCTAssertEqual(XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: arrived, object: app.otherElements["board.floor"])],
                                         timeout: 6), .completed, "no llegó a \(floorId)")
     }
 

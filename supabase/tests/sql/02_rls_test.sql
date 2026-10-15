@@ -12,8 +12,14 @@ begin
       where n.nspname = 'public' and c.relkind in ('r', 'v', 'm', 'p')
     loop
       if has_table_privilege(who, r.oid, 'INSERT') or has_table_privilege(who, r.oid, 'UPDATE')
-         or has_table_privilege(who, r.oid, 'DELETE') or has_table_privilege(who, r.oid, 'TRUNCATE') then
+         or has_table_privilege(who, r.oid, 'DELETE') or has_table_privilege(who, r.oid, 'TRUNCATE')
+         or has_any_column_privilege(who, r.oid, 'UPDATE') then
         raise exception '% puede escribir en %', who, r.relname;
+      end if;
+      -- La única escritura de afuera: anon inserta telemetría por columnas (E15, 05_telemetry_test).
+      if has_any_column_privilege(who, r.oid, 'INSERT')
+         and not (who = 'anon' and r.relname = 'telemetry_events') then
+        raise exception '% puede insertar en %', who, r.relname;
       end if;
       if r.relname <> 'leaderboard' and (
            has_table_privilege(who, r.oid, 'SELECT')
@@ -25,12 +31,13 @@ begin
       select p.oid, p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
       where n.nspname = 'public'
     loop
-      if has_function_privilege(who, r.oid, 'EXECUTE') then
+      if has_function_privilege(who, r.oid, 'EXECUTE')
+         and not (who = 'anon' and r.proname = 'telemetry_enabled') then
         raise exception '% puede ejecutar %', who, r.proname;
       end if;
     end loop;
   end loop;
-  raise notice 'OK anon y authenticated no escriben nada, no leen tablas ni ejecutan funciones';
+  raise notice 'OK anon y authenticated no escriben nada (salvo el insert de telemetría de anon), no leen tablas ni ejecutan funciones (salvo telemetry_enabled para anon)';
 end $$;
 
 do $$
@@ -40,7 +47,8 @@ begin
   for r in
     select p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public' and (not p.prosecdef
-      or not coalesce(array_to_string(p.proconfig, ',') like '%search_path=public%', false))
+      or not coalesce(array_to_string(p.proconfig, ',') like '%search_path=public%'
+                      or array_to_string(p.proconfig, ',') = 'search_path=""', false))
   loop
     raise exception 'la función % no es security definer con search_path fijo', r.proname;
   end loop;

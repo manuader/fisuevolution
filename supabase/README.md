@@ -41,6 +41,56 @@ próximo deploy la aplica.
 reportes, aprobar u ocultar una partida, perdonar reportes, cambiar el piso de tiempo y el
 interruptor del ranking.
 
+## Telemetría (E15 F0) — APLICADA (2026-10-15, interruptor en false)
+
+> **Aplicada en `oejmjpwfxpwzzakdjxwp` el 2026-10-15** (🔒 O2, con el OK del dueño): las dos migraciones de `37ff5f26`,
+> registradas en `supabase_migrations.schema_migrations` como `20261015000001` y `20261015000002` (las mismas del repo,
+> así `db push` no las reaplica). Verificado: `telemetry_enabled` en false, RLS y política, cron `telemetry-retention`,
+> insert de anon rechazado, 0 filas. **Desde ahora, cualquier cambio a este SQL va en una migración NUEVA; no se editan
+> las aplicadas.**
+>
+> Lo que sigue abajo describe el esquema tal como quedó.
+
+Las migraciones `…20261015000001_telemetry_schema.sql` y `…20261015000002_telemetry_retention.sql` están probadas
+en local (`05_telemetry_test.sql`) y aplicadas en el proyecto real (ver arriba). La de retención necesita `pg_cron`
+(en local se saltea).
+
+Qué guarda `public.telemetry_events`, una fila por evento:
+
+| Columna | Qué |
+|---|---|
+| `install_id` | el UUID de instalación de la app (Keychain, no sincronizable). No es el IDFA ni el IDFV |
+| `session_id` | un UUID nuevo en cada sesión |
+| `client_ts`, `received_at` | la hora del teléfono (a ±30 días) y la de llegada (la pone el servidor) |
+| `name` | `session_start`, `session_end`, `ad_impression`, `offer`, `purchase` o `prestige` |
+| `app_version`, `build`, `os_version`, `device_model` | versión de la app y de iOS, modelo de máquina (`iPhone16,2`) |
+| `storefront` | el país de la tienda (ISO alfa-3) o null |
+| `props` | un objeto chico (≤ 2 KB) con claves cerradas por evento: número de sesión, duración, valor de la impresión, lugar y etapa de la oferta, producto comprado, cantidad de reencarnaciones |
+
+Qué **no** guarda la tabla: ni IDFA, ni IDFV, ni el nombre del ranking, ni la IP, ni texto libre, ni precios ni
+transacciones. La IP **sí** queda, fuera de la tabla, en los logs del gateway/PostgREST de Supabase durante su
+retención (la del plan): los textos de privacidad (E15 T7) lo tienen que decir así, no «ni la IP».
+Se borra a los **400 días** (cron `telemetry-retention`, una vez por día).
+
+Los candados:
+- **El interruptor** `settings.telemetry_enabled` arranca en `false`. La única política de la tabla (insert para
+  `anon`) lo mira: apagado, el insert falla aunque la app se equivoque. La app lo pregunta con
+  `POST /rest/v1/rpc/telemetry_enabled`. Se prende y apaga con `scripts/admin.sql` (10), **sólo** con la privacidad,
+  los términos y la etiqueta de App Store Connect actualizados (🔒 O6).
+- `anon` sólo inserta, y sólo las columnas de arriba (nunca `id` ni `received_at`). Nadie de afuera lee, actualiza ni
+  borra; `authenticated` no tiene nada.
+- Los `check` rechazan nombres fuera de la lista, textos largos, `props` que no sea objeto o pase de 2 KB, y horas
+  del teléfono corridas más de 30 días. `props` además tiene sus claves cerradas por evento (C4): ni una de más ni
+  de menos (`source` de `ad_impression` es opcional), números donde van números y textos acotados (`site` ≤ 64,
+  `product` ≤ 128, el resto ≤ 32, `currency` tres mayúsculas; `XXX` es «sin moneda»).
+- **Riesgo aceptado: no hay límite de frecuencia.** Con la clave anon (que va en la app) cualquiera puede insertar
+  filas válidas en cantidad mientras el interruptor esté prendido. Los checks acotan el tamaño de cada fila, no la
+  cantidad. Si pasa: apagar el interruptor (`scripts/admin.sql` 10) y borrar por `install_id`/`received_at`.
+- Un build de DEBUG con `--telemetry-debug` escribe en producción: para las cifras reales, filtrar por `build` (ver `scripts/admin.sql`).
+
+Las consultas de lectura (impresiones y eCPM por país × formato, el embudo por lugar, sesiones e instalaciones
+activas por día) están en `scripts/admin.sql` (11–15).
+
 ## El despliegue real (2026-10-12, E12 T16)
 
 Proyecto `oejmjpwfxpwzzakdjxwp` (FisuEvolution, us-west-2). Se desplegó con el conector de Supabase (MCP), no con la

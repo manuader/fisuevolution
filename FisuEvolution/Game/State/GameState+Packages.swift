@@ -321,7 +321,7 @@ extension GameState {
     /// Y aterriza a su lado: el golpe y un toque en la mano.
     func packageExitLanded() {
         audio?.play(.packageLand)
-        haptics?.play(.tap)
+        haptics?.play(.tick)
     }
 
     var packageIntroSeen: Bool { player?.meta.engagement.packageIntroSeen ?? false }

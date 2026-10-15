@@ -644,6 +644,35 @@ def sfx_package_burst():
     return [math.tanh(2.0 * v / peak) for v in buf]
 
 
+def sfx_package_pop_out():
+    """Alguien asoma de la caja ~0,4 s: un resorte que sube (boing) sobre un
+    roce de cartón, y un brillito al final del estirón."""
+    dur = 0.400
+    buf = [0.0] * int(dur * SR)
+    rng = random.Random(7011)
+    render_noise_lp(buf, 0.0, 0.10, 0.5, rng, 0.25, env_perc(0.10, attack=0.002, curve=5.0))
+    render_tone(buf, 0.0, 0.32, glide(240.0, 620.0, 0.32), "triangle", 1.0,
+                env_swell(0.32, 0.02, 0.14), vib_hz=18.0, vib_depth=0.04)
+    render_tone(buf, 0.0, 0.32, glide(480.0, 1240.0, 0.32), "sine", 0.25,
+                env_swell(0.32, 0.02, 0.14))
+    render_tone(buf, 0.26, 0.14, 1568.0, "sine", 0.3, env_perc(0.14, attack=0.002, curve=6.0))
+    return buf
+
+
+def sfx_package_land():
+    """Aterriza al lado de la caja ~0,3 s: un golpe sordo y corto de
+    zapatillas sobre el piso y el soplido del polvo que se levanta."""
+    dur = 0.300
+    buf = [0.0] * int(dur * SR)
+    rng = random.Random(7012)
+    render_tone(buf, 0.0, 0.16, glide(150.0, 70.0, 0.16), "sine", 1.0,
+                env_perc(0.16, attack=0.002, curve=5.0))
+    render_noise(buf, 0.0, 0.03, 0.5, 0.008, rng)
+    render_noise_lp(buf, 0.02, 0.26, 0.45, rng, 0.08, env_swell(0.26, 0.03, 0.18))
+    peak = max(abs(v) for v in buf)
+    return [math.tanh(1.5 * v / peak) for v in buf]
+
+
 def sfx_mattress_squeak():
     """Colchón que cruje, ambiente en loop de 2 s: dos chirridos de resorte
     que suben y bajan, y un roce de tela entre uno y otro."""
@@ -1853,6 +1882,8 @@ SFX = {
     "sfx_package_rattle": sfx_package_rattle,
     "sfx_package_tape_rip": sfx_package_tape_rip,
     "sfx_package_burst": sfx_package_burst,
+    "sfx_package_pop_out": sfx_package_pop_out,
+    "sfx_package_land": sfx_package_land,
     "sfx_mattress_squeak": sfx_mattress_squeak,
     "sfx_mattress_rip": sfx_mattress_rip,
     "sfx_cash_burst": sfx_cash_burst,
@@ -1878,6 +1909,8 @@ SFX_RMS_DB = {
     "sfx_package_rattle": -23.0,
     "sfx_package_tape_rip": -20.0,
     "sfx_package_burst": -18.0,
+    "sfx_package_pop_out": -20.0,
+    "sfx_package_land": -21.0,
     "sfx_mattress_squeak": -23.0,
     "sfx_mattress_rip": -20.0,
     "sfx_cash_burst": -19.0,

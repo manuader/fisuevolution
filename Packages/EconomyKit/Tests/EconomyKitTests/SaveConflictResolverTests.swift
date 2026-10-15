@@ -371,6 +371,59 @@ struct SaveConflictResolverTests {
         #expect(EngagementState.initial == EngagementState())
     }
 
+    @Test("el ledger de anuncios: por formato gana el lado con más impresiones, gane quien gane el save")
+    func adRevenueTakesTheFormatWithMoreCount() {
+        func shown(_ format: AdFormat, _ micros: Int64) -> AdImpression {
+            AdImpression(format: format, site: "s", valueMicros: micros, currency: "USD",
+                         precision: .estimated, adSource: nil, at: 0)
+        }
+        var ahead = fxSave(lifetime: 1000)
+        ahead.meta.adRevenue.record(shown(.interstitial, 500))
+        ahead.meta.adRevenue.record(shown(.interstitial, 500))
+        ahead.meta.adRevenue.record(shown(.rewarded, 1))
+        var behind = fxSave(lifetime: 10)
+        for _ in 1...3 { behind.meta.adRevenue.record(shown(.rewarded, 20)) }
+
+        for resolved in [
+            SaveConflictResolver.resolve(local: ahead, remote: behind),
+            SaveConflictResolver.resolve(local: behind, remote: ahead),
+        ] {
+            #expect(resolved.meta.lifetimeEarnings == 1000)
+            #expect(resolved.meta.adRevenue.stats(.rewarded) == behind.meta.adRevenue.stats(.rewarded))
+            #expect(resolved.meta.adRevenue.stats(.interstitial) == ahead.meta.adRevenue.stats(.interstitial))
+        }
+    }
+
+    @Test("el embudo de ofertas toma el máximo de cada contador")
+    func offerFunnelTakesMaxPerCounter() {
+        var ahead = fxSave(lifetime: 1000)
+        ahead.meta.offerFunnel.record(.shown, site: "offline.x2")
+        ahead.meta.offerFunnel.record(.shown, site: "offline.x2")
+        var behind = fxSave(lifetime: 10)
+        behind.meta.offerFunnel.record(.shown, site: "offline.x2")
+        behind.meta.offerFunnel.record(.completed, site: "offline.x2")
+        behind.meta.offerFunnel.record(.dismissed, site: "double.wheel")
+
+        for resolved in [
+            SaveConflictResolver.resolve(local: ahead, remote: behind),
+            SaveConflictResolver.resolve(local: behind, remote: ahead),
+        ] {
+            #expect(resolved.meta.offerFunnel.counts(site: "offline.x2")[.shown] == 2)
+            #expect(resolved.meta.offerFunnel.counts(site: "offline.x2")[.completed] == 1)
+            #expect(resolved.meta.offerFunnel.counts(site: "double.wheel")[.dismissed] == 1)
+        }
+    }
+
+    @Test("sin medición de ningún lado, el resolver deja los dos vacíos y el resto como antes")
+    func emptyMeasurementLeavesResolverAsBefore() {
+        let ahead = fxSave(lifetime: 1000, lastSeen: 5)
+        let behind = fxSave(lifetime: 10, lastSeen: 9)
+        let resolved = SaveConflictResolver.resolve(local: behind, remote: ahead)
+        #expect(resolved == ahead)
+        #expect(resolved.meta.adRevenue == .empty)
+        #expect(resolved.meta.offerFunnel == .empty)
+    }
+
     @Test("clampedScore jamás trapea: no-finito y gigantes a .max, negativos a 0")
     func scoreClampNeverTraps() {
         #expect(SaveConflictResolver.clampedScore(0) == 0)

@@ -12,6 +12,7 @@ struct PrizeSheets: ViewModifier {
     func body(content: Content) -> some View {
         content
             .background(boardPackageMarker)
+            .background(boardPackagesMarker)
             .background(boardMattressMarker)
             .onChange(of: gameState.mattressPopup) { syncCover() }
             .onChange(of: gameState.wheelSheet) { syncCover() }
@@ -39,6 +40,14 @@ struct PrizeSheets: ViewModifier {
             .accessibilityElement()
             .accessibilityIdentifier("board.package")
             .accessibilityValue(Text(verbatim: gameState.boardPackageMarker))
+    }
+
+    /// Dónde están todas las cajas quietas del piso que se mira, para los UI tests (E14b B22).
+    private var boardPackagesMarker: some View {
+        Color.clear
+            .accessibilityElement()
+            .accessibilityIdentifier("board.packages")
+            .accessibilityValue(Text(verbatim: gameState.boardPackagesMarker))
     }
 
     /// Dónde tocar el colchón del tablero, para los UI tests (E14b B6).

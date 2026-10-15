@@ -1144,6 +1144,10 @@ struct GameTabBar: View {
     /// Los topes del plato, para que en iPad no se vuelvan gigantes.
     static let tabPlateSide: CGFloat = 48
     static let centerPlateSide: CGFloat = 70
+    /// El ancho del botón de Contratar (el área tocable y su marco de accesibilidad):
+    /// el plato y un poco de aire, y no toda la celda —que con pocas pestañas es
+    /// enorme—. Es lo que las solapas de `BarFlaps` esquivan (E14b B28).
+    static let centerButtonWidth: CGFloat = centerPlateSide + 8
 
     /// Aire arriba de los platos comunes, adentro del panel.
     static let topPadding: CGFloat = 6
@@ -1213,6 +1217,8 @@ struct GameTabBar: View {
                 GameTabButton(item: item, cellWidth: widths[index]) { selection(item.screen) }
                     .frame(width: widths[index])
                     .transition(.scale(scale: 0.4).combined(with: .opacity))
+                    // Contratar va en la capa de arriba: ni las pestañas vecinas lo tapan.
+                    .zIndex(item.prominent ? 1 : 0)
             }
         }
     }
@@ -1269,6 +1275,11 @@ private struct GameTabButton: View {
 
     private var side: CGFloat { GameTabBar.plateSide(cellWidth: cellWidth, prominent: item.prominent) }
     private var iconSide: CGFloat { side * GameTabBar.iconRatio }
+    /// El ancho de lo tocable: la celda, salvo en Contratar, que no pisa a las
+    /// solapas que lo flanquean.
+    private var labelWidth: CGFloat {
+        item.prominent ? min(cellWidth, GameTabBar.centerButtonWidth) : cellWidth
+    }
 
     var body: some View {
         Button {
@@ -1279,7 +1290,7 @@ private struct GameTabButton: View {
                 plateWithIcon
                 legend
             }
-            .frame(width: cellWidth)
+            .frame(width: labelWidth)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -1291,11 +1302,7 @@ private struct GameTabButton: View {
     }
 
     private var plateWithIcon: some View {
-        ZStack {
-            plate
-            item.icon(iconSide)
-                .frame(width: iconSide, height: iconSide)
-        }
+        plateContent
         .frame(width: side, height: side)
         // `.overlay`, no un hijo: el badge no puede mover ni un punto del
         // layout. Anclado a la esquina del ícono y no a la de la celda. Dentro
@@ -1323,6 +1330,23 @@ private struct GameTabButton: View {
         }
     }
 
+    /// El plato con su ícono. El de Contratar (el destacado) es la carpeta de
+    /// FisuJobs (E14b B28) con la cara del Fisura en el círculo; los demás, el
+    /// plato de arte con el ícono encima.
+    @ViewBuilder private var plateContent: some View {
+        if item.prominent {
+            FolderPlate(side: side, floating: !reduceMotion) { faceSide in
+                item.icon(faceSide).frame(width: faceSide, height: faceSide)
+            }
+        } else {
+            ZStack {
+                plate
+                item.icon(iconSide)
+                    .frame(width: iconSide, height: iconSide)
+            }
+        }
+    }
+
     /// La leyenda de la pestaña (las claves `hud.*.label`). Decoración: el botón
     /// ya dice lo mismo por AX, así que no entra al árbol. Una línea que se
     /// achica para el SE y para los textos largos del inglés; el tamaño de texto
@@ -1334,7 +1358,7 @@ private struct GameTabButton: View {
             .lineLimit(1)
             .minimumScaleFactor(0.55)
             .dynamicTypeSize(...DynamicTypeSize.xLarge)
-            .frame(width: cellWidth, height: GameTabBar.legendHeight)
+            .frame(width: labelWidth, height: GameTabBar.legendHeight)
             .accessibilityHidden(true)
     }
 

@@ -31,7 +31,7 @@ extension GameState {
         /// Una pestaña recién abierta, con su «¡Nuevo!».
         case newTabs
         /// La Tienda se mudó a la barra y el Ranking, a Menú › Oficina central (E14b B26, D19).
-        /// Una vez, como novedad: también al que ya vio el Tour.
+        /// Una vez, y sólo al veterano que conoció la barra vieja (`TutorialFlags.knewOldBarKey`).
         case tabsMoved
         /// Ya hay una pinta para ponerse. Desde que las 41 pintas de piso salen
         /// **sólo** de cofres, la primera llega en el cofre de bienvenida, al
@@ -461,8 +461,11 @@ extension GameState {
         case .newTabs:
             !newTabs.isEmpty
         case .tabsMoved:
-            // Después del «¡Nuevo!» de las pestañas, y sólo si hay Tienda en la barra y tarjeta del Ranking.
-            isLessonDone(.newTabs) && unlockedTabs.contains(.store) && unlockedTabs.contains(.menu)
+            // Sólo para el veterano que conoció la barra vieja (lo marca la migración del tutorial): quien
+            // arranca con la barra nueva nunca la ve. Después del «¡Nuevo!» de las pestañas, y sólo si hay
+            // Tienda en la barra y tarjeta del Ranking.
+            TutorialFlags.knewOldBar(in: flagDefaults) && (isLessonDone(.newTabs) || newTabs.isEmpty)
+                && unlockedTabs.contains(.store) && unlockedTabs.contains(.menu)
                 && rankingCardIsShown
         case .blueShop:
             cheapestBlueShopPrice().map { (player?.meta.blue ?? 0) >= $0 } ?? false

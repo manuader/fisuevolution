@@ -1,9 +1,9 @@
 import EconomyKit
 import SpriteKit
 
-/// El escenario de la escena (PLAN-v2 E4, E14 C2/C6/C16): quien entra desde un
-/// borde, camina hasta el horizonte de su piso, abre su popup y se va por el otro
-/// lado. El visitante va por profundidad con todo lo que está parado en el piso
+/// El escenario de la escena (PLAN-v2 E4, E14 C2/C6/C16, E14b B20/B21): quien entra
+/// desde un borde camina hasta el medio de su piso y espera caminando despacio de lado a
+/// lado; su popup se abre sólo si lo tocan, y se va por el otro lado. El visitante va por profundidad con todo lo que está parado en el piso
 /// (`DepthOrder`, E14b B19); su globo de texto no se dibuja acá: se publica en
 /// `bubbleFeed` y lo dibuja SwiftUI encima del HUD. Se queda en el piso donde
 /// apareció (`StageVisit.floorOrdinal`; si se deja de mirar, `+Stage` lo congela,
@@ -27,10 +27,26 @@ final class StageController {
     static let feedbackDuration: TimeInterval = 0.35
     /// El vendedor ofendido se va a este múltiplo de la velocidad normal.
     static let offendedSpeed: CGFloat = 1.8
+    #if DEBUG
+    /// `--uitest-slow-entrance`: la entrada a un cuarto de velocidad, para que un UI test alcance
+    /// a hacer algo con el visitante todavía caminando (`VisitorUITests`, B21). Con el turno
+    /// suelto en el primer frame, el watchdog de `.visitorEncounter` no la corta.
+    static let entranceSpeed: CGFloat =
+        ProcessInfo.processInfo.arguments.contains("--uitest-slow-entrance") ? 0.25 : 1
+    #else
+    static let entranceSpeed: CGFloat = 1
+    #endif
 
     /// Qué pasó con un empleado soltado sobre quien está en escena.
     enum DropOutcome: Equatable {
         case ignored, delivered, bounced
+    }
+
+    /// Lo que se recuerda de una visita congelada: su x, hacia dónde caminaba y por dónde entró.
+    private struct Frozen {
+        let x: CGFloat
+        let heading: CGFloat
+        let fromLeft: Bool
     }
 
     let layer = SKNode()
@@ -54,11 +70,15 @@ final class StageController {
     private(set) var anchorOrdinal = 0
     private var layout = StageLayout(sceneSize: CGSize(width: 393, height: 852), bottomInset: 118, cellSize: 72)
     private var entersFromLeft = false
+    /// Hacia dónde camina mientras espera: 1 a la derecha, −1 a la izquierda (B20).
+    private var heading: CGFloat = 1
+    /// Dónde está parado, sin el bamboleo de una entrega rebotada: de acá sigue la caminata.
+    private var walkX: CGFloat = 0
     private var requestClock: TimeInterval = 0
     private var cameraOffsetY: CGFloat?
-    /// La oferta que ya abrió su popup sola, por visita: cerrarlo sin elegir no lo
-    /// reabre, ni al volver a un piso donde esperaba congelado (E14b B7).
-    private var autoOpenedOffers: [UUID: VisitOffer] = [:]
+    /// Dónde quedó cada visita que se dejó de mirar (B7, B21): al volver a su piso retoma la
+    /// caminata desde ahí, sin saltar a su lugar.
+    private var frozen: [UUID: Frozen] = [:]
     private var leavingOffended = false
     private var feedback: (kind: DropOutcome, age: TimeInterval)?
     private var hoveringRight = false
@@ -92,17 +112,20 @@ final class StageController {
     /// cámara está en el piso de la visita.
     func update(delta: TimeInterval, reduceMotion: Bool, cameraOffsetY: CGFloat? = nil) {
         self.cameraOffsetY = cameraOffsetY
+        // Entrando, se lo dibuja en su turno o si ya se lo ve caminar: desde ahí, otra celebración
+        // que tome el turno no lo borra (B21).
         guard let gameState, let visit = gameState.stageVisit,
-              visit.phase != .entering || gameState.showing == .visitorEncounter
+              visit.phase != .entering || visit.onStage || gameState.showing == .visitorEncounter
         else { return clear() }
         let node = actorNode(for: visit, reduceMotion: reduceMotion)
         anchorOrdinal = visit.floorOrdinal
+        if visit.phase == .entering, !visit.onStage { gameState.stageEntranceBegan(id: visit.id) }
         switch visit.phase {
         case .entering: enter(node, visit: visit, delta: delta, reduceMotion: reduceMotion)
         case .waiting: wait(node, visit: visit, delta: delta, reduceMotion: reduceMotion)
         case .leaving: leave(node, visit: visit, delta: delta, reduceMotion: reduceMotion)
         }
-        node.zPosition = aboveEffects ? Self.aboveEffectsZ : DepthOrder.z(forFeetY: standY)
+        node.zPosition = aboveEffects ? Self.aboveEffectsZ : DepthOrder.z(forFeetY: feetY)
         applyFloorShift(to: node)
         publishBubble(for: visit, actor: node)
     }
@@ -124,10 +147,17 @@ final class StageController {
         return CGFloat(anchorOrdinal) * height - cameraOffsetY
     }
 
-    private var standY: CGFloat {
+    /// Los pies del visitante: en el medio de su piso (B20).
+    private var feetY: CGFloat {
         let table = gameState?.content?.floorTable
         let floor = table.flatMap { $0.floors.indices.contains(anchorOrdinal) ? $0[anchorOrdinal] : nil }
-        return layout.standY(background: floor?.background, backgroundOffset: floor?.backgroundOffset ?? 0)
+        return layout.visitorY(background: floor?.background, backgroundOffset: floor?.backgroundOffset ?? 0)
+    }
+
+    /// Por dónde camina mientras espera, sin tocar las esquinas que le quedan a la altura de sus pies
+    /// en la pantalla (con el corrimiento de su piso).
+    private var walkRange: ClosedRange<CGFloat> {
+        layout.walkRange(feetY: feetY + floorShift, corners: bubbleFeed.cornerFrames)
     }
 
     /// Tocar al que espera (o su globo del pedido) abre su popup. `point` en coordenadas de `layer`.
@@ -150,13 +180,12 @@ final class StageController {
     }
 
     /// La visita que acepta un toque, o `nil`. Durante un reto de toques no se come nada: los
-    /// toques son para los empleados. Y tiene que estar parado en su lugar: el toque que saltea la
-    /// entrada deja la fase en `waiting` en el acto, pero el nodo sigue a mitad de camino hasta el
-    /// próximo frame, y ese mismo toque no puede abrir además el popup.
+    /// toques son para los empleados. Entrando tampoco: el toque sigue al tablero (B21). Esperando,
+    /// se lo toca donde esté de su caminata (B20).
     private var tappableVisit: StageVisit? {
         guard let gameState, let actor, let visit = gameState.stageVisit,
               visit.id == actor.visitId, visit.phase == .waiting, gameState.stageChallenge == nil,
-              actor.alpha >= 1, abs(actor.position.x - layout.standX) < 1
+              actor.alpha >= 1
         else { return nil }
         return visit
     }
@@ -263,17 +292,27 @@ final class StageController {
     private func actorNode(for visit: StageVisit, reduceMotion: Bool) -> VisitorNode {
         if let actor, actor.visitId == visit.id { return actor }
         clear()
-        entersFromLeft.toggle()
         anchorOrdinal = visit.floorOrdinal
         let parked = Set(gameState?.stageRuntime.parked.values.map(\.id) ?? [])
-        autoOpenedOffers = autoOpenedOffers.filter { $0.key == visit.id || parked.contains($0.key) }
+        frozen = frozen.filter { $0.key == visit.id || parked.contains($0.key) }
+        let kept = frozen.removeValue(forKey: visit.id)
+        if let kept {
+            entersFromLeft = kept.fromLeft
+            heading = kept.heading
+        } else {
+            entersFromLeft.toggle()
+            heading = entersFromLeft ? 1 : -1
+        }
         leavingOffended = false
         feedback = nil
         let node = VisitorNode(visitId: visit.id, actorId: visit.actorId,
                                texture: texture(for: visit.actorId, pose: .canonical), side: layout.actorSide,
                                loops: loops, pool: pool, packs: packs)
         let walksIn = visit.phase == .entering && !reduceMotion
-        node.position = CGPoint(x: walksIn ? layout.offstageX(left: entersFromLeft) : layout.standX, y: standY)
+        let startX = walksIn ? layout.offstageX(left: entersFromLeft) : layout.standX
+        walkX = kept?.x ?? startX
+        node.position = CGPoint(x: walkX, y: feetY)
+        node.face(heading)
         node.alpha = visit.phase == .entering && reduceMotion ? 0 : 1
         layer.addChild(node)
         actor = node
@@ -285,16 +324,20 @@ final class StageController {
         hideRequest()
         showPose(on: node, visit: visit, talking: false, animated: false)
         if reduceMotion {
-            node.position = CGPoint(x: layout.standX, y: standY)
+            walkX = layout.standX
+            node.position = CGPoint(x: walkX, y: feetY)
             node.alpha = min(1, node.alpha + CGFloat(delta / Self.fadeDuration))
             if node.alpha >= 1 { gameState?.stageActorArrived(id: visit.id) }
             return
         }
         let target = layout.standX
-        let step = StageLayout.walkSpeed * CGFloat(delta)
-        let x = node.position.x < target ? min(target, node.position.x + step) : max(target, node.position.x - step)
+        let step = StageLayout.walkSpeed * Self.entranceSpeed * CGFloat(delta)
+        let x = walkX < target ? min(target, walkX + step) : max(target, walkX - step)
+        if x != walkX { heading = x > walkX ? 1 : -1 }
+        walkX = x
+        node.face(heading)
         let arrived = x == target
-        node.position = CGPoint(x: x, y: standY + (arrived ? 0 : node.walkBob(delta: delta)))
+        node.position = CGPoint(x: x, y: feetY + (arrived ? 0 : node.walkBob(delta: delta)))
         if arrived { gameState?.stageActorArrived(id: visit.id) }
     }
 
@@ -309,12 +352,11 @@ final class StageController {
             if current.kind == .bounced { sway = reduceMotion ? 0 : 8 * sin(progress * .pi * 4) * (1 - progress) }
             feedback = progress >= 1 ? nil : current
         }
-        node.position = CGPoint(x: layout.standX + sway, y: standY + lift)
-        if reduceMotion { node.setScale(1) } else { node.breathe(delta: delta) }
-        if hoveringRight, !reduceMotion { node.setScale(node.xScale * 1.08) }
-        if case .visitor = visit.role, visit.offer != nil, visit.offer != autoOpenedOffers[visit.id] {
-            openPopupWhenDue(visit)
-        }
+        // Sin bamboleo: los pies quedan en su línea (el globo no tiembla) y el paso lo da la respiración.
+        walkX = stroll(node, delta: delta, reduceMotion: reduceMotion)
+        node.position = CGPoint(x: walkX + sway, y: feetY + lift)
+        if reduceMotion { node.scaleKeepingFacing(1) } else { node.breathe(delta: delta) }
+        if hoveringRight, !reduceMotion { node.scaleKeepingFacing(node.yScale * 1.08) }
 
         if let ask = requestedUnit(of: visit) {
             hideBubble()
@@ -361,14 +403,19 @@ final class StageController {
         (value * 2).rounded() / 2
     }
 
-    /// El popup sale solo al llegar (C2) y sólo si se está mirando su piso (C6); espera su turno en la
-    /// cola de popups (`isCalmMoment`) y, cerrado sin elegir, no vuelve a abrirse solo.
-    private func openPopupWhenDue(_ visit: StageVisit) {
-        guard let gameState, gameState.visibleFloorOrdinal == anchorOrdinal, gameState.isCalmMoment,
-              gameState.stageChallenge == nil, actor.map({ abs($0.position.x - layout.standX) < 1 }) ?? false
-        else { return }
-        autoOpenedOffers[visit.id] = visit.offer
-        gameState.stageActorTapped(id: visit.id)
+    /// La caminata de espera (B20, D15): despacio, de lado a lado dentro de `walkRange`, dándose
+    /// vuelta en los bordes. Se queda quieto mientras reacciona a una entrega o le pasan por encima
+    /// al que pide, con un popup abierto y con Reduce Motion. El popup ya no sale solo (B21): se
+    /// abre al tocarlo, a él, a su globo, a su tarjeta o a su aviso.
+    private func stroll(_ node: VisitorNode, delta: TimeInterval, reduceMotion: Bool) -> CGFloat {
+        let x = walkX
+        let still = reduceMotion || feedback != nil || hoveringRight || gameState?.visitorPopup != nil
+        guard !still else { return x }
+        let step = StageLayout.stroll(x: x, heading: heading, range: walkRange,
+                                      step: StageLayout.strollSpeed * CGFloat(delta))
+        heading = step.heading
+        node.face(heading)
+        return step.x
     }
 
     private func showRequest(_ ask: RequestedUnit, above node: VisitorNode, delta: TimeInterval, reduceMotion: Bool) {
@@ -384,7 +431,7 @@ final class StageController {
         hideBubble()
         hideRequest()
         showPose(on: node, visit: visit, talking: false, animated: false)
-        node.setScale(1)
+        node.scaleKeepingFacing(1)
         if reduceMotion {
             node.alpha = max(0, node.alpha - CGFloat(delta / Self.fadeDuration))
             if node.alpha <= 0 { gameState?.stageActorLeft(id: visit.id) }
@@ -393,8 +440,10 @@ final class StageController {
         let exit = layout.offstageX(left: !entersFromLeft)
         let speed = leavingOffended ? Self.offendedSpeed : 1
         let step = StageLayout.walkSpeed * speed * CGFloat(delta)
-        let x = node.position.x < exit ? min(exit, node.position.x + step) : max(exit, node.position.x - step)
-        node.position = CGPoint(x: x, y: standY + node.walkBob(delta: delta, stomp: leavingOffended))
+        let x = walkX < exit ? min(exit, walkX + step) : max(exit, walkX - step)
+        if x != walkX { node.face(x > walkX ? 1 : -1) }
+        walkX = x
+        node.position = CGPoint(x: x, y: feetY + node.walkBob(delta: delta, stomp: leavingOffended))
         if x == exit { gameState?.stageActorLeft(id: visit.id) }
     }
 
@@ -443,6 +492,9 @@ final class StageController {
         hideBubble()
         bubbleFeed.publish(nil)
         hideRequest()
+        if let actor {
+            frozen[actor.visitId] = Frozen(x: walkX, heading: heading, fromLeft: entersFromLeft)
+        }
         actor?.removeClip()
         actor?.removeFromParent()
         actor = nil

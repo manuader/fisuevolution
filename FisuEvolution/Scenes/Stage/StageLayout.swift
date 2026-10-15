@@ -7,8 +7,9 @@ import CoreGraphics
 /// tamaño de la escena).
 ///
 /// El horizonte de cada escenario es UN dato (`horizons`) y de él sale todo lo que se
-/// apoya en el suelo: el techo de las hileras (`groundY`, `BoardScene.crowdBand`) y, `walkDrop`
-/// más abajo, los pies del visitante (`standY`), la caja y el colchón (`PickupLayout`).
+/// apoya en el suelo: el techo de las hileras (`groundY`, `BoardScene.crowdBand`), `walkDrop`
+/// más abajo la caja y el colchón (`PickupLayout`), y en el medio del piso los pies del
+/// visitante (`visitorY`, E14b B20), que espera caminando de lado a lado (`walkRange`).
 struct StageLayout: Equatable {
     static let leftEdge: CGFloat = 0.28
     static let rightEdge: CGFloat = 0.72
@@ -47,6 +48,16 @@ struct StageLayout: Equatable {
     static let walkDrop: CGFloat = 20
     /// La cabeza del visitante nunca pasa de esta fracción del alto: más arriba queda bajo el HUD.
     static let maxHeadRatio: CGFloat = 0.85
+    /// Por dónde camina el visitante mientras espera (E14b B20, D15): la franja central del ancho.
+    /// Se achica si las esquinas (`CornersView`) la tocan, nunca se encima (D14).
+    static let walkZone: ClosedRange<CGFloat> = 0.35...0.65
+    /// Lo que camina mientras espera, en pt/s: despacio, a un quinto de la entrada.
+    static let strollSpeed: CGFloat = 18
+    /// Cuánto del ancho de la ficha del visitante es cuerpo: lo que no puede tocar una esquina.
+    /// El mismo número que `PickupLayout.visitorBodyRatio`, medido sobre `npcs.atlas`.
+    static let walkBodyRatio: CGFloat = 0.65
+    /// El aire entre el cuerpo del visitante y el marco de una esquina.
+    static let cornerGap: CGFloat = 4
 
     let sceneSize: CGSize
     let bottomInset: CGFloat
@@ -100,10 +111,58 @@ struct StageLayout: Equatable {
         return max(groundFloorY, min(feet, ceiling))
     }
 
-    /// Dónde apoya los pies quien camina por el medio (visitantes y especiales): la línea del
-    /// suelo, `walkDrop` más abajo (B17), sin pisar la barra.
+    /// La línea de B17: el suelo, `walkDrop` más abajo, sin pisar la barra. Es la referencia de la
+    /// caja y el colchón (`PickupLayout`); el visitante ya no la pisa: `visitorY`.
     func standY(background: String?, backgroundOffset: Double = 0) -> CGFloat {
         max(groundFloorY, groundY(background: background, backgroundOffset: backgroundOffset) - Self.walkDrop)
+    }
+
+    /// Dónde apoya los pies el visitante (E14b B20, D15): en el medio del piso, a mitad de camino
+    /// entre la línea del suelo (el techo de las hileras) y el borde de abajo del fondo. Con la
+    /// profundidad de B19 tapa a los de atrás y lo tapan los de adelante; nunca pisa la barra.
+    func visitorY(background: String?, backgroundOffset: Double = 0) -> CGFloat {
+        let ground = groundY(background: background, backgroundOffset: backgroundOffset)
+        return max(groundFloorY, (ground + floorBase) / 2)
+    }
+
+    /// Por dónde camina el visitante mientras espera, para sus pies en `feetY` (la y de la pantalla,
+    /// origen abajo): `walkZone` del ancho, achicada para que el cuerpo no toque ningún marco de
+    /// las esquinas que le quede a la misma altura (D14). `corners` en puntos de la pantalla con el
+    /// origen ARRIBA a la izquierda, como los mide SwiftUI. Si no entra, se queda en el medio del
+    /// hueco que haya.
+    func walkRange(feetY: CGFloat, corners: [CGRect]) -> ClosedRange<CGFloat> {
+        let half = actorSide * Self.walkBodyRatio / 2 + Self.cornerGap
+        let top = sceneSize.height - (feetY + actorSide)
+        let bottom = sceneSize.height - feetY
+        var lower = sceneSize.width * Self.walkZone.lowerBound
+        var upper = sceneSize.width * Self.walkZone.upperBound
+        for corner in corners where !corner.isEmpty && corner.maxY > top && corner.minY < bottom {
+            if corner.midX < sceneSize.width / 2 {
+                lower = max(lower, corner.maxX + half)
+            } else {
+                upper = min(upper, corner.minX - half)
+            }
+        }
+        if lower <= upper { return lower...upper }
+        let middle = (lower + upper) / 2
+        return middle...middle
+    }
+
+    /// Un paso de la caminata de espera: va hacia `heading` (1 a la derecha, −1 a la izquierda) y
+    /// se da vuelta en los bordes de `range`. Si quedó afuera (la zona se achicó), vuelve
+    /// caminando, sin saltar. Con la zona hecha un punto, va hasta él y se queda.
+    static func stroll(x: CGFloat, heading: CGFloat, range: ClosedRange<CGFloat>,
+                       step: CGFloat) -> (x: CGFloat, heading: CGFloat) {
+        guard range.upperBound - range.lowerBound >= 1 else {
+            let target = range.lowerBound
+            let next = x < target ? min(target, x + step) : max(target, x - step)
+            return (next, target > x ? 1 : (target < x ? -1 : heading))
+        }
+        var heading: CGFloat = heading < 0 ? -1 : 1
+        if x >= range.upperBound { heading = -1 } else if x <= range.lowerBound { heading = 1 }
+        let next = x + heading * step
+        if heading > 0 { return (x < range.upperBound ? min(next, range.upperBound) : next, heading) }
+        return (x > range.lowerBound ? max(next, range.lowerBound) : next, heading)
     }
 
     func offstageX(left: Bool) -> CGFloat {

@@ -386,6 +386,7 @@ struct TutorialLessonsTests {
     func tabsMovedExplainsTheStoreAndTheRanking() async {
         let gameState = await makeGameState()
         only(.tabsMoved, in: gameState)
+        gameState.flagDefaults.set(true, forKey: TutorialFlags.knewOldBarKey)
         gameState.markLessonDone(.newTabs)
         gameState.progressiveTabsEnabled = false
         gameState.refreshProjections()
@@ -399,18 +400,29 @@ struct TutorialLessonsTests {
         #expect(steps[2].surface == .page(.menu))
     }
 
-    @Test("la lección de las pestañas movidas espera al «¡Nuevo!» y a que haya tarjeta del Ranking")
+    @Test("la lección de las pestañas movidas es del veterano y espera a que haya tarjeta del Ranking")
     func tabsMovedWaitsForItsPieces() async {
         let gameState = await makeGameState()
         gameState.progressiveTabsEnabled = false
-        gameState.refreshProjections()
-        #expect(!gameState.isEligible(.tabsMoved), "las pestañas nuevas van primero")
         gameState.markLessonDone(.newTabs)
+        gameState.refreshProjections()
+        #expect(!gameState.isEligible(.tabsMoved), "quien arrancó con la barra nueva no la ve nunca")
+        gameState.flagDefaults.set(true, forKey: TutorialFlags.knewOldBarKey)
         #expect(gameState.isEligible(.tabsMoved))
         let off = RankingConfig(
             schemaVersion: RankingConfig.supportedSchemaVersion, enabled: false, baseURL: nil, anonKey: nil)
         gameState.attachRanking(RankingStore(client: SimulatedRankingClient(), config: off))
         #expect(!gameState.isEligible(.tabsMoved), "sin tarjeta del Ranking no hay qué señalar")
+    }
+
+    @Test("el jugador nuevo que completa las pestañas nuevas no recibe la lección de las movidas")
+    func newPlayerNeverGetsTabsMoved() async {
+        let gameState = await makeGameState()
+        gameState.progressiveTabsEnabled = false
+        gameState.markLessonDone(.newTabs)
+        gameState.refreshProjections()
+        #expect(!gameState.isEligible(.tabsMoved))
+        #expect(gameState.tutorialRun?.steps.first?.id != "tabs_moved.store")
     }
 
     @Test("las pestañas nuevas: nacen con un «¡Nuevo!» y no sin él")

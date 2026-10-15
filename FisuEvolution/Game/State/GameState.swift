@@ -137,6 +137,9 @@ final class GameState {
     /// Dónde está la caja de arriba del tablero, normalizada a la pantalla ("0.812,0.703"), o "" sin
     /// caja: el marcador `board.package` de los tests (E14b B5).
     private(set) var boardPackageMarker = ""
+    /// Todas las cajas quietas del piso que se mira (E14b B22), igual que `boardPackageMarker` y
+    /// separadas por ";": el marcador `board.packages` de los tests.
+    private(set) var boardPackagesMarker = ""
     /// Dónde está el colchón del tablero (E14b B6), igual que `boardPackageMarker`: `board.mattress`.
     private(set) var boardMattressMarker = ""
     /// Income pasivo agregado de todos los pisos, aunque no estén en cámara.
@@ -466,6 +469,10 @@ final class GameState {
 
     func publishBoardPackage(_ marker: String) {
         if boardPackageMarker != marker { boardPackageMarker = marker }
+    }
+
+    func publishBoardPackages(_ marker: String) {
+        if boardPackagesMarker != marker { boardPackagesMarker = marker }
     }
 
     func publishBoardMattress(_ marker: String) {

@@ -25,6 +25,39 @@ extension GameState {
         return true
     }
 
+    /// La escena empezó a mostrarlo entrar (E14b B21, D15). El turno de la cola
+    /// (`.visitorEncounter`) es la puerta: elige el momento, nunca encima de un
+    /// reveal ni de un cofre. Pasada la puerta, la caminata es de la escena: el
+    /// turno se suelta acá, y por eso ni el toque que saltea, ni el merge, ni otra
+    /// celebración que tome el turno la cortan. Llega cuando la escena avisa.
+    ///
+    /// Soltar el turno no deja el tablero en calma: lo que se abre encima de él
+    /// (`waitsForTheArrival`) espera a que llegue. Lo que ya esperaba en la fila
+    /// sale de ella sin perder su payload, y la llegada lo vuelve a encolar
+    /// (`stageActorArrived` → `syncCelebrations`).
+    func stageEntranceBegan(id: UUID) {
+        guard var visit = stageVisit, visit.id == id, visit.phase == .entering, !visit.onStage else { return }
+        visit.onStage = true
+        stageVisit = visit
+        for kind in Self.waitsForTheArrival where celebrations.current != kind {
+            celebrations.finish(kind)
+        }
+        celebrationFinished(.visitorEncounter)
+    }
+
+    /// Lo que no se abre encima de un visitante que entra caminando (B21): la
+    /// hoja de una oferta y el coach-mark de una lección. Lo del tablero (un
+    /// merge, su reveal, los avisos chicos) sigue: la caminata no lo frena.
+    static let waitsForTheArrival: [CelebrationKind] = [.offer, .tutorialTip]
+
+    /// Alguien entra caminando a la vista (B21): el turno ya se soltó, pero el
+    /// tablero no está en calma hasta que llegue (`isCalmMoment`, los cortes
+    /// naturales). No frena merges, arrastres ni toques.
+    var stageEntranceInProgress: Bool {
+        guard let visit = stageVisit else { return false }
+        return visit.phase == .entering && visit.onStage
+    }
+
     /// La escena terminó la entrada.
     func stageActorArrived(id: UUID) {
         guard stageVisit?.id == id, stageVisit?.phase == .entering else { return }
@@ -32,11 +65,19 @@ extension GameState {
         celebrationFinished(.visitorEncounter)
     }
 
-    /// El turno de entrada se cerró sin que la escena avisara (el toque que
-    /// saltea, el watchdog): llega igual, una sola vez. Lo llama `releasePayload`.
+    /// El turno de entrada se cerró antes de que la escena lo mostrara (el
+    /// watchdog): llega igual, una sola vez. Lo llama `releasePayload`. Con la
+    /// caminata ya a la vista (`onStage`) no hace nada: la llegada es de la escena.
     func settleStageArrival() {
-        guard stageVisit?.phase == .entering else { return }
+        guard let visit = stageVisit, visit.phase == .entering, !visit.onStage else { return }
         completeArrival()
+    }
+
+    /// Ya se lo vio entrar: la escena lo dibujó (`onStage`, que pone el primer
+    /// frame en que lo muestra). Tener el turno no alcanza: sin escena que lo
+    /// dibuje (inactiva, en otra pantalla) nadie lo vio.
+    private func wasSeen(_ visit: StageVisit) -> Bool {
+        visit.onStage
     }
 
     func stageActorLeft(id: UUID) {
@@ -58,7 +99,7 @@ extension GameState {
         let wasEntering = visit.phase == .entering
         // Si la entrada se cancela antes de que le toque el turno, nunca se vio:
         // no hay nada que hacer salir.
-        if wasEntering, showing != .visitorEncounter {
+        if wasEntering, !wasSeen(visit) {
             stageVisit = nil
             visitorPopup = nil
             celebrationFinished(.visitorEncounter)
@@ -119,13 +160,15 @@ extension GameState {
         return player?.meta.engagement.visitors.waiting != before
     }
 
-    /// Despacha desde el aviso al que espera en otro piso: se va a su piso y se
-    /// abre su popup.
+    /// Despacha desde el aviso al que espera en otro piso: se va a su piso y, si
+    /// ya había llegado, se abre su popup. Si se congeló entrando, retoma la
+    /// caminata y el popup se abre cuando lo tocan, como a cualquiera.
     func attendWaitingVisitor(onFloor floor: Int) {
         guard waitingVisitor(onFloor: floor) != nil else { return }
         // `setVisibleFloor` y no `jumpToFloor`: pudo quedar esperando en el piso
         // cerrado al que el jugador se asomaba.
         setVisibleFloor(floor)
+        // Si se congeló entrando, sigue caminando: el popup se abre al tocarlo.
         guard stageVisit?.floorOrdinal == floor else { return }
         openVisitorPopup()
     }
@@ -144,7 +187,7 @@ extension GameState {
         case .leaving:
             // Ya se iba: se termina de ir.
             stageActorLeft(id: visit.id)
-        case .entering where showing != .visitorEncounter:
+        case .entering where !wasSeen(visit):
             // Todavía no se vio: entra en el piso nuevo, o, si ahí ya espera otro,
             // no entra y el reloj vuelve a llamar pronto.
             if waitingVisitor(onFloor: floor) == nil {
@@ -154,9 +197,17 @@ extension GameState {
                 retryVisitSoon()
             }
         case .entering:
-            // Caminaba a la vista: llega en el acto y se congela parado en su lugar.
-            stageActorArrived(id: visit.id)
-            if let arrived = stageVisit, arrived.phase == .waiting { leaveStageFloor(arrived, for: floor) }
+            // Caminaba a la vista (B21, D15): no se lo teletransporta a su lugar. El
+            // presentador acompaña y sigue caminando; un visitante se congela a mitad
+            // de camino y, al volver, retoma desde ahí (la escena guarda su x).
+            if case .presenter = visit.role {
+                stageVisit?.floorOrdinal = floor
+                return
+            }
+            var walking = visit
+            walking.onStage = true
+            park(walking)
+            if showing == .visitorEncounter { celebrationFinished(.visitorEncounter) }
         case .waiting:
             if case .presenter = visit.role {
                 // El presentador habla de un evento de toda la torre: acompaña.
@@ -176,9 +227,11 @@ extension GameState {
 
     private func park(_ visit: StageVisit) {
         guard case .visitor(let scriptId) = visit.role, var player else { return }
+        // El que se congela entrando todavía no empezó a esperar: guarda la paciencia entera.
+        let patience = visit.phase == .entering ? (content?.visitors.patienceSeconds ?? 30) : stageRuntime.patienceLeft
         VisitorScheduler.park(
             FloorVisitor(floorOrdinal: visit.floorOrdinal, visitorId: visit.actorId, scriptId: scriptId,
-                         patienceLeft: stageRuntime.patienceLeft),
+                         patienceLeft: patience),
             state: &player.meta.engagement.visitors
         )
         self.player = player

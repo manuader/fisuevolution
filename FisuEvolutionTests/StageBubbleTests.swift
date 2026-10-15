@@ -36,7 +36,7 @@ struct StageBubbleTests {
         let layout = PlayLayout(size: phone.size, capacity: 10)
         let stage = StageLayout(sceneSize: phone.size, bottomInset: BoardScene.bottomInset,
                                 cellSize: layout.cellSize, floorBottom: BoardScene.floorBottom)
-        let head = stage.standY(background: background) + stage.actorSide + 4
+        let head = stage.visitorY(background: background) + stage.actorSide + 4
         return StageBubble(visitId: UUID(), text: text,
                            tip: CGPoint(x: stage.standX, y: phone.size.height - head),
                            sceneSize: phone.size, preferredWidth: stage.bubbleMaxWidth,
@@ -116,6 +116,47 @@ struct StageBubbleTests {
         let placement = StageBubbleLayout.place(bubble, screen: screen, safeTop: 59, hudBottom: hud)
         #expect(placement.frame.minY >= hud + StageBubbleLayout.hudGap - 0.5)
         #expect(abs(placement.frame.height - wide.height) < 0.5)
+    }
+
+    // MARK: - E14b B20: las esquinas
+
+    @Test("el globo no se encima con las esquinas que le quedan a la altura: se angosta al carril libre")
+    func bubbleAvoidsTheCorners() {
+        for phone in phones {
+            let right = CGRect(x: phone.size.width - 154, y: phone.hudBottom, width: 150, height: 360)
+            let left = CGRect(x: 4, y: phone.hudBottom, width: 62, height: 330)
+            for background in StageLayout.horizons.keys.sorted() {
+                for text in texts {
+                    var bubble = bubble(text, phone: phone, background: background)
+                    // El visitante, en el borde derecho de su caminata: el globo centrado pisaría la columna.
+                    bubble = StageBubble(visitId: bubble.visitId, text: text,
+                                         tip: CGPoint(x: phone.size.width * 0.6, y: bubble.tip.y),
+                                         sceneSize: bubble.sceneSize, preferredWidth: bubble.preferredWidth,
+                                         maxDrop: bubble.maxDrop, tappable: true)
+                    let free = StageBubbleLayout.place(bubble, screen: phone.size, safeTop: phone.safeTop,
+                                                       hudBottom: phone.hudBottom)
+                    let placed = StageBubbleLayout.place(bubble, screen: phone.size, safeTop: phone.safeTop,
+                                                         hudBottom: phone.hudBottom, corners: [left, right])
+                    let label = "\(phone.name) en \(background): \(placed.frame)"
+                    guard free.frame.intersects(right) || free.frame.intersects(left) else {
+                        #expect(placed == free, "sin choque no se mueve — \(label)")
+                        continue
+                    }
+                    #expect(!placed.frame.intersects(right), "pisa la columna derecha — \(label)")
+                    #expect(!placed.frame.intersects(left), "pisa la columna izquierda — \(label)")
+                    #expect(placed.frame.minX >= StageBubbleLayout.margin - 0.5, "\(label)")
+                }
+            }
+        }
+    }
+
+    @Test("sin esquinas, el globo va donde iba")
+    func noCornersNoChange() {
+        let bubble = StageBubble(visitId: UUID(), text: "¡Hola!", tip: CGPoint(x: 200, y: 500),
+                                 sceneSize: CGSize(width: 393, height: 852), preferredWidth: 250, maxDrop: 20, tappable: true)
+        let screen = CGSize(width: 393, height: 852)
+        #expect(StageBubbleLayout.place(bubble, screen: screen, safeTop: 59, hudBottom: 140, corners: [])
+            == StageBubbleLayout.place(bubble, screen: screen, safeTop: 59, hudBottom: 140))
     }
 
     // MARK: - Lo que publica la escena

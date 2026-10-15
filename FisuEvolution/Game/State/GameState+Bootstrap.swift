@@ -115,6 +115,9 @@ extension GameState {
     private func finishBootstrap(isFreshInstall: Bool) {
         guard let content else { return }
         reconcileTower()
+        // Las cajas de un save de B18 (sin y) y las que dejaron de valer se ubican antes del
+        // primer frame: si no, el primer tick las sortea y la escena las ve caer de nuevo (B22).
+        settlePackageBoxes()
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--uitest-unlock-tower") {
             debugUnlockFloors(throughTier: 5)

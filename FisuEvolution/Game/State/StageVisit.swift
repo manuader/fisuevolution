@@ -25,6 +25,9 @@ struct StageVisit: Identifiable, Equatable {
     var offer: VisitOffer?
     /// El piso donde está (E14b B7): se queda ahí y, si se deja de mirar, se congela.
     var floorOrdinal = 0
+    /// La escena ya lo está mostrando entrar (E14b B21, D15): desde acá la entrada es suya y no de
+    /// la cola, así que ni un toque, ni un merge, ni otra celebración la cortan.
+    var onStage = false
 }
 
 /// El popup de quien está en escena: lo abrió el jugador (chip o toque).

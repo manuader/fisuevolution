@@ -52,6 +52,10 @@ final class AudioManager {
         case packageRattle = "sfx_package_rattle"
         case packageTapeRip = "sfx_package_tape_rip"
         case packageBurst = "sfx_package_burst"
+        /// El empleado que sale de la caja del tablero: el resorte con que asoma y el golpe con
+        /// que aterriza (E14b B23).
+        case packagePopOut = "sfx_package_pop_out"
+        case packageLand = "sfx_package_land"
         /// El colchón que espera, ambiente en loop; el desgarro, la lluvia de plata.
         case mattressSqueak = "sfx_mattress_squeak"
         case mattressRip = "sfx_mattress_rip"

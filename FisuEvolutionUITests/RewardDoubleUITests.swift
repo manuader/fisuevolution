@@ -25,15 +25,13 @@ final class RewardDoubleUITests: XCTestCase {
         add(shot)
     }
 
-    /// El pop-up del Ministro: sale solo al llegar o, desde B21, al tocarlo (su tarjeta).
+    /// El pop-up del Ministro: desde B21 no sale solo, se abre tocando su tarjeta.
     private func openMinister(_ app: XCUIApplication) -> XCUIElement {
         let accept = app.buttons["visit.option.accept"]
-        if !accept.waitForExistence(timeout: 25) {
-            let chip = app.buttons["stage.chip.visitor"]
-            XCTAssertTrue(chip.waitForExistence(timeout: 5), "el Ministro llegó")
-            chip.tap()
-            XCTAssertTrue(accept.waitForExistence(timeout: 6))
-        }
+        let chip = app.buttons["stage.chip.visitor"]
+        XCTAssertTrue(chip.waitForExistence(timeout: 25), "el Ministro llegó")
+        chip.tap()
+        XCTAssertTrue(accept.waitForExistence(timeout: 6), "tocar su tarjeta abre el popup (B21)")
         return accept
     }
 

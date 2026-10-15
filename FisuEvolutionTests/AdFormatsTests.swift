@@ -1,3 +1,4 @@
+import EconomyKit
 import Foundation
 import Testing
 @testable import FisuEvolution
@@ -172,6 +173,10 @@ final class ScriptedAdsProvider: AdsProvider {
     /// Si es `true`, el anuncio queda en pantalla hasta `closeCurrentAd()`.
     var holdsOpen = false
     private var open: CheckedContinuation<Void, Never>?
+    var onImpression: (@MainActor (AdImpression) -> Void)?
+    /// Lo que paga cada impresión (E15). Se emite al presentar, gane o no gane el premio: como el
+    /// `paidEventHandler` del SDK, que avisa la impresión y no el premio.
+    var paidMicros: Int64 = 5_000
 
     var isInterstitialReady: Bool { true }
     var isRewardedInterstitialReady: Bool { true }
@@ -191,12 +196,14 @@ final class ScriptedAdsProvider: AdsProvider {
         }
         guard hasInventory else { return false }
         lastRewardedAttempt = .presented
+        pay(.rewarded, site: placement.rawValue)
         await present("rewarded:\(placement)")
         return earnsReward
     }
 
     func showInterstitial() async -> Bool {
         guard hasInventory else { return false }
+        pay(.interstitial, site: AdImpressionMapping.Site.interstitial)
         await present("interstitial")
         return true
     }
@@ -205,12 +212,14 @@ final class ScriptedAdsProvider: AdsProvider {
         lastRewardedInterstitialAttempt = .noInventory
         guard hasInventory else { return false }
         lastRewardedInterstitialAttempt = .presented
+        pay(.rewardedInterstitial, site: AdImpressionMapping.Site.adBreak)
         await present("rewardedInterstitial")
         return earnsReward
     }
 
     func showAppOpen() async -> Bool {
         guard hasInventory else { return false }
+        pay(.appOpen, site: AdImpressionMapping.Site.appOpen)
         await present("appOpen")
         return true
     }
@@ -228,6 +237,13 @@ final class ScriptedAdsProvider: AdsProvider {
             attempts += 1
             await Task.yield()
         }
+    }
+
+    private func pay(_ format: AdFormat, site: String) {
+        onImpression?(AdImpression(
+            format: format, site: site, valueMicros: paidMicros, currency: "USD",
+            precision: .precise, adSource: "scripted", at: 0
+        ))
     }
 
     private func present(_ name: String) async {

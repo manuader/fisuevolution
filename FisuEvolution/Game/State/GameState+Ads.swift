@@ -87,6 +87,7 @@ extension GameState {
         let decision = pacer.decide(kind, context: naturalBreakContext)
         Log.ads.info("corte \(kind.rawValue): \(String(describing: decision))")
         guard case .show(let format) = decision else { return }
+        ads.interstitialSite = kind.rawValue
         await present(format, pacer: pacer)
     }
 

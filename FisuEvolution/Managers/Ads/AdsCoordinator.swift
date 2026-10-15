@@ -1,3 +1,4 @@
+import EconomyKit
 import Foundation
 
 /// El único dueño de la decisión "stub o AdMob", y el objeto que el resto de la
@@ -131,6 +132,24 @@ final class AdsCoordinator: AdsProvider {
         self.consentGate = consentGate
         self.now = now
         self.active = provider
+        listenForImpressions(from: provider)
+    }
+
+    // MARK: - Lo que pagó cada impresión (E15)
+
+    /// Quien anota las impresiones (`GameState.recordImpression`). Las recibe ya con su `site`.
+    @ObservationIgnored var onImpression: (@MainActor (AdImpression) -> Void)?
+
+    /// El corte natural que está por mostrar un intersticial (`NaturalBreak.rawValue`): lo pone
+    /// `GameState+Ads` antes de pedirlo, y es el `site` de su impresión.
+    @ObservationIgnored var interstitialSite = AdImpressionMapping.Site.interstitial
+
+    /// Engancha al proveedor activo; se llama de nuevo cuando `configure` cambia el stub por AdMob.
+    private func listenForImpressions(from provider: any AdsProvider) {
+        provider.onImpression = { [weak self] impression in
+            guard let self else { return }
+            onImpression?(AdImpressionMapping.stampingSite(impression, interstitialSite: interstitialSite))
+        }
     }
 
     /// Si esta corrida es una de tests de UI.
@@ -178,6 +197,7 @@ final class AdsCoordinator: AdsProvider {
         await AdsConsent.resolve(gate: consentGate, isCalm: isCalmMoment)
         let provider = AdMobAdsProvider(unitIDs: flags.effectiveAdUnitIDs(remote: remoteUnitIDs), now: now)
         active = provider
+        listenForImpressions(from: provider)
         provider.prepare()
     }
 

@@ -20,6 +20,8 @@
 > mockups aprobados (`Docs/correcciones-v2/mockups/`), 30 tareas en `tasks.md` §5 «E14» y §4.0. Va antes que
 > todo lo demás de la cola. Detalle: `Docs/SESION-2026-10-12-v2-e14-correcciones-dueno.md`.
 >
+> 📍 **Estado al cierre del relevo 56 (2026-10-15; manda sobre los párrafos de abajo):** lo nuevo está en **`v2i/integ-r54` (pusheada)**: E14b B1–B16 enteras, E14 T25 (cero SF Symbols) y T26 (textos, Tour de 12 pasos), y los arreglos de los bugs que el dueño vio en su iPhone (tip del tutorial a pantalla completa, hueco abajo en el cofre: **la barra inferior nunca desaparece**). **Regla nueva del dueño: los agentes no compilan por tarea; la ola se integra, se compila una vez y un agente arregla lo que falle.** Pendiente: B17/B18 (cajas por piso), el cofre rehecho (`v2i/cofre-r56`) y los cierres. Si `version-2` avanzó o no, lo dice `handoffs/HANDOFF-2026-10-15-v2-relevo-56.md`. Detalle: `Docs/SESION-2026-10-15-v2-relevo-56.md`.
+>
 > 📍 **Estado al cierre del relevo 55 (2026-10-14; manda sobre los párrafos de abajo):** `version-2` sigue en `d53a4098`; lo nuevo está en **`v2i/integ-r54` (pusheada)**: lo del 54 + el arreglo de los 6 rojos (iOS 18 abortaba en dyld por el rpath de Debug), E14 T16, T20, T24, el cofre con los clips de C26 y E14b B1 y B2. Queda 1 rojo real (`TowerNoticeUITests`) antes del fast-forward. **La E14b (`Docs/PLAN-v2-E14b-correcciones.md`, B1–B15) va antes de los cierres T25/T26/T27.** Detalle: `Docs/SESION-2026-10-14-v2-relevo-55.md`.
 >
 > 📍 **Estado al cierre del relevo 54 (2026-10-14; manda sobre los párrafos de abajo):** `version-2` sigue en `d53a4098`; lo nuevo está en **`v2i/integ-r54` = `38e86376` (pusheada)**: todo lo de integ-r53 (E14 T22, T21, T13, T17, ranking UGC) + los textos de E14 al catálogo + E14 T19, T14, T15, T18, T23 + las decisiones del dueño (visitantes, topes, `maxLive` del SE) + la ficha con X. Su `completo`: UI 169 · 0 rojos, pero 6 rojos reales (StoreUITests ×3 en iOS 18.6, IAPCopyTests, RankingWiringTests ×2): arreglarlos y recién ahí fast-forward de `version-2`. La 2.0 se lanza **sin Meta Audience Network** (decisión del dueño). Detalle: `Docs/SESION-2026-10-14-v2-relevo-54.md`.
@@ -389,6 +391,10 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-10-14/15 (relevo 56) — E14b entera, T25, T26 y la regla de no compilar por tarea
+
+El dueño cambió el método en vivo: los agentes escriben código y tests sin compilar y la ola se compila una vez; con eso entraron 16 tareas (E14b B3–B16, T25, T26) en ~6 h, más B11 y el rojo de TowerNotice (era carga). Dos bugs del dueño en su iPhone (la X de B11 estiraba el tip a pantalla completa; la barra inferior se apagaba con la UI y dejaba ver el hueco que B3 deja bajo el fondo) y el chip de Compartir que nunca salía con su lección. Planificados B17/B18 (cajas por piso). Detalle: `Docs/SESION-2026-10-15-v2-relevo-56.md`.
 
 ### Sesión del 2026-10-14 (relevo 55) — Los 6 rojos, E14 T16/T20/T24, el cofre de C26 y la E14b
 
@@ -5045,6 +5051,14 @@ Siguen vigentes y no estaban en ningún otro lado:
 - **El repaso se retira si el núcleo volvió a vivir** y no arranca con el núcleo sin hacer: no hay que "arreglarlo" para que arranque igual, pisaría la fase.
 - **El reset del ORO es `min(saldo, comprado)`:** devolver el comprado entero regala ORO gastado; devolver el saldo entero regala el ORO ganado jugando. Cualquier cambio a `ResetPlan` o a `resolveAcrossReset` se prueba con `ResetEpochTests`.
 
+### Del relevo 56 (2026-10-15)
+
+- **`SendMessage` a un agente que ya entregó lo reanuda:** retomó trabajo ya asignado a otro y duplicó la carga. Para un pedido nuevo, otro agente.
+- **Swift 6 en código que no se compiló:** `Equatable`/`Animatable` sobre un tipo `@MainActor` piden `@MainActor Equatable` o `nonisolated var animatableData`; `#expect(cond, label)` con un `String` pide `"\(label)"`.
+- **`.frame(maxHeight: .infinity)` dentro de una tarjeta la estira a toda la pantalla:** la X va en un `.overlay(alignment: .topTrailing)`.
+- **Con el fondo recortado en `floorBottom` (B3), nada puede apagar la barra inferior:** debajo queda un hueco.
+- **iPhone «Device is busy»:** compilar con `generic/platform=iOS` y después `devicectl device install app`; si el build falla, `devicectl` reinstala el `.app` viejo sin avisar.
+
 ### Del relevo 55 (2026-10-14)
 
 - **«La app tarda 60 s en quedar quieta» puede ser una app muerta:** mirar los `.ips` de `~/Library/Logs/DiagnosticReports`. El rpath de Debug con `@executable_path/Frameworks` primero cargaba el XCTest copiado al `.app` y abortaba en iOS 18.
@@ -5670,6 +5684,7 @@ Anotado por si algún día importa, con su medición:
 - **`Docs/SESION-2026-10-12-v2-relevo-38-ola-aj.md`**: el relevo 38 (los eventos de 25 s dicen «En curso»; fuera `tutorial.tip.wheel`).
 - **`Docs/SESION-2026-10-12-v2-relevo-37-ola-ai.md`**: el relevo 37 (el UI test del otro colchón `extraOnly`; el pager asienta con el scroll quieto).
 - **`Docs/SESION-2026-10-13-v2-relevo-50.md`**: el relevo 50 (E14 T4, T6, T28; la carga de la máquina).
+- **`Docs/SESION-2026-10-15-v2-relevo-56.md`**: el relevo 56 (E14b B3–B16, T25, T26, la regla de no compilar por tarea, los bugs del dueño y el plan de B17/B18).
 - **`Docs/SESION-2026-10-14-v2-relevo-55.md`**: el relevo 55 (los 6 rojos, E14 T16/T20/T24, el cofre de C26, E14b B1/B2 y el spec de E14b).
 - **`Docs/SESION-2026-10-14-v2-relevo-54.md`**: el relevo 54 (E14 T19, T14, T15, T18, T23; decisiones del dueño; textos; sin Meta).
 - **`Docs/SESION-2026-10-13-v2-relevo-53.md`**: el relevo 53 (E14 T22, T21, T13, T17; ranking UGC; pendientes del dueño).

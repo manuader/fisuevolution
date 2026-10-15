@@ -3,6 +3,9 @@ import XCTest
 /// Toda recompensa gratis en dos pasos (E14b B29, D17), con el Ministro de Economía: su pop-up cobra con
 /// un solo botón y recién después sale «¿Lo duplicás?» con «×2 con video» y «No, gracias». El anuncio es
 /// el del stub (`--uitest*` nunca usa AdMob): está siempre listo y paga a los 2 s.
+///
+/// El embudo de ofertas (E15 T3) se mira acá también: el «×2 con video» es un `RewardedOfferButton`
+/// con el `site` del paso 2 como id, y la sonda (`--uitest-ad-value-probe`) muestra sus contadores.
 @MainActor
 final class RewardDoubleUITests: XCTestCase {
     private static let site = "double.visit.ministro_subsidio"
@@ -13,7 +16,8 @@ final class RewardDoubleUITests: XCTestCase {
 
     private func launch() -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-visitor=ministro_subsidio"]
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-visitor=ministro_subsidio",
+                               "--uitest-ad-value-probe"]
         app.launch()
         return app
     }
@@ -23,6 +27,16 @@ final class RewardDoubleUITests: XCTestCase {
         shot.name = name
         shot.lifetime = .keepAlways
         add(shot)
+    }
+
+    /// Un contador del embudo del paso 2, por la sonda.
+    private func expectFunnel(_ app: XCUIApplication, stage: String, equals count: Int,
+                              file: StaticString = #filePath, line: UInt = #line) {
+        let probe = app.descendants(matching: .any)["ads.funnel.\(Self.site).\(stage)"]
+        XCTAssertTrue(probe.waitForExistence(timeout: 6), "la sonda del embudo de \(stage)", file: file, line: line)
+        let match = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == '\(count)'"), object: probe)
+        XCTAssertEqual(XCTWaiter().wait(for: [match], timeout: 6), .completed,
+                       "\(stage) = \(count), había '\(probe.value ?? "nada")'", file: file, line: line)
     }
 
     /// El pop-up del Ministro: desde B21 no sale solo, se abre tocando su tarjeta.
@@ -53,6 +67,11 @@ final class RewardDoubleUITests: XCTestCase {
                       "el video del stub está en pantalla")
         XCTAssertTrue(double.waitForNonExistence(timeout: 12), "el video pagó y el paso 2 se fue")
         XCTAssertFalse(app.buttons["reward.double.decline"].exists)
+
+        expectFunnel(app, stage: "shown", equals: 1)
+        expectFunnel(app, stage: "accepted", equals: 1)
+        expectFunnel(app, stage: "completed", equals: 1)
+        expectFunnel(app, stage: "dismissed", equals: 0)
     }
 
     func testNoGraciasCierraElPasoDosSinVideo() {
@@ -63,5 +82,10 @@ final class RewardDoubleUITests: XCTestCase {
         decline.tap()
         XCTAssertTrue(app.buttons[Self.site].waitForNonExistence(timeout: 4), "«No, gracias» lo cierra")
         XCTAssertFalse(app.descendants(matching: .any)["\(Self.site).watching"].exists, "y no hubo video")
+
+        // E15 T3: «No, gracias» es el `dismissed` del lugar del paso 2.
+        expectFunnel(app, stage: "shown", equals: 1)
+        expectFunnel(app, stage: "dismissed", equals: 1)
+        expectFunnel(app, stage: "accepted", equals: 0)
     }
 }

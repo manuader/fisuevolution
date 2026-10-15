@@ -35,6 +35,7 @@ struct FisuEvolutionApp: App {
                 .environment(notifications)
                 .environment(ranking)
                 .environment(ads)
+                .environment(\.offerFunnelReporter, gameState.offerFunnelReporter)
                 .task {
                     haptics.prepare()
                     audio.prepare()

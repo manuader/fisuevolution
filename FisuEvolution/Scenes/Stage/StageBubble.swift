@@ -32,6 +32,16 @@ final class StageBubbleFeed {
     /// Lo que hace un toque sobre el globo. Lo enchufa `BoardScene`, para que pase por la misma
     /// puerta que un toque del tablero (saltear una celebración primero).
     @ObservationIgnored var onTap: () -> Void = {}
+    /// Los marcos de las dos esquinas (`CornersView`), en puntos de la pantalla con el origen arriba
+    /// a la izquierda: el visitante camina y el globo se acomoda sin tocarlos (E14b B20, D14). Los
+    /// mide SwiftUI y los lee la escena por cuadro: no redibujan nada.
+    @ObservationIgnored private(set) var corners: [StageCorner: CGRect] = [:]
+
+    var cornerFrames: [CGRect] { Array(corners.values) }
+
+    func reportCorner(_ corner: StageCorner, frame: CGRect) {
+        corners[corner] = frame
+    }
 
     func publish(_ bubble: StageBubble?) {
         if self.bubble != bubble { self.bubble = bubble }
@@ -40,6 +50,11 @@ final class StageBubbleFeed {
     func tap() {
         onTap()
     }
+}
+
+/// Las dos columnas de las esquinas de arriba (`CornersView`).
+enum StageCorner: Hashable {
+    case left, right
 }
 
 /// Dónde va el globo en la pantalla: centrado sobre la cabeza, **entero en la pantalla** (tope
@@ -57,6 +72,9 @@ enum StageBubbleLayout {
     static let hudGap: CGFloat = 6
     static let fontName = "AvenirNext-Bold"
     static let fontSize: CGFloat = 15
+    /// El carril más angosto entre las esquinas donde todavía conviene meter el globo: más angosto,
+    /// el texto no entra legible y se queda donde estaba (arriba de todo igual, B19).
+    static let minLaneWidth: CGFloat = 120
 
     struct Placement: Equatable {
         /// El globo entero, cola incluida, con el origen arriba a la izquierda.
@@ -91,9 +109,53 @@ enum StageBubbleLayout {
     }
 
     /// `screen`: el lienzo de la capa (el de la escena). `safeTop`: lo que tapa la isla arriba.
-    /// `hudBottom`: el borde de abajo del panel del HUD, si se conoce.
+    /// `hudBottom`: el borde de abajo del panel del HUD, si se conoce. `corners`: los marcos de las
+    /// esquinas (`CornersView`), en el mismo lienzo: el globo no se les encima (E14b B20, D14).
     static func place(_ bubble: StageBubble, screen: CGSize, safeTop: CGFloat, hudBottom: CGFloat?,
+                      corners: [CGRect] = [],
                       measure: (String, CGFloat) -> CGSize = StageBubbleLayout.measure) -> Placement {
+        let placed = placeOverHead(bubble, screen: screen, safeTop: safeTop, hudBottom: hudBottom, measure: measure)
+        let scaleX = bubble.sceneSize.width > 0 ? screen.width / bubble.sceneSize.width : 1
+        let tipX = bubble.tip.x * scaleX
+        return avoiding(corners, placed, text: bubble.text, tipX: tipX, screen: screen,
+                        top: max(safeTop, margin), measure: measure)
+    }
+
+    /// Si el globo pisa el marco de una esquina que le queda a la misma altura, se angosta al carril
+    /// libre entre ellas, con el borde de abajo (la cola, sobre la cabeza) donde estaba.
+    private static func avoiding(_ corners: [CGRect], _ placement: Placement, text: String, tipX: CGFloat,
+                                 screen: CGSize, top: CGFloat,
+                                 measure: (String, CGFloat) -> CGSize) -> Placement {
+        let solid = corners.filter { !$0.isEmpty }
+        guard solid.contains(where: { $0.intersects(placement.frame) }) else { return placement }
+        // Angostarlo suma renglones y lo estira hacia arriba, donde puede alcanzar otra esquina: se
+        // vuelve a medir el carril con el globo nuevo, pocas veces.
+        var current = placement
+        for _ in 0..<3 {
+            let frame = current.frame
+            var lower = margin
+            var upper = screen.width - margin
+            for corner in solid where corner.maxY > frame.minY && corner.minY < frame.maxY {
+                if corner.midX < tipX {
+                    lower = max(lower, corner.maxX + StageLayout.cornerGap)
+                } else {
+                    upper = min(upper, corner.minX - StageLayout.cornerGap)
+                }
+            }
+            guard upper - lower >= minLaneWidth else { return current }
+            let size = bubbleSize(of: text, maxWidth: min(frame.width, upper - lower), measure: measure)
+            let x = min(max(tipX - size.width / 2, lower), upper - size.width)
+            let y = max(top, frame.maxY - size.height)
+            current = Placement(frame: CGRect(x: x, y: y, width: size.width, height: size.height),
+                                tailX: tipX - x, textWidth: max(0, size.width - padding * 2))
+            if !solid.contains(where: { $0.intersects(current.frame) }) { return current }
+        }
+        return current
+    }
+
+    /// Sobre la cabeza, entero en la pantalla y, cuando se puede, sin tapar el HUD.
+    private static func placeOverHead(_ bubble: StageBubble, screen: CGSize, safeTop: CGFloat, hudBottom: CGFloat?,
+                                      measure: (String, CGFloat) -> CGSize) -> Placement {
         let scaleX = bubble.sceneSize.width > 0 ? screen.width / bubble.sceneSize.width : 1
         let scaleY = bubble.sceneSize.height > 0 ? screen.height / bubble.sceneSize.height : 1
         let tip = CGPoint(x: bubble.tip.x * scaleX, y: bubble.tip.y * scaleY)

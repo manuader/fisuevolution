@@ -190,4 +190,17 @@ struct ResetPlanTests {
             #expect(resolved.meta.prestigeLevel == 0)
         }
     }
+
+    @Test("la medición de anuncios cruza el reset entera (E15)")
+    func adMeasurementCrossesTheReset() {
+        var state = current(balance: 0, purchased: [:])
+        state.meta.adRevenue.record(AdImpression(
+            format: .rewarded, site: "wheel", valueMicros: 1234, currency: "USD",
+            precision: .precise, adSource: nil, at: 1
+        ))
+        state.meta.offerFunnel.record(.shown, site: "offline.x2")
+        let plan = ResetPlan.make(current: state, fresh: fxState())
+        #expect(plan.result.meta.adRevenue == state.meta.adRevenue)
+        #expect(plan.result.meta.offerFunnel == state.meta.offerFunnel)
+    }
 }

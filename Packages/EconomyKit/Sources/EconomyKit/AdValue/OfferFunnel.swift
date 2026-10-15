@@ -22,8 +22,8 @@ public enum OfferStage: String, Codable, Sendable, CaseIterable {
 /// por fila del mapa de ubicaciones), p. ej. `ads.watch.double_earnings`, `offline.x2` o los
 /// `double.*` del paso 2. Cualquier `String` vale; lo único que se limita es cuántas hay.
 public struct OfferFunnel: Codable, Sendable, Equatable {
-    /// Cuántos lugares distintos se cuentan por nombre. Del 65.º en adelante van a `overflowSite`:
-    /// un id dinámico mal elegido no infla el save.
+    /// Cuántos lugares distintos abre `record` por nombre. Del 65.º en adelante van a
+    /// `overflowSite`: un id dinámico mal elegido no infla el save. `resolve` no lo aplica.
     public static let maxSites = 64
     public static let overflowSite = "_other"
 
@@ -116,22 +116,16 @@ public struct OfferFunnel: Codable, Sendable, Equatable {
         sites.keys.filter { $0 != Self.overflowSite }.count
     }
 
-    /// Dos devices: el máximo de cada contador, lugar por lugar (son monótonos, como `stats`).
-    /// Si la unión pasa el tope, los lugares que sobran —en orden alfabético, para que dé lo mismo
-    /// de qué lado se resuelva— se suman a `overflowSite`.
+    /// Dos devices: el máximo de cada contador, lugar por lugar (son monótonos, como `stats`),
+    /// sobre la unión de los lugares, `overflowSite` incluido como uno más. No pasa nada a
+    /// `overflowSite`: sumar ahí no sería idempotente (cada ida y vuelta de iCloud volvería a
+    /// sumar lo ya pasado). Si la unión pasa el tope se guarda entera: cada device sólo abre
+    /// `maxSites` lugares por nombre (`record`), así que el save queda acotado por los devices
+    /// del jugador y no se pierde ni se duplica nada.
     public static func resolve(_ lhs: OfferFunnel, _ rhs: OfferFunnel) -> OfferFunnel {
         var merged: [String: Counts] = [:]
         for key in Set(lhs.sites.keys).union(rhs.sites.keys) {
             merged[key] = Counts.maxEach(lhs.counts(site: key), rhs.counts(site: key))
-        }
-        let named = merged.keys.filter { $0 != overflowSite }.sorted()
-        if named.count > maxSites {
-            var overflow = merged[overflowSite] ?? .zero
-            for key in named.dropFirst(maxSites) {
-                let counts = merged.removeValue(forKey: key) ?? .zero
-                for stage in OfferStage.allCases { overflow[stage] += counts[stage] }
-            }
-            merged[overflowSite] = overflow
         }
         return OfferFunnel(sites: merged)
     }

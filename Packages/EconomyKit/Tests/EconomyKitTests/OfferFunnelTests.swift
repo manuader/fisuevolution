@@ -86,4 +86,41 @@ struct OfferFunnelTests {
         #expect(merged == OfferFunnel.resolve(rhs, lhs), "conmutativo")
         #expect(OfferFunnel.resolve(merged, merged) == merged, "idempotente")
     }
+
+    @Test("sincronizar con más de 64 lugares en la unión: idempotente, conmutativo y sin sumar a _other")
+    func resolveOverTheCapIsIdempotent() {
+        var lhs = OfferFunnel.empty
+        for index in 0..<OfferFunnel.maxSites { lhs.record(.shown, site: "a.\(index)") }
+        lhs.record(.shown, site: "a.extra")
+        var rhs = OfferFunnel.empty
+        for index in 0..<OfferFunnel.maxSites {
+            rhs.record(.shown, site: "b.\(index)")
+            rhs.record(.accepted, site: "b.\(index)")
+        }
+        rhs.record(.shown, site: "b.extra")
+        rhs.record(.shown, site: "b.extra.2")
+
+        let merged = OfferFunnel.resolve(lhs, rhs)
+        #expect(merged.sites.count == 2 * OfferFunnel.maxSites + 1, "la unión entera, _other incluido")
+        #expect(merged.counts(site: OfferFunnel.overflowSite)[.shown] == 2, "el máximo de los dos _other, no la suma")
+        #expect(merged.counts(site: "b.63") == OfferFunnel.Counts(shown: 1, accepted: 1, completed: 0, unfilled: 0, dismissed: 0))
+        #expect(OfferFunnel.resolve(merged, rhs) == merged, "idempotente contra el lado viejo")
+        #expect(OfferFunnel.resolve(merged, lhs) == merged)
+        #expect(OfferFunnel.resolve(rhs, merged) == merged)
+        #expect(OfferFunnel.resolve(rhs, lhs) == merged, "conmutativo")
+    }
+
+    @Test("después de una unión sobre el tope, record no abre lugares nuevos")
+    func recordAfterOversizedUnionGoesToOverflow() {
+        var lhs = OfferFunnel.empty
+        for index in 0..<OfferFunnel.maxSites { lhs.record(.shown, site: "a.\(index)") }
+        var rhs = OfferFunnel.empty
+        for index in 0..<OfferFunnel.maxSites { rhs.record(.shown, site: "b.\(index)") }
+        var merged = OfferFunnel.resolve(lhs, rhs)
+        merged.record(.shown, site: "nuevo")
+        merged.record(.shown, site: "a.0")
+        #expect(merged.sites["nuevo"] == nil)
+        #expect(merged.counts(site: OfferFunnel.overflowSite)[.shown] == 1)
+        #expect(merged.counts(site: "a.0")[.shown] == 2)
+    }
 }

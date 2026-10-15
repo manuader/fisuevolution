@@ -6,8 +6,15 @@ public enum AdFormat: String, Codable, Sendable, CaseIterable {
 }
 
 /// Qué tan cierto es el valor que informó el SDK (`GADAdValuePrecision`, con nombre propio).
+/// Una precisión que este build no conoce (de un build futuro) se lee como `.unknown`: no tira la
+/// impresión.
 public enum AdValuePrecision: String, Codable, Sendable {
     case unknown, estimated, publisherProvided, precise
+
+    public init(from decoder: Decoder) throws {
+        let raw = try decoder.singleValueContainer().decode(String.self)
+        self = AdValuePrecision(rawValue: raw) ?? .unknown
+    }
 }
 
 /// Lo que pagó UNA impresión, ya sin tipos del SDK: lo arma la app desde el `paidEventHandler`

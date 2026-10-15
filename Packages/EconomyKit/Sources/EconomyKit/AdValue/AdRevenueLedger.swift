@@ -34,7 +34,10 @@ public struct AdRevenueLedger: Codable, Sendable, Equatable {
 
         public init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
-            recent = try container.decodeIfPresent([AdImpression].self, forKey: .recent) ?? []
+            // Con pérdida por elemento: una impresión que este build no sabe leer (un formato de un
+            // build futuro) se saltea y las demás se conservan.
+            recent = try container.decodeIfPresent([LossyElement<AdImpression>].self, forKey: .recent)?
+                .compactMap(\.value) ?? []
             count = try container.decodeIfPresent(Int.self, forKey: .count) ?? 0
             totalMicros = try container.decodeIfPresent(Int64.self, forKey: .totalMicros) ?? 0
             maxMicros = try container.decodeIfPresent(Int64.self, forKey: .maxMicros) ?? 0
@@ -137,5 +140,14 @@ public struct AdRevenueLedger: Codable, Sendable, Equatable {
     private static func saturatingAdd(_ lhs: Int64, _ rhs: Int64) -> Int64 {
         let (sum, overflow) = lhs.addingReportingOverflow(rhs)
         return overflow ? .max : sum
+    }
+}
+
+/// Un elemento que se intenta leer y, si no se puede, queda en nil sin tirar el arreglo entero.
+private struct LossyElement<Value: Decodable>: Decodable {
+    let value: Value?
+
+    init(from decoder: Decoder) throws {
+        value = try? Value(from: decoder)
     }
 }

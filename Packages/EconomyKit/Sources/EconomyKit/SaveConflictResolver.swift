@@ -110,7 +110,8 @@ public enum SaveConflictResolver {
     /// lado viejo cruzan sólo las compras —lo pagado con plata no se pierde por resetear— y
     /// el blue de las transacciones que el lado nuevo todavía no vio (cada una, una vez: la
     /// segunda resolución ya las encuentra anotadas y no suma nada) y, del ranking, el último
-    /// nombre y una llegada a Dios sin enviar (ver `RankingState.resolveAcrossReset`). Las compras que no son
+    /// nombre y una llegada a Dios sin enviar (ver `RankingState.resolveAcrossReset`); la medición de
+    /// anuncios se une igual que dentro de una época (E15). Las compras que no son
     /// de blue (monedas, starter) hechas en el dispositivo viejo después del reset no cruzan:
     /// es una decisión tomada.
     static func resolveAcrossReset(local: PlayerState, remote: PlayerState) -> PlayerState {
@@ -132,6 +133,8 @@ public enum SaveConflictResolver {
         newer.meta.removedAds = newer.meta.removedAds || older.meta.removedAds
         newer.meta.ownedSkins = Array(Set(newer.meta.ownedSkins).union(older.meta.ownedSkins)).sorted()
         newer.meta.ranking = RankingState.resolveAcrossReset(newer: newer.meta.ranking, older: older.meta.ranking)
+        newer.meta.adRevenue = AdRevenueLedger.resolve(winner: newer.meta.adRevenue, loser: older.meta.adRevenue)
+        newer.meta.offerFunnel = OfferFunnel.resolve(newer.meta.offerFunnel, older.meta.offerFunnel)
         return newer
     }
 

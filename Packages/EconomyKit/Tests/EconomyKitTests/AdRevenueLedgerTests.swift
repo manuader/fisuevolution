@@ -127,4 +127,44 @@ struct AdRevenueLedgerTests {
         #expect(AdRevenueLedger.resolve(winner: dollars, loser: euros) == euros)
         #expect(AdRevenueLedger.resolve(winner: euros, loser: dollars) == euros)
     }
+
+    @Test("un formato o una precisión de un build futuro no tiran el ledger: lo conocido se conserva")
+    func decodingToleratesUnknownFormatAndPrecision() throws {
+        let json = """
+        {
+          "currency": "USD",
+          "foreignCurrencyCount": 0,
+          "formats": {
+            "rewarded": {
+              "count": 2, "totalMicros": 300, "maxMicros": 200,
+              "recent": [
+                {"format": "rewarded", "site": "wheel", "valueMicros": 100, "currency": "USD",
+                 "precision": "estimated", "adSource": "Google", "at": 1},
+                {"format": "rewarded", "site": "wheel", "valueMicros": 200, "currency": "USD",
+                 "precision": "algoNuevo", "at": 2}
+              ]
+            },
+            "nativeVideo": {
+              "count": 1, "totalMicros": 50, "maxMicros": 50,
+              "recent": [
+                {"format": "nativeVideo", "site": "feed", "valueMicros": 50, "currency": "USD",
+                 "precision": "precise", "at": 3},
+                {"format": "rewarded", "site": "wheel", "valueMicros": 7, "currency": "USD",
+                 "precision": "precise", "at": 4}
+              ]
+            }
+          }
+        }
+        """
+        let ledger = try JSONDecoder().decode(AdRevenueLedger.self, from: Data(json.utf8))
+        let rewarded = ledger.stats(.rewarded)
+        #expect(rewarded.count == 2)
+        #expect(rewarded.totalMicros == 300)
+        #expect(rewarded.recent.map(\.valueMicros) == [100, 200])
+        #expect(rewarded.recent.last?.precision == .unknown, "la precisión nueva cae en .unknown")
+        let future = try #require(ledger.formats["nativeVideo"])
+        #expect(future.count == 1, "los agregados del formato nuevo se conservan")
+        #expect(future.recent.map(\.at) == [4], "la impresión de formato desconocido se saltea, la otra queda")
+        #expect(ledger.currency == "USD")
+    }
 }

@@ -87,15 +87,14 @@ extension GameState {
         let decision = pacer.decide(kind, context: naturalBreakContext)
         Log.ads.info("corte \(kind.rawValue): \(String(describing: decision))")
         guard case .show(let format) = decision else { return }
-        ads.interstitialSite = kind.rawValue
-        await present(format, pacer: pacer)
+        await present(format, site: kind.rawValue, pacer: pacer)
     }
 
-    private func present(_ format: ForcedAdFormat, pacer: ForcedAdsPacer) async {
+    private func present(_ format: ForcedAdFormat, site: String, pacer: ForcedAdsPacer) async {
         switch format {
         case .interstitial, .appOpen:
             holdCelebrationsForAd()
-            await presentHeld(format, pacer: pacer)
+            await presentHeld(format, site: site, pacer: pacer)
         case .rewardedInterstitial:
             presentAdBreak(pacer: pacer)
         }
@@ -104,12 +103,16 @@ extension GameState {
     /// Muestra con la cola ya retenida y la suelta al volver. Se anota en el
     /// reloj sólo si el anuncio llegó a la pantalla: un inventario vencido o una
     /// falla al presentar no gastan el cupo de nadie.
-    private func presentHeld(_ format: ForcedAdFormat, pacer: ForcedAdsPacer) async {
+    private func presentHeld(
+        _ format: ForcedAdFormat,
+        site: String = AdImpressionMapping.Site.interstitial,
+        pacer: ForcedAdsPacer
+    ) async {
         defer { releaseCelebrationsAfterAd() }
         guard let ads else { return }
         let presented = switch format {
         case .appOpen: await ads.showAppOpen()
-        default: await ads.showInterstitial()
+        default: await ads.showInterstitial(site: site)
         }
         if presented { pacer.recordShown(format) }
     }

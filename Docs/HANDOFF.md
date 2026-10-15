@@ -20,6 +20,8 @@
 > mockups aprobados (`Docs/correcciones-v2/mockups/`), 30 tareas en `tasks.md` §5 «E14» y §4.0. Va antes que
 > todo lo demás de la cola. Detalle: `Docs/SESION-2026-10-12-v2-e14-correcciones-dueno.md`.
 >
+> 📍 **Estado al cierre del relevo 57 (2026-10-15; manda sobre los párrafos de abajo):** `version-2` sigue en `d53a4098`; lo nuevo está en **`v2i/integ-r54` (pusheada)**: E14b B17–B19, B26 y B27 (cajas por piso, capas por profundidad con el globo del visitante arriba, la Tienda a la barra y el Ranking dentro del Menú, el crema de FisuJobs) y sus arreglos de revisión. El `completo` de `4e6dcecc` dio 20 de 21 rojos de UI por carga (~150 por Spotlight) y no se repitió sobre la punta: **el 58 lo corre con la máquina sola, aísla y recién ahí fast-forward de `version-2`.** Después E14b B20–B25, B28–B30, E15 «Valor por jugador» sólo F0 (`Docs/PLAN-v2-E15-valor-por-jugador.md`) y los cierres. El cofre rehecho ya está en el iPhone del dueño. Detalle: `Docs/SESION-2026-10-15-v2-relevo-57.md` y `handoffs/HANDOFF-2026-10-15-v2-relevo-57.md`.
+>
 > 📍 **Estado al cierre del relevo 56 (2026-10-15; manda sobre los párrafos de abajo):** lo nuevo está en **`v2i/integ-r54` (pusheada)**: E14b B1–B16 enteras, E14 T25 (cero SF Symbols) y T26 (textos, Tour de 12 pasos), y los arreglos de los bugs que el dueño vio en su iPhone (tip del tutorial a pantalla completa, hueco abajo en el cofre: **la barra inferior nunca desaparece**). **Regla nueva del dueño: los agentes no compilan por tarea; la ola se integra, se compila una vez y un agente arregla lo que falle.** Pendiente: B17/B18 (cajas por piso), el cofre rehecho (`v2i/cofre-r56`) y los cierres. Si `version-2` avanzó o no, lo dice `handoffs/HANDOFF-2026-10-15-v2-relevo-56.md`. Detalle: `Docs/SESION-2026-10-15-v2-relevo-56.md`.
 >
 > 📍 **Estado al cierre del relevo 55 (2026-10-14; manda sobre los párrafos de abajo):** `version-2` sigue en `d53a4098`; lo nuevo está en **`v2i/integ-r54` (pusheada)**: lo del 54 + el arreglo de los 6 rojos (iOS 18 abortaba en dyld por el rpath de Debug), E14 T16, T20, T24, el cofre con los clips de C26 y E14b B1 y B2. Queda 1 rojo real (`TowerNoticeUITests`) antes del fast-forward. **La E14b (`Docs/PLAN-v2-E14b-correcciones.md`, B1–B15) va antes de los cierres T25/T26/T27.** Detalle: `Docs/SESION-2026-10-14-v2-relevo-55.md`.
@@ -391,6 +393,10 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-10-15 (relevo 57) — B17, B18, B19, B26, B27 y un completo cargado por Spotlight
+
+B17 y B18 (cajas por piso, una sola x/y al azar del piso del personaje, persistidas), B19 (`DepthOrder`, el globo del visitante como capa SwiftUI, el toque al cuerpo visible del empleado) y B26/B27 (la Tienda reemplaza al Ranking en la barra, el Ranking pasa al Menú, crema #F1E5C9), con las revisiones opus de B18 y B19 arregladas. El `completo` del 56→57 dio 16 rojos de UI; aislados, 20 de 21 eran carga (Spotlight llevó la máquina a ~150 sin agentes) y el que quedó fue un flake. El dueño pidió en vivo la tercera tanda de E14b (B19–B30) y la épica E15 (sólo F0 antes de lanzar). Detalle: `Docs/SESION-2026-10-15-v2-relevo-57.md`.
 
 ### Sesión del 2026-10-14/15 (relevo 56) — E14b entera, T25, T26 y la regla de no compilar por tarea
 
@@ -5051,6 +5057,14 @@ Siguen vigentes y no estaban en ningún otro lado:
 - **El repaso se retira si el núcleo volvió a vivir** y no arranca con el núcleo sin hacer: no hay que "arreglarlo" para que arranque igual, pisaría la fase.
 - **El reset del ORO es `min(saldo, comprado)`:** devolver el comprado entero regala ORO gastado; devolver el saldo entero regala el ORO ganado jugando. Cualquier cambio a `ResetPlan` o a `resolveAcrossReset` se prueba con `ResetEpochTests`.
 
+### Del relevo 57 (2026-10-15)
+
+- **El `completo` puede cargarse solo:** `mds_stores`/Spotlight + CoreSimulator llevaron la carga a ~150 sin un solo agente; los rojos de UI de esa corrida eran carga (20 de 21). Aislar una vez antes de creerlos.
+- **`expectation(for:)` + `XCTWaiter` + `waitForExpectations` es una API violation:** la misma expectativa se espera dos veces. Un solo mecanismo (`XCTNSPredicateExpectation`).
+- **`gameState` es `weak` en los tests de `StageController`:** se libera a mitad del test. `withExtendedLifetime`.
+- **El pacing-sim tiene que replicar las reglas del juego:** las cajas trabadas sobrevivían a la reencarnación porque `deliver` no chequeaba `belongs`.
+- **Con capas por profundidad, el toque lo decide el cuerpo visible:** un hit elíptico inflado le gana a lo que se ve detrás (`CharacterHit`).
+
 ### Del relevo 56 (2026-10-15)
 
 - **`SendMessage` a un agente que ya entregó lo reanuda:** retomó trabajo ya asignado a otro y duplicó la carga. Para un pedido nuevo, otro agente.
@@ -5684,6 +5698,7 @@ Anotado por si algún día importa, con su medición:
 - **`Docs/SESION-2026-10-12-v2-relevo-38-ola-aj.md`**: el relevo 38 (los eventos de 25 s dicen «En curso»; fuera `tutorial.tip.wheel`).
 - **`Docs/SESION-2026-10-12-v2-relevo-37-ola-ai.md`**: el relevo 37 (el UI test del otro colchón `extraOnly`; el pager asienta con el scroll quieto).
 - **`Docs/SESION-2026-10-13-v2-relevo-50.md`**: el relevo 50 (E14 T4, T6, T28; la carga de la máquina).
+- **`Docs/SESION-2026-10-15-v2-relevo-57.md`**: el relevo 57 (E14b B17–B19, B26, B27, el completo cargado por Spotlight, los carries y E15).
 - **`Docs/SESION-2026-10-15-v2-relevo-56.md`**: el relevo 56 (E14b B3–B16, T25, T26, la regla de no compilar por tarea, los bugs del dueño y el plan de B17/B18).
 - **`Docs/SESION-2026-10-14-v2-relevo-55.md`**: el relevo 55 (los 6 rojos, E14 T16/T20/T24, el cofre de C26, E14b B1/B2 y el spec de E14b).
 - **`Docs/SESION-2026-10-14-v2-relevo-54.md`**: el relevo 54 (E14 T19, T14, T15, T18, T23; decisiones del dueño; textos; sin Meta).

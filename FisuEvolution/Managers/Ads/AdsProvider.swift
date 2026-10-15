@@ -78,6 +78,11 @@ protocol AdsProvider: AnyObject {
     /// Arranca la precarga. Se llama una vez al bootstrap; los proveedores que
     /// no precargan nada (el stub) lo implementan vacío.
     func prepare()
+
+    /// Cada impresión que pagó, con su valor (E15): el `paidEventHandler` de AdMob, ya en el main
+    /// actor. Medición pura: llega gane o no gane el premio (un video cerrado a la mitad también
+    /// se pagó) y no cambia nada de lo que devuelven los `show…`.
+    var onImpression: (@MainActor (AdImpression) -> Void)? { get set }
 }
 
 /// Cuánto vive un anuncio cargado antes de que haya que tirarlo, por formato.
@@ -153,6 +158,10 @@ final class StubAdsProvider: AdsProvider {
     @ObservationIgnored private let loadDelay: Duration = ProcessInfo.processInfo.arguments.contains("--uitest-slow-ad-load")
         ? .milliseconds(1500) : .zero
     @ObservationIgnored private(set) var lastRewardedInterstitialAttempt = RewardedAttempt.noInventory
+    @ObservationIgnored var onImpression: (@MainActor (AdImpression) -> Void)?
+    /// Sólo bajo `--uitest*` cada «anuncio» completado deja una impresión de mentira (E15): es lo
+    /// que deja a un UI test ver el ledger moverse. Fuera de los tests el stub no paga nada.
+    @ObservationIgnored private let emitsImpressions = ProcessInfo.processInfo.arguments.contains { $0.hasPrefix("--uitest") }
     var isInterstitialReady: Bool { !isShowing }
     var isRewardedInterstitialReady: Bool { !isShowing }
     var isAppOpenReady: Bool { !isShowing }
@@ -169,21 +178,37 @@ final class StubAdsProvider: AdsProvider {
         if loadDelay > .zero { try? await Task.sleep(for: loadDelay) }
         let earned = await fakeAd(for: .seconds(2))
         lastRewardedAttempt = earned ? .presented : .noInventory
+        if earned { emitImpression(.rewarded, site: placement.rawValue) }
         return earned
     }
 
     func showInterstitial() async -> Bool {
-        await fakeAd(for: .seconds(1))
+        let shown = await fakeAd(for: .seconds(1))
+        if shown { emitImpression(.interstitial, site: AdImpressionMapping.Site.interstitial) }
+        return shown
     }
 
     /// Dura lo que un rewarded: es un video con premio, aunque nadie lo pidió.
     func showRewardedInterstitial() async -> Bool {
         lastRewardedInterstitialAttempt = isShowing ? .busy : .presented
-        return await fakeAd(for: .seconds(2))
+        let earned = await fakeAd(for: .seconds(2))
+        if earned { emitImpression(.rewardedInterstitial, site: AdImpressionMapping.Site.adBreak) }
+        return earned
     }
 
     func showAppOpen() async -> Bool {
-        await fakeAd(for: .seconds(1))
+        let shown = await fakeAd(for: .seconds(1))
+        if shown { emitImpression(.appOpen, site: AdImpressionMapping.Site.appOpen) }
+        return shown
+    }
+
+    /// La impresión del stub: siempre 10 000 micros (un centavo) en dólares, precisión desconocida.
+    private func emitImpression(_ format: AdFormat, site: String) {
+        guard emitsImpressions else { return }
+        onImpression?(AdImpression(
+            format: format, site: site, valueMicros: 10_000, currency: "USD",
+            precision: .unknown, adSource: "stub", at: Date().timeIntervalSince1970
+        ))
     }
 
     /// El "anuncio" falso: ocupa la pantalla un rato y siempre paga. Devuelve

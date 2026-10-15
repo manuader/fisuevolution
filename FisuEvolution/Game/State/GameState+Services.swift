@@ -13,8 +13,10 @@ extension GameState {
     }
 
     /// Los anuncios: los usan los cortes naturales (`+Ads`) y nunca el frame loop.
+    /// Además anota en el save lo que pagó cada impresión (E15, `+AdRevenue`).
     func attachAds(_ coordinator: AdsCoordinator) {
         ads = coordinator
+        coordinator.onImpression = { [weak self] impression in self?.recordImpression(impression) }
     }
 
     /// El consentimiento que la intro de una partida nueva espera. Va ANTES del bootstrap.

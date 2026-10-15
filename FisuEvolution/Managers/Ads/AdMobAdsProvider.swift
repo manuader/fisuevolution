@@ -1,3 +1,4 @@
+import EconomyKit
 import Foundation
 import GoogleMobileAds
 import Observation
@@ -69,6 +70,7 @@ final class AdMobAdsProvider: AdsProvider {
     @ObservationIgnored private(set) var lastRewardedAttempt = RewardedAttempt.noInventory
     @ObservationIgnored private(set) var lastRewardedInterstitialAttempt = RewardedAttempt.noInventory
     @ObservationIgnored private var didStartSDK = false
+    @ObservationIgnored var onImpression: (@MainActor (AdImpression) -> Void)?
 
     init(
         unitIDs: FeatureFlags.AdUnitIDs,
@@ -139,6 +141,7 @@ final class AdMobAdsProvider: AdsProvider {
             let ad = try await RewardedAd.load(
                 with: unitIDs.rewarded(for: placement), request: Request()
             )
+            ad.paidEventHandler = paidEventHandler(format: .rewarded, site: placement.rawValue, responseInfo: ad.responseInfo)
             rewarded[placement] = AdInventory(ad: ad, loadedAt: now(), lifetime: AdInventoryLifetime.standard)
         } catch {
             // Quedarse sin anuncio es NORMAL (sin red, sin inventario, cuota
@@ -201,6 +204,9 @@ final class AdMobAdsProvider: AdsProvider {
             defer { loadingInterstitial = false }
             do {
                 let ad = try await InterstitialAd.load(with: unitID, request: Request())
+                ad.paidEventHandler = paidEventHandler(
+                    format: .interstitial, site: AdImpressionMapping.Site.interstitial, responseInfo: ad.responseInfo
+                )
                 interstitial = AdInventory(ad: ad, loadedAt: now(), lifetime: AdInventoryLifetime.standard)
             } catch {
                 interstitial = nil
@@ -241,6 +247,9 @@ final class AdMobAdsProvider: AdsProvider {
             defer { loadingRewardedInterstitial = false }
             do {
                 let ad = try await RewardedInterstitialAd.load(with: unitID, request: Request())
+                ad.paidEventHandler = paidEventHandler(
+                    format: .rewardedInterstitial, site: AdImpressionMapping.Site.adBreak, responseInfo: ad.responseInfo
+                )
                 rewardedInterstitial = AdInventory(
                     ad: ad, loadedAt: now(), lifetime: AdInventoryLifetime.standard
                 )
@@ -293,6 +302,9 @@ final class AdMobAdsProvider: AdsProvider {
             defer { loadingAppOpen = false }
             do {
                 let ad = try await AppOpenAd.load(with: unitID, request: Request())
+                ad.paidEventHandler = paidEventHandler(
+                    format: .appOpen, site: AdImpressionMapping.Site.appOpen, responseInfo: ad.responseInfo
+                )
                 appOpen = AdInventory(ad: ad, loadedAt: now(), lifetime: AdInventoryLifetime.appOpen)
             } catch {
                 appOpen = nil
@@ -316,6 +328,34 @@ final class AdMobAdsProvider: AdsProvider {
         // background, que es cuando hace falta (y el que se cargue ahora
         // podría vencerse antes).
         return presented
+    }
+
+    // MARK: - Lo que pagó cada impresión (E15)
+
+    /// El `paidEventHandler` de un anuncio recién cargado: se asigna al CARGAR (no al presentar) en
+    /// los cuatro formatos, que es lo que pide la doc de AdMob para no perder el evento.
+    ///
+    /// ⚠️ Es `@Sendable` y no hereda el main actor a propósito: el SDK no promete en qué hilo lo
+    /// llama, y un cierre aislado al main actor llamado desde otro hilo es un crash de Swift 6. Lee
+    /// el `AdValue` ahí mismo, lo pasa a tipos propios y recién salta al main actor con un
+    /// `AdImpression`, que es `Sendable`.
+    ///
+    /// ⚠️ `AdFormat` va calificado: el SDK exporta un `AdFormat` (y un `AdValuePrecision`) con el
+    /// mismo nombre que los de EconomyKit, y sin calificar el nombre es ambiguo en este archivo.
+    private func paidEventHandler(
+        format: EconomyKit.AdFormat, site: String, responseInfo: ResponseInfo
+    ) -> @Sendable (AdValue) -> Void {
+        let source = responseInfo.loadedAdNetworkResponseInfo?.adSourceName
+        let now = self.now
+        return { [weak self] value in
+            let paid = AdImpressionMapping.PaidValue(
+                amount: value.value.decimalValue,
+                currencyCode: value.currencyCode,
+                precision: AdImpressionMapping.precision(sdkRawValue: value.precision.rawValue)
+            )
+            let impression = AdImpressionMapping.make(value: paid, format: format, site: site, source: source, now: now())
+            Task { @MainActor in self?.onImpression?(impression) }
+        }
     }
 }
 

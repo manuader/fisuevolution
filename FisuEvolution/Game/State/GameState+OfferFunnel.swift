@@ -12,7 +12,8 @@ extension GameState {
     }
 
     /// Lo que se pone en el entorno para que todo `RewardedOfferButton` —el paso 2 de B29 incluido—
-    /// anote su embudo sin que ningún pop-up se entere.
+    /// anote su embudo sin que ningún pop-up se entere. Arma uno nuevo cada vez: la app lo toma una
+    /// sola vez al construirse (`FisuEvolutionApp.init`), no en cada `body`.
     var offerFunnelReporter: OfferFunnelReporter {
         OfferFunnelReporter { [weak self] site, stage in self?.recordOfferStage(stage, site: site) }
     }

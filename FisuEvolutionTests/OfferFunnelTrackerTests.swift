@@ -72,10 +72,37 @@ struct OfferFunnelTrackerTests {
 
     @Test("cómo terminó el intento, según el proveedor")
     func outcomeMapping() {
-        #expect(RewardedOfferButton.outcome(earned: true, attempt: .presented) == .earned)
-        #expect(RewardedOfferButton.outcome(earned: false, attempt: .noInventory) == .noInventory)
-        #expect(RewardedOfferButton.outcome(earned: false, attempt: .presented) == .endedWithoutReward)
-        #expect(RewardedOfferButton.outcome(earned: false, attempt: .busy) == .endedWithoutReward)
+        #expect(RewardedOfferButton.outcome(earned: true, attempt: .presented, cancelled: false) == .earned)
+        #expect(RewardedOfferButton.outcome(earned: false, attempt: .noInventory, cancelled: false) == .noInventory)
+        #expect(RewardedOfferButton.outcome(earned: false, attempt: .presented, cancelled: false)
+                == .endedWithoutReward)
+        #expect(RewardedOfferButton.outcome(earned: false, attempt: .busy, cancelled: false) == .endedWithoutReward)
+        #expect(RewardedOfferButton.outcome(earned: false, attempt: .noInventory, cancelled: true)
+                == .endedWithoutReward, "cortar la espera no es falta de video")
+        #expect(RewardedOfferButton.outcome(earned: true, attempt: .presented, cancelled: true) == .earned)
+    }
+
+    @Test("cerrar la hoja con «Cargando…» no cuenta unfilled: es un abandono")
+    func closingWhileLoadingIsNotUnfilled() async {
+        let provider = ScriptedAdsProvider()
+        provider.loadDelay = .seconds(30)
+        let ads = AdsCoordinator(provider: provider)
+        let offer = RewardedOffer(messageDuration: .milliseconds(80))
+        var tracker = OfferFunnelTracker()
+        var stages = tracker.handle(.appearedReady) + tracker.handle(.tapped)
+
+        // Lo mismo que hace el botón: el resultado se lee dentro del `Task` de la oferta.
+        offer.tap(ads: ads, placement: .gifts, onRewarded: {}, onFinished: { earned in
+            let transition = RewardedOfferButton.outcome(
+                earned: earned, attempt: ads.lastRewardedAttempt, cancelled: Task.isCancelled)
+            stages += tracker.handle(transition)
+        })
+        offer.cancel()
+        await offer.settle()
+
+        #expect(ads.lastRewardedAttempt == .noInventory, "el proveedor no distingue el corte de la falta de video")
+        #expect(stages == [.shown, .accepted])
+        #expect(!stages.contains(.unfilled))
     }
 
     @Test("el reporter del juego anota en meta.offerFunnel, por lugar")

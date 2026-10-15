@@ -2,7 +2,9 @@ import SwiftUI
 
 @main
 struct FisuEvolutionApp: App {
-    @State private var gameState = GameState()
+    @State private var gameState: GameState
+    /// El embudo de ofertas (E15 C3) que va al entorno: se arma una vez, no en cada `body`.
+    @State private var offerFunnelReporter: OfferFunnelReporter
     @State private var storeManager = StoreManager()
     @State private var gameCenter = GameCenterManager()
     @State private var haptics = HapticsManager()
@@ -21,6 +23,12 @@ struct FisuEvolutionApp: App {
     /// El ascensor de E13b: la placa colgante y el viaje en cabina, encima de todo.
     @State private var elevatorRide = ElevatorRide()
 
+    init() {
+        let gameState = GameState()
+        _gameState = State(initialValue: gameState)
+        _offerFunnelReporter = State(initialValue: gameState.offerFunnelReporter)
+    }
+
     var body: some Scene {
         WindowGroup {
             RootView()
@@ -35,8 +43,9 @@ struct FisuEvolutionApp: App {
                 .environment(notifications)
                 .environment(ranking)
                 .environment(ads)
-                .environment(\.offerFunnelReporter, gameState.offerFunnelReporter)
+                .environment(\.offerFunnelReporter, offerFunnelReporter)
                 .task {
+                    gameState.noteLaunchScene(inBackground: UIApplication.shared.applicationState == .background)
                     haptics.prepare()
                     audio.prepare()
                     // El audio se carga en paralelo con el bootstrap en vez de
@@ -88,6 +97,10 @@ struct FisuEvolutionApp: App {
     private func startServices() async {
         guard gameState.phase == .ready, !servicesStarted else { return }
         servicesStarted = true
+        // La telemetría primero: `storeManager.start` entrega las compras interrumpidas y los Ask to
+        // Buy aprobados, y su `purchase` se perdería si llegara antes. Adjuntar no espera a la red y
+        // la compuerta decide igual.
+        gameState.attachTelemetry(TelemetryService.live(config: RankingConfigLoader().current()?.config))
         await storeManager.start(gameState: gameState)
         if let content = gameState.content {
             gameState.attachGameCenter(gameCenter)
@@ -128,7 +141,6 @@ struct FisuEvolutionApp: App {
                 }
             }
         }
-        gameState.attachTelemetry(TelemetryService.live(config: RankingConfigLoader().current()?.config))
         gameState.attachRanking(ranking)
         gameState.attachNotifications(notifications)
         await gameState.notificationsLaunched()

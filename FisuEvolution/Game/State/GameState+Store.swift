@@ -262,8 +262,13 @@ extension GameState {
     /// Devuelve si la transacción quedó resuelta (acreditada, o ya lo estaba, o sin nada que
     /// acreditar): sólo entonces `StoreManager` la finaliza. `false` es «no ahora»: se está
     /// reseteando la partida, o la oferta no se conoce; queda sin finalizar y vuelve a entregarse.
+    ///
+    /// `boughtByThisAccount` (`ownershipType == .purchased`) sólo lo lee la telemetría: lo de En
+    /// Familia se acredita igual, pero no es una compra de este jugador.
     @discardableResult
-    func creditStorePurchase(_ entry: ProductCatalog.Entry, transactionID: String) -> Bool {
+    func creditStorePurchase(
+        _ entry: ProductCatalog.Entry, transactionID: String, boughtByThisAccount: Bool = true
+    ) -> Bool {
         guard !isResetting else { return false }
         guard let content, var player else { return false }
         // Por transacción y no por producto: comprar dos veces el mismo pack
@@ -295,17 +300,17 @@ extension GameState {
             }
             self.player = player
             creditOffer(entry.offerId, transactionID: transactionID)
-            telemetryPurchase(entry)
+            telemetryPurchase(entry, transactionID: transactionID, boughtByThisAccount: boughtByThisAccount)
             return true
         case .removeAds, .skin:
-            telemetryPurchase(entry)
+            telemetryPurchase(entry, transactionID: transactionID, boughtByThisAccount: boughtByThisAccount)
             return true
         }
 
         self.player = player
         refreshProjections()
         scheduleSave()
-        telemetryPurchase(entry)
+        telemetryPurchase(entry, transactionID: transactionID, boughtByThisAccount: boughtByThisAccount)
         return true
     }
 

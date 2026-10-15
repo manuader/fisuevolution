@@ -118,7 +118,9 @@ final class TutorialLessonsUITests: XCTestCase {
         XCTAssertTrue(waitForStep(app, "menu_swipe.open"))
         app.buttons["hud.upgrades"].tap()
 
-        XCTAssertTrue(waitForCoach(app, "menu_swipe.swipe"))
+        // r56: con la máquina cargada el coach ya se dibuja y su marca tarda más de 10 s en
+        // llegar al árbol de accesibilidad (la hoja recién montada, con las vecinas armándose).
+        XCTAssertTrue(waitForCoach(app, "menu_swipe.swipe", timeout: 20))
         let pager = app.otherElements["menu.pager.dots"]
         XCTAssertTrue(pager.waitForExistence(timeout: 6), "los puntos del paginador son el destino del paso")
         let shot = XCTAttachment(screenshot: app.screenshot())

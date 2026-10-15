@@ -95,7 +95,13 @@ struct DepthOrderTests {
         box.position.y - cellSize * PickupLayout.sideRatio / 2
     }
 
-    /// La línea donde apoya el colchón en el piso que se mira.
+    /// Dónde apoya el colchón del tablero (E14b B24: en su lugar, como una caja): medio alto de su
+    /// arte debajo de su centro (con Reduce Motion no salta).
+    private func feetY(ofMattress mattress: PickupNode) -> CGFloat {
+        mattress.position.y - mattress.boxSize.height / 2
+    }
+
+    /// La línea de atrás del piso que se mira: ni el colchón ni una caja apoyan más atrás.
     private func pickupBaseline(_ gameState: GameState) throws -> CGFloat {
         let floor = try #require(gameState.visibleFloorDef)
         return PickupLayout(sceneSize: size, bottomInset: bottomInset, cellSize: cellSize,
@@ -110,18 +116,19 @@ struct DepthOrderTests {
         #expect(abs(actor.zPosition - DepthOrder.z(forFeetY: actor.position.y)) < tolerance)
     }
 
-    @Test("cada caja va con el z de sus pies y el colchón con el de su línea de apoyo")
-    func pickupsUseTheirBaseline() async throws {
+    @Test("cada caja y el colchón van con el z de sus pies")
+    func pickupsUseTheirFeet() async throws {
         let gameState = await makeGameState()
         let controller = pickups(gameState)
-        let baseline = try pickupBaseline(gameState)
         let boxes = controller.boxes
         #expect(boxes.count == 2)
         for box in boxes {
             #expect(abs(box.zPosition - DepthOrder.z(forFeetY: feetY(of: box))) < tolerance)
         }
         let mattress = try #require(controller.mattress)
-        #expect(abs(mattress.zPosition - DepthOrder.z(forFeetY: baseline)) < tolerance)
+        #expect(abs(mattress.zPosition - DepthOrder.z(forFeetY: feetY(ofMattress: mattress))) < tolerance)
+        let baseline = try pickupBaseline(gameState)
+        #expect(feetY(ofMattress: mattress) <= baseline + tolerance, "nunca detrás de la línea de atrás")
     }
 
     /// Las combinaciones de empleado, visitante, caja y colchón: entre dos con distinta y, el de más
@@ -132,13 +139,12 @@ struct DepthOrderTests {
         let gameState = await makeGameState()
         let (stage, actor) = try waitingVisitor(gameState)
         let controller = pickups(gameState)
-        let baseline = try pickupBaseline(gameState)
         let box = try #require(controller.boxes.first)
         let mattress = try #require(controller.mattress)
         let real = [
             Piece(name: "visitante", feetY: actor.position.y, z: stage.layer.zPosition + actor.zPosition),
             Piece(name: "caja", feetY: feetY(of: box), z: controller.layer.zPosition + box.zPosition),
-            Piece(name: "colchón", feetY: baseline, z: controller.layer.zPosition + mattress.zPosition),
+            Piece(name: "colchón", feetY: feetY(ofMattress: mattress), z: controller.layer.zPosition + mattress.zPosition),
         ]
         var pieces = real
         for piece in real {

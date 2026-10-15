@@ -25,6 +25,7 @@ public enum TreasureScheduler {
         let arrival: Arrival = Double.random(in: 0..<1, using: &rng) < config.giftShare ? .gift : .column
         state.phase = arrival == .gift ? .onBoard : .waiting
         state.gifted = arrival == .gift
+        state.clearPlacement()
         state.extraOpensLeft = 0
         state.secondsUntilNext = config.spawnIntervalSeconds
         return arrival
@@ -45,6 +46,7 @@ public enum TreasureScheduler {
         guard state.phase == .onBoard else { return false }
         state.phase = .none
         state.gifted = false
+        state.clearPlacement()
         state.extraOpensLeft = config.extraOpensPerTreasure
         state.secondsUntilNext = config.spawnIntervalSeconds
         return true

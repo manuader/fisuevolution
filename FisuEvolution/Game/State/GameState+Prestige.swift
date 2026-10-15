@@ -175,6 +175,8 @@ extension GameState {
         // antes lo perdería el día que el contador se mude a `run`.
         awardChest(minRarity: .epica)
         reconcileTower()
+        // El colchón del tablero no es de la run: si su piso se cerró, cae en uno abierto (E14b B24).
+        placeMattressIfNeeded()
         // Reencarnar es un momento viral: se ofrece cuando el cofre épico y el
         // resto de la celebración terminan (`presentShareMomentIfCalm`).
         queueShareMoment(.reincarnation(level: player.meta.prestigeLevel))

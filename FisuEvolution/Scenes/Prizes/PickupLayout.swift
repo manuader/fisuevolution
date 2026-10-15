@@ -1,11 +1,11 @@
 import CoreGraphics
 import EconomyKit
 
-/// Dónde se paran las cajas del Paquete y el colchón (E14 C10). El colchón, sobre la línea del
-/// horizonte del fondo del piso, la misma donde se para un visitante (`StageLayout.standY`), del
-/// lado derecho. Las cajas (E14b B22) caen en cualquier lugar de la superficie del piso: entre el
-/// horizonte y la barra de abajo, lejos de los bordes, que son de la columna lateral (E7b), del
-/// colchón y de la zona por donde camina el visitante.
+/// Dónde se paran las cajas del Paquete y el colchón (E14 C10). Las cajas (E14b B22) y el colchón
+/// (B24) caen en cualquier lugar de la superficie del piso: entre el horizonte y la barra de abajo,
+/// lejos de los bordes, que son de la columna lateral (E7b), lejos uno del otro y de la zona por
+/// donde camina el visitante. El colchón, además, en la mitad de adelante: atrás lo tapaban las
+/// hileras (`GameState.placeMattressIfNeeded`).
 struct PickupLayout: Equatable {
     /// El lado de una caja, en celdas: 0,62 × 1,85 (C10 pide entre +80 % y +100 %).
     static let sideRatio: CGFloat = 1.15
@@ -88,19 +88,6 @@ struct PickupLayout: Equatable {
         return max(stage.groundFloorY, min(ground, ceiling) - StageLayout.walkDrop)
     }
 
-    /// Lo que ocupa el cuerpo del visitante parado en el medio.
-    private var visitorSpan: ClosedRange<CGFloat> {
-        let half = stage.actorSide * Self.visitorBodyRatio / 2
-        return (stage.standX - half)...(stage.standX + half)
-    }
-
-    /// El colchón, en el hueco entre el visitante y el borde derecho.
-    var mattressX: CGFloat { (visitorSpan.upperBound + sceneSize.width - Self.edgeClearance) / 2 }
-
-    var mattressPosition: CGPoint {
-        CGPoint(x: mattressX, y: baselineY + side * 0.35)
-    }
-
     // MARK: - La superficie de las cajas (E14b B22)
 
     /// Por dónde puede pararse el centro de una caja de costado: de columna a columna.
@@ -140,8 +127,9 @@ struct PickupLayout: Equatable {
         return CGPoint(x: feet.x, y: feet.y + side / 2)
     }
 
-    /// Las reglas de la caída en las fracciones de la superficie: la separación entre cajas, el
-    /// colchón y la zona de caminata del visitante.
+    /// Las reglas de la caída en las fracciones de la superficie: la separación entre cajas y la zona
+    /// de caminata del visitante. El colchón ya no tiene un lugar fijo: ocupa el suyo como una caja
+    /// más (`PackageFloorArea.keepingClear(of:)`, B24).
     var packageArea: PackageFloorArea {
         let xs = packageXRange
         let ys = packageFeetRange
@@ -157,9 +145,6 @@ struct PickupLayout: Equatable {
         // la zona más media caja de cada lado ocupa todo el ancho.
         let visitor = PackageFloorArea.Zone(x: fraction(walk.lowerBound)...fraction(walk.upperBound),
                                             y: depth > 0 ? Self.visitorWalkDepth : 0...1)
-        let mattressDepth = depth > 0 ? min(1, gapY) : 1
-        let mattress = PackageFloorArea.Zone(x: fraction(mattressX - side)...fraction(mattressX + side),
-                                             y: (1 - mattressDepth)...1)
-        return PackageFloorArea(gapX: gapX, gapY: gapY, keepOut: [visitor, mattress])
+        return PackageFloorArea(gapX: gapX, gapY: gapY, keepOut: [visitor])
     }
 }

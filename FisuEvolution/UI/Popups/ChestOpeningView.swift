@@ -52,37 +52,61 @@ enum ChestRarityStyle {
 }
 
 
-/// La geometría del escenario del cofre: los clips (`cofre_espera`,
-/// `cofre_sacude`, `cofre_abre`, 512 px de lado) en puntos, y dónde sale el
-/// premio. Medida sobre los cuadros: el cofre cerrado ocupa ~310×230 px
-/// centrado en el cuadro, y abierto la tapa sube hasta ~y 45 — por eso el
-/// premio vive ARRIBA del cofre y no adentro (D14: cero superposición).
+/// La geometría del escenario del cofre (r56), en puntos desde su centro. Los
+/// clips (`cofre_espera`, `cofre_sacude`, `cofre_abre`) son cuadros de 512 px:
+/// el cofre cerrado ocupa ~310×230 px centrado y, abierto, la tapa sube hasta
+/// ~y 45.
+///
+/// Dos encuadres: **cerrado**, el cofre es el protagonista de la pantalla
+/// (grande, al medio); **abierto**, la cámara se aleja —el cofre se achica y
+/// baja— para dejarle arriba el lugar al premio que sale volando de adentro
+/// (D14: cero superposición).
 enum ChestStage {
-    static let clipSide: CGFloat = 280
-    static var scale: CGFloat { clipSide / 512 }
+    static let clipPixels: CGFloat = 512
+    /// El lado del cuadro del clip con el cofre cerrado.
+    static let closedSide: CGFloat = 460
+    /// El lado del cuadro del clip con el cofre abierto.
+    static let openSide: CGFloat = 290
+    /// El centro del cuadro, cerrado y abierto.
+    static let closedClipY: CGFloat = -10
+    static let openClipY: CGFloat = 46
     /// El cofre cerrado en el cuadro del clip (px).
     static let closedChest = CGRect(x: 100, y: 140, width: 310, height: 230)
-    /// La parte alta de la tapa abierta (px del cuadro).
+    /// La parte alta de la tapa abierta y el piso del cofre (px del cuadro).
     static let openLidTop: CGFloat = 45
-    /// El centro del cuadro, en puntos desde el centro de la pantalla.
-    static let clipY: CGFloat = 50
-    /// El centro del premio, en puntos desde el centro de la pantalla.
-    static let prizeY: CGFloat = -190
+    static let chestFloor: CGFloat = 400
+    /// La boca del cofre abierto (px): de ahí sale la figurita.
+    static let openMouth: CGFloat = 205
+    /// El centro del premio.
+    static let prizeY: CGFloat = -192
     /// El alto que ocupa el bloque del premio (tarjeta con su nombre y el detalle).
     static let prizeHeight: CGFloat = 220
-
-    /// Y (puntos desde el centro de la pantalla) de la punta de la tapa abierta.
-    static var lidTopY: CGFloat { clipY + (openLidTop - 256) * scale }
-    /// Y del borde de abajo del bloque del premio.
-    static var prizeBottomY: CGFloat { prizeY + prizeHeight / 2 }
-    /// El centro de los botones, debajo del cofre.
-    static let controlsY: CGFloat = 212
+    /// El centro de los botones, debajo del cofre abierto.
+    static let controlsY: CGFloat = 214
     /// Media altura de la pila de botones más alta (equipar + otro cofre + después).
     static let controlsHalfHeight: CGFloat = 84
+    /// El cartel de «tocá» y los tres puntos, debajo del cofre cerrado.
+    static let hintY: CGFloat = 160
     /// Lo que el sello de la rareza sobresale arriba de la tarjeta del premio.
     static let sealOverhang: CGFloat = 16
     /// Aire entre los botones y la barra de abajo.
     static let barGap: CGFloat = 8
+
+    static var closedScale: CGFloat { closedSide / clipPixels }
+    static var openScale: CGFloat { openSide / clipPixels }
+
+    /// Y de la punta de la tapa abierta.
+    static var lidTopY: CGFloat { openClipY + (openLidTop - clipPixels / 2) * openScale }
+    /// Y del piso del cofre abierto.
+    static var openFloorY: CGFloat { openClipY + (chestFloor - clipPixels / 2) * openScale }
+    /// Y del piso del cofre cerrado (donde se levanta el polvo de la caída).
+    static var closedFloorY: CGFloat { closedClipY + (closedChest.maxY - clipPixels / 2) * closedScale }
+    /// Y de la cerradura del cofre cerrado (de donde saltan las chispas).
+    static var lockY: CGFloat { closedClipY + (closedChest.midY - clipPixels / 2) * closedScale }
+    /// Y de la boca del cofre abierto.
+    static var mouthY: CGFloat { openClipY + (openMouth - clipPixels / 2) * openScale }
+    /// Y del borde de abajo del bloque del premio.
+    static var prizeBottomY: CGFloat { prizeY + prizeHeight / 2 }
 
     /// La mitad del alto del escenario entero, desde su centro: el escenario es
     /// simétrico porque todo va con offsets desde el centro.
@@ -112,16 +136,45 @@ enum ChestClip {
     }
 }
 
-/// Abrir un cofre (E14 C4/C26): tres momentos con los clips de Higgsfield.
-/// `cofre_espera` (loop) → cada toque dispara `cofre_sacude` (1.º y 2.º) → el
-/// 3.º dispara `cofre_abre` → del brillo sale el premio, con rayos y pop, y
-/// los botones. El premio lo dibuja el código encima del clip, ARRIBA del
-/// cofre abierto (D14: cero superposición): nunca va en el video.
+/// La pose del cofre en un toque: squash & stretch con el pie fijo, el bamboleo
+/// y el saltito.
+private struct ChestPose {
+    var scaleX: CGFloat = 1
+    var scaleY: CGFloat = 1
+    var angle: Double = 0
+    var lift: CGFloat = 0
+}
+
+/// La figurita sale volando de la boca del cofre: chiquita, girando, y se
+/// asienta en su lugar con el rebote del resorte que la inserta.
 ///
-/// Los tres toques son del candado y siguen forzándolo (cada uno con su
-/// háptico y su sonido, con auto-avance de 1,2 s para el que no toca).
-/// Con Reduce Motion el cofre queda en su póster y un solo toque hace la
-/// apertura con fundidos.
+/// El desplazamiento va DESPUÉS de la escala y el giro: girar una vista ya
+/// corrida con `offset` la hace orbitar alrededor del centro del escenario (la
+/// figurita salía por abajo a la izquierda).
+private struct CardFlight: ViewModifier {
+    let launched: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .scaleEffect(launched ? 0.16 : 1)
+            .rotationEffect(.degrees(launched ? -220 : 0))
+            .opacity(launched ? 0.4 : 1)
+            .offset(y: launched ? ChestStage.mouthY : ChestStage.prizeY)
+    }
+}
+
+/// Abrir un cofre (E14 C4/C26, rehecho en r56): el cofre cae al piso, grande,
+/// y respira con `cofre_espera`. Cada toque lo sacude (`cofre_sacude`) con
+/// squash & stretch, chispas, una onda y un temblor que crecen 1-2-3; al
+/// tercero corre `cofre_abre`, la cámara se aleja y, cuando la tapa revienta,
+/// un fogonazo con los rayos y las estrellas del color de la rareza larga la
+/// figurita del premio (`ChestPrizeCard`) volando hasta su lugar, arriba del
+/// cofre (D14).
+///
+/// Los clips van por `ChestClipDeck` y no por el pool de video: el cofre no se
+/// queda en póster por el Modo de bajo consumo o la térmica (ver
+/// `ChestMotion`). Con Reduce Motion no hay caída, sacudidas ni partículas: un
+/// solo toque lleva al premio con fundidos.
 ///
 /// ⚠️ **No es un `sheet`**: los otros dos overlays no-modales del juego
 /// (`towerNotice`, `achievementToast`) ya viven en el `ZStack` de `RootView`, y
@@ -147,20 +200,26 @@ struct ChestOpeningView: View {
     let reward: GameState.ChestReward
 
     @State private var beat: Beat = .arriving
-    /// La entrada del escenario (fade + escala). Se prende en el `.task` del
-    /// primer latido — que corre DESPUÉS del armado del overlay, así que el
-    /// resorte no se pierde detrás del bloqueo de montaje (la lección de la
-    /// caída del cofre, ronda 4 del cierre de cofres).
+    @State private var deck: ChestClipDeck?
+    /// La caída del cofre (o su fundido, con Reduce Motion).
     @State private var entered = false
     @State private var breathing = false
-    /// El premio sobre el cofre, con su fade del reposo.
+    /// Cuántas veces se tocó el candado (los tres puntos y la fuerza del golpe).
+    @State private var taps = 0
+    @State private var poseKick = 0
+    @State private var landKick = 0
+    @State private var quakeKick = 0
+    @State private var ringKick = 0
+    @State private var burstRingKick = 0
+    /// La cámara se alejó: el cofre en su encuadre de abierto.
+    @State private var opened = false
+    /// La tapa reventó: rayos, luz de la rareza y el cofre abierto quieto.
+    @State private var burst = false
+    @State private var raysFaded = false
+    @State private var flash: Double = 0
+    @State private var emissions: [ChestEmission] = []
+    /// El premio sobre el cofre.
     @State private var contentRevealed = false
-    /// La sacudida de un toque está corriendo (`cofre_sacude`).
-    @State private var shaking = false
-    /// Cada toque remonta el clip de la sacudida para que arranque de cero.
-    @State private var shakeSerial = 0
-    /// `cofre_abre` terminó (o la política lo dejó en póster).
-    @State private var openingEnded = false
 
     /// Apaga el auto-avance de los latidos que esperan un toque, para que la
     /// animación avance **sólo con el dedo**.
@@ -182,16 +241,16 @@ struct ChestOpeningView: View {
         #endif
     }()
 
-    /// El centro del cofre, en puntos desde el centro de la pantalla.
-    private static let chestY = ChestStage.clipY
-    /// Los botones, debajo del cofre.
-    private static let controlsY = ChestStage.controlsY
-    /// Cuándo sale el premio del brillo: a mitad de `cofre_abre` (73 cuadros a
-    /// 24 fps), con la cola de destellos todavía corriendo.
-    private static let revealSecondsIntoOpening = 1.4
-    /// Tope de la espera del fin del clip: el latido que espera no lo avanza
-    /// nadie más, y un decoder trabado dejaría la cola de celebraciones muda.
-    private static let openingSeconds = 73.0 / 24.0
+    /// La caída: arranca arriba, fuera del escenario.
+    private static let dropHeight: CGFloat = 640
+    private static let dropSeconds = 0.34
+    /// Del estallido a la figurita asentada, y de ahí a los botones.
+    private static let flightSeconds = 0.6
+    private static let settleSeconds = 0.55
+
+    private var budget: ChestFX.Budget {
+        ChestFX.budget(maxLiveVideos: VideoPlayerPool.shared.maxLive)
+    }
 
     var body: some View {
         // Un `ZStack` pelado y offsets en PUNTOS desde el centro, no un
@@ -206,25 +265,11 @@ struct ChestOpeningView: View {
         let top = ScreenInsets.shared.top
         let bottom = ChestStage.barClearance
         return ZStack {
-            // El telón al 55 %: el HUD de arriba ya está apagado por la cola
+            // El telón: el HUD de arriba ya está apagado por la cola
             // (`celebrationHidesUI`), esto apaga el tablero.
-            Color.black.opacity(0.55)
+            Color.black.opacity(0.66)
                 .ignoresSafeArea()
-
-            // El foco de la casa: oscurece el callejón hacia los bordes. Entra
-            // en el PRIMER TOQUE: el callejón se apaga cuando el cofre EMPIEZA a
-            // moverse.
-            RadialGradient(
-                colors: [.clear, .black.opacity(0.32)],
-                center: .center,
-                startRadius: 150,
-                endRadius: 430
-            )
-            .offset(y: Self.chestY + (top - bottom) / 2)
-            .ignoresSafeArea()
-            .opacity(beat >= .forced1 ? 1 : 0)
-            .animation(reduceMotion ? nil : .easeInOut(duration: 0.4), value: beat >= .forced1)
-            .allowsHitTesting(false)
+                .allowsHitTesting(false)
 
             GeometryReader { proxy in
                 stageArea
@@ -233,6 +278,12 @@ struct ChestOpeningView: View {
             }
             .padding(.top, top)
             .padding(.bottom, bottom)
+
+            // El fogonazo de la apertura.
+            Color.white
+                .opacity(flash)
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
 
             // El área tappable: una capa propia, ARRIBA del arte y ABAJO de
             // los botones, que se retira en el reposo para no comerse sus
@@ -248,35 +299,57 @@ struct ChestOpeningView: View {
                 .accessibilityIdentifier("chest.tap")
                 .accessibilityLabel(Text("chest.tap.hint"))
             }
+
+            #if DEBUG
+            clipMarker
+            #endif
         }
         .ignoresSafeArea()
         // Sin esto VoiceOver se va al HUD apagado que quedó debajo.
         .accessibilityAddTraits(.isModal)
+        // Los decodificadores del tablero se sueltan mientras el cofre corre:
+        // los tres del cofre son los únicos vivos (también en el SE).
+        .suspendsVideoPool(deck?.animates == true)
         .task(id: beat) { await choreograph(beat) }
         .task {
             await offerExtraChestIfAllowed()
         }
+        .onDisappear { deck?.stop() }
     }
 
-    /// El escenario: el cofre, el premio arriba y los botones abajo, con offsets
-    /// en puntos desde su centro.
+    #if DEBUG
+    /// Para el UI test: qué clip manda y si ya pintó (`ChestClipDeck.status`).
+    /// Un cofre que se queda en su póster dice `still` o `…-loading`.
+    private var clipMarker: some View {
+        Color.clear
+            .frame(width: 1, height: 1)
+            .accessibilityElement()
+            .accessibilityIdentifier("chest.clip")
+            .accessibilityValue(Text(verbatim: deck?.status ?? "none"))
+            .allowsHitTesting(false)
+    }
+    #endif
+
+    /// El escenario: la luz, el cofre, las partículas, el premio arriba y los
+    /// botones abajo, con offsets en puntos desde su centro.
     private var stageArea: some View {
-        ZStack {
-            stageCanvas
-                .scaleEffect(breathing ? 1.04 : 1)
-                .animation(
-                    // El respiro de la espera es un `repeatForever` **atado a
-                    // la bandera**: al apagarse, el mismo modificador pasa a
-                    // ser un resorte común (la forma de `TapHereHand`).
-                    breathing
-                        ? .easeInOut(duration: 0.9).repeatForever(autoreverses: true)
-                        : .spring(duration: 0.28),
-                    value: breathing
-                )
-                .scaleEffect(entered ? 1 : 0.9)
-                .opacity(entered ? 1 : 0)
-                .offset(y: Self.chestY)
+        let still = reduceMotion
+        let amplitude = quakeAmplitude
+        return ZStack {
+            spotlight
+            rays
+            ChestShockwave(trigger: ringKick, tint: Color("PaletteCream"))
+                .frame(width: 200, height: 200)
+                .offset(y: ChestStage.lockY)
+            ChestShockwave(trigger: burstRingKick, tint: rarityColor, reach: 2.8)
+                .frame(width: 200, height: 200)
+                .offset(y: ChestStage.mouthY)
+
+            chest
                 .accessibilityHidden(true)
+
+            ChestParticleField(emissions: emissions)
+                .frame(width: 900, height: 1100)
 
             if contentRevealed {
                 cardContent
@@ -285,20 +358,220 @@ struct ChestOpeningView: View {
             if beat == .resting {
                 controls
                     .frame(maxWidth: 250)
-                    .offset(y: Self.controlsY)
+                    .offset(y: ChestStage.controlsY)
+                    .transition(reduceMotion ? .opacity : .opacity.combined(with: .offset(y: 24)))
             } else if beat >= .waiting, beat < .cinematic {
-                // Antes y durante (E14 C4): lo que hay que hacer, a la vista.
-                Text("chest.tap.hint")
-                    .font(Tokens.title)
-                    .foregroundStyle(.white)
-                    .shadow(color: .black.opacity(0.6), radius: 0, y: 2)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: 250)
-                    .offset(y: Self.controlsY)
-                    .allowsHitTesting(false)
-                    .accessibilityHidden(true)
+                hint
+                    .offset(y: ChestStage.hintY)
+                    .transition(.opacity)
             }
         }
+        // Los botones del reposo entran con su propio resorte.
+        .animation(still ? .easeOut(duration: 0.25) : .spring(duration: 0.4, bounce: 0.3),
+                   value: beat == .resting)
+        // El temblor de cada golpe: el escenario entero, no sólo el cofre.
+        .keyframeAnimator(initialValue: CGFloat(0), trigger: quakeKick) { content, dx in
+            content.offset(x: still ? 0 : dx)
+        } keyframes: { _ in
+            KeyframeTrack {
+                LinearKeyframe(amplitude, duration: 0.035)
+                LinearKeyframe(-amplitude * 0.8, duration: 0.05)
+                LinearKeyframe(amplitude * 0.5, duration: 0.05)
+                LinearKeyframe(-amplitude * 0.25, duration: 0.05)
+                LinearKeyframe(0, duration: 0.05)
+            }
+        }
+    }
+
+    /// Más fuerte con cada toque, y el doble en la apertura.
+    private var quakeAmplitude: CGFloat {
+        burst ? 11 : CGFloat(2 + 2 * min(taps, 3))
+    }
+
+    /// La luz que cae sobre el cofre: dorada mientras se lo fuerza (más con cada
+    /// toque), del color de la rareza cuando revienta.
+    private var spotlight: some View {
+        // Asentada la figurita, la luz baja: la atención es de ella.
+        let level = burst ? (raysFaded ? 0.28 : 0.6) : 0.16 + 0.1 * Double(min(taps, 3))
+        let tint = burst ? rarityColor : Color("PaletteYellow")
+        return RadialGradient(
+            colors: [tint.opacity(level), tint.opacity(level * 0.35), .clear],
+            center: .center,
+            startRadius: 8,
+            endRadius: 340
+        )
+        .frame(width: 760, height: 760)
+        .offset(y: opened ? ChestStage.openClipY : ChestStage.closedClipY)
+        .opacity(entered ? 1 : 0)
+        .animation(.easeOut(duration: 0.3), value: taps)
+        .animation(.easeOut(duration: 0.4), value: burst)
+        .animation(.easeOut(duration: 0.8), value: raysFaded)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+
+    /// Los rayos de la rareza detrás del cofre abierto. Se apagan cuando la
+    /// figurita se asienta: la atención pasa a ella (que trae los suyos).
+    @ViewBuilder private var rays: some View {
+        if burst, !reduceMotion {
+            RewardRays(tint: rarityColor)
+                .frame(width: 620, height: 620)
+                .offset(y: ChestStage.mouthY)
+                .opacity(raysFaded ? 0 : 0.9)
+                .transition(.scale(scale: 0.15).combined(with: .opacity))
+                .allowsHitTesting(false)
+        }
+    }
+
+    // MARK: El cofre
+
+    /// El cofre con sus transformaciones: la caída, el golpe del aterrizaje, la
+    /// pose de cada toque, el respiro de la espera y el encuadre (cerrado o
+    /// abierto). El pie queda fijo en todas: el cofre se aplasta contra el piso.
+    private var chest: some View {
+        let force = CGFloat(min(max(taps, 1), 3))
+        return chestArt
+            .keyframeAnimator(initialValue: ChestPose(), trigger: poseKick) { content, pose in
+                content
+                    .scaleEffect(x: pose.scaleX, y: pose.scaleY, anchor: .bottom)
+                    .rotationEffect(.degrees(pose.angle), anchor: .bottom)
+                    .offset(y: pose.lift)
+            } keyframes: { _ in
+                KeyframeTrack(\.scaleY) {
+                    CubicKeyframe(1 - 0.06 * force, duration: 0.07)
+                    SpringKeyframe(1 + 0.04 * force, duration: 0.12)
+                    SpringKeyframe(1, duration: 0.32, spring: .bouncy)
+                }
+                KeyframeTrack(\.scaleX) {
+                    CubicKeyframe(1 + 0.06 * force, duration: 0.07)
+                    SpringKeyframe(1 - 0.03 * force, duration: 0.12)
+                    SpringKeyframe(1, duration: 0.32, spring: .bouncy)
+                }
+                KeyframeTrack(\.angle) {
+                    LinearKeyframe(-2.5 * force, duration: 0.06)
+                    LinearKeyframe(2.5 * force, duration: 0.09)
+                    LinearKeyframe(-1.2 * force, duration: 0.08)
+                    SpringKeyframe(0, duration: 0.25)
+                }
+                KeyframeTrack(\.lift) {
+                    CubicKeyframe(0, duration: 0.07)
+                    CubicKeyframe(-10 * force, duration: 0.12)
+                    SpringKeyframe(0, duration: 0.28, spring: .bouncy)
+                }
+            }
+            .keyframeAnimator(initialValue: ChestPose(), trigger: landKick) { content, pose in
+                content.scaleEffect(x: pose.scaleX, y: pose.scaleY, anchor: .bottom)
+            } keyframes: { _ in
+                KeyframeTrack(\.scaleY) {
+                    CubicKeyframe(0.8, duration: 0.06)
+                    SpringKeyframe(1.06, duration: 0.14)
+                    SpringKeyframe(1, duration: 0.3, spring: .bouncy)
+                }
+                KeyframeTrack(\.scaleX) {
+                    CubicKeyframe(1.16, duration: 0.06)
+                    SpringKeyframe(0.96, duration: 0.14)
+                    SpringKeyframe(1, duration: 0.3, spring: .bouncy)
+                }
+            }
+            .scaleEffect(breathing ? 1.025 : 1, anchor: .bottom)
+            .animation(
+                // El respiro de la espera es un `repeatForever` **atado a
+                // la bandera**: al apagarse, el mismo modificador pasa a
+                // ser un resorte común (la forma de `TapHereHand`).
+                breathing
+                    ? .easeInOut(duration: 0.9).repeatForever(autoreverses: true)
+                    : .spring(duration: 0.28),
+                value: breathing
+            )
+            .scaleEffect(opened ? ChestStage.openSide / ChestStage.closedSide : 1)
+            .offset(y: chestOffset)
+            // Sin Reduce Motion el cofre cae desde arriba, fuera de cuadro; con
+            // Reduce Motion aparece con un fundido.
+            .opacity(entered || !reduceMotion ? 1 : 0)
+    }
+
+    private var chestOffset: CGFloat {
+        let resting = opened ? ChestStage.openClipY : ChestStage.closedClipY
+        guard !entered, !reduceMotion else { return resting }
+        return resting - Self.dropHeight
+    }
+
+    /// El arte: el clip que manda o, mientras no pintó (o si no hay video), su
+    /// cuadro quieto. Los tres clips quedan montados: cambiar es cambiar cuál se
+    /// ve, sin decodificador nuevo.
+    private var chestArt: some View {
+        ZStack {
+            stillArt
+                .opacity(clipCovers ? 0 : 1)
+            if let deck, deck.animates {
+                ForEach([ChestClipDeck.Clip.idle, .shake, .open], id: \.self) { clip in
+                    if let player = deck.players[clip] {
+                        ChestClipSurface(player: player) { deck.markReady(clip) }
+                            .opacity(deck.showing == clip && deck.ready.contains(clip) ? 1 : 0)
+                    }
+                }
+            }
+        }
+        .frame(width: ChestStage.closedSide, height: ChestStage.closedSide)
+    }
+
+    /// El clip que manda ya pintó: el cuadro quieto no hace falta.
+    private var clipCovers: Bool {
+        guard let deck, deck.animates else { return false }
+        return deck.ready.contains(deck.showing)
+    }
+
+    /// El cofre quieto: el primer cuadro de la espera (o el último de la
+    /// apertura, ya abierto), sacados del clip; si todavía no están, el cofre
+    /// del atlas en el lugar del cofre del clip.
+    @ViewBuilder private var stillArt: some View {
+        let side = ChestStage.closedSide
+        let still = burst || (opened && reduceMotion) ? deck?.openedStill : deck?.closedStill
+        if let still {
+            Image(uiImage: still)
+                .resizable()
+                .scaledToFit()
+                .frame(width: side, height: side)
+        } else if let image = UIArt.image("ui_chest_closed") {
+            let box = ChestStage.closedChest
+            image
+                .resizable()
+                .scaledToFit()
+                .frame(width: box.width * ChestStage.closedScale, height: box.height * ChestStage.closedScale)
+                .offset(x: (box.midX - ChestStage.clipPixels / 2) * ChestStage.closedScale,
+                        y: (box.midY - ChestStage.clipPixels / 2) * ChestStage.closedScale)
+                .frame(width: side, height: side)
+        }
+    }
+
+    // MARK: El cartel
+
+    /// Lo que hay que hacer, a la vista (E14 C4), con los tres puntos que se
+    /// llenan con cada toque.
+    private var hint: some View {
+        VStack(spacing: Tokens.s8) {
+            Text("chest.tap.hint")
+                .font(Tokens.title)
+                .foregroundStyle(.white)
+                .shadow(color: Color("PaletteInk"), radius: 0, x: 0, y: 2)
+                .shadow(color: Color("PaletteInk"), radius: 0, x: 1.5, y: 0)
+                .shadow(color: Color("PaletteInk"), radius: 0, x: -1.5, y: 0)
+                .shadow(color: Color("PaletteInk"), radius: 0, x: 0, y: -1.5)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 260)
+            HStack(spacing: Tokens.s12) {
+                ForEach(0..<3, id: \.self) { index in
+                    Circle()
+                        .fill(index < taps ? Color("PaletteYellow") : Color("PaletteCream").opacity(0.35))
+                        .overlay(Circle().strokeBorder(Color("PaletteInk"), lineWidth: 2.5))
+                        .frame(width: 16, height: 16)
+                        .scaleEffect(index < taps ? 1.15 : 1)
+                        .animation(reduceMotion ? nil : .spring(duration: 0.3, bounce: 0.6), value: taps)
+                }
+            }
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 
     /// El cofre extra por video se decide una vez, al abrir.
@@ -318,60 +591,15 @@ struct ChestOpeningView: View {
         // cadena no tiene fin y las 41 pintas se vacían en una tarde. Y no
         // se ofrece un cofre que no tendría nada desbloqueado que dar.
         guard gameState.canOfferExtraChest else { return }
-    offersExtraChest = true
-    }
-
-    // MARK: El escenario
-
-    private var isOpening: Bool { beat >= .cinematic }
-
-    private var playback: ArtPlayback {
-        if isOpening { return .once { openingEnded = true } }
-        guard shaking else { return .loop }
-        let serial = shakeSerial
-        return .once { if shakeSerial == serial { shaking = false } }
-    }
-
-    /// El clip del momento. Cuando la política lo deja en póster (Reduce Motion,
-    /// tests) se ve el cofre cerrado quieto; con video, el póster no se pinta
-    /// porque asomaría por los bordes del clip.
-    private var stageCanvas: some View {
-        AnimatedArtView(
-            clip: .object(ChestClip.id(opening: isOpening, shaking: shaking)),
-            role: .popup,
-            playback: playback
-        ) {
-            poster
-        }
-        .id(shakeSerial)
-        .frame(width: ChestStage.clipSide, height: ChestStage.clipSide)
-    }
-
-    @ViewBuilder private var poster: some View {
-        let side = ChestStage.clipSide
-        let chest = ChestStage.closedChest
-        ZStack {
-            if !VideoPlayerPool.shared.policy.allowsLoops, let image = UIArt.image("ui_chest_closed") {
-                image
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: chest.width * ChestStage.scale, height: chest.height * ChestStage.scale)
-                    .offset(
-                        x: (chest.midX - 256) * ChestStage.scale,
-                        y: (chest.midY - 256) * ChestStage.scale
-                    )
-            }
-        }
-        .frame(width: side, height: side)
+        offersExtraChest = true
     }
 
     // MARK: El premio
 
-    /// El premio, sobre el cofre abierto: sale del brillo (crece desde abajo),
-    /// en una tarjeta de figurita (`ChestPrizeCard`), con sus rayos y el pop. El detalle va en
-    /// blanco sobre el telón. Vive como capa hermana del escenario para que
-    /// ninguna transformación del arte (el respiro, la entrada) rasterice el
-    /// texto.
+    /// El premio, arriba del cofre abierto: la figurita (`ChestPrizeCard`) con
+    /// sus rayos y el pop, y el detalle en blanco sobre el telón. Vive como capa
+    /// hermana del escenario para que ninguna transformación del arte rasterice
+    /// el texto.
     private var cardContent: some View {
         VStack(spacing: Tokens.s8) {
             ChestPrizeCard(rarity: rarity, name: prizeName, showsSeal: isSkinPrize) {
@@ -385,13 +613,15 @@ struct ChestOpeningView: View {
         }
         .padding(Tokens.s8)
         .frame(width: 240, height: ChestStage.prizeHeight)
-        .offset(y: ChestStage.prizeY)
         // La aparición la anima el `withAnimation` que prende
-        // `contentRevealed`; con Reduce Motion entra con un fundido.
+        // `contentRevealed`: sale volando de la boca del cofre hasta su lugar
+        // (la identidad de `CardFlight` es la que la deja a su altura). Con
+        // Reduce Motion entra con un fundido, ya en su lugar.
+        .offset(y: reduceMotion ? ChestStage.prizeY : 0)
         .transition(
             reduceMotion
                 ? .opacity
-                : .scale(scale: 0.4, anchor: .bottom).combined(with: .opacity)
+                : .modifier(active: CardFlight(launched: true), identity: CardFlight(launched: false))
         )
         // La parada de AX es el contenido del premio. `children: .ignore` la
         // colapsa en UN elemento (patrón de `DailyRewardView.prizeCard`); los
@@ -424,6 +654,8 @@ struct ChestOpeningView: View {
         if case .skin = reward.outcome { return true }
         return false
     }
+
+    private var rarityColor: Color { ChestCardStyle.glow(rarity) }
 
     /// Mismo criterio de fallback que la ficha y el tablero: si el arte de la
     /// pinta todavía no existe, se muestra el base en vez de un hueco roto.
@@ -477,10 +709,10 @@ struct ChestOpeningView: View {
         }
 
         /// Segundos hasta el auto-avance. El cinemático no lleva reloj: lo
-        /// termina el propio clip (con tope, en su coreografía).
+        /// termina su propia coreografía.
         var autoAdvance: Double? {
             switch self {
-            case .arriving: 0.25
+            case .arriving: 0.15
             case .waiting, .forced1, .forced2: 1.2
             case .cinematic, .resting: nil
             }
@@ -521,61 +753,175 @@ struct ChestOpeningView: View {
         enter(reduceMotion ? .resting : beat.next)
     }
 
-    private func shake() {
-        shaking = !reduceMotion
-        shakeSerial += 1
-    }
-
-    /// La coreografía de un latido: su háptico, su sonido y su auto-avance. Con
-    /// Reduce Motion el cofre queda en su póster: cada latido muestra su estado
-    /// final quieto.
+    /// La coreografía de un latido: su háptico, su sonido y su auto-avance.
     private func choreograph(_ beat: Beat) async {
         switch beat {
         case .arriving:
-            withAnimation(reduceMotion ? nil : .spring(duration: 0.4, bounce: 0.3)) {
-                entered = true
-            }
-            play(.merge)
-            // ⚠️ El retrato se precalienta ACÁ, latidos antes de que se vea,
-            // y EN BACKGROUND: la PRIMERA lectura del personaje premiado
-            // cuesta 320–470 ms (la página del atlas), contra 0,1 ms cacheada.
-            // Hacerla en línea en este mismo latido congelaba el resorte de
-            // entrada: la "traba al principio" que reportó el dueño.
-            warmPrizeArt()
+            arm()
+            guard await arrive() else { return }
         case .waiting:
             breathing = !reduceMotion
         case .forced1:
-            breathing = false
-            shake()
-            gameState.audio?.play(.chestShakeA)
-            play(.merge)                       // un golpe
+            knock(1)
         case .forced2:
-            shake()
-            gameState.audio?.play(.chestShakeA)
-            play(.purchase)                    // dos golpes
+            knock(2)
         case .cinematic:
-            shaking = false
-            gameState.audio?.play(.chestShakeB)
-            play(.evolution)                   // el más grande del juego
-            // El premio sale del brillo con el clip todavía corriendo.
-            guard await wait(until: Self.revealSecondsIntoOpening, { openingEnded }) else { return }
-            withAnimation(.spring(duration: 0.4, bounce: 0.25)) {
-                contentRevealed = true
-            }
-            play(.rarity)
-            _ = await wait(until: Self.openingSeconds + 2.0, { openingEnded })
-            guard !Task.isCancelled else { return }
-            advance()
+            knock(3)
+            await open()
             return
         case .resting:
-            withAnimation(.easeOut(duration: reduceMotion ? 0.25 : 0.4)) {
-                contentRevealed = true
-            }
+            rest()
             return
         }
         guard let delay = autoAdvanceDelay(after: beat) else { return }
         guard await pause(delay) else { return }
         advance()
+    }
+
+    /// El mazo de clips y el retrato del premio, los dos en la llegada: latidos
+    /// enteros de margen antes de que se vean.
+    private func arm() {
+        if deck == nil {
+            let plays = ChestMotion.playsClips(policy: VideoPlayerPool.shared.policy, reduceMotion: reduceMotion)
+            deck = ChestClipDeck(animates: plays)
+            deck?.start()
+        }
+        // ⚠️ El retrato se precalienta ACÁ, latidos antes de que se vea,
+        // y EN BACKGROUND: la PRIMERA lectura del personaje premiado
+        // cuesta 320–470 ms (la página del atlas), contra 0,1 ms cacheada.
+        // Hacerla en línea en este mismo latido congelaba el resorte de
+        // entrada: la "traba al principio" que reportó el dueño.
+        warmPrizeArt()
+    }
+
+    /// La caída: el cofre baja con aceleración, pega contra el piso (golpe,
+    /// polvo, aplastón) y rebota. Con Reduce Motion, un fundido.
+    private func arrive() async -> Bool {
+        await deck?.waitForClosedStill(timeout: 0.8)
+        guard !Task.isCancelled else { return false }
+        guard !reduceMotion else {
+            withAnimation(.easeOut(duration: 0.3)) { entered = true }
+            return true
+        }
+        withAnimation(.easeIn(duration: Self.dropSeconds)) { entered = true }
+        guard await pause(Self.dropSeconds) else { return false }
+        landKick += 1
+        emit(ChestFX.dust(at: CGPoint(x: 0, y: ChestStage.closedFloorY), budget: budget))
+        gameState.audio?.play(.chestLand)
+        play(.merge)
+        return await pause(0.3)
+    }
+
+    /// Un toque al candado: cada uno más fuerte que el anterior (1-2-3) en la
+    /// pose, el temblor, las chispas, la luz, el sonido y el háptico.
+    private func knock(_ count: Int) {
+        // Un dedo apurado que toca durante la caída la corta: el cofre llega ya.
+        if !entered {
+            withAnimation(.spring(duration: 0.3, bounce: 0.3)) { entered = true }
+        }
+        breathing = false
+        taps = count
+        guard !reduceMotion else { return }
+        poseKick += 1
+        quakeKick += 1
+        ringKick += 1
+        emit(ChestFX.tapSparks(tap: count, at: CGPoint(x: 0, y: ChestStage.lockY), budget: budget))
+        gameState.audio?.play(.chestKnock, rate: 1 + 0.12 * Float(count - 1))
+        switch count {
+        case 1:
+            deck?.playShake()
+            gameState.audio?.play(.chestShakeA)
+            play(.merge)                       // un golpe
+        case 2:
+            deck?.playShake()
+            gameState.audio?.play(.chestShakeA, rate: 1.1)
+            play(.purchase)                    // dos golpes
+        default:
+            gameState.audio?.play(.chestShakeB)
+            play(.mergeAllFinale)              // tres, crecientes
+        }
+    }
+
+    /// La apertura: corre `cofre_abre` y la cámara se aleja; cuando la tapa
+    /// revienta (`burstDelay`, el cuadro de los rayos del clip), el fogonazo,
+    /// los rayos y las estrellas de la rareza, y la figurita sale volando de la
+    /// boca del cofre hasta su lugar. Asentada, suena la fanfarria de su rareza.
+    private func open() async {
+        let started = ContinuousClock.now
+        deck?.playOpen()
+        withAnimation(.spring(duration: 0.6, bounce: 0.18)) { opened = true }
+        if let deck, deck.animates {
+            await deck.waitForOpenFrame(ChestClipDeck.openBurstFrame, timeout: ChestClipDeck.burstDelay + 0.9)
+            guard !Task.isCancelled else { return }
+        } else {
+            guard await pause(ChestClipDeck.burstDelay) else { return }
+        }
+
+        Log.assets.info("chest burst a \(String(describing: ContinuousClock.now - started)) del tercer toque")
+        flash = 0.7
+        withAnimation(.easeOut(duration: 0.55)) { flash = 0 }
+        withAnimation(.spring(duration: 0.5, bounce: 0.3)) { burst = true }
+        burstRingKick += 1
+        quakeKick += 1
+        emit(ChestFX.burst(rarity: rarity, at: CGPoint(x: 0, y: ChestStage.mouthY), budget: budget))
+        gameState.audio?.play(.chestBurst)
+        play(.evolution)                       // el más grande del juego
+        withAnimation(.spring(duration: Self.flightSeconds, bounce: 0.38)) {
+            contentRevealed = true
+        }
+        gameState.audio?.play(.revealWhoosh)
+
+        guard await pause(Self.flightSeconds) else { return }
+        playFanfare()
+        play(.rarity)
+        withAnimation(.easeOut(duration: 0.8)) { raysFaded = true }
+
+        guard await pause(Self.settleSeconds) else { return }
+        advance()
+    }
+
+    /// El estado final: el cofre abierto, el premio arriba y los botones. Por
+    /// acá entra también Reduce Motion (un toque) con fundidos.
+    private func rest() {
+        breathing = false
+        if reduceMotion {
+            opened = true
+            withAnimation(.easeOut(duration: 0.3)) { contentRevealed = true }
+            playFanfare()
+            return
+        }
+        // El auto-avance o un salto directo: lo que la apertura no llegó a armar.
+        if !contentRevealed {
+            withAnimation(.spring(duration: 0.5, bounce: 0.25)) {
+                opened = true
+                contentRevealed = true
+            }
+        }
+        withAnimation(.easeOut(duration: 0.4)) { raysFaded = true }
+    }
+
+    private func playFanfare() {
+        switch rarity {
+        case .comun: gameState.audio?.play(.chestFanfareComun)
+        case .rara: gameState.audio?.play(.chestFanfareRara)
+        case .epica: gameState.audio?.play(.chestFanfareEpica)
+        case .legendaria: gameState.audio?.play(.chestFanfareLegendaria)
+        }
+        if case .coins = reward.outcome {
+            gameState.audio?.play(.coin)
+        }
+    }
+
+    /// Suma una tanda de partículas y la retira cuando ya se apagó: el reloj del
+    /// `Canvas` se detiene sin emisiones vivas.
+    private func emit(_ particles: [ChestParticle]) {
+        guard !reduceMotion, !particles.isEmpty else { return }
+        let emission = ChestEmission(start: .now, particles: particles)
+        emissions.append(emission)
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(ChestFX.maxLifetime))
+            emissions.removeAll { $0.id == emission.id }
+        }
     }
 
     /// Cuánto espera este latido antes de dispararse solo, o `nil` si no se
@@ -599,16 +945,6 @@ struct ChestOpeningView: View {
     private func pause(_ seconds: Double) async -> Bool {
         guard seconds > 0 else { return !Task.isCancelled }
         try? await Task.sleep(for: .seconds(seconds))
-        return !Task.isCancelled
-    }
-
-    /// Espera hasta `seconds` o a que se cumpla la condición, lo que pase
-    /// primero. `false` sólo si la tarea fue cancelada.
-    private func wait(until seconds: Double, _ done: () -> Bool) async -> Bool {
-        let deadline = ContinuousClock.now + .seconds(seconds)
-        while !done(), ContinuousClock.now < deadline, !Task.isCancelled {
-            try? await Task.sleep(for: .milliseconds(40))
-        }
         return !Task.isCancelled
     }
 

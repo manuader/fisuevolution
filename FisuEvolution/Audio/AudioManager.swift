@@ -27,6 +27,16 @@ final class AudioManager {
         // dedo, así que van como clips y no dentro del mov del cinemático.
         case chestShakeA = "sfx_chest_shake_a"
         case chestShakeB = "sfx_chest_shake_b"
+        /// La apertura del cofre (r56), sintetizados en `generate_audio.py`: la
+        /// caída, el nudillo de cada toque, el estallido y la fanfarria de la
+        /// rareza que sale.
+        case chestLand = "sfx_chest_land"
+        case chestKnock = "sfx_chest_knock"
+        case chestBurst = "sfx_chest_burst"
+        case chestFanfareComun = "sfx_chest_fanfare_comun"
+        case chestFanfareRara = "sfx_chest_fanfare_rara"
+        case chestFanfareEpica = "sfx_chest_fanfare_epica"
+        case chestFanfareLegendaria = "sfx_chest_fanfare_legendaria"
         /// El tic de cada rebanada de la ruleta que pasa bajo el puntero.
         case wheelTick = "sfx_wheel_tick"
         /// La campana de la botonera del ascensor (E8 audio, cableada en E3).

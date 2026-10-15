@@ -33,11 +33,32 @@ struct ChestStageTests {
         #expect(ChestStage.prizeBottomY < ChestStage.lidTopY)
     }
 
-    /// El cofre del clip es el mismo cuadro cuadrado en los tres, y cabe en pantalla SE.
-    @Test func elEscenarioCabeEnElSE() {
-        let half: CGFloat = 667 / 2
-        #expect(ChestStage.clipY + ChestStage.clipSide / 2 < half)
-        #expect(ChestStage.prizeY - ChestStage.prizeHeight / 2 > -half)
+    /// Los dos encuadres del cofre caben en el escenario, y el premio también.
+    @Test func losEncuadresCabenEnElEscenario() {
+        let half = ChestStage.halfHeight
+        #expect(abs(ChestStage.closedClipY) + ChestStage.closedSide / 2 <= half)
+        #expect(ChestStage.openClipY + ChestStage.openSide / 2 <= half)
+        #expect(ChestStage.prizeY - ChestStage.prizeHeight / 2 >= -half)
+    }
+
+    /// r56: el cofre cerrado es el protagonista —bastante más grande que el de
+    /// C26 (280 pt de cuadro)— y abierto se achica para dejarle lugar al premio.
+    @Test func elCofreCerradoEsElProtagonista() {
+        #expect(ChestStage.closedSide >= 1.5 * 280)
+        #expect(ChestStage.openSide < ChestStage.closedSide)
+    }
+
+    /// D14 abajo: el cofre abierto termina antes que los botones, y el cartel de
+    /// «tocá» va debajo del cofre cerrado.
+    @Test func losBotonesYElCartelNoPisanElCofre() {
+        #expect(ChestStage.openFloorY < ChestStage.controlsY - ChestStage.controlsHalfHeight)
+        #expect(ChestStage.closedFloorY < ChestStage.hintY - 24)
+    }
+
+    /// La figurita sale de la boca del cofre abierto, que está debajo de la tapa.
+    @Test func laFiguritaSaleDeLaBocaDelCofre() {
+        #expect(ChestStage.mouthY > ChestStage.lidTopY)
+        #expect(ChestStage.mouthY < ChestStage.openFloorY)
     }
 
     /// La barra de abajo queda a la vista durante el cofre (r56): en el SE el

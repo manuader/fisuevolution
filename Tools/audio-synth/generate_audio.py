@@ -1895,8 +1895,142 @@ SFX_RMS_DB = {
     "sfx_ev_alien": -20.0,
     "sfx_ev_corralito": -20.0,
     "sfx_ev_aguinaldo": -20.0,
+    # El cofre (r56): el golpe y la apertura van un poco arriba de la
+    # fanfarria, que suena mientras la tarjeta se asienta.
+    "sfx_chest_land": -20.0,
+    "sfx_chest_knock": -21.0,
+    "sfx_chest_burst": -18.0,
+    "sfx_chest_fanfare_comun": -21.0,
+    "sfx_chest_fanfare_rara": -20.5,
+    "sfx_chest_fanfare_epica": -20.0,
+    "sfx_chest_fanfare_legendaria": -19.5,
 }
 SFX_LOOPS = {"sfx_package_rattle", "sfx_mattress_squeak"}
+def sfx_chest_land():
+    """El cofre cae al piso ~0,5 s: un golpe grave de madera pesada, el
+    crujido de las tablas y la nube de polvo que se abre."""
+    dur = 0.500
+    buf = [0.0] * int(dur * SR)
+    rng = random.Random(7101)
+    render_tone(buf, 0.0, 0.30, glide(130.0, 52.0, 0.30), "sine", 1.0,
+                env_perc(0.30, attack=0.002, curve=4.0))
+    for f, amp in ((210.0, 0.45), (330.0, 0.25)):
+        render_tone(buf, 0.0, 0.12, f, "triangle", amp, env_perc(0.12, attack=0.001, curve=6.0))
+    render_noise(buf, 0.0, 0.05, 0.6, 0.012, rng)
+    render_noise_lp(buf, 0.02, 0.45, 0.5, rng, 0.05, env_swell(0.45, 0.06, 0.30))
+    peak = max(abs(v) for v in buf)
+    return [math.tanh(1.6 * v / peak) for v in buf]
+
+
+def sfx_chest_knock():
+    """Un toque al cofre ~0,2 s: el nudillo sobre la madera (resonancias
+    secas que se apagan rápido) y el tintineo del herraje del candado."""
+    dur = 0.200
+    buf = [0.0] * int(dur * SR)
+    rng = random.Random(7102)
+    render_noise(buf, 0.0, 0.018, 0.9, 0.004, rng)
+    for f, amp, curve in ((180.0, 0.9, 7.0), (410.0, 0.55, 9.0), (870.0, 0.25, 12.0)):
+        render_tone(buf, 0.0, dur, f, "sine", amp, env_perc(dur, attack=0.001, curve=curve))
+    for f in (2637.0, 3520.0):
+        render_tone(buf, 0.012, 0.12, f, "sine", 0.12, env_perc(0.12, attack=0.001, curve=8.0))
+    return buf
+
+
+def sfx_chest_burst():
+    """El cofre se abre ~1,2 s: el golpe del estallido (un bombo que cae), la
+    ráfaga de aire que se abre y una lluvia de campanitas que sube."""
+    dur = 1.200
+    buf = [0.0] * int(dur * SR)
+    rng = random.Random(7103)
+    render_tone(buf, 0.0, 0.45, glide(160.0, 38.0, 0.45), "sine", 1.0,
+                env_perc(0.45, attack=0.002, curve=3.5))
+    render_noise(buf, 0.0, 0.35, 0.8, 0.09, rng)
+    render_noise_lp(buf, 0.0, 0.9, 0.7, rng, 0.12, env_swell(0.9, 0.02, 0.7))
+    for i, m in enumerate((84, 88, 91, 96, 100, 103, 108)):
+        t0 = 0.08 + 0.055 * i
+        d = dur - t0
+        f = midi_hz(m)
+        render_tone(buf, t0, d, f, "sine", 0.28, env_perc(d, attack=0.002, curve=6.0))
+        render_tone(buf, t0, d, f * 2.76, "sine", 0.06, env_perc(d, attack=0.002, curve=10.0))
+    peak = max(abs(v) for v in buf)
+    return [math.tanh(1.8 * v / peak) for v in buf]
+
+
+def _fanfare(notes, chord, chord_at, dur, kind="square", sparkle=0, seed=7110):
+    """Fanfarria del premio: una subida de notas y un acorde que queda sonando,
+    con pares detuneados (el brillo de bronce del chiptune) y una cola de
+    campanitas cuando `sparkle` lo pide."""
+    buf = [0.0] * int(dur * SR)
+    for t0, m, d in notes:
+        f = midi_hz(m)
+        e = env_perc(d, attack=0.004, curve=2.5)
+        for det in (-6.0, 6.0):
+            render_tone(buf, t0, d, f, kind, 0.22, e, detune_cents=det)
+        render_tone(buf, t0, d, f * 0.5, "triangle", 0.22, e)
+    held = dur - chord_at
+    e = env_perc(held, attack=0.006, curve=2.6)
+    for m in chord:
+        f = midi_hz(m)
+        for det in (-7.0, 7.0):
+            render_tone(buf, chord_at, held, f, kind, 0.16, e, detune_cents=det,
+                        vib_hz=5.5, vib_depth=0.003)
+        render_tone(buf, chord_at, held, f * 0.5, "triangle", 0.14, e)
+    rng = random.Random(seed)
+    for i in range(sparkle):
+        t0 = chord_at + 0.04 + 0.6 * (i / max(1, sparkle)) ** 1.2
+        f = rng.choice((2093.0, 2637.0, 3136.0, 3951.0))
+        d = min(0.25, dur - t0)
+        if d > 0.02:
+            render_tone(buf, t0, d, f, "sine", 0.12, env_perc(d, attack=0.001, curve=7.0))
+    return buf
+
+
+def _glue(buf, drive=1.5):
+    """Saturación suave: baja el pico de los ataques sumados sin aplastar la
+    cola, para que la fanfarria se oiga entera y no sólo su primer golpe."""
+    peak = max(abs(v) for v in buf)
+    return [math.tanh(drive * v / peak) for v in buf]
+
+
+def sfx_chest_fanfare_comun():
+    """Premio común ~0,8 s: dos notas que suben (Sol5, Do6) y un acorde corto."""
+    return _fanfare([(0.0, 79, 0.16)], [72, 76, 84], 0.13, 0.80, kind="triangle", sparkle=3)
+
+
+def sfx_chest_fanfare_rara():
+    """Premio raro ~1 s: arpegio de Do mayor y el acorde arriba, con brillo."""
+    return _glue(_fanfare([(0.0, 72, 0.12), (0.09, 76, 0.12), (0.18, 79, 0.14)],
+                          [72, 76, 79, 84], 0.27, 1.0, kind="pulse25", sparkle=6))
+
+
+def sfx_chest_fanfare_epica():
+    """Premio épico ~1,2 s: la subida de la rara con un paso de más (Fa, La) y
+    un acorde de Do con novena que queda flotando."""
+    return _glue(_fanfare([(0.0, 72, 0.11), (0.08, 77, 0.11), (0.16, 81, 0.11), (0.24, 84, 0.14)],
+                          [72, 76, 79, 86, 88], 0.36, 1.2, kind="square", sparkle=10))
+
+
+def sfx_chest_fanfare_legendaria():
+    """Premio legendario ~1,6 s: el llamado de trompetas (Sol-Do-Mi-Sol, el
+    último largo), dos golpes de timbal y el acorde más grande del juego."""
+    buf = _fanfare([(0.0, 67, 0.12), (0.10, 72, 0.12), (0.20, 76, 0.12), (0.30, 79, 0.30)],
+                   [72, 76, 79, 84, 88, 91], 0.60, 1.6, kind="square", sparkle=16)
+    for t0 in (0.30, 0.60):
+        render_tone(buf, t0, 0.35, glide(110.0, 70.0, 0.35), "sine", 0.7,
+                    env_perc(0.35, attack=0.002, curve=4.0))
+    return _glue(buf, drive=2.0)
+
+
+SFX.update({
+    "sfx_chest_land": sfx_chest_land,
+    "sfx_chest_knock": sfx_chest_knock,
+    "sfx_chest_burst": sfx_chest_burst,
+    "sfx_chest_fanfare_comun": sfx_chest_fanfare_comun,
+    "sfx_chest_fanfare_rara": sfx_chest_fanfare_rara,
+    "sfx_chest_fanfare_epica": sfx_chest_fanfare_epica,
+    "sfx_chest_fanfare_legendaria": sfx_chest_fanfare_legendaria,
+})
+
 MUSIC = {
     "music_earth_loop": music_earth_loop,
 }

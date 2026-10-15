@@ -60,11 +60,9 @@ struct DepthOrderTests {
         #expect(frontMost < PickupNode.labelZ + DepthOrder.z(forFeetY: DepthOrder.deepestFeetY), "el cartel LLENO, arriba")
     }
 
-    @Test("una pila de cajas, con sus videos, se ordena como una sola pieza: ocupa menos de un punto")
-    func aStackIsOnePiece() {
-        #expect(4 * DepthOrder.innerStep < DepthOrder.stackStep, "el video de una caja no pasa a la de arriba")
-        let pile = CGFloat(PickupLayout.maxVisibleBoxes - 1) * DepthOrder.stackStep + 4 * DepthOrder.innerStep
-        #expect(pile < DepthOrder.zPerPoint)
+    @Test("una caja, con sus videos, se ordena como una sola pieza: sus capas ocupan menos de un punto")
+    func aBoxIsOnePiece() {
+        #expect(4 * DepthOrder.innerStep < DepthOrder.zPerPoint)
     }
 
     // MARK: - Los nodos reales
@@ -92,7 +90,12 @@ struct DepthOrderTests {
         return controller
     }
 
-    /// La línea donde apoyan las cajas y el colchón en el piso que se mira.
+    /// Dónde apoya una caja del tablero (E14b B22: cada una en su y): medio lado debajo de su centro.
+    private func feetY(of box: PickupNode) -> CGFloat {
+        box.position.y - cellSize * PickupLayout.sideRatio / 2
+    }
+
+    /// La línea donde apoya el colchón en el piso que se mira.
     private func pickupBaseline(_ gameState: GameState) throws -> CGFloat {
         let floor = try #require(gameState.visibleFloorDef)
         return PickupLayout(sceneSize: size, bottomInset: bottomInset, cellSize: cellSize,
@@ -107,16 +110,15 @@ struct DepthOrderTests {
         #expect(abs(actor.zPosition - DepthOrder.z(forFeetY: actor.position.y)) < tolerance)
     }
 
-    @Test("las cajas y el colchón van con el z de su línea de apoyo; en la pila, la de arriba adelante")
+    @Test("cada caja va con el z de sus pies y el colchón con el de su línea de apoyo")
     func pickupsUseTheirBaseline() async throws {
         let gameState = await makeGameState()
         let controller = pickups(gameState)
         let baseline = try pickupBaseline(gameState)
         let boxes = controller.boxes
         #expect(boxes.count == 2)
-        for (index, box) in boxes.enumerated() {
-            let expected = DepthOrder.z(forFeetY: baseline) + CGFloat(index) * DepthOrder.stackStep
-            #expect(abs(box.zPosition - expected) < tolerance)
+        for box in boxes {
+            #expect(abs(box.zPosition - DepthOrder.z(forFeetY: feetY(of: box))) < tolerance)
         }
         let mattress = try #require(controller.mattress)
         #expect(abs(mattress.zPosition - DepthOrder.z(forFeetY: baseline)) < tolerance)
@@ -135,7 +137,7 @@ struct DepthOrderTests {
         let mattress = try #require(controller.mattress)
         let real = [
             Piece(name: "visitante", feetY: actor.position.y, z: stage.layer.zPosition + actor.zPosition),
-            Piece(name: "caja", feetY: baseline, z: controller.layer.zPosition + box.zPosition),
+            Piece(name: "caja", feetY: feetY(of: box), z: controller.layer.zPosition + box.zPosition),
             Piece(name: "colchón", feetY: baseline, z: controller.layer.zPosition + mattress.zPosition),
         ]
         var pieces = real
@@ -156,11 +158,10 @@ struct DepthOrderTests {
     func aBoxVideoStaysInItsDepth() async throws {
         let gameState = await makeGameState()
         let controller = pickups(gameState)
-        let baseline = try pickupBaseline(gameState)
         let top = try #require(controller.boxes.last)
         let video = try #require(top.waitingVideoNode)
         let videoZ = controller.layer.zPosition + top.zPosition + video.zPosition + DepthOrder.innerStep / 3
-        #expect(videoZ < employeeZ(feetY: baseline - 1))
+        #expect(videoZ < employeeZ(feetY: feetY(of: top) - 1))
     }
 }
 
@@ -202,9 +203,8 @@ struct DepthTouchTests {
         let box = try #require(controller.boxes.first)
         let boxZ = try #require(controller.hitDepth(at: box.position), "el centro de la caja es de la caja")
         #expect(controller.hitDepth(at: CGPoint(x: 5, y: 5)) == nil)
-        let floor = try #require(gameState.visibleFloorDef)
-        let baseline = PickupLayout(sceneSize: size, bottomInset: 118, cellSize: 72, background: floor.background,
-                                    backgroundOffset: floor.backgroundOffset).baselineY
+        // Los pies de la caja (E14b B22: cada una en su y), medio lado debajo de su centro.
+        let baseline = box.position.y - 72 * PickupLayout.sideRatio / 2
         let infront = BoardScene.fieldBaseZ + BoardScene.depthZ(fieldY: baseline - 15 - BoardScene.bottomInset)
         let behind = BoardScene.fieldBaseZ + BoardScene.depthZ(fieldY: baseline + 15 - BoardScene.bottomInset)
         #expect(BoardScene.touchOrder(stage: nil, pickups: boxZ, character: infront).first == .character,

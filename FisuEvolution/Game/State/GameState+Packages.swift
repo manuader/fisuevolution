@@ -173,19 +173,31 @@ extension GameState {
         return packageTarget
     }
 
+    /// Las reglas de la caída en el piso `ordinal` (E14b B22): las superficies del teléfono de
+    /// referencia y del SE con el fondo de ese piso. El lugar se guarda en fracciones y tiene que
+    /// quedar libre en las dos: así vale en cualquier pantalla.
+    func packageAreas(onFloor ordinal: Int) -> [PackageFloorArea] {
+        guard let floors = content?.floorTable.floors, floors.indices.contains(ordinal) else { return [] }
+        let floor = floors[ordinal]
+        return PickupLayout.placementAreas(background: floor.background, backgroundOffset: floor.backgroundOffset)
+    }
+
     /// Sortea las cajas que cayeron sin asignar y las que dejaron de valer (una reencarnación
-    /// cierra los pisos), con el estado de ahora. Devuelve cuántas se sortearon.
+    /// cierra los pisos), con el estado de ahora, y ubica en su piso las que no tienen lugar (las
+    /// de un save de B18 vienen sin y). Devuelve cuántas cayeron en un lugar nuevo.
     @discardableResult
     func settlePackageBoxes() -> Int {
         guard let content, var player else { return 0 }
         var packages = player.meta.engagement.packages
         guard packages.boxes.contains(where: {
             !PackageRoller.belongs($0, state: player, tiers: content.tiers, floorTable: content.floorTable)
+                || ($0.isAssigned && $0.spot == nil)
         }) else { return 0 }
         let assigned = PackageRoller.assignPending(
             &packages, state: player, tiers: content.tiers, floorTable: content.floorTable, config: content.economy,
             occupancy: packageOccupancy, windowTiers: content.packages.windowTiers,
-            ratio: content.packages.tierRatio(bestSupplierLevel: bestSupplierLevel), using: &rng
+            ratio: content.packages.tierRatio(bestSupplierLevel: bestSupplierLevel),
+            areas: { self.packageAreas(onFloor: $0) }, using: &rng
         )
         // Una que dejó de valer y no tiene a quién traer queda sin asignar: también se guarda.
         guard packages != player.meta.engagement.packages else { return 0 }
@@ -298,6 +310,17 @@ extension GameState {
         return result
     }
 
+    /// El empleado asoma de la caja del tablero (E14b B23): el resorte.
+    func packageExitPoppedOut() {
+        audio?.play(.packagePopOut)
+    }
+
+    /// Y aterriza a su lado: el golpe y un toque en la mano.
+    func packageExitLanded() {
+        audio?.play(.packageLand)
+        haptics?.play(.tap)
+    }
+
     var packageIntroSeen: Bool { player?.meta.engagement.packageIntroSeen ?? false }
 
     private func noteBoardPackageFull() {
@@ -355,13 +378,13 @@ extension GameState {
     }
 
     /// Un paquete cuyo empleado ya no entra cuando le toca el turno vuelve al
-    /// buzón, aunque pase el tope: ya estaba ganado. Vuelve con el mismo empleado, a su piso.
+    /// buzón, aunque pase el tope: ya estaba ganado. Vuelve con el mismo empleado, a su piso, y
+    /// cae en un lugar libre de ese piso (`settlePackageBoxes`).
     func refundPackage(_ change: BoardChange? = nil) {
         guard var player else { return }
         var box = PackageBox.unassigned
         if case let .arrival(typeId)? = change?.kind, let content, let type = content.tiers.type(id: typeId) {
-            box = PackageBox(floor: content.floorTable.ordinal(forTier: type.tier), typeId: typeId,
-                             x: Double.random(in: 0...1, using: &rng))
+            box = PackageBox(floor: content.floorTable.ordinal(forTier: type.tier), typeId: typeId)
         }
         player.meta.engagement.packages.boxes.append(box)
         self.player = player
@@ -377,18 +400,30 @@ extension GameState {
         settlePackageBoxes()
     }
 
-    /// Una caja que trae a alguien del piso `floorId` (`--uitest-package-floor=`): el de tier más
-    /// bajo de ese piso, marcado como visto para que la caja valga.
-    func debugDropPackage(onFloor floorId: String) {
-        guard let content, var player,
+    /// `count` cajas que traen a alguien del piso `floorId` (`--uitest-package-floor=urban` o
+    /// `=alley:3`): el de tier más bajo de ese piso, marcado como visto para que la caja valga. Cada
+    /// una cae en un lugar libre de ese piso, como las del reloj (B22).
+    func debugDropPackage(onFloor floorId: String, count: Int = 1) {
+        guard let content, var player, count > 0,
               let ordinal = content.floorTable.floors.firstIndex(where: { $0.id == floorId }),
               let type = content.tiers.concreteTypes
                   .filter({ content.floorTable.ordinal(forTier: $0.tier) == ordinal })
                   .min(by: { $0.tier < $1.tier })
         else { return }
         player.run.markSeen(type.id)
-        player.meta.engagement.packages.boxes.append(PackageBox(floor: ordinal, typeId: type.id, x: 0.5))
+        for _ in 0..<count {
+            player.meta.engagement.packages.boxes.append(PackageBox(floor: ordinal, typeId: type.id))
+            PackagePlacer.placeMissing(&player.meta.engagement.packages,
+                                       areas: { self.packageAreas(onFloor: $0) }, using: &rng)
+        }
         self.player = player
+    }
+
+    /// La fixture `--uitest-package-floor=<piso>[:<cuántas>]`.
+    func debugDropPackages(fixture: String) {
+        let parts = fixture.split(separator: ":")
+        guard let floorId = parts.first else { return }
+        debugDropPackage(onFloor: String(floorId), count: parts.count > 1 ? Int(parts[1]) ?? 1 : 1)
     }
     #endif
 }

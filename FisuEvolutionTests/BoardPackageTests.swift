@@ -125,7 +125,7 @@ struct BoardPackageTests {
         return (gameState, controller)
     }
 
-    @Test("la caja del tablero, ya vista: se abre en el lugar, se va, y deja dónde sale el empleado")
+    @Test("la caja del tablero, ya vista: se abre en el lugar, deja de esperar, y deja de dónde sale el empleado")
     func theBoxOpensOnTheBoard() async throws {
         let (gameState, controller) = await pickups()
         seenIntro(gameState)
@@ -143,7 +143,9 @@ struct BoardPackageTests {
             Issue.record("el paquete no encoló una llegada")
             return
         }
-        #expect(controller.takeBoxExit(typeId: typeId) == spot)
+        let exit = try #require(controller.takeBoxExit(typeId: typeId))
+        #expect(exit.node === box, "sale de esa caja, que espera abierta")
+        #expect(abs(exit.feet.x - spot.x) < 0.01)
         #expect(controller.takeBoxExit(typeId: typeId) == nil, "se usa una sola vez")
     }
 

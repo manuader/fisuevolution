@@ -764,10 +764,12 @@ final class BoardScene: SKScene {
 
         // El toque es de lo que se ve adelante (E14b B19): el visitante, una caja o el colchón, o
         // un empleado, por su z. Si lo de adelante no lo toma (un visitante a mitad de su entrada,
-        // un reto de toques), sigue al de atrás.
-        let character = characterNode(at: touch.location(in: self))
-        for target in Self.touchOrder(stage: stage.hitDepth(at: touch.location(in: stage.layer)),
-                                      pickups: pickups.hitDepth(at: touch.location(in: pickups.layer)),
+        // un reto de toques), sigue al de atrás. Con algo de atrás bajo el dedo, el empleado se
+        // toca sólo en su cuerpo: su zona generosa no le roba el toque a lo que se ve detrás.
+        let stageZ = stage.hitDepth(at: touch.location(in: stage.layer))
+        let pickupsZ = pickups.hitDepth(at: touch.location(in: pickups.layer))
+        let character = characterNode(at: touch.location(in: self), bodyOnly: stageZ != nil || pickupsZ != nil)
+        for target in Self.touchOrder(stage: stageZ, pickups: pickupsZ,
                                       character: character.map { fieldNode.zPosition + $0.zPosition }) {
             switch target {
             case .stage:
@@ -1441,36 +1443,59 @@ final class BoardScene: SKScene {
     func debugHoldInHand(slot: Int) { dragNode = characterNodes[slot] }
     #endif
 
-    /// Hit-testing returns the deepest node (sprite/label); climb to the unit.
-    private func characterNode(at point: CGPoint) -> CharacterNode? {
-        // Entre los personajes cuyo cuerpo contiene el toque, elegir el de
-        // ADELANTE (mayor zPosition); ante empate, el de centro más cercano. Es
-        // más fiable que `nodes(at:)` cuando están amontonados y sus cajas
-        // transparentes se solapan.
-        //
-        // La zona es una ELIPSE, no un círculo. El sprite mide ~2× `cellSize` de
-        // alto desde los pies, así que el círculo viejo —centrado a 0.25 con
-        // radio 0.82— llegaba hasta 1.07 y dejaba LA CABEZA AFUERA: tocarla no
-        // seleccionaba nada. Se estira sólo en vertical; agrandar también el
-        // ancho haría que un toque se coma al vecino de al lado, que están a
-        // menos de un `cellSize` de distancia.
+    /// El empleado bajo el toque (`point` en coordenadas de la escena), o `nil`. `bodyOnly`: hay
+    /// algo de atrás bajo el dedo (el escenario, una caja, el colchón) y el empleado sólo cuenta si
+    /// el dedo cae en su cuerpo visible (E14b B19).
+    private func characterNode(at point: CGPoint, bodyOnly: Bool) -> CharacterNode? {
+        let nodes = Array(characterNodes.values)
+        let hits = nodes.map { CharacterHit(feet: $0.position, z: $0.zPosition, body: $0.visibleBody) }
         let local = fieldNode.convert(point, from: self)
+        return Self.characterHit(at: local, among: hits, cellSize: cellSize, bodyOnly: bodyOnly).map { nodes[$0] }
+    }
+
+    /// Un empleado que puede llevarse un toque, en coordenadas del campo.
+    struct CharacterHit {
+        /// Donde apoya los pies (el ancla del nodo).
+        let feet: CGPoint
+        let z: CGFloat
+        /// El cuerpo que se ve (`CharacterNode.visibleBody`).
+        let body: CGRect
+    }
+
+    /// A cuál de `candidates` le toca el toque en `point` (coordenadas del campo), o `nil`.
+    ///
+    /// Entre los que contienen el toque, el de ADELANTE (mayor z); ante empate, el de centro más
+    /// cercano. Es más fiable que `nodes(at:)` cuando están amontonados y sus cajas transparentes
+    /// se solapan.
+    ///
+    /// Sin nada más bajo el dedo, la zona es una ELIPSE generosa, no un círculo. El sprite mide
+    /// ~2× `cellSize` de alto desde los pies, así que el círculo viejo —centrado a 0.25 con radio
+    /// 0.82— llegaba hasta 1.07 y dejaba LA CABEZA AFUERA: tocarla no seleccionaba nada. Se estira
+    /// sólo en vertical; agrandar también el ancho haría que un toque se coma al vecino de al lado,
+    /// que están a menos de un `cellSize` de distancia.
+    ///
+    /// Con `bodyOnly` (hay una caja, el colchón o el visitante bajo el dedo) la zona es el cuerpo
+    /// que se ve: la elipse llega casi una celda a cada lado y dos arriba, y le robaría el toque a
+    /// lo que se ve detrás aunque el empleado no lo tape (D13).
+    static func characterHit(at point: CGPoint, among candidates: [CharacterHit], cellSize: CGFloat,
+                             bodyOnly: Bool) -> Int? {
         let halfWidth = cellSize * 0.82
         let halfHeight = cellSize * 1.15
-        var best: (node: CharacterNode, z: CGFloat, dist: CGFloat)?
-        for (_, node) in characterNodes {
-            let dx = (local.x - node.position.x) / halfWidth
+        var best: (index: Int, z: CGFloat, dist: CGFloat)?
+        for (index, candidate) in candidates.enumerated() {
+            let dx = (point.x - candidate.feet.x) / halfWidth
             // Centro del cuerpo: el ancla son los PIES y la figura crece hacia
             // arriba, así que el óvalo se centra bien alto.
-            let dy = (local.y - (node.position.y + cellSize * 0.9)) / halfHeight
+            let dy = (point.y - (candidate.feet.y + cellSize * 0.9)) / halfHeight
             let dist = hypot(dx, dy)
-            guard dist <= 1 else { continue }
-            if best == nil || node.zPosition > best!.z
-                || (node.zPosition == best!.z && dist < best!.dist) {
-                best = (node, node.zPosition, dist)
+            let inside = bodyOnly ? candidate.body.contains(point) : dist <= 1
+            guard inside else { continue }
+            if let current = best, candidate.z < current.z || (candidate.z == current.z && dist >= current.dist) {
+                continue
             }
+            best = (index, candidate.z, dist)
         }
-        return best?.node
+        return best?.index
     }
 
     /// Bounce + "+N" flotante; crit y golden gritan más fuerte. F5.2 suma

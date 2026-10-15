@@ -215,6 +215,62 @@ struct DepthTouchTests {
                 "la parte de la caja que se ve se toca")
     }
 
+    /// Un empleado con arte real (2,2 celdas) parado en `feet`, como lo arma el tablero.
+    private func employee(at feet: CGPoint, cellSize: CGFloat) throws -> BoardScene.CharacterHit {
+        let content = try GameContentLoader.load(from: .main)
+        let type = try #require(content.tiers.type(id: "homeless"))
+        let node = CharacterNodePool().obtain()
+        node.configure(type: type, texture: nil, cellIndex: 0, cellSize: cellSize, hasRealArt: true)
+        node.position = feet
+        return BoardScene.CharacterHit(feet: feet, z: node.zPosition, body: node.visibleBody)
+    }
+
+    @Test("la forma del toque: sola, la zona generosa; con algo detrás bajo el dedo, sólo el cuerpo")
+    func theEmployeeHitShape() throws {
+        let cell: CGFloat = 72
+        let feet = CGPoint(x: 200, y: 300)
+        let hit = try employee(at: feet, cellSize: cell)
+        let chest = CGPoint(x: feet.x, y: feet.y + cell * 0.9)
+        let beside = CGPoint(x: feet.x + cell * 0.7, y: chest.y)
+        let overHead = CGPoint(x: feet.x, y: feet.y + cell * 1.9)
+        #expect(hit.body.contains(chest))
+        #expect(!hit.body.contains(beside), "al costado del cuerpo es aire transparente del sprite")
+        #expect(!hit.body.contains(overHead), "por encima de la cabeza no hay cuerpo")
+        for point in [chest, beside, overHead] {
+            #expect(BoardScene.characterHit(at: point, among: [hit], cellSize: cell, bodyOnly: false) == 0,
+                    "sin nada detrás, la elipse generosa lo toma — \(point)")
+        }
+        #expect(BoardScene.characterHit(at: chest, among: [hit], cellSize: cell, bodyOnly: true) == 0)
+        #expect(BoardScene.characterHit(at: beside, among: [hit], cellSize: cell, bodyOnly: true) == nil,
+                "con una caja detrás, el costado del empleado es de la caja")
+        #expect(BoardScene.characterHit(at: overHead, among: [hit], cellSize: cell, bodyOnly: true) == nil)
+    }
+
+    @Test("con algo detrás, el de adelante sin cuerpo bajo el dedo no le roba el toque al de atrás")
+    func theFrontEmployeeOnlyWinsOnItsBody() throws {
+        let cell: CGFloat = 72
+        let back = try employee(at: CGPoint(x: 200, y: 320), cellSize: cell)
+        let frontFeet = CGPoint(x: 200 + cell * 0.7, y: 300)
+        let frontNode = try employee(at: frontFeet, cellSize: cell)
+        let front = BoardScene.CharacterHit(feet: frontFeet, z: back.z + 1, body: frontNode.body)
+        let onBackBody = CGPoint(x: 200, y: 320 + cell * 0.9)
+        #expect(BoardScene.characterHit(at: onBackBody, among: [back, front], cellSize: cell, bodyOnly: false) == 1,
+                "sólo empleados: gana el de adelante, como siempre")
+        #expect(BoardScene.characterHit(at: onBackBody, among: [back, front], cellSize: cell, bodyOnly: true) == 0)
+        let onFrontBody = CGPoint(x: frontFeet.x, y: frontFeet.y + cell * 0.9)
+        #expect(BoardScene.characterHit(at: onFrontBody, among: [back, front], cellSize: cell, bodyOnly: true) == 1)
+    }
+
+    @Test("una caja detrás del costado de un empleado: el toque es de la caja")
+    func aBoxBesideAnEmployeeBody() throws {
+        let cell: CGFloat = 72
+        let hit = try employee(at: CGPoint(x: 200, y: 300), cellSize: cell)
+        let beside = CGPoint(x: 200 + cell * 0.7, y: 300 + cell * 0.9)
+        let boxZ = hit.z - 0.1
+        let character = BoardScene.characterHit(at: beside, among: [hit], cellSize: cell, bodyOnly: true)
+        #expect(BoardScene.touchOrder(stage: nil, pickups: boxZ, character: character.map { _ in hit.z }) == [.pickups])
+    }
+
     @Test("el visitante: su cuerpo va con sus pies; el globo del pedido, siempre arriba")
     func theStageHitDepth() async throws {
         let gameState = await makeGameState()

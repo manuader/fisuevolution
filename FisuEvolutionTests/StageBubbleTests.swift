@@ -173,9 +173,13 @@ struct StageBubbleTests {
 
     @Test("el feed sólo cambia cuando cambia lo que se ve")
     func theFeedOnlyChangesWhenNeeded() async throws {
-        let (_, controller) = try await stage()
+        let (gameState, controller) = try await stage()
         let first = try #require(controller.bubble)
-        controller.update(delta: 1.0 / 60, reduceMotion: true)
+        // El controlador mira el estado con una referencia débil (lo dueña la escena): soltado, el
+        // próximo cuadro lo daría por terminado y limpiaría el globo.
+        withExtendedLifetime(gameState) {
+            controller.update(delta: 1.0 / 60, reduceMotion: true)
+        }
         #expect(controller.bubble == first)
     }
 }

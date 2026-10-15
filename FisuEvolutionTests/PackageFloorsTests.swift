@@ -111,23 +111,53 @@ struct PackageFloorsTests {
         let nodes = controller.boxes
         #expect(nodes.count == 3)
         #expect(nodes.allSatisfy { $0.packageBox?.floor == urban })
-        let area = gameState.packageArea(onFloor: urban)
+        let areas = gameState.packageAreas(onFloor: urban)
         let spots = nodes.compactMap { $0.packageBox?.spot }
         #expect(spots.count == 3)
         for (index, spot) in spots.enumerated() {
             let others = spots.enumerated().filter { $0.offset != index }.map(\.element)
-            #expect(PackagePlacer.crowding(of: spot, among: others, in: area) == 0, "\(spot) pisa a otra o a una zona prohibida")
+            #expect(PackagePlacer.crowding(of: spot, among: others, in: areas) == 0, "\(spot) pisa a otra o a una zona prohibida")
         }
     }
 
-    @Test("el lugar de las cajas del save: GameState las ubica con la superficie de su piso")
+    @Test("el lugar de las cajas del save: GameState las ubica con la superficie de su piso, en la referencia y en el SE")
     func gameStatePlacesWithTheFloorArea() async throws {
         let gameState = await tower()
         let urban = try ordinal(of: "urban", in: gameState)
         let floor = try #require(gameState.content?.floorTable[urban])
-        #expect(gameState.packageArea(onFloor: urban)
-                == PickupLayout.reference(background: floor.background, backgroundOffset: floor.backgroundOffset).packageArea)
-        #expect(gameState.packageArea(onFloor: 999) == .open)
+        let reference = PickupLayout.reference(background: floor.background, backgroundOffset: floor.backgroundOffset)
+        let smallest = PickupLayout.smallest(background: floor.background, backgroundOffset: floor.backgroundOffset)
+        #expect(gameState.packageAreas(onFloor: urban) == [reference.packageArea, smallest.packageArea])
+        #expect(gameState.packageAreas(onFloor: 999).isEmpty)
+    }
+
+    @Test("tres cajas de cada piso quedan separadas también en el SE: ni encimadas, ni sobre el visitante o el colchón")
+    func boxesStayApartOnTheSE() async throws {
+        let gameState = await tower()
+        let floors = try #require(gameState.content?.floorTable.floors)
+        var rng = SystemRandomNumberGenerator()
+        for (ordinal, floor) in floors.enumerated() {
+            let areas = gameState.packageAreas(onFloor: ordinal)
+            let smallest = PickupLayout.smallest(background: floor.background, backgroundOffset: floor.backgroundOffset)
+            let depth = smallest.packageFeetRange.upperBound - smallest.packageFeetRange.lowerBound
+            #expect(depth > 0, "\(floor.id): el SE tiene fondo, así que las zonas se esquivan por y")
+            for _ in 0..<20 {
+                var taken: [PackageSpot] = []
+                for _ in 0..<PickupLayout.maxVisibleBoxes {
+                    let spot = PackagePlacer.place(among: taken, in: areas, using: &rng)
+                    #expect(PackagePlacer.crowding(of: spot, among: taken, in: smallest.packageArea) == 0,
+                            "\(floor.id) \(spot): en el SE se pisa con \(taken) o con una zona prohibida")
+                    // En puntos del SE: ninguna se mete en la elipse de otra (un lado de costado, medio de fondo).
+                    let feet = smallest.packageFeet(at: spot)
+                    for other in taken.map({ smallest.packageFeet(at: $0) }) {
+                        let dx = (feet.x - other.x) / (smallest.side * PickupLayout.boxGapSides)
+                        let dy = (feet.y - other.y) / (smallest.side * PickupLayout.boxDepthGapSides)
+                        #expect(dx * dx + dy * dy >= 0.999, "\(floor.id): dos cajas encimadas en el SE")
+                    }
+                    taken.append(spot)
+                }
+            }
+        }
     }
 
     @Test("un save de B18 sin y: al asentar cada caja conserva su piso y a quién trae, y cae en un lugar")

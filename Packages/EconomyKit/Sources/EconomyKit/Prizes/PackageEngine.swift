@@ -154,8 +154,8 @@ public enum PackageRoller {
     }
 
     /// Sortea las cajas sin asignar y las que dejaron de valer (`belongs`), con el estado de
-    /// ahora, y les da un lugar en su piso (`area`) a las que no lo tienen: las recién sorteadas y
-    /// las de un save de B18, que no traen `y`. Las que no tienen a quién traer quedan sin asignar.
+    /// ahora, y les da un lugar en su piso (`areas`: libre en todas) a las que no lo tienen: las recién
+    /// sorteadas y las de un save de B18, que no traen `y`. Las que no tienen a quién traer quedan sin asignar.
     /// Devuelve cuántas cayeron en un lugar nuevo (toda caja sorteada se ubica, así que cuenta a las
     /// sorteadas y a las de B18): con 0 no hay nada que guardar.
     @discardableResult
@@ -168,7 +168,7 @@ public enum PackageRoller {
         occupancy: [Int],
         windowTiers: Int,
         ratio: Double,
-        area: (Int) -> PackageFloorArea = { _ in .open },
+        areas: (Int) -> [PackageFloorArea] = { _ in [] },
         using rng: inout R
     ) -> Int {
         var eligible: [CharacterType]?
@@ -186,12 +186,14 @@ public enum PackageRoller {
             }
             packages.boxes[index] = box
         }
-        return PackagePlacer.placeMissing(&packages, area: area, using: &rng)
+        return PackagePlacer.placeMissing(&packages, areas: areas, using: &rng)
     }
 }
 
 /// Dónde cae una caja en su piso (E14b B22): en cualquier lugar de la superficie, lejos de las
-/// otras cajas de ese piso y de las zonas prohibidas (`PackageFloorArea`). Se prueban lugares al
+/// otras cajas de ese piso y de las zonas prohibidas (`PackageFloorArea`). El lugar se guarda en
+/// fracciones y cada pantalla las estira distinto: un lugar vale si está libre en TODAS las
+/// superficies que se le pasan (el teléfono de referencia y el más chico). Se prueban lugares al
 /// azar y gana el primero libre; si el piso está muy lleno, el que menos se pisa: una caja
 /// siempre cae.
 public enum PackagePlacer {
@@ -211,16 +213,30 @@ public enum PackagePlacer {
         return boxes + Double(zones)
     }
 
+    /// Lo que se pisa `spot` sumado en todas las superficies: 0 sólo si está libre en cada una.
+    public static func crowding(of spot: PackageSpot, among taken: [PackageSpot], in areas: [PackageFloorArea]) -> Double {
+        areas.reduce(0) { $0 + crowding(of: spot, among: taken, in: $1) }
+    }
+
     /// Un lugar para una caja nueva entre las `taken` del mismo piso.
     public static func place<R: RandomNumberGenerator>(
         among taken: [PackageSpot],
         in area: PackageFloorArea,
         using rng: inout R
     ) -> PackageSpot {
+        place(among: taken, in: [area], using: &rng)
+    }
+
+    /// Un lugar para una caja nueva entre las `taken` del mismo piso, libre en todas las `areas`.
+    public static func place<R: RandomNumberGenerator>(
+        among taken: [PackageSpot],
+        in areas: [PackageFloorArea],
+        using rng: inout R
+    ) -> PackageSpot {
         var best: (spot: PackageSpot, crowding: Double)?
         for _ in 0..<attempts {
             let spot = PackageSpot(x: Double.random(in: 0...1, using: &rng), y: Double.random(in: 0...1, using: &rng))
-            let crowding = crowding(of: spot, among: taken, in: area)
+            let crowding = crowding(of: spot, among: taken, in: areas)
             if crowding == 0 { return spot }
             if crowding < best?.crowding ?? .infinity { best = (spot, crowding) }
         }
@@ -233,14 +249,14 @@ public enum PackagePlacer {
     @discardableResult
     public static func placeMissing<R: RandomNumberGenerator>(
         _ packages: inout PackagesState,
-        area: (Int) -> PackageFloorArea,
+        areas: (Int) -> [PackageFloorArea],
         using rng: inout R
     ) -> Int {
         var placed = 0
         for index in packages.boxes.indices where packages.boxes[index].spot == nil {
             guard packages.boxes[index].isAssigned, let floor = packages.boxes[index].floor else { continue }
             let taken = packages.boxes(onFloor: floor).compactMap(\.spot)
-            let spot = place(among: taken, in: area(floor), using: &rng)
+            let spot = place(among: taken, in: areas(floor), using: &rng)
             packages.boxes[index].x = spot.x
             packages.boxes[index].y = spot.y
             placed += 1

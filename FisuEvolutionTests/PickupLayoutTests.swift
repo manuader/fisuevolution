@@ -220,6 +220,33 @@ struct PickupLayoutTests {
         }
     }
 
+    @Test("las cajas sin lugar no se enciman: cada una se corre un lado a la derecha, sin pasar el borde")
+    func unplacedBoxesSitSideBySide() {
+        for (size, cell) in Self.screens {
+            let layout = PickupLayout(sceneSize: size, bottomInset: 118, cellSize: cell, background: "alley", floorBottom: 96)
+            let first = layout.packageFeet(at: nil)
+            #expect(first == layout.packageFeet(at: nil, unplacedIndex: 0))
+            for index in 1..<PickupLayout.maxVisibleBoxes {
+                let feet = layout.packageFeet(at: nil, unplacedIndex: index)
+                #expect(feet.y == first.y, "\(size): en la misma línea de atrás")
+                let expected = min(layout.packageXRange.upperBound, first.x + CGFloat(index) * layout.side)
+                #expect(abs(feet.x - expected) < 0.001, "\(size): la \(index) va un lado más a la derecha")
+            }
+            #expect(layout.packageFeet(at: nil, unplacedIndex: 99).x <= layout.packageXRange.upperBound + 0.001)
+        }
+    }
+
+    @Test("el SE de GameState: 375 × 667 con la celda de su tablero, y las dos superficies de la caída")
+    @MainActor
+    func theSmallestIsTheSE() {
+        let smallest = PickupLayout.smallest(background: "urban", backgroundOffset: 0)
+        #expect(smallest == PickupLayout(sceneSize: CGSize(width: 375, height: 667), bottomInset: BoardScene.bottomInset,
+                                         cellSize: 68, background: "urban", backgroundOffset: 0, floorBottom: BoardScene.floorBottom))
+        let reference = PickupLayout.reference(background: "urban", backgroundOffset: 0)
+        #expect(PickupLayout.placementAreas(background: "urban", backgroundOffset: 0) == [reference.packageArea, smallest.packageArea])
+        #expect(smallest.packageArea.gapY > reference.packageArea.gapY, "en el SE la misma separación pesa más de fondo")
+    }
+
     @Test("el teléfono de referencia de GameState es el tablero de la app")
     @MainActor
     func theReferenceIsTheAppBoard() {

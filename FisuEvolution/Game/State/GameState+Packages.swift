@@ -173,13 +173,13 @@ extension GameState {
         return packageTarget
     }
 
-    /// Las reglas de la caída en el piso `ordinal` (E14b B22): la superficie del teléfono de
-    /// referencia con el fondo de ese piso. El lugar se guarda en fracciones, que valen en cualquier
-    /// pantalla.
-    func packageArea(onFloor ordinal: Int) -> PackageFloorArea {
-        guard let floors = content?.floorTable.floors, floors.indices.contains(ordinal) else { return .open }
+    /// Las reglas de la caída en el piso `ordinal` (E14b B22): las superficies del teléfono de
+    /// referencia y del SE con el fondo de ese piso. El lugar se guarda en fracciones y tiene que
+    /// quedar libre en las dos: así vale en cualquier pantalla.
+    func packageAreas(onFloor ordinal: Int) -> [PackageFloorArea] {
+        guard let floors = content?.floorTable.floors, floors.indices.contains(ordinal) else { return [] }
         let floor = floors[ordinal]
-        return PickupLayout.reference(background: floor.background, backgroundOffset: floor.backgroundOffset).packageArea
+        return PickupLayout.placementAreas(background: floor.background, backgroundOffset: floor.backgroundOffset)
     }
 
     /// Sortea las cajas que cayeron sin asignar y las que dejaron de valer (una reencarnación
@@ -197,7 +197,7 @@ extension GameState {
             &packages, state: player, tiers: content.tiers, floorTable: content.floorTable, config: content.economy,
             occupancy: packageOccupancy, windowTiers: content.packages.windowTiers,
             ratio: content.packages.tierRatio(bestSupplierLevel: bestSupplierLevel),
-            area: { self.packageArea(onFloor: $0) }, using: &rng
+            areas: { self.packageAreas(onFloor: $0) }, using: &rng
         )
         // Una que dejó de valer y no tiene a quién traer queda sin asignar: también se guarda.
         guard packages != player.meta.engagement.packages else { return 0 }
@@ -414,7 +414,7 @@ extension GameState {
         for _ in 0..<count {
             player.meta.engagement.packages.boxes.append(PackageBox(floor: ordinal, typeId: type.id))
             PackagePlacer.placeMissing(&player.meta.engagement.packages,
-                                       area: { self.packageArea(onFloor: $0) }, using: &rng)
+                                       areas: { self.packageAreas(onFloor: $0) }, using: &rng)
         }
         self.player = player
     }

@@ -33,7 +33,8 @@ struct PickupLayout: Equatable {
     /// (de 0 al frente a 1 en el horizonte). Al integrar se une con la zona de `StageLayout`.
     static let visitorWalkWidth: ClosedRange<CGFloat> = 0.35...0.65
     static let visitorWalkDepth: ClosedRange<Double> = 0.3...0.7
-    /// Una caja sin lugar (sin asignar): atrás a la izquierda, donde se paraban siempre.
+    /// Una caja sin lugar (sin asignar): atrás a la izquierda, donde se paraban siempre. La segunda
+    /// y la tercera se corren a la derecha un lado de caja cada una (`packageFeet(at:unplacedIndex:)`).
     static let unplacedSpot = PackageSpot(x: 0, y: 1)
 
     let sceneSize: CGSize
@@ -51,6 +52,23 @@ struct PickupLayout: Equatable {
     static func reference(background: String?, backgroundOffset: Double) -> PickupLayout {
         PickupLayout(sceneSize: CGSize(width: 393, height: 852), bottomInset: BoardScene.bottomInset, cellSize: 72,
                      background: background, backgroundOffset: backgroundOffset, floorBottom: BoardScene.floorBottom)
+    }
+
+    /// El teléfono más chico que se soporta (el SE, 375 × 667, con la celda de su tablero de cinco
+    /// columnas): el de menos fondo y menos ancho, donde la misma fracción encima antes.
+    @MainActor
+    static func smallest(background: String?, backgroundOffset: Double) -> PickupLayout {
+        PickupLayout(sceneSize: CGSize(width: 375, height: 667), bottomInset: BoardScene.bottomInset, cellSize: 68,
+                     background: background, backgroundOffset: backgroundOffset, floorBottom: BoardScene.floorBottom)
+    }
+
+    /// Las superficies donde un lugar tiene que quedar libre (E14b B22): el teléfono de referencia y
+    /// el más chico. Las fracciones se estiran distinto en cada pantalla: dos cajas separadas sólo
+    /// por el fondo en la de referencia se enciman en el SE si no se mira también el SE.
+    @MainActor
+    static func placementAreas(background: String?, backgroundOffset: Double) -> [PackageFloorArea] {
+        [reference(background: background, backgroundOffset: backgroundOffset).packageArea,
+         smallest(background: background, backgroundOffset: backgroundOffset).packageArea]
     }
 
     private var stage: StageLayout {
@@ -98,15 +116,21 @@ struct PickupLayout: Equatable {
         min(stage.groundFloorY, baselineY)...baselineY
     }
 
-    /// Dónde apoya la caja del lugar `spot` (sin lugar, `unplacedSpot`). Fuera de 0...1 se queda
-    /// en el borde.
-    func packageFeet(at spot: PackageSpot?) -> CGPoint {
-        let spot = spot ?? Self.unplacedSpot
+    /// Dónde apoya la caja del lugar `spot`. Fuera de 0...1 se queda en el borde. Sin lugar,
+    /// `unplacedSpot` corrida `unplacedIndex` lados de caja a la derecha (la enésima sin asignar del
+    /// piso), sin pasar el borde: así no se enciman.
+    func packageFeet(at spot: PackageSpot?, unplacedIndex: Int = 0) -> CGPoint {
         let xs = packageXRange
         let ys = packageFeetRange
+        let width = xs.upperBound - xs.lowerBound
+        guard let spot else {
+            let shift = min(width, CGFloat(max(0, unplacedIndex)) * side * Self.boxGapSides)
+            return CGPoint(x: xs.lowerBound + CGFloat(Self.unplacedSpot.x) * width + shift,
+                           y: ys.lowerBound + CGFloat(Self.unplacedSpot.y) * (ys.upperBound - ys.lowerBound))
+        }
         let x = CGFloat(min(max(spot.x, 0), 1))
         let y = CGFloat(min(max(spot.y, 0), 1))
-        return CGPoint(x: xs.lowerBound + x * (xs.upperBound - xs.lowerBound),
+        return CGPoint(x: xs.lowerBound + x * width,
                        y: ys.lowerBound + y * (ys.upperBound - ys.lowerBound))
     }
 

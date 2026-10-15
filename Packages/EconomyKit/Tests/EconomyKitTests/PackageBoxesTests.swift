@@ -294,6 +294,56 @@ struct PackageBoxesTests {
         }
     }
 
+    /// El mismo piso en un teléfono chico: menos fondo (la misma separación pesa más en fracciones)
+    /// y la zona del visitante un poco más ancha.
+    private static let smallPhoneArea = PackageFloorArea(
+        gapX: 0.3, gapY: 0.6,
+        keepOut: [PackageFloorArea.Zone(x: 0.3...0.7, y: 0.25...0.75), PackageFloorArea.Zone(x: 0.85...1, y: 0.7...1)]
+    )
+
+    @Test("con dos superficies, el lugar está libre en las dos: lo que en una separa el fondo no encima en la otra")
+    func placementIsFreeOnEveryArea() {
+        let areas = [Self.phoneArea, Self.smallPhoneArea]
+        var rng = SeededRNG(seed: 20_261_016)
+        for _ in 0..<200 {
+            var taken: [PackageSpot] = []
+            for _ in 0..<3 {
+                let spot = PackagePlacer.place(among: taken, in: areas, using: &rng)
+                for area in areas {
+                    #expect(PackagePlacer.crowding(of: spot, among: taken, in: area) == 0, "\(spot) entre \(taken)")
+                }
+                taken.append(spot)
+            }
+        }
+        // Dos cajas separadas sólo por el fondo en el teléfono grande se enciman en el chico.
+        let front = PackageSpot(x: 0.1, y: 0.1)
+        let behind = PackageSpot(x: 0.1, y: 0.55)
+        #expect(PackagePlacer.crowding(of: behind, among: [front], in: Self.phoneArea) == 0)
+        #expect(PackagePlacer.crowding(of: behind, among: [front], in: Self.smallPhoneArea) > 0)
+        #expect(PackagePlacer.crowding(of: behind, among: [front], in: areas) > 0, "no vale: en el chico se pisan")
+        #expect(PackagePlacer.crowding(of: behind, among: [front], in: []) == 0, "sin superficies, cualquier lugar")
+    }
+
+    @Test("asentar con dos superficies por piso ubica cada caja libre en las dos")
+    func assigningUsesEveryArea() throws {
+        let fx = try open()
+        var packages = PackagesState(boxes: [.unassigned, .unassigned, .unassigned])
+        var rng = SeededRNG(seed: 12)
+        PackageRoller.assignPending(
+            &packages, state: fx.state, tiers: tiers, floorTable: fx.floorTable, config: fxConfig(),
+            occupancy: occupancy(fx), windowTiers: 4, ratio: 2,
+            areas: { _ in [Self.phoneArea, Self.smallPhoneArea] }, using: &rng
+        )
+        for floor in Set(packages.boxes.compactMap(\.floor)) {
+            let spots = packages.boxes(onFloor: floor).compactMap(\.spot)
+            for (index, spot) in spots.enumerated() {
+                let rest = spots.enumerated().filter { $0.offset != index }.map(\.element)
+                #expect(PackagePlacer.crowding(of: spot, among: rest, in: Self.smallPhoneArea) == 0)
+                #expect(PackagePlacer.crowding(of: spot, among: rest, in: Self.phoneArea) == 0)
+            }
+        }
+    }
+
     @Test("con el piso lleno igual cae, en el lugar que menos se pisa")
     func aCrowdedFloorStillDrops() {
         let tight = PackageFloorArea(gapX: 0.9, gapY: 0.9, keepOut: [])
@@ -315,7 +365,7 @@ struct PackageBoxesTests {
         var rng = SeededRNG(seed: 11)
         PackageRoller.assignPending(
             &packages, state: fx.state, tiers: tiers, floorTable: fx.floorTable, config: fxConfig(),
-            occupancy: occupancy(fx), windowTiers: 4, ratio: 2, area: { _ in Self.phoneArea }, using: &rng
+            occupancy: occupancy(fx), windowTiers: 4, ratio: 2, areas: { _ in [Self.phoneArea] }, using: &rng
         )
         #expect(packages.boxes[0] == other)
         for floor in [0, 1] {

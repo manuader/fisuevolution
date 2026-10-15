@@ -30,9 +30,9 @@ final class PrizesUITests: XCTestCase {
         XCTAssertEqual(chip.value as? String, "ready:1")
         chip.tap()
 
-        // Antes: lo que trae y quiénes pueden salir, con su chance.
-        XCTAssertTrue(app.descendants(matching: .any)["package.odds"].waitForExistence(timeout: 5),
-                      "las caras posibles están a la vista antes de abrir")
+        // Antes: a quién trae y a qué piso llega (E14b B18: se decidió cuando cayó).
+        XCTAssertTrue(app.descendants(matching: .any)["package.inside"].waitForExistence(timeout: 5),
+                      "la cara de quien trae está a la vista antes de abrir")
         snap(app, "paquete 1 antes")
         app.buttons["package.open"].tap()
 

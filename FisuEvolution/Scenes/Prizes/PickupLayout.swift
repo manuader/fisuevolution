@@ -39,13 +39,14 @@ struct PickupLayout: Equatable {
     var side: CGFloat { cellSize * Self.sideRatio }
     /// Lo que sube la pila entera de cajas sobre su línea de apoyo.
     private var stackHeight: CGFloat { side * (1 + CGFloat(Self.maxVisibleBoxes - 1) * Self.stackStep) }
-    /// La línea del horizonte: donde apoyan las cajas y el colchón, la misma de `StageLayout.standY`
-    /// (que ya queda arriba de las solapas de la barra). Si con la pila llena el tope pasaría de
-    /// `maxTopRatio`, baja lo justo.
+    /// Donde apoyan las cajas y el colchón: la línea del suelo (`StageLayout.groundY`, que ya queda
+    /// arriba de las solapas de la barra) `walkDrop` más abajo, como los pies de un visitante
+    /// (B17). Si con la pila llena el tope pasaría de `maxTopRatio`, primero baja lo justo y
+    /// después el mismo `walkDrop`: el corrimiento vale también con los topes del SE.
     var baselineY: CGFloat {
-        let horizon = stage.standY(background: background, backgroundOffset: backgroundOffset)
+        let ground = stage.groundY(background: background, backgroundOffset: backgroundOffset)
         let ceiling = sceneSize.height * Self.maxTopRatio - stackHeight - 0.5
-        return max(bottomInset + cellSize, min(horizon, ceiling))
+        return max(stage.groundFloorY, min(ground, ceiling) - StageLayout.walkDrop)
     }
 
     /// Lo que ocupa el cuerpo del visitante parado en el medio.
@@ -61,6 +62,28 @@ struct PickupLayout: Equatable {
 
     func packagePosition(index: Int) -> CGPoint {
         CGPoint(x: packageX, y: baselineY + side / 2 + CGFloat(index) * side * Self.stackStep)
+    }
+
+    /// Por dónde puede pararse el centro de una caja (E14b B18): entre la columna izquierda y el
+    /// visitante, sin pisar ninguno de los dos; el colchón va del otro lado. En un teléfono el
+    /// hueco es apenas más ancho que la caja; en el iPad, holgado.
+    var packageXRange: ClosedRange<CGFloat> {
+        let lower = Self.edgeClearance + side / 2
+        let upper = visitorSpan.lowerBound - side / 2
+        return upper > lower ? lower...upper : packageX...packageX
+    }
+
+    /// El centro de una caja cuyo lugar es `fraction` (0 a 1, `PackageBox.x`) del hueco. Sin
+    /// lugar (una caja sin asignar), el medio.
+    func packageCenterX(at fraction: Double?) -> CGFloat {
+        guard let fraction else { return packageX }
+        let range = packageXRange
+        return range.lowerBound + CGFloat(min(max(fraction, 0), 1)) * (range.upperBound - range.lowerBound)
+    }
+
+    /// La caja `index` de la pila de un piso: todas sobre el lugar de la de abajo (`fraction`).
+    func packagePosition(index: Int, at fraction: Double?) -> CGPoint {
+        CGPoint(x: packageCenterX(at: fraction), y: packagePosition(index: index).y)
     }
 
     var mattressPosition: CGPoint {

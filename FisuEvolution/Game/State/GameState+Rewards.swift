@@ -102,6 +102,8 @@ extension GameState {
             return 0
         }
         self.player = player
+        // Cada caja ganada se sortea y cae en su piso (E14b B18).
+        if reward.kind == .package { settlePackageBoxes() }
         effectsVersion += 1
         if credited > 0 { audio?.play(.coin) }
         refreshProjections()

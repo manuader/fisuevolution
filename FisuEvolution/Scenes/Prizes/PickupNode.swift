@@ -1,3 +1,4 @@
+import EconomyKit
 import SpriteKit
 
 /// Una caja del Paquete o el colchón, en el tablero. Todo lo que se mueve va por
@@ -22,6 +23,8 @@ final class PickupNode: SKNode {
     static let layerZ: CGFloat = 5
 
     let kind: Kind
+    /// La caja del save que dibuja (E14b B18): su piso, a quién trae y dónde se para.
+    var packageBox: PackageBox?
     private let sprite: SKSpriteNode
     private let waitingVideo: LoopingVideoNode?
     private let fullSign = SKLabelNode(fontNamed: "AvenirNext-Heavy")

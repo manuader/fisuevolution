@@ -141,6 +141,42 @@ struct StageLayoutTests {
         }
     }
 
+    // MARK: - E14b B17: los que caminan por el medio, 20 pt más abajo
+
+    @Test("quien camina por el medio pisa 20 pt debajo de la línea de las hileras, sin bajar de la barra")
+    func walkersDropBelowTheGround() {
+        #expect(StageLayout.walkDrop == 20)
+        for (size, cell) in Self.screens {
+            for floorBottom in Self.floorBottoms {
+                let layout = StageLayout(sceneSize: size, bottomInset: 118, cellSize: cell, floorBottom: floorBottom)
+                for background in StageLayout.horizons.keys {
+                    for offset in [0, 0.05] {
+                        let ground = layout.groundY(background: background, backgroundOffset: offset)
+                        let stand = layout.standY(background: background, backgroundOffset: offset)
+                        let label = "\(size) \(background) \(offset) \(String(describing: floorBottom))"
+                        if ground - StageLayout.walkDrop >= layout.groundFloorY {
+                            #expect(abs(ground - stand - StageLayout.walkDrop) < 0.001, "\(label): bajó \(ground - stand)")
+                        } else {
+                            #expect(stand == layout.groundFloorY, "\(label): pasó bajo la barra")
+                        }
+                        #expect(stand >= layout.floorBase, "\(label): pasó debajo de floorBottom")
+                        #expect(stand >= 118 + cell, "\(label): pisa la barra")
+                        #expect(stand + layout.actorSide < size.height * StageLayout.maxHeadRatio, "\(label): la cabeza llega al HUD")
+                    }
+                }
+            }
+        }
+    }
+
+    @Test("con el tope de la cabeza del SE (moon, mars, galaxy) el corrimiento se mantiene")
+    func walkDropHoldsUnderTheSECeiling() {
+        let layout = StageLayout(sceneSize: CGSize(width: 375, height: 667), bottomInset: 118, cellSize: 68, floorBottom: 96)
+        for background in ["moon", "mars", "galaxy"] {
+            let ground = layout.groundY(background: background)
+            #expect(abs(ground - layout.standY(background: background) - StageLayout.walkDrop) < 0.001, "\(background)")
+        }
+    }
+
     @Test("el lado del arte del empleado espeja al nodo del tablero")
     @MainActor
     func employeeSideMirrorsTheNode() {

@@ -389,7 +389,8 @@ final class BoardScene: SKScene {
                      cameraOffsetY: cameraNode.position.y - size.height / 2)
         stage.markRequested(Array(characterNodes.values))
         stageEffects.update(delta: delta, reduceMotion: Self.prefersReducedMotion, units: Array(characterNodes.values))
-        pickups.update(delta: delta, reduceMotion: Self.prefersReducedMotion)
+        pickups.update(delta: delta, reduceMotion: Self.prefersReducedMotion,
+                       cameraOffsetY: cameraNode.position.y - size.height / 2)
         refreshCrowdDepth()
         updateFTUEHint()
         publishTutorialSpotlight()
@@ -1952,7 +1953,7 @@ final class BoardScene: SKScene {
         let edgeInset = cellSize * 0.68
         let colSpacing = (cellSize * CGFloat(cols) - 2 * edgeInset) / CGFloat(cols)
         let horizon = StageLayout(sceneSize: size, bottomInset: Self.bottomInset, cellSize: cellSize, floorBottom: Self.floorBottom)
-            .standY(background: floorDef.background, backgroundOffset: floorDef.backgroundOffset)
+            .groundY(background: floorDef.background, backgroundOffset: floorDef.backgroundOffset)
         band = Self.crowdBand(sceneHeight: size.height, cellSize: cellSize, rows: boardRows, horizon: horizon)
         let frontY = band.frontY
         let rowDepth = band.rowDepth
@@ -2120,7 +2121,7 @@ final class BoardScene: SKScene {
     /// rango y detrás del fondo.
     ///
     /// `horizon` (E14b B3): la línea donde apoyan los pies del escenario, en coordenadas de la
-    /// escena (`StageLayout.standY`). Es un techo más: ninguna hilera, pase lo que pase con las
+    /// escena (`StageLayout.groundY`). Es un techo más: ninguna hilera, pase lo que pase con las
     /// filas que se compran, apoya los pies por encima de él. Sin él, sólo manda la fracción.
     static func crowdBand(sceneHeight: CGFloat, cellSize: CGFloat, rows: Int, horizon: CGFloat? = nil) -> CrowdBand {
         let rows = max(1, rows)

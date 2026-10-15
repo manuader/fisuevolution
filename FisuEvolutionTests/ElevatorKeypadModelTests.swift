@@ -37,6 +37,16 @@ struct ElevatorKeypadModelTests {
         #expect(ElevatorKeypadModel(map: map([("alley", 1, 10, true)]), visibleOrdinal: 0).floors.map(\.hasVisitor) == [false])
     }
 
+    @Test("los pisos con una caja del Paquete llevan su marca (E14b B18)")
+    func floorsWithABoxAreMarked() {
+        let model = ElevatorKeypadModel(map: map([
+            ("corporate", 0, 10, true), ("urban", 4, 10, true), ("alley", 10, 10, true),
+        ]), visibleOrdinal: 0, visitorOrdinals: [2], packageOrdinals: [1, 0])
+        #expect(model.floors.map(\.hasPackage) == [false, true, true])
+        #expect(model.floors.map(\.hasVisitor) == [true, false, false])
+        #expect(ElevatorKeypadModel(map: map([("alley", 1, 10, true)]), visibleOrdinal: 0).floors.map(\.hasPackage) == [false])
+    }
+
     @Test("la placa crece con los pisos abiertos, de 1 a 10")
     func growsWithTheTower() {
         let ids = ["god_realm", "galaxy", "solar", "mars", "moon", "island", "luxury", "corporate", "urban", "alley"]

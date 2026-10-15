@@ -30,8 +30,10 @@ struct PackageArrival: Identifiable, Equatable {
 }
 
 /// La pantalla del Paquete de la Aduana (E14 C28); `arrivals` es lo que salió, cuando ya se abrió.
+/// `box` es la caja que abre (E14b B18): la del piso que se mira o la más vieja.
 struct PackagePopup: Identifiable, Equatable {
     let id = UUID()
+    var box: PackageBox?
     var arrivals: [PackageArrival] = []
 }
 
@@ -53,17 +55,27 @@ struct PackageWin: Identifiable, Equatable {
     let count: Int
 }
 
-/// El Paquete de la Aduana en la partida (PLAN-v2 E5).
+/// El Paquete de la Aduana en la partida (PLAN-v2 E5). Desde E14b B18 cada caja es de un piso:
+/// a quién trae se sortea cuando aparece, y eso fija en qué piso cae y dónde se para.
 extension GameState {
     var packagesWaiting: Int { player?.meta.engagement.packages.waiting ?? 0 }
 
+    /// Las cajas que esperan, la más vieja primero.
+    var packageBoxes: [PackageBox] { player?.meta.engagement.packages.boxes ?? [] }
+
     /// A quién podría traer un paquete ahora: lo que FisuJobs vende con lugar.
     var packageCandidates: [CharacterType] {
-        guard let content, let player, let tower else { return [] }
+        guard let content, let player else { return [] }
         return PackageRoller.eligibleTypes(
             state: player, tiers: content.tiers, floorTable: content.floorTable, config: content.economy,
-            occupancy: tower.floors.map(\.occupiedCount).enumerated().map { $0.element + queuedArrivals(onFloor: $0.offset) }
+            occupancy: packageOccupancy
         )
+    }
+
+    /// Cuántos hay en cada piso, contando las llegadas ya encoladas.
+    private var packageOccupancy: [Int] {
+        guard let tower else { return [] }
+        return tower.floors.map(\.occupiedCount).enumerated().map { $0.element + queuedArrivals(onFloor: $0.offset) }
     }
 
     /// «Adentro puede venir»: la tabla con la que se sortea, tipo por tipo. Sin lugar en ningún piso
@@ -96,10 +108,95 @@ extension GameState {
         }.count
     }
 
-    /// Hay paquetes esperando y ninguno entra: el cartel "LLENO".
-    var packagesBlocked: Bool { packagesWaiting > 0 && packageCandidates.isEmpty }
+    // MARK: - La caja de cada piso (E14b B18)
 
-    /// El reloj de juego activo. Lo llama `advanceEngagement` con el delta del tick.
+    /// El piso de una caja, si ya está sorteada y sigue valiendo en esta run. `nil` = sin asignar:
+    /// se dibuja en el piso que se mira y se sortea al abrirla.
+    func packageFloor(of box: PackageBox) -> Int? {
+        guard let content, let player,
+              PackageRoller.belongs(box, state: player, tiers: content.tiers, floorTable: content.floorTable)
+        else { return nil }
+        return box.floor
+    }
+
+    /// Las cajas que se ven en el piso `ordinal`: las suyas y, en el que se mira, las sin asignar.
+    func visiblePackageBoxes(onFloor ordinal: Int) -> [PackageBox] {
+        packageBoxes.filter { box in
+            packageFloor(of: box).map { $0 == ordinal } ?? (ordinal == visibleFloorOrdinal)
+        }
+    }
+
+    /// Los pisos que tienen alguna caja sorteada (la marca del ascensor).
+    var packageFloorOrdinals: Set<Int> {
+        Set(packageBoxes.compactMap { packageFloor(of: $0) })
+    }
+
+    /// Si abrirla ahora trae a alguien: la sorteada, si su piso tiene lugar; la sin asignar, si
+    /// hay a quién traer.
+    func packageBoxOpenable(_ box: PackageBox) -> Bool {
+        guard let content else { return false }
+        guard let floor = packageFloor(of: box) else { return !packageCandidates.isEmpty }
+        let occupancy = packageOccupancy
+        return occupancy.indices.contains(floor) && occupancy[floor] < content.floorTable[floor].capacity
+    }
+
+    /// La caja que abren la columna y Regalos (D5): la del piso que se mira y, si en ese piso no hay
+    /// una que entre, la más vieja de la torre que sí entra (la pantalla lleva a su piso). Si ninguna
+    /// entra, la de este piso o la más vieja, para explicar el LLENO.
+    var packageTarget: PackageBox? {
+        let here = visiblePackageBoxes(onFloor: visibleFloorOrdinal)
+        return here.first(where: packageBoxOpenable) ?? packageBoxes.first(where: packageBoxOpenable)
+            ?? here.first ?? packageBoxes.first
+    }
+
+    /// Hay paquetes esperando y ninguno entra: el cartel "LLENO".
+    var packagesBlocked: Bool { packagesWaiting > 0 && !packageBoxes.contains(where: packageBoxOpenable) }
+
+    /// La caja de la pantalla no entra: la pantalla dice LLENO.
+    var packagePopupBlocked: Bool {
+        guard let box = packagePopup.flatMap({ popupBox($0) }) else { return packagesBlocked }
+        return !packageBoxOpenable(box)
+    }
+
+    /// A quién trae la caja de la pantalla y a qué piso llega (B18: ya está decidido). `nil` si la
+    /// caja todavía no se sorteó: la pantalla muestra la tabla de lo que puede venir.
+    var packagePopupArrival: PackageArrival? {
+        guard let content, let popup = packagePopup, let box = popupBox(popup),
+              let floor = packageFloor(of: box), let typeId = box.typeId
+        else { return nil }
+        return PackageArrival(typeId: typeId, floorId: content.floorTable[floor].id)
+    }
+
+    /// La caja de la pantalla, si sigue esperando; si no, la que abriría la columna.
+    private func popupBox(_ popup: PackagePopup) -> PackageBox? {
+        if let box = popup.box, packageBoxes.contains(box) { return box }
+        return packageTarget
+    }
+
+    /// Sortea las cajas que cayeron sin asignar y las que dejaron de valer (una reencarnación
+    /// cierra los pisos), con el estado de ahora. Devuelve cuántas se sortearon.
+    @discardableResult
+    func settlePackageBoxes() -> Int {
+        guard let content, var player else { return 0 }
+        var packages = player.meta.engagement.packages
+        guard packages.boxes.contains(where: {
+            !PackageRoller.belongs($0, state: player, tiers: content.tiers, floorTable: content.floorTable)
+        }) else { return 0 }
+        let assigned = PackageRoller.assignPending(
+            &packages, state: player, tiers: content.tiers, floorTable: content.floorTable, config: content.economy,
+            occupancy: packageOccupancy, windowTiers: content.packages.windowTiers,
+            ratio: content.packages.tierRatio(bestSupplierLevel: bestSupplierLevel), using: &rng
+        )
+        // Una que dejó de valer y no tiene a quién traer queda sin asignar: también se guarda.
+        guard packages != player.meta.engagement.packages else { return 0 }
+        player.meta.engagement.packages = packages
+        self.player = player
+        if assigned > 0 { Log.economy.info("packages assigned: \(assigned)") }
+        return assigned
+    }
+
+    /// El reloj de juego activo. Lo llama `advanceEngagement` con el delta del tick. Lo que cae se
+    /// sortea en el acto: su piso, su tipo y su lugar quedan fijos hasta que se abre.
     func advancePackages(delta: TimeInterval, now: TimeInterval = Date().timeIntervalSince1970) {
         guard engagementAutorun, !tutorialPhaseActive, let content, var player else { return }
         let rate = ModifierMath.factor(player.run.activeModifiers, effect: .packageRateMultiplier, now: now)
@@ -107,24 +204,32 @@ extension GameState {
             &player.meta.engagement.packages, delta: delta, rateMultiplier: rate, config: content.packages
         )
         self.player = player
-        guard dropped > 0 else { return }
-        Log.economy.info("package dropped: \(player.meta.engagement.packages.waiting) waiting")
+        let assigned = settlePackageBoxes()
+        guard dropped > 0 || assigned > 0 else { return }
+        if dropped > 0 { Log.economy.info("package dropped: \(player.meta.engagement.packages.waiting) waiting") }
         scheduleSave()
     }
 
-    /// Abre uno: sortea a quién trae y deja su llegada en el embudo. El
-    /// paquete se gasta sólo si alguien entra.
+    /// Abre una caja (la de `packageTarget` sin `box`): trae al que se sorteó cuando apareció y deja
+    /// su llegada en el embudo. Una sin asignar se sortea ahora. El paquete se gasta sólo si
+    /// alguien entra; si su piso está lleno, LLENO y la caja se queda.
     @discardableResult
-    func openPackage() -> PackageOpenResult {
-        guard let content, var player, let tower, player.meta.engagement.packages.waiting > 0 else {
-            return .noneWaiting
+    func openPackage(_ box: PackageBox? = nil) -> PackageOpenResult {
+        guard let content, var player, let tower, let box = box ?? packageTarget,
+              player.meta.engagement.packages.boxes.contains(box)
+        else { return .noneWaiting }
+        let typeId: String?
+        if packageFloor(of: box) != nil {
+            typeId = packageBoxOpenable(box) ? box.typeId : nil
+        } else {
+            let ratio = content.packages.tierRatio(bestSupplierLevel: bestSupplierLevel)
+            typeId = PackageRoller.roll(
+                eligible: packageCandidates, windowTiers: content.packages.windowTiers, ratio: ratio, using: &rng
+            )?.id
         }
-        let ratio = content.packages.tierRatio(bestSupplierLevel: bestSupplierLevel)
-        guard let type = PackageRoller.roll(
-                  eligible: packageCandidates, windowTiers: content.packages.windowTiers, ratio: ratio, using: &rng
-              ),
+        guard let typeId,
               let change = BoardChangePlanner.planArrival(
-                  typeId: type.id, state: player, tower: tower, tiers: content.tiers,
+                  typeId: typeId, state: player, tower: tower, tiers: content.tiers,
                   floorTable: content.floorTable, origin: .package
               )
         else {
@@ -132,37 +237,51 @@ extension GameState {
             audio?.play(.error)
             return .full
         }
-        player.meta.engagement.packages.waiting -= 1
+        player.meta.engagement.packages.remove(box)
         self.player = player
         enqueueBoardChange(change)
         haptics?.play(.purchase)
         scheduleSave()
-        Log.economy.info("package opened: \(type.id)")
+        Log.economy.info("package opened: \(typeId)")
         let floorId = floorOrdinal(of: change).map { content.floorTable[$0].id } ?? ""
-        return .opened(typeId: type.id, floorId: floorId)
+        return .opened(typeId: typeId, floorId: floorId)
     }
 
-    /// El sello o la caja del tablero: abre la pantalla del paquete. Sin lugar también abre, a
-    /// explicarlo. `false` si no había nada que abrir o algo más ocupa la pantalla.
+    /// El sello o Regalos (`box` nil) o la caja del tablero: abre la pantalla del paquete con su caja.
+    /// La de la columna es la del piso que se mira; si ahí no hay, la cámara viaja al piso de la más
+    /// vieja (D5, B18). Sin lugar también abre, a explicarlo. `false` si no había nada que abrir o
+    /// algo más ocupa la pantalla.
     @discardableResult
-    func packageTapped() -> Bool {
+    func packageTapped(box: PackageBox? = nil) -> Bool {
         tutorialTipCompleted(.packages)
         guard packagesWaiting > 0, packagePopup == nil, mattressPopup == nil, wheelSheet == nil else { return false }
-        packagePopup = PackagePopup()
+        presentPackagePopup(box: box)
         refreshPrizeAccess()
         return true
+    }
+
+    /// La pantalla con su caja, en su piso.
+    private func presentPackagePopup(box: PackageBox?) {
+        let target = box.flatMap { packageBoxes.contains($0) ? $0 : nil } ?? packageTarget
+        if let target, let floor = packageFloor(of: target), floor != visibleFloorOrdinal {
+            setVisibleFloor(floor)
+        }
+        packagePopup = PackagePopup(box: target)
     }
 
     /// La caja del tablero (E14b B5, D2): la primera vez, la pantalla de C28; desde la segunda,
     /// `.openInPlace` y la escena la abre ahí mismo. Todavía no gasta nada: el paquete se gasta
     /// cuando la caja termina de abrirse (`openPackageOnBoard`). La columna y Regalos siguen
     /// por `packageTapped` (D5).
+    /// `box` es la caja tocada (B18: cada una trae a alguien de su piso); sin ella, `packageTarget`.
     @discardableResult
-    func boardPackageTapped() -> BoardPackageTap {
-        guard packageIntroSeen else { return packageTapped() ? .popup : .refused }
+    func boardPackageTapped(box: PackageBox? = nil) -> BoardPackageTap {
+        guard packageIntroSeen else { return packageTapped(box: box) ? .popup : .refused }
         tutorialTipCompleted(.packages)
-        guard packagesWaiting > 0, packagePopup == nil, mattressPopup == nil, wheelSheet == nil else { return .refused }
-        guard !packagesBlocked else {
+        guard packagesWaiting > 0, packagePopup == nil, mattressPopup == nil, wheelSheet == nil,
+              let box = box ?? packageTarget, packageBoxes.contains(box)
+        else { return .refused }
+        guard packageBoxOpenable(box) else {
             noteBoardPackageFull()
             return .full
         }
@@ -170,10 +289,10 @@ extension GameState {
     }
 
     /// La caja del tablero terminó de abrirse: se gasta y el empleado sale hacia su lugar, sin pop-up.
-    /// Si en el medio se llenó todo, no se gasta y avisa arriba.
+    /// Si en el medio se llenó su piso, no se gasta y avisa arriba.
     @discardableResult
-    func openPackageOnBoard() -> PackageOpenResult {
-        let result = openPackage()
+    func openPackageOnBoard(box: PackageBox? = nil) -> PackageOpenResult {
+        let result = openPackage(box)
         if result == .full { noteBoardPackageFull() }
         refreshPrizeAccess()
         return result
@@ -195,17 +314,20 @@ extension GameState {
 
     /// «¡Abrir!»: el paquete se gasta y a quién trae ya está decidido (la animación sólo lo demora).
     func openPackageFromPopup() {
-        guard packagePopup?.arrivals.isEmpty == true, case let .opened(typeId, floorId) = openPackage() else { return }
+        guard let popup = packagePopup, popup.arrivals.isEmpty,
+              case let .opened(typeId, floorId) = openPackage(popupBox(popup))
+        else { return }
         packagePopup?.arrivals = [PackageArrival(typeId: typeId, floorId: floorId)]
         markPackageIntroSeen()
         refreshPrizeAccess()
     }
 
-    /// «Abrir todos»: los que entren, de una vez.
+    /// «Abrir todos»: los que entren, de una vez, cada uno a su piso.
     func openAllPackagesFromPopup() {
         guard packagePopup?.arrivals.isEmpty == true else { return }
         var arrivals: [PackageArrival] = []
-        while case let .opened(typeId, floorId) = openPackage() {
+        while let box = packageBoxes.first(where: packageBoxOpenable),
+              case let .opened(typeId, floorId) = openPackage(box) {
             arrivals.append(PackageArrival(typeId: typeId, floorId: floorId))
         }
         guard !arrivals.isEmpty else { return }
@@ -217,7 +339,7 @@ extension GameState {
     /// «Abrir otro» desde lo que salió: vuelve a la caja cerrada.
     func packagePopupOpenAnother() {
         guard packagePopup?.arrivals.isEmpty == false, packagesWaiting > 0 else { return }
-        packagePopup = PackagePopup()
+        presentPackagePopup(box: nil)
     }
 
     func closePackagePopup() {
@@ -233,11 +355,17 @@ extension GameState {
     }
 
     /// Un paquete cuyo empleado ya no entra cuando le toca el turno vuelve al
-    /// buzón, aunque pase el tope: ya estaba ganado.
-    func refundPackage() {
+    /// buzón, aunque pase el tope: ya estaba ganado. Vuelve con el mismo empleado, a su piso.
+    func refundPackage(_ change: BoardChange? = nil) {
         guard var player else { return }
-        player.meta.engagement.packages.waiting += 1
+        var box = PackageBox.unassigned
+        if case let .arrival(typeId)? = change?.kind, let content, let type = content.tiers.type(id: typeId) {
+            box = PackageBox(floor: content.floorTable.ordinal(forTier: type.tier), typeId: typeId,
+                             x: Double.random(in: 0...1, using: &rng))
+        }
+        player.meta.engagement.packages.boxes.append(box)
         self.player = player
+        settlePackageBoxes()
         scheduleSave()
     }
 
@@ -245,6 +373,21 @@ extension GameState {
     func debugAddPackages(_ count: Int) {
         guard var player, count > 0 else { return }
         player.meta.engagement.packages.waiting += count
+        self.player = player
+        settlePackageBoxes()
+    }
+
+    /// Una caja que trae a alguien del piso `floorId` (`--uitest-package-floor=`): el de tier más
+    /// bajo de ese piso, marcado como visto para que la caja valga.
+    func debugDropPackage(onFloor floorId: String) {
+        guard let content, var player,
+              let ordinal = content.floorTable.floors.firstIndex(where: { $0.id == floorId }),
+              let type = content.tiers.concreteTypes
+                  .filter({ content.floorTable.ordinal(forTier: $0.tier) == ordinal })
+                  .min(by: { $0.tier < $1.tier })
+        else { return }
+        player.run.markSeen(type.id)
+        player.meta.engagement.packages.boxes.append(PackageBox(floor: ordinal, typeId: type.id, x: 0.5))
         self.player = player
     }
     #endif

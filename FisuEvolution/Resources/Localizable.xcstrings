@@ -4141,6 +4141,23 @@
         }
       }
     },
+    "elevator.floor.package" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A box is waiting for you"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hay una caja esperándote"
+          }
+        }
+      }
+    },
     "elevator.floor.visitor" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7596,6 +7613,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Entendido"
+          }
+        }
+      }
+    },
+    "package.inside" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inside:"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adentro viene:"
           }
         }
       }

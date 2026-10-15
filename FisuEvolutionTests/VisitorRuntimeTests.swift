@@ -245,7 +245,7 @@ struct VisitorRuntimeTests {
         let gameState = await world()
         gameState.ads = AdsCoordinator(provider: ScriptedAdsProvider())
         try arrive(gameState, "turista_propina")
-        let terms = ChallengeTerms(taps: 1, windowSeconds: 10, coins: 100, rewards: [], videoDoubles: true)
+        let terms = ChallengeTerms(taps: 1, windowSeconds: 10, coins: 100, rewards: [])
         gameState.beginChallenge(scriptId: "vecina_favor", terms: terms, now: 0)
         let before = coins(gameState)
         gameState.noteStageTap(now: 1)

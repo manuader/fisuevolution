@@ -24,16 +24,12 @@ extension GameState {
         return VisitValuation(coinsPerSecond: coinsPerProductionSecond, hireCostMultiplier: 1 - discount)
     }
 
-    /// Sin el «×2 con video» del guion: el ×2 nunca va en el primer pop-up, sale después de cobrar
-    /// (E14b B29, D17).
+    /// El ×2 nunca va en el primer pop-up: sale después de cobrar (E14b B29, D17).
     func visitOffer(for script: VisitorsConfig.Script) -> VisitOffer? {
-        guard let content, let player, let tower,
-              let offer = VisitPlanner.offer(script, config: content.visitors, state: player, tower: tower,
-                                             tiers: content.tiers, floorTable: content.floorTable,
-                                             economy: content.economy, valuation: visitValuation)
-        else { return nil }
-        return VisitOffer(scriptId: offer.scriptId, visitorId: offer.visitorId, subjectTypeId: offer.subjectTypeId,
-                          options: offer.options.filter { $0.kind != .acceptWithVideo })
+        guard let content, let player, let tower else { return nil }
+        return VisitPlanner.offer(script, config: content.visitors, state: player, tower: tower,
+                                  tiers: content.tiers, floorTable: content.floorTable,
+                                  economy: content.economy, valuation: visitValuation)
     }
 
     /// Lo llama `advanceEngagement` con el delta del tick (juego activo, con tope).
@@ -171,7 +167,7 @@ extension GameState {
             revealGossip()
             offerVisitDouble(scriptId: offer.scriptId, coins: checked.coins, rewards: checked.rewards, source: source)
             return true
-        case .accept, .acceptWithVideo, .payBail, .release, .payFine, .forgiveWithVideo, .sell, .exchange, .card:
+        case .accept, .payBail, .release, .payFine, .forgiveWithVideo, .sell, .exchange, .card:
             creditCoins(checked.coins)
             announceReward(
                 checked.rewards, coins: max(0, checked.coins) + grant(checked.rewards, source: source, now: now)
@@ -192,12 +188,10 @@ extension GameState {
     }
 
     /// El origen de lo que da una opción: con él la barra de bonus le pone la
-    /// cara y la duración (T4). Cada carta del Vendedor dura lo suyo; el "×2 con
-    /// video" tiene su propia fuente porque dura el doble.
+    /// cara y la duración (T4). Cada carta del Vendedor dura lo suyo.
     static func rewardSource(for option: VisitOption, scriptId: String) -> String {
         switch option.kind {
         case .card: "visit.\(scriptId).\(option.id)"
-        case .acceptWithVideo: "visit.\(scriptId).x2"
         case .accept, .payBail, .release, .payFine, .forgiveWithVideo, .sell, .exchange, .startChallenge, .listen:
             "visit.\(scriptId)"
         }

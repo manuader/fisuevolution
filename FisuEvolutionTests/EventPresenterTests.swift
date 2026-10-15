@@ -110,7 +110,7 @@ struct EventPresenterTests {
         let gameState = await world()
         gameState.stageChallenge = StageChallenge(
             scriptId: "coach_reto",
-            terms: ChallengeTerms(taps: 15, windowSeconds: 20, coins: 0, rewards: [], videoDoubles: false),
+            terms: ChallengeTerms(taps: 15, windowSeconds: 20, coins: 0, rewards: []),
             taps: 0, endsAt: .infinity
         )
         #expect(gameState.isBoardBusy)

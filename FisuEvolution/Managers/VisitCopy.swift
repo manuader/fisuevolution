@@ -12,13 +12,12 @@ enum VisitCopy {
     /// quedarse sin él y en los retos. `LocalizationCompletenessTests` las pide.
     static let lineKeys = [
         "visit.wrong_office", "visit.deal_off", "visit.thanks", "visit.gossip.next", "visit.gossip.none",
-        "visit.challenge.won", "visit.challenge.double", "visit.challenge.lost",
+        "visit.challenge.won", "visit.challenge.lost",
     ]
 
     static func optionKey(_ kind: VisitOption.Kind) -> String {
         switch kind {
         case .accept: "visit.option.accept"
-        case .acceptWithVideo: "visit.option.accept_video"
         case .payBail: "visit.option.pay_bail"
         case .release: "visit.option.release"
         case .payFine: "visit.option.pay_fine"
@@ -62,7 +61,7 @@ enum VisitCopy {
                   let card = cards.first(where: { "card.\($0.id)" == option.id })
             else { return text(optionKey(.card), [""], bundle: bundle) }
             return text(optionKey(.card), [text(card.nameKey, bundle: bundle)], bundle: bundle)
-        case .accept, .acceptWithVideo, .forgiveWithVideo, .startChallenge, .listen:
+        case .accept, .forgiveWithVideo, .startChallenge, .listen:
             return text(optionKey(option.kind), bundle: bundle)
         }
     }

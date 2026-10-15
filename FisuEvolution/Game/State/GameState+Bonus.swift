@@ -340,15 +340,13 @@ extension GameState {
                     catalog["visit.\(script.id).card.\(card.id)"] = BonusSource(icon: .art(card.iconKey), duration: seconds)
                 }
             case .challenge(_, _, let rewards, _):
-                // El ×2 de un reto es otra tanda igual: dura lo mismo.
                 for case let .modifier(_, _, seconds) in rewards {
                     catalog["visit.\(script.id)"] = BonusSource(icon: face, duration: seconds)
-                    catalog["visit.\(script.id).x2"] = BonusSource(icon: face, duration: seconds)
                 }
             default:
+                // El ×2 del paso 2 (E14b B29) alarga el mismo efecto, con la misma fuente.
                 for case let .modifier(_, _, seconds) in script.mechanic.rewards {
                     catalog["visit.\(script.id)"] = BonusSource(icon: face, duration: seconds)
-                    catalog["visit.\(script.id).x2"] = BonusSource(icon: face, duration: seconds * 2)
                 }
             }
         }

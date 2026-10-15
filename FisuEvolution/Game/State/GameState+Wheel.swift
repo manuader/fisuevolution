@@ -22,11 +22,10 @@ struct WheelAvailability: Equatable {
     let blueLeft: Int
     let blueCost: Int
     let canPayBlue: Bool
-    let canRepeat: Bool
 
     var hasFreeSpin: Bool { bonus > 0 || videoLeft > 0 }
 
-    static let none = WheelAvailability(bonus: 0, videoLeft: 0, blueLeft: 0, blueCost: 0, canPayBlue: false, canRepeat: false)
+    static let none = WheelAvailability(bonus: 0, videoLeft: 0, blueLeft: 0, blueCost: 0, canPayBlue: false)
 }
 
 /// La Ruleta en la partida (PLAN-v2 E5).
@@ -58,8 +57,7 @@ extension GameState {
             videoLeft: WheelRoller.spinsLeft(.video, state: state, config: wheelConfig),
             blueLeft: blueLeft,
             blueCost: content.wheel.blueSpinCost,
-            canPayBlue: blueLeft > 0 && player.meta.blue >= content.wheel.blueSpinCost,
-            canRepeat: state.repeatableSegmentId != nil
+            canPayBlue: blueLeft > 0 && player.meta.blue >= content.wheel.blueSpinCost
         )
     }
 
@@ -111,29 +109,6 @@ extension GameState {
             return nil
         }
         return outcome
-    }
-
-    /// "Repetir premio": otro video que vuelve a dar lo mismo (no es otro
-    /// giro). Una vez por giro.
-    @discardableResult
-    func repeatWheelPrize(now: TimeInterval = Date().timeIntervalSince1970) -> WheelSpinOutcome? {
-        guard let content, var player else { return nil }
-        var wheel = Self.wheelState(player.meta.engagement.wheel, at: now)
-        guard let id = wheel.repeatableSegmentId else { return nil }
-        let segments = wheelSegments
-        // Si el cofre ya no tiene nada que dar, lo que se repite es su respaldo.
-        let wasChest = content.wheel.segments.first { $0.id == id }?.reward.kind == .skinChest
-        let repeated = segments.first { $0.id == id }
-            ?? (wasChest ? segments.first { $0.id == content.wheel.chestFallbackSegmentId } : nil)
-        guard let repeated, let index = segments.firstIndex(of: repeated) else { return nil }
-        wheel.repeatableSegmentId = nil
-        player.meta.engagement.wheel = wheel
-        self.player = player
-        let coins = grant(repeated.reward, source: "wheel.\(repeated.id)", now: now)
-        announceReward(repeated.reward, coins: coins)
-        Task { await persistNow() }
-        Log.economy.info("wheel prize repeated: \(repeated.id)")
-        return WheelSpinOutcome(segments: segments, index: index, coins: coins)
     }
 
     /// El día de los cupos: el del diario, pero siempre en calendario

@@ -38,20 +38,17 @@ struct VisitPlannerTests {
 
     private let arrest = VisitorsConfig.Mechanic.arrest(pick: .lowestDuplicate, bailMultiplier: 1, releaseMultiplier: 2)
 
-    @Test("un regalo cotiza sus segundos al llegar y el video duplica plata y duración")
+    @Test("un regalo cotiza sus segundos al llegar y no ofrece el ×2 de entrada (B29: sale después de cobrar)")
     func giftIsPricedOnArrival() throws {
         let gift = VisitorsConfig.Mechanic.gift(
             rewards: [.coinsSeconds(900), .modifier(effect: .incomeMultiplier, magnitude: 1.5, seconds: 600)], videoDoubles: true
         )
         let offer = try #require(plan(gift, in: try world(["a": 1])))
         let accept = try #require(offer.option(id: "accept"))
-        let video = try #require(offer.option(id: "video"))
         #expect(accept.coins == 9000)
         #expect(accept.rewards == [.modifier(effect: .incomeMultiplier, magnitude: 1.5, seconds: 600)])
         #expect(!accept.requiresVideo)
-        #expect(video.coins == 18000)
-        #expect(video.requiresVideo)
-        #expect(video.rewards == [.modifier(effect: .incomeMultiplier, magnitude: 1.5, seconds: 1200)])
+        #expect(offer.options.count == 1, "aunque el guion diga `videoDoubles`")
     }
 
     @Test("la escala del config mueve toda la plata de los guiones (la palanca de E2b)")

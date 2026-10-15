@@ -3,6 +3,9 @@
 **Estado:** APROBADO por el dueño el 2026-10-14 11:30. Está en la bandeja del relevo
 (`.claude/avo/2026-10-06-fisu-v2/DUENO.md`).
 
+**Tercera tanda (B19–B30):** pedida por el dueño el 2026-10-15 con el iPhone en la mano (build `6ee79bf3`); preguntas
+respondidas en el chat (D13 y D15–D19). Va también antes de lanzar, después de B17/B18 y antes de los cierres.
+
 **Prioridad:** va **antes de lanzar la 2.0** (decisión del dueño). Entra después de lo que el relevo 55 tenga en vuelo
 y antes de los cierres (E14 T25, T26, T27).
 
@@ -31,6 +34,14 @@ revisión según el riesgo.
 | D11 | **Ruleta: 6 giros por día en total, con video o con blue.** Los giros gratis de un evento o un premio no cuentan. Todos los demás sí, hasta 6. La mejora permanente que se compra con blue (`wheelDailySpins`) sube ese máximo. Con el cupo agotado no se gira ni con video ni con blue, aunque sobre blue (B15). Precisado por el dueño, 2026-10-14 ~12:40. |
 | D12 | **Descripción de cada personaje en la hoja**, aprobada por el dueño (44 personajes, `es` y `en`, en `Docs/DESCRIPCIONES-personajes.md`). El español con humor argentino, el inglés con humor de Estados Unidos, escrito aparte y no traducido. Sin marcas ni personas reales. **Todo el juego internacionalizado** (B16). |
 | D9 | **Todo pop-up lleva una imagen principal**, grande, vistosa y centrada. Las pantallas que dan recompensa llevan además la imagen de «todos los premios juntos» (tesoros con el mate, como en Cow Evolution), grande y arriba de la lista de posibilidades. |
+| D13 | **Capas por profundidad (2026-10-15):** todo lo que está parado en el piso (empleados, visitantes, cajas, colchón) se ordena por la y de sus pies: lo de más abajo en pantalla va adelante. **La burbuja de texto de un visitante va arriba de todo; nada la tapa, ni el HUD** (B19). **El tamaño según la distancia** (más atrás, más chico) **no entra así**: es un experimento, la última tarea de la 2.0, en una rama aparte; el dueño lo prueba y decide (B30). |
+| D15 | **Visitantes (2026-10-15):** se paran **en el medio del piso, centrados** (ya no en el horizonte). **Mientras esperan, caminan despacio de lado a lado.** Su llegada **no se corta nunca**: ni con un merge, ni con un toque, ni con otra celebración. **El pop-up se abre sólo al tocarlos**; ya no se abre solo al llegar, como hacía desde E14 T15 (B20, B21). |
+| D16 | **«La Marcha» del Puntero (2026-10-15):** 420 toques a mano en una hora de reloj real dan **30 de dólar blue**. Sale **una vez por semana** (B25). |
+| D17 | **Recompensas en dos pasos (2026-10-15):** primero se cobra con «¡Dale!»; después sale un segundo pop-up con «×2 con video» y «No, gracias». **Nunca se ofrece duplicar de entrada.** Va **sólo en las recompensas gratis**: las que ya costaron un video no ofrecen ×2 (B29). |
+| D18 | **La barra (2026-10-15):** los botones van con el **diseño B, «Etiqueta y billete»** (`capturas-e14b/mockup-botones-barra.html`). Contratar, el del medio, va arriba de todo. El crema de FisuJobs (#F1E5C9) va en **las dos barras**, la de abajo y el panel de arriba (B27, B28). |
+| D19 | **La Tienda va en la barra, en el lugar del Ranking. El Ranking pasa a una tarjeta en Menú › Oficina central** y el tutorial lo explica (B26). |
+
+(D14 no es una decisión de esta tanda: es la regla de cero superposición de E14, que vale para todas las tareas.)
 
 ---
 
@@ -327,3 +338,399 @@ y los pop-ups.
   falle si aparece una nueva), el save viejo migra sin perder blue (test), las capturas de la Tienda, Mejoras,
   pop-ups y HUD en el SE no muestran oro, y el catálogo de textos no tiene «ORO»/«gold» como moneda. Revisión:
   **opus** (toca el save y las compras).
+
+---
+
+## Tercera tanda (pedido del dueño, 2026-10-15): B19–B30
+
+Las pidió el dueño en el chat después de probar `6ee79bf3` en su iPhone. Respondió las preguntas en el mismo chat (D13
+y D15–D19). Capturas: `capturas-e14b/20.jpg` (todo amontonado en un piso alto) y el mockup aprobado de los botones
+`capturas-e14b/mockup-botones-barra.html` (diseño B). Los números y las líneas son de `v2i/e14b-b18` (c7e67153), es
+decir, con B17 y B18 hechos. **B22 amplía B18:** se integra B18 primero.
+
+### B19 — Capas por profundidad en todo el escenario (D13)
+- **Hoy:**
+  - Sólo los empleados se ordenan entre sí por su y: `depthZ` en `BoardScene.swift:2096`, recalculado en
+    `refreshCrowdDepth` en :572.
+  - La caja y el colchón están en una capa fija detrás de todos: `PickupNode.layerZ = 5`, menor que
+    `fieldBaseZ = 10`.
+  - El visitante está en otra capa fija, delante de todos (`StageController`, z 190).
+  - La burbuja de texto vive adentro de la capa del visitante, en SpriteKit. Por eso cualquier vista de SwiftUI la tapa:
+    el HUD, `CornersView` con `ActiveBonusBar`, y `prestigeIndicator` («×1,0 → ×1,4»). En `20.jpg`, el texto
+    queda cortado por el panel de arriba y por esa pastilla.
+- **Qué cambia:**
+  1. **Una sola regla de profundidad** para todo lo que está parado en el piso: empleados, visitantes, cajas, el
+     colchón y lo que se sume. El z sale de la y de los pies: **más abajo en la pantalla, más adelante**. Hay un
+     único helper (p. ej. `DepthOrder.z(forFeetY:)`) que usan todas las capas, y el z se recalcula cuando algo se
+     mueve.
+  2. Lo que se arrastra, los anillos, las partículas, las etiquetas y las celebraciones siguen arriba, como hoy.
+  3. **La burbuja de texto va arriba de TODO; nada la tapa, ni el HUD.** Sale de SpriteKit a una capa de SwiftUI
+     por encima del HUD, las esquinas, los chips y los avisos, y sigue la posición del visitante. Sólo los pop-ups
+     modales y el tutorial van más arriba. Además, se acomoda para entrar entera en la pantalla (tope arriba y a
+     los costados) y, cuando se puede, sin tapar el HUD.
+  4. Los toques los recibe lo que se ve adelante. Una caja que está detrás de un empleado se puede tocar en la
+     parte que se ve.
+- **Listo cuando:**
+  - Hay un unit de la regla: entre dos nodos con distinta y, el de más abajo tiene z mayor. Se prueba en las
+    combinaciones de empleado, visitante, caja y colchón.
+  - Un test verifica que la burbuja queda arriba del HUD y entera en la pantalla, en el SE y el Pro Max, con los
+    10 escenarios.
+  - Hay capturas de antes y después de la escena de `20.jpg`: un piso alto, un visitante con burbuja larga y un
+    boost activo.
+- **Revisión:** opus, porque toca el orden de los toques del tablero.
+- **Archivos:** `BoardScene`, `StageController`, `SpeechBubbleNode`, `PickupController`, `PickupNode` y `RootView`
+  (capa nueva).
+
+### B20 — Visitantes más abajo, al centro, y caminando mientras esperan (D15)
+- **Hoy:** se paran en `standY` (el horizonte menos `walkDrop`, 20 pt según B17), en x = 0,5 del ancho.
+- **Qué cambia:**
+  1. **El visitante se para en el medio del piso:** en y, a mitad de camino entre el horizonte y `floorBottom`
+     (la franja de los empleados), y centrado en x. Con B19, tapa a los que están más atrás y lo tapan los de
+     adelante. Nunca queda «parado sobre la cabeza» de un empleado: sus pies van en el piso, no en la línea de las
+     cabezas.
+  2. **Mientras espera, camina despacio de lado a lado** dentro de una zona central (p. ej. del 35 al 65 % del
+     ancho). La burbuja va encima y lo sigue, y el visitante se da vuelta en los bordes de la zona.
+  3. Ni la pastilla de su boost («Paquetes ×10», en `ActiveBonusBar`) ni los demás chips de las esquinas lo tapan:
+     la zona de caminata y la burbuja quedan fuera de los marcos de `CornersView` (D14). Si en el SE no entra, se
+     achica la zona, no se encima.
+  4. Los visitantes congelados por piso (B7, D6) siguen igual: al volver al piso, retoman la caminata.
+- **Listo cuando:**
+  - Hay un unit de la geometría en el SE y el Pro Max: la y del medio del piso en cada escenario y la zona de
+    caminata sin tocar los chips.
+  - Hay una tira de cuadros de la caminata.
+  - Hay capturas de 3 escenarios: alley, luxury y moon.
+- **Revisión:** sonnet.
+- **Archivos:** `StageLayout`, `StageController` y `CornersView` (sólo los marcos).
+
+### B21 — La llegada del visitante no se corta y el pop-up sale sólo al tocarlo (D15)
+- **Causa (encontrada en el código):**
+  1. Cualquier toque en el tablero pasa por `touchesBegan` → `tapDuringCelebration` → `skipCurrentCelebration`
+     (`BoardScene:757` y :557).
+  2. `.visitorEncounter` se puede saltear desde los 0,6 s (`CelebrationQueue:107-113`).
+  3. Saltearlo llama a `settleStageArrival` → `completeArrival` (`GameState+Stage:227-237`): el visitante
+     salta de golpe a su lugar y el mismo toque sigue de largo hasta el merge.
+  4. Hay dos caminos más. Un merge que cambia de piso fuerza la llegada: `setVisibleFloor` llega a
+     `leaveStageFloor` con la fase `.entering` (`GameState+Stage:156-159`). Y si otra celebración toma el turno,
+     `StageController:78-80` llama a `clear()`.
+- **Qué cambia:**
+  1. **Los toques del tablero no saltean la llegada del visitante.** Los toques van al tablero (merge, arrastre,
+     toque de monedas) y el visitante sigue caminando. Cambiar de piso lo congela (D6) en vez de teletransportarlo,
+     y ninguna otra celebración lo borra.
+  2. **El pop-up se abre sólo al tocar al visitante**, su aviso de arriba o su chip. Ya no se abre solo al llegar,
+     como hacía desde E14 T15. En el pop-up se elige: aprovechar la oferta, o «que se vaya», y se va caminando.
+  3. Si se le acaba la paciencia, se va caminando, como hoy.
+- **Listo cuando:**
+  - Hay units para cuatro casos:
+    - Un toque durante la entrada no cambia ni la fase ni la x del visitante.
+    - Un merge durante la entrada tampoco.
+    - Un cambio de piso durante la entrada lo congela.
+    - El pop-up no se abre sin un toque.
+  - Hay un UI test: entra un visitante, se hace un merge en medio de la entrada, la animación termina entera, y al
+    tocarlo se abre el pop-up.
+  - Se actualizan los UI tests de T15 que esperan el pop-up automático.
+- **Revisión:** opus, por la cola de celebraciones.
+- **Archivos:** `BoardScene`, `CelebrationQueue`, `GameState+Celebrations`, `GameState+Stage` y `StageController`.
+
+### B22 — Las cajas caen en cualquier lugar del piso (amplía B18)
+- **Hoy (B18, c7e67153):**
+  - Cada caja pertenece a un piso y se guarda con su `x` (de 0 a 1) dentro de la franja `packageXRange`.
+  - La y es fija: `baselineY` + `index·stackStep`.
+  - Todas las cajas de un piso se apilan en la x de la primera (`PickupController:83-87`) y no se separan.
+- **Qué cambia:**
+  1. La caja guarda **x e y**: `PackageBox{floor, typeId, x, y}`, normalizadas, con `y` como campo nuevo opcional.
+     Las cajas de B18 que no tienen y la sortean al cargar.
+  2. **Cae en cualquier lugar de la superficie jugable de su piso**, entre el horizonte y `floorBottom` y fuera de
+     las columnas, con la regla de capas de B19. Cae desde arriba hasta su lugar; no aparece de la nada.
+  3. **Las cajas quedan separadas:** hay una distancia mínima entre cajas, con el colchón y con la zona de
+     caminata del visitante (B20). Si el piso está muy lleno, se prefiere un lugar con poca superposición antes que
+     no caer.
+  4. **Cada caja se queda en su piso y en su lugar:**
+     - No viaja con el jugador al cambiar de piso.
+     - Se mantiene entre sesiones.
+     - Puede haber muchas, en muchos pisos, y el jugador las abre cuando quiere.
+     - Abrirla da sí o sí un personaje de ese piso, entre los desbloqueados (B18).
+  5. Siguen las marcas del ascensor en los pisos con cajas (B18).
+- **Listo cuando:**
+  - Hay tests de EK y unit para tres cosas: el sorteo de la posición respeta la franja y la separación; el save
+    hace la ida y la vuelta; y un save de B18 sin y carga bien.
+  - Un unit de `PickupController` verifica que cada caja está en su x y su y, con el z que le da la profundidad.
+  - Hay un UI test: caen 3 cajas en un piso y se ven separadas; al cambiar de piso y volver, están en las mismas
+    posiciones.
+  - Hay capturas en el SE y el Pro Max.
+- **Revisión:** opus, porque toca el save.
+- **Archivos:** EK `PackagesState` y `PackageEngine`, `GameState+Packages`, `PickupController`, `PickupLayout` y
+  `PickupNode`.
+
+### B23 — El personaje sale de adentro de la caja
+- **Hoy:**
+  1. La caja se sacude y pasan los clips `paquete_sacude` y `paquete_abre`.
+  2. La caja se desvanece mientras se agranda.
+  3. El personaje camina 0,5 s desde el punto de la caja hasta su lugar (`walkOutOfTheBox`, `BoardScene:1281-1302`).
+- **Qué cambia (animación con código, sin video nuevo):**
+  1. La caja se abre, con las tapas que se separan o el clip de hoy, y **el personaje asoma desde adentro**. Sube
+     desde el interior, tapado por el frente de la caja (con una máscara, o con el frente dibujado por encima), y se
+     estira al salir.
+  2. Salta en arco fuera de la caja y **aterriza en el piso**, al lado: se aplasta, rebota y levanta polvo, con la
+     profundidad de B19. Después camina a su lugar en la hilera y empieza a deambular.
+  3. La caja vacía queda un instante y se va, achicándose o desarmándose. Hay un sonido de salida y otro de
+     aterrizaje; si no existen, se sintetizan con `Tools/audio-synth`.
+  4. No hay pop-up (D2). Con Reduce Motion, el personaje aparece al lado de la caja con un fundido.
+- **Listo cuando:**
+  - Hay una tira de cuadros en el SE y el Pro Max.
+  - Un unit verifica que el personaje termina en su lugar y que la caja desaparece.
+  - No se pierde ningún toque durante la animación.
+- **Revisión:** sonnet.
+- **Archivos:** `PickupNode`, `PickupController` y `BoardScene` (`walkOutOfTheBox`).
+
+### B24 — El colchón después del video: que se vea, se pueda tocar y muestre el premio (bug del dueño)
+- **Lo que dijo el dueño:** «Al mirar el video del colchón no pasa nada: no aparece en pantalla, no lo puedo tocar,
+  no hay animación».
+- **Lo que se vio en el código.** El camino del estado parece correcto (`mattressVideoWatched` → `payMattress` →
+  `markPaid` → `.onBoard` → `syncMattress` + `drop`) y tiene unit tests. Las hipótesis, de la más probable a la
+  menos:
+  - **H1 (la más probable): el colchón está, pero no se ve.** Va en la capa fija de atrás (z 5) y cae a la altura
+    de las cabezas de la hilera de atrás, en x ≈ 281 de 393 pt, entre dos columnas de empleados. Mide unos 83 pt,
+    así que los empleados lo tapan.
+  - **H2:** la caída arranca debajo del HUD opaco y de la columna. Dura 0,55 s y coincide con el fundido del pop-up
+    que se está cerrando.
+  - **H3:** la columna de la derecha lo tapa cuando hay varios bonus activos.
+  - **H4:** el SDK de mediación avisa la recompensa después de `adDidDismiss`. Entonces `earnedReward` queda en
+    false y no se paga (`AdMobAdsProvider:18-31` y :175-181).
+  - **H5:** el primer cuadro después del anuncio trae un delta grande y la caída termina al instante.
+- **Qué cambia:**
+  1. **Primero se reproduce el bug.** Se prueba en el simulador con un anuncio de prueba y, si se puede, en el
+     iPhone del dueño con un video real. La causa se confirma con evidencia y se arregla. H4 se verifica con un log
+     en el dispositivo.
+  2. **Después del video, el colchón cae en el piso que estás mirando:**
+     - En un lugar libre de la superficie (la misma regla de lugar que B22, separado de las cajas y del visitante).
+     - Adelante, según B19.
+     - La caída se ve entera: empieza cuando el pop-up terminó de cerrarse.
+     - Rebota, brilla y muestra una manito o un aviso de «¡Tocame!» hasta que lo tocás.
+     - Queda en ese piso, como las cajas.
+  3. **Al tocarlo,** hace la animación de apertura (como la caja) y sale **siempre** el pop-up del premio, con
+     **el nombre y una imagen ilustrativa** del premio. Se usan las imágenes de los premios aprobados; si falta
+     alguna, se genera con Automatic Image Generation (D8).
+  4. El colchón de regalo (D4) sigue el mismo camino, sin video.
+- **Listo cuando:**
+  - El bug está reproducido y explicado en el doc de sesión.
+  - Hay un UI test: se ve el video (con stub), el colchón queda a la vista (el hit-test en su centro devuelve el
+    colchón), se lo toca y sale el pop-up con la imagen.
+  - Hay capturas en el SE y el Pro Max.
+- **Revisión:** opus.
+- **Archivos:** `GameState+Treasures`, `GameState+Prizes`, `PickupController`, `PickupNode`, `PickupLayout`,
+  `MattressPopupView` y `AdMobAdsProvider` (sólo si la causa es H4).
+
+### B25 — Evento «La Marcha» del Puntero: 420 toques en una hora (D16)
+- **Qué es:**
+  - El Puntero (`npc_puntero`) ya existe: tiene arte, loops y su entrada en `visitors.json:14`. Llega como
+    visitante con un guion nuevo (p. ej. `puntero_marcha`) y propone la marcha.
+  - Si el jugador acepta, arranca **una hora de reloj real**.
+  - Si en esa hora hace **420 toques a mano** sobre los personajes, gana **30 de dólar blue**.
+- **Mecánica.** Se reaprovecha el desafío de toques que ya existe:
+  - `challenge(taps:windowSeconds:)` en `VisitorsConfig:66`;
+  - `StageChallenge`;
+  - `beginChallenge`, `noteStageTap` y `finishChallenge` en `GameState+Visitors:197-214`;
+  - `ChallengeChip`.
+
+  Esa mecánica se extiende a ventanas largas: **la marcha queda en el save** (inicio, toques y fin). Cuenta en
+  cualquier piso y sigue aunque se cierre la app, porque el reloj corre igual; al volver, se resuelve.
+  - **Qué toques cuentan:** sólo los que se hacen a mano y dan monedas (`registerTap`). No cuentan el autotoque
+    comprado (`advanceAutoTap`) ni los dobles toques de merge.
+  - **El chip:** va en las esquinas, con anillo, contador y el tiempo que queda: «Marcha 137/420». Al tocarlo se
+    abre un pop-up chico con el estado.
+  - **El final:** al llegar a 420, el Puntero vuelve (o sale su pop-up) a festejar. El premio se cobra con el vuelo
+    de B13 y el ×2 con video de B29 (D17, porque es gratis). Si se acaba la hora, el Puntero dice su línea y no hay
+    premio.
+  - **La frecuencia:** **una vez por semana**, con un cupo semanal en el scheduler de visitantes. Si el jugador la
+    rechaza, no vuelve hasta la semana siguiente. Nunca sale en la primera sesión ni antes de terminar el tutorial.
+- **Textos.** Son un BORRADOR: el dueño los ve en el iPhone. El español es rioplatense y el inglés, de Estados
+  Unidos, escritos aparte. «420» queda igual en los dos idiomas; en inglés se lee además como chiste de marihuana, y
+  el dueño lo sabe.
+  - **es:**
+    - Burbuja: «¡Hay marcha! Necesito gente que aplauda.»
+    - Pop-up: «Mañana se llena la plaza y me faltan aplaudidores. Tocá 420 veces en una hora y te paso 30 blue. No
+      preguntes a quién apoyamos: ni yo sé.»
+    - Botones: «¡Me prendo!» / «Hoy no marcho»
+    - Si gana: «¡Plaza llena! Ahí van tus 30 blue. Y el chori, si quedó alguno.»
+    - Si no llega: «Se desconcentró la marcha. La próxima traé bombo.»
+  - **en:**
+    - Bubble: «Big rally today. I need people who clap.»
+    - Popup: «I promised the candidate a packed rally. Tap 420 times in one hour and 30 blue is yours. Free hot
+      dogs while supplies last.»
+    - Buttons: «Count me in» / «I'll sit this one out»
+    - Success: «Packed house! The candidate thinks he's popular now. Here's your 30 blue.»
+    - Fail: «Everybody left early to beat the traffic. Next time, bring a foam finger.»
+- **Pacing:** son 30 blue por semana, o 60 con el ×2 de B29. Se corre el pacing-sim con los perfiles free y ads;
+  Dios tiene que seguir en ~45 h. Se anota en `balance-log.md`. EK con mutantes.
+- **Listo cuando:**
+  - Hay tests de EK para:
+    - la marcha en el save, ida y vuelta;
+    - el reloj real;
+    - que 420 cobra una sola vez;
+    - que al vencer no hay premio;
+    - el cupo semanal.
+  - Un unit verifica qué toques cuentan.
+  - Hay un UI test con una ventana corta, activada por un flag de DEBUG.
+  - Hay capturas del chip y de los pop-ups en el SE y el Pro Max, en es y en.
+- **Revisión:** opus (blue, save y pacing).
+- **Archivos:** `visitors.json`, EK `VisitorsConfig`, `VisitorScheduler` y `VisitPlanner`, `GameState+Visitors`,
+  `GameState+Actions`, `StageChips` y el catálogo.
+
+### B26 — La Tienda va a la barra y el Ranking, adentro del Menú (D19)
+- **Hoy:**
+  - `GameScreen.barOrder = [.ranking, .upgrades, .skins, .jobs, .gifts, .menu]` (`GameArtComponents:1057`).
+  - La Tienda sólo se abre con el «+» de la moneda: `hud.coins.plus` → `open(.store)` (`RootView:296-305`, :399
+    y :440).
+  - El Ranking es pestaña y también página del pager (`MenuPagerView:404` y :413-416). Se oculta con el interruptor
+    del servidor (`GameState+Tabs:14-17`).
+- **Qué cambia:**
+  1. **La Tienda ocupa el lugar del Ranking** en la barra y en el pager:
+     `[.store, .upgrades, .skins, .jobs, .gifts, .menu]`.
+     - Ícono: `ui_tab_shop`, que ya está en `ui.atlas`. Leyenda: «Tienda» / «Shop».
+     - Se desbloquea en el mismo momento en que se desbloqueaba el Ranking (`tabs.json`).
+     - El «+» de la moneda sigue abriendo la Tienda, que ahora es su página del pager.
+  2. **El Ranking pasa al Menú (Oficina central):**
+     - Es un `Destination.ranking` nuevo, con una tarjeta a todo el ancho como la del Álbum (`MenuView:41-47`,
+       :57-79 y :91-99), que lleva a `RankingView`.
+     - Si el servidor está apagado, la tarjeta no aparece.
+     - Su ícono no puede ser el trofeo, porque ya lo usa Logros (`VectorTrophyIcon(.gold)`, `MenuView:69`). Lleva
+       uno propio ilustrado, un podio o una medalla; si no hay, se genera con Automatic Image Generation (D8).
+  3. El botón `ranking.hook.store` de la cabecera del Ranking sigue llevando a la Tienda.
+  4. **Tutorial:**
+     - Una lección o un paso nuevo del Tour explica las dos cosas: «La Tienda ahora está abajo» y «El Ranking lo
+       encontrás en el Menú». Va anclado a la pestaña y a la tarjeta.
+     - A los jugadores que ya vieron el Tour les sale una vez, como novedad.
+     - Los textos van al catálogo en es y en, como borrador para el dueño.
+- **Tests que cambian:**
+  - unit: `GameArtComponentsTests:24-26` y :50; `TabUnlockRulesTests:46` y :59; `TabUnlockWiringTests:32`, 59,
+    87 y 96; `MenuSessionTests:38`.
+  - UI: `BottomMenuUITests:83-100` y :120-140; `MenuPagerUITests:12-37`; `RankingTabUITests` (ahora entra por el
+    Menú); `RankingEntryCardUITests:105`; `AppStoreScreenshotTests:120`; `ProgressiveTabsUITests:12-27`.
+- **Listo cuando:** todos esos tests están en verde y hay capturas de la barra y de la Oficina central en el SE y el
+  Pro Max.
+- **Revisión:** sonnet.
+- **Archivos:** `GameArtComponents`, `BottomMenuBar`, `MenuPagerView`, `RootView`, `MenuView`, `tabs.json`,
+  `GameState+Tabs` y el tutorial.
+
+### B27 — El crema de FisuJobs en las dos barras (D18)
+- **Hoy:** la barra de abajo es `PaletteCream` #FFF8E7 (`GameArtComponents:1235-1253`), que se ve blanca. El fondo
+  de adentro del panel de FisuJobs es `PaletteParchment` #F1E5C9 (`PanelFrames:95-104`).
+- **Qué cambia:**
+  - La barra de abajo **y el panel de arriba, el de la plata,** pasan a `PaletteParchment`.
+  - Las solapas (B28) y las tarjetas que van encima mantienen su contraste: hay que revisar que las pestañas
+    inactivas y los textos se lean.
+- **Listo cuando:** hay capturas en el SE y el Pro Max, en 3 escenarios, y con el sistema en modo oscuro (el juego
+  no cambia de color).
+- **Revisión:** sonnet. Es chica y puede ir sola en cualquier hueco.
+
+### B28 — Los botones de la barra: diseño B, «Etiqueta y billete» (D18)
+- **Referencia:** `capturas-e14b/mockup-botones-barra.html`, diseño B, elegido por el dueño. Lo que hay que
+  arreglar, según su captura: Reencarnar tapa a Contratar, el botón del medio.
+- **Qué cambia:**
+  1. **Contratar un Fisura (la solapa de la izquierda, `QuickHireButton`):**
+     - Es una **etiqueta de precio** verde (`PaletteGreen`) con costura punteada crema, ojal y piolín. Se hamaca
+       apenas, como si estuviera colgada.
+     - **El Fisura de cuerpo entero, saludando** (`fisura_wave`, que ya está en `ui.atlas`), va parado arriba a la
+       izquierda, sobresale de la etiqueta y da un saltito cada tanto.
+     - El precio va en una placa crema, con la moneda.
+     - Es más grande que la solapa de hoy.
+     - Cuando no alcanza la plata, queda gris y quieta, y dice por qué no compra, como hoy.
+     - Se mantiene todo lo demás: mantener presionado abre el selector, el sacudón de «no alcanza», la accesibilidad
+       y los ids.
+  2. **Reencarnar (la solapa de la derecha, `PrestigeButton`):**
+     - Es un **billete de dólar blue**: celeste, con guarda, esquinas recortadas y marco crema.
+     - El sello del billete (`ui_dolar_blue`) sale por la esquina de arriba a la derecha.
+     - Dice «Reencarnar» en blanco, con contorno ink, y la meta en una placa crema («Meta: Multimillonario»).
+     - Tiene destellos y aletea cada tanto. Cuando ya se puede reencarnar, brilla más.
+  3. **Contratar (el plato del medio):**
+     - Es una **carpeta de FisuJobs** amarilla, con su pestaña de carpeta, un legajo que asoma, la cara del Fisura
+       en el círculo y el sello rosa «FisuJobs». Flota apenas.
+     - **Va en la capa de arriba de todo:** no lo tapan ni las solapas, ni los avisos, ni los chips.
+  4. **Cada solapa ocupa su mitad.** Su ancho máximo es la mitad de la barra, menos el plato del medio y un margen.
+     Nunca entran al hueco del plato: en el SE, se achican antes que pisarlo, y el texto usa
+     `minimumScaleFactor`.
+  5. Todo se hace con código (Shapes de SwiftUI, sin SF Symbols) y con los assets que ya existen. Reduce Motion
+     apaga la hamaca, el saltito y el aleteo.
+- **Listo cuando:**
+  - Un unit de la geometría verifica que ningún marco de solapa se cruza con el del plato, en el SE, el 15 Pro y el
+    Pro Max, en es y en, con textos largos.
+  - Los UI tests de `hud.quickhire` y `hud.prestige` siguen verdes.
+  - Hay capturas en el SE y el Pro Max, comparadas con el mockup.
+- **Revisión:** sonnet.
+- **Archivos:** `BarFlaps`, `QuickHireButton`, `PrestigeButton`, `BottomMenuBar` / `GameTabBar` (el plato) y
+  `GameArtComponents`.
+
+### B29 — Toda recompensa gratis en dos pasos: primero se cobra y después «×2 con video» (D17)
+- **El pedido:** el Ministro de Economía ofrece plata con «Dale ×2 con video» y «No, gracias» en el mismo pop-up.
+  Nadie quiere rechazar la plata, así que el ×2 convierte poco. Se pasa a dos pop-ups, en **todo** el juego, para
+  convertir más anuncios.
+- **Qué cambia:**
+  1. **Paso 1:** el pop-up de la recompensa tiene un solo botón, «¡Dale!» (o el que corresponda), que **cobra**
+     con el vuelo de B13.
+  2. **Paso 2:** enseguida sale un segundo pop-up, centrado: «¿Lo duplicás?», con la misma recompensa y los botones
+     **«×2 con video»** y **«No, gracias»**.
+     - Si se ve el video, se cobra otra vez lo mismo, con su vuelo.
+     - Si no hay un anuncio cargado (o no hay consentimiento, o no hay conexión), el paso 2 no aparece.
+  3. **Nunca** se ofrece duplicar en el primer pop-up.
+  4. **Alcance (D17):** sólo las recompensas **gratis**.
+     - Las que ya costaron un video no tienen paso 2: el colchón con video, el giro de Ruleta con video, etc.
+     - Lo que no se puede duplicar, como una skin única o un personaje de la caja, tampoco.
+  5. **Primero, el inventario.** Queda en el doc de sesión: todas las fuentes que dan algo y cómo lo ofrecen hoy.
+     - Visitantes y especiales: el Ministro, la Vecina, el Turista, el Puntero, el Conductor, el Arbolito, etc.
+     - Eventos.
+     - Regalos y el diario.
+     - Las ganancias de cuando no jugabas.
+     - La Ruleta con giros gratis o de bonus: su «Repetir premio» con video se unifica con este paso 2.
+     - El colchón de regalo (D4).
+     - El cofre.
+     - Los logros.
+     - La Marcha (B25).
+
+     Las que hoy ofrecen el ×2 de entrada (p. ej. `puntero_bolson`, que se duplica con un video) pasan al esquema
+     nuevo. Todas usan un componente único (p. ej. `RewardDoubleOffer`).
+  6. **Pacing y anuncios:**
+     - El ×2 ya existía en varias fuentes; las nuevas suben el perfil `ads` del pacing-sim. Hay que correrlo (el
+       perfil free no cambia) y Dios tiene que seguir en ~45 h. Se anota en `balance-log.md`.
+     - En AdMob habrá más impresiones de rewarded: revisar los topes de frecuencia de `ads.json` y
+       `rewarded_ads.json` y dejarlos anotados.
+- **Listo cuando:**
+  - El inventario está completo.
+  - Hay un unit por fuente que cubre cinco casos:
+    - el paso 1 cobra 1×;
+    - el paso 2, con el video visto, cobra otra vez;
+    - «No, gracias» no cobra;
+    - sin anuncio no hay paso 2;
+    - las fuentes que ya costaron un video no tienen paso 2.
+  - Hay un UI test con el Ministro (con stub del anuncio).
+  - Hay capturas de los dos pop-ups en el SE y el Pro Max.
+- **Revisión:** opus (plata, anuncios y pacing).
+- **Archivos:** todos los pop-ups de recompensa, `RewardedOfferButton`, `GameState+Rewards` y `RewardFlight`.
+
+### B30 — Tamaño según la distancia (EXPERIMENTO: última tarea, en una rama aparte) (D13)
+- **Qué es:** lo que está más atrás (más cerca del horizonte) se ve un poco más chico, y lo de adelante, un poco más
+  grande. Se calcula en tiempo real, según la y de los pies, para los empleados, los visitantes, las cajas y el
+  colchón.
+- **Va en una rama aparte**, `v2/e14b-b30-escala`, que sale de la integración con todo E14b. **No se mergea** hasta
+  que el dueño lo pruebe en el iPhone y diga que sí.
+  - Es la última tarea antes de los cierres, o después, si los cierres ya están listos.
+  - Si el dueño dice que no, se descarta sin costo.
+- **Parámetros chicos,** para que el cambio en tiempo real no se note:
+  - p. ej. de 0,85× en el horizonte a 1,0× adelante;
+  - con una curva suave y sin saltos mientras deambulan;
+  - y sin que el área de toque quede por debajo del mínimo, para que siga siendo fácil tocar.
+- **Listo cuando:** la Release de esa rama está instalada en el iPhone del dueño y la pregunta quedó hecha en
+  `DUENO.md`.
+- **Revisión:** sonnet.
+
+### Orden de la tercera tanda (≤ 2 compilando, sin compilar por tarea: se compila la ola entera)
+
+| Ola | Tareas | Por qué así |
+|---|---|---|
+| 6 | B19 · B27 · B26 | B19 es la base de capas que usan B20 a B24. B27 es chica. B26 toca la barra y el pager, y no choca con B19. |
+| 7 | B20 + B21 · B22 + B23 · B28 | B20 y B21 tocan las dos el visitante (`StageController`), así que van en el mismo agente. B22 y B23 son las cajas (`PickupController`) y van después de integrar B18. B28 toca la barra, después de B26 y B27. |
+| 8 | B24 · B29 → B25 | B24 usa el lugar de B22 y las capas de B19. B29 cambia todos los pop-ups de recompensa, y B25 cobra con B29, así que va después. B25 y B29 corren el pacing-sim: una detrás de la otra si chocan en `balance-log.md`. |
+| 9 | B30 | Es un experimento en una rama aparte; decide el dueño. |
+
+Al terminar la ola 8, se corre un `completo` y se instala en el iPhone del dueño. Él mira las capas en los 10
+escenarios, el visitante caminando y su burbuja, las cajas por el piso y saliendo de la caja, el colchón después del
+video, la barra nueva con la Tienda, los dos pasos del ×2 y La Marcha (con la ventana corta de DEBUG).

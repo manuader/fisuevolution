@@ -95,6 +95,8 @@ struct EventPresenterTests {
         gameState.engagementAutorun = true
         let script = try #require(gameState.content?.visitors.script(id: "turista_propina"))
         gameState.presentVisitor(script)
+        // Que se lo vea entrar: uno que nunca se dibujó no sale caminando, se borra (B21, `wasSeen`).
+        gameState.stageEntranceBegan(id: try #require(gameState.stageVisit?.id))
         gameState.debugPresentEvent(id: "ola_calor")
         gameState.sendStageActorAway()
         gameState.stageActorLeft(id: try #require(gameState.stageVisit?.id))

@@ -35,8 +35,9 @@ struct PickupControllerTests {
     }
 
     /// Cuántas copias del PNG de la pieza dibuja el árbol del nodo (el póster del video cuenta).
+    /// El brillo del colchón (B24) no es una copia: es su silueta teñida de amarillo y sumada.
     private func artCopies(in node: SKNode, texture: SKTexture) -> Int {
-        let own = (node as? SKSpriteNode).map { $0.texture === texture ? 1 : 0 } ?? 0
+        let own = (node as? SKSpriteNode).map { $0.texture === texture && $0.colorBlendFactor == 0 ? 1 : 0 } ?? 0
         return own + node.children.reduce(0) { $0 + artCopies(in: $1, texture: texture) }
     }
 
@@ -336,7 +337,10 @@ struct PickupControllerTests {
         let (gameState, _) = await pickups()
         gameState.debugDropPackage(onFloor: "alley", count: 2)
         // Las cajas en lugares fijos y el sorteo del colchón sembrado: el test no depende del azar.
-        let fixed = [PackageSpot(x: 0.2, y: 0.2), PackageSpot(x: 0.8, y: 0.3)]
+        // Una adelante (la que el colchón tiene que esquivar) y otra atrás: con las dos adelante y
+        // la zona del visitante, sólo el 5 % de la superficie queda libre en las dos pantallas y
+        // los 48 intentos de `PackagePlacer` fallan 1 de cada 15 veces (cae en el menos pisado).
+        let fixed = [PackageSpot(x: 0.2, y: 0.2), PackageSpot(x: 0.8, y: 0.8)]
         var player = try #require(gameState.player)
         let placed = player.meta.engagement.packages.boxes.indices.filter { player.meta.engagement.packages.boxes[$0].spot != nil }
         #expect(placed.count == 2)

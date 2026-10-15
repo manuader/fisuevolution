@@ -1236,10 +1236,11 @@ struct GameTabBar: View {
         UnevenRoundedRectangle(
             topLeadingRadius: 24, topTrailingRadius: 24, style: .continuous
         )
+        // El crema de FisuJobs (#F1E5C9, E14b B27): el #FFF8E7 de antes se veía blanco.
         // Sólida (E14b B3): al 90 % el tablero se adivinaba detrás de los tabs como un
         // velo blanco. El fondo del escenario termina arriba de esta barra
         // (`BoardScene.floorBottom`), así que no hay nada que dejar ver.
-        .fill(Color("PaletteCream"))
+        .fill(Color("PaletteParchment"))
         .overlay(
             UnevenRoundedRectangle(
                 topLeadingRadius: 24, topTrailingRadius: 24, style: .continuous

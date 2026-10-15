@@ -650,7 +650,8 @@
     "ui_rail_package": "ui_rail_package",
     "ui_rail_wheel": "ui_rail_wheel",
     "ui_reset_demolicion": "ui_reset_demolicion",
-    "ui_save_rescate": "ui_save_rescate"
+    "ui_save_rescate": "ui_save_rescate",
+    "ui_menu_ranking": "ui_menu_ranking"
   },
   "npcs": {
     "npc_comisario": "npc_comisario",

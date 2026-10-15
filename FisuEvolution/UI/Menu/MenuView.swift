@@ -82,8 +82,8 @@ struct MenuView: View {
                         AnyView(GameGlyphView(glyph: .people, size: 72))
                     }
                     // El Ranking (E14b B26, D19): ya no es pestaña, vive acá. Con el interruptor del
-                    // servidor apagado la tarjeta no aparece. Ícono propio (la corona): el trofeo es
-                    // de Logros.
+                    // servidor apagado la tarjeta no aparece. Ícono propio (el podio, `ui_menu_ranking`;
+                    // la corona es el respaldo vectorial): el trofeo es de Logros.
                     if gameState.rankingCardIsShown {
                         card(.ranking, "menu.card.ranking", identifier: "menu.card.ranking") {
                             AnyView(GameGlyphView(glyph: .crown, size: 72))

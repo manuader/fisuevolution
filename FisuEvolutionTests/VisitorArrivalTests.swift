@@ -122,6 +122,100 @@ struct VisitorArrivalTests {
         #expect(facings.count == 2, "se da vuelta")
     }
 
+    @Test("un toque en el primer frame, con el turno todavía puesto, no la corta: camina desde afuera")
+    func aTapOnTheFirstFrameKeepsTheEntrance() async throws {
+        let gameState = await makeGameState()
+        let controller = StageController(gameState: gameState)
+        controller.attach(to: SKNode())
+        controller.layout(sceneSize: size, bottomInset: 118, cellSize: 72)
+        let script = try #require(gameState.content?.visitors.script(id: "turista_propina"))
+        gameState.presentVisitor(script)
+        #expect(gameState.showing == .visitorEncounter)
+        gameState.advanceCelebrations(delta: CelebrationQueue.skipFloor * 2)
+        #expect(!gameState.skipCurrentCelebration())
+        #expect(gameState.showing == .visitorEncounter, "el toque no le sacó el turno")
+        frames(controller, 1)
+        let start = try walkX(controller)
+        #expect(start < 0 || start > size.width, "arranca afuera de la pantalla")
+        frames(controller, 30)
+        let later = try walkX(controller)
+        #expect(abs(later - size.width / 2) < abs(start - size.width / 2), "y camina hacia el medio")
+        #expect(gameState.stageVisit?.phase == .entering)
+    }
+
+    // MARK: - Entrando, el tablero no está en calma
+
+    @Test("una oferta que se abre durante la entrada espera a que llegue, y después toma el turno")
+    func anOfferWaitsForTheArrival() async throws {
+        let (gameState, controller) = try await walkingVisitor()
+        #expect(gameState.stageEntranceInProgress)
+        #expect(!gameState.isCalmMoment, "soltó el turno, pero todavía camina")
+        gameState.debugOpenOffer(id: "renacer")
+        #expect(gameState.offerToPresent != nil)
+        #expect(gameState.showing != .offer, "no se abre encima del que entra")
+        frames(controller, 20)
+        #expect(gameState.showing != .offer)
+        frames(controller, 600)
+        #expect(gameState.stageVisit?.phase == .waiting)
+        #expect(gameState.showing == .offer, "la llegada la encola")
+    }
+
+    @Test("una lección que esperaba en la fila sale de ella al entrar y vuelve al llegar, sin perderse")
+    func aQueuedLessonWaitsForTheArrival() async throws {
+        let gameState = await makeGameState()
+        let controller = StageController(gameState: gameState)
+        controller.attach(to: SKNode())
+        controller.layout(sceneSize: size, bottomInset: 118, cellSize: 72)
+        let script = try #require(gameState.content?.visitors.script(id: "turista_propina"))
+        gameState.presentVisitor(script)
+        gameState.startTutorialRun(.lesson("probe"), steps: [.explain("probe.explain", text: "tutorial.step.finish")])
+        #expect(gameState.showing == .visitorEncounter)
+        #expect(gameState.celebrations.contains(.tutorialTip), "esperando detrás de la entrada")
+        frames(controller, 20)
+        #expect(gameState.stageVisit?.phase == .entering)
+        #expect(gameState.showing != .tutorialTip, "no se abre encima del que entra")
+        #expect(gameState.tutorialRun != nil, "y no se perdió")
+        frames(controller, 600)
+        #expect(gameState.stageVisit?.phase == .waiting)
+        #expect(gameState.showing == .tutorialTip, "la llegada la vuelve a encolar")
+    }
+
+    @Test("una lección que arranca durante la entrada no pide turno hasta que llega")
+    func aLessonStartedDuringTheEntranceWaits() async throws {
+        let (gameState, controller) = try await walkingVisitor()
+        gameState.startTutorialRun(.lesson("probe"), steps: [.explain("probe.explain", text: "tutorial.step.finish")])
+        #expect(gameState.showing != .tutorialTip)
+        gameState.syncCelebrations()
+        #expect(gameState.showing != .tutorialTip)
+        frames(controller, 600)
+        #expect(gameState.stageVisit?.phase == .waiting)
+        #expect(gameState.showing == .tutorialTip)
+    }
+
+    @Test("el corte natural no sale durante la entrada; con el visitante ya llegado, sí")
+    func noNaturalBreakDuringTheEntrance() async throws {
+        let (gameState, controller) = try await walkingVisitor()
+        let clock = TestClock()
+        let provider = ScriptedAdsProvider()
+        let ads = AdsCoordinator(now: clock.read, provider: provider)
+        ads.settleDelay = .zero
+        let scratch = ScratchDefaults()
+        defer { scratch.clear() }
+        let pacer = ForcedAdsPacer(store: AdsPacingStore(defaults: scratch.defaults), now: clock.read)
+        ads.attachPacer(pacer)
+        gameState.attachAds(ads)
+        clock.advance(by: 1000)
+        #expect(gameState.naturalBreakContext.sheetOpen)
+        await gameState.naturalBreak(.sheetClosed)
+        await gameState.naturalBreak(.celebrationsDrained)
+        #expect(provider.shown.isEmpty, "nada tapa al que entra")
+        #expect(gameState.adBreakOffer == nil)
+        frames(controller, 600)
+        #expect(gameState.stageVisit?.phase == .waiting)
+        await gameState.naturalBreak(.sheetClosed)
+        #expect(provider.shown == ["interstitial"], "la puerta era la caminata")
+    }
+
     /// Dos del mismo tipo en el piso que se mira.
     private static func firstPair(in gameState: GameState) -> (Int, Int)? {
         let placements = gameState.visiblePlacements
@@ -131,5 +225,18 @@ struct VisitorArrivalTests {
             }
         }
         return nil
+    }
+}
+
+private struct ScratchDefaults {
+    let name = "b21-\(UUID().uuidString)"
+    let defaults: UserDefaults
+
+    init() {
+        defaults = UserDefaults(suiteName: name) ?? .standard
+    }
+
+    func clear() {
+        defaults.removePersistentDomain(forName: name)
     }
 }

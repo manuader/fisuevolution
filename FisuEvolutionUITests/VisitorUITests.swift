@@ -86,22 +86,25 @@ final class VisitorUITests: XCTestCase {
     /// B21 (D15): un merge en medio de la entrada no la corta. Los ocho Fisuras de `--uitest-merge-all`
     /// deambulan por el piso mientras el turista entra; el doble toque fusiona un par sin saltear la
     /// caminata. Se barre en X como en `BoardGestureUITests`: sólo un merge baja `board.units`.
+    /// `--uitest-slow-entrance` estira la entrada a ~11 s, y la tarjeta (que sale al llegar) tiene que
+    /// faltar antes y después del merge: si el merge cayó con el visitante ya llegado, el test falla.
     @MainActor
     func testUnMergeEnMedioDeLaEntradaNoLaCortaYTocarloAbreElPopup() throws {
-        let app = launch("turista_propina", extra: ["--uitest-merge-all"])
+        let app = launch("turista_propina", extra: ["--uitest-merge-all", "--uitest-slow-entrance"])
         let units = app.otherElements["board.units"]
         let chip = app.buttons["stage.chip.visitor"]
         let accept = app.buttons["visit.option.accept"]
         XCTAssertTrue(waitFor(units, value: "8", timeout: 15), "el fixture no sembró los ocho")
         var merged = false
         for x in [0.30, 0.42, 0.55, 0.68, 0.20, 0.80, 0.36, 0.62] where !merged {
+            XCTAssertFalse(chip.exists, "el visitante llegó antes del merge: el test no probó la entrada")
             app.coordinate(withNormalizedOffset: CGVector(dx: x, dy: 0.74)).doubleTap()
             merged = waitFor(units, value: "7", timeout: 0.6)
         }
         XCTAssertTrue(merged, "el doble toque no fusionó ningún par")
-        // Si la máquina va lenta el merge puede caer después de la llegada: la captura lo dice.
-        attach(app, chip.exists ? "B21: el merge cayó con el visitante ya llegado" : "B21: el merge, con el visitante entrando")
-        XCTAssertTrue(chip.waitForExistence(timeout: 20), "la entrada terminó entera: llegó y espera con su tarjeta")
+        XCTAssertFalse(chip.exists, "el merge tiene que caer con el visitante todavía entrando")
+        attach(app, "B21: el merge, con el visitante entrando")
+        XCTAssertTrue(chip.waitForExistence(timeout: 25), "la entrada terminó entera: llegó y espera con su tarjeta")
         XCTAssertFalse(accept.waitForExistence(timeout: 3), "llegó sin abrir el popup solo")
         attach(app, "B21: esperando en el medio del piso, sin popup")
         chip.tap()

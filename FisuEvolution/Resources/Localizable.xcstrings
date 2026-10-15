@@ -6971,6 +6971,23 @@
         }
       }
     },
+    "menu.card.ranking" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ranking"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ranking"
+          }
+        }
+      }
+    },
     "menu.card.settings" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -16471,6 +16488,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "En Mejoras potenciás tus ganancias para siempre. ¡No seas amarrete!"
+          }
+        }
+      }
+    },
+    "tutorial.tabs_moved.menu" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Ranking moved into the Menu. Tap the Menu."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El Ranking se mudó al Menú. Tocá el Menú."
+          }
+        }
+      }
+    },
+    "tutorial.tabs_moved.ranking" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Here is the Ranking: the card in the Head Office."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acá está el Ranking: la tarjeta de la Oficina central."
+          }
+        }
+      }
+    },
+    "tutorial.tabs_moved.store" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Shop is now down here in the bar: packs, outfits and blue are all there."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La Tienda ahora está abajo, en la barra: ahí tenés packs, pintas y blue."
           }
         }
       }

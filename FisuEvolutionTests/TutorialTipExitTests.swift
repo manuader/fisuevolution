@@ -35,6 +35,31 @@ struct TutorialTipExitTests {
         #expect(gameState.shareOfferIsOnScreen, "el tip señala un chip que se escondió")
     }
 
+    /// El momento que llega con el tip ya en pantalla (la oferta se fue y vuelve otra) sale como
+    /// chip: la lección es la que lo señala, no una celebración que lo tape.
+    @Test("un momento nuevo sale como chip mientras la lección de compartir tiene el turno")
+    func aMomentArrivingDuringTheShareLessonBecomesTheChip() async {
+        let gameState = await makeGameState()
+        startShareLesson(gameState)
+        #expect(gameState.showing == .tutorialTip)
+        gameState.shareOffer = nil
+        gameState.queueShareMoment(.newFloor(floorID: "urban"))
+        gameState.refreshProjections()
+        #expect(gameState.shareOffer != nil, "el momento quedó pendiente detrás de su propia lección")
+        #expect(gameState.shareOfferIsOnScreen)
+    }
+
+    @Test("con otra lección en pantalla el momento espera")
+    func aMomentWaitsBehindAnyOtherLesson() async {
+        let gameState = await makeGameState(keeping: .upgrades)
+        gameState.debugGrantCoins()
+        gameState.refreshProjections()
+        #expect(gameState.tutorialTip?.lesson == .upgrades)
+        gameState.queueShareMoment(.newFloor(floorID: "urban"))
+        gameState.refreshProjections()
+        #expect(gameState.shareOffer == nil, "la oferta se colaría debajo de otra lección")
+    }
+
     @Test("con otra celebración en pantalla el chip sigue escondido")
     func theChipHidesBehindAnyOtherTurn() async {
         let gameState = await makeGameState(keeping: .upgrades)

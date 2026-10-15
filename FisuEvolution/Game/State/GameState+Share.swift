@@ -16,10 +16,11 @@ extension GameState {
 
     /// Lo llama `refreshProjections`: el momento pendiente pasa a oferta en una
     /// pausa natural (`isCalmMoment`: sin celebración, sin hoja, sin la fase del
-    /// tutorial) y sin otra tarjeta u oferta en pantalla.
+    /// tutorial) y sin otra tarjeta u oferta en pantalla. La lección de compartir
+    /// no la frena: es la que señala el chip, y sin él su tip queda colgado.
     func presentShareMomentIfCalm() {
         guard let moment = pendingShareMoment, shareOffer == nil, shareCardMoment == nil,
-              isCalmMoment
+              isCalmMoment || (shareLessonHasTheTurn && !isBoardBusy)
         else { return }
         pendingShareMoment = nil
         shareOffer = moment
@@ -29,7 +30,11 @@ extension GameState {
     /// lección que lo señala: si se esconde, el tip queda sin recorte y sin nada que tocar (B11).
     var shareOfferIsOnScreen: Bool {
         guard shareOffer != nil else { return false }
-        return showing == nil || (showing == .tutorialTip && tutorialTip?.lesson == .share)
+        return showing == nil || shareLessonHasTheTurn
+    }
+
+    private var shareLessonHasTheTurn: Bool {
+        showing == .tutorialTip && tutorialTip?.lesson == .share
     }
 
     /// El reveal de un tier (lo llama `markRevealed`): personaje nuevo, o Dios.

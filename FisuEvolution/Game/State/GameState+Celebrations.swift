@@ -79,7 +79,10 @@ extension GameState {
         if achievementToast != nil || !pendingAchievementToasts.isEmpty {
             celebrations.enqueue(.achievements)
         }
-        if boardIsVisibleForChanges, stageVisit?.phase == .entering { celebrations.enqueue(.visitorEncounter) }
+        // El turno es la puerta de la entrada; la que ya se ve no vuelve a pedirlo (B21).
+        if boardIsVisibleForChanges, let visit = stageVisit, visit.phase == .entering, !visit.onStage {
+            celebrations.enqueue(.visitorEncounter)
+        }
         if let tutorialRun, runTakesAQueueTurn(tutorialRun) { celebrations.enqueue(.tutorialTip) }
         if cinematic != nil { celebrations.enqueue(.cinematic) }
         if boardIsVisibleForChanges, !pendingBoardChanges.isEmpty || typePendingReveal != nil {
@@ -168,7 +171,9 @@ extension GameState {
         // en medio de una ráfaga de toques.
         tutorialEngine.pacing.boardTouched()
         guard let showingNow = celebrations.current else { return false }
-        guard celebrations.skip() else { return false }
+        // La entrada del visitante no se saltea (B21, D15): el toque va al tablero
+        // y él sigue caminando. Su turno lo cierra la escena (o el watchdog).
+        guard showingNow != .visitorEncounter, celebrations.skip() else { return false }
         releasePayload(for: showingNow)
         syncCelebrations()
         return true
@@ -239,8 +244,10 @@ extension GameState {
             // Fin del video, "Saltar" y watchdog cuentan igual: la pantalla ya fue suya.
             recordCinematicSeen()
         case .visitorEncounter:
-            // Las tres salidas —la escena que avisa que llegó, el toque que saltea y
-            // el watchdog— pasan por acá: llega igual, una sola vez.
+            // Las salidas del turno —la escena que empieza a mostrarlo o avisa que
+            // llegó, el toque que saltea y el watchdog— pasan por acá. Si la escena
+            // ya lo muestra caminando, la llegada es suya (B21); si no, llega igual,
+            // una sola vez.
             settleStageArrival()
         case .offer:
             // Se mostró su única vez (se marcó al abrir la hoja): de acá en más vive en el chip.

@@ -181,13 +181,14 @@ struct EventPresenterTests {
                 "un evento con dos efectos es UN chip")
     }
 
-    @Test("saltear la entrada del presentador no deja un turno fantasma y el evento corre")
-    func skippingThePresenterEntryLeavesNoGhostTurn() async throws {
+    @Test("la entrada del presentador no se saltea; el watchdog no deja un turno fantasma y el evento corre")
+    func thePresenterEntryLeavesNoGhostTurn() async throws {
         let gameState = await world()
         gameState.debugPresentEvent(id: "devaluacion")
         #expect(gameState.showing == .visitorEncounter)
         gameState.advanceCelebrations(delta: 5)
-        #expect(gameState.skipCurrentCelebration())
+        #expect(!gameState.skipCurrentCelebration(), "un toque no corta la entrada (E14b B21)")
+        gameState.advanceCelebrations(delta: 6)
         #expect(running(gameState, "devaluacion"))
         #expect(gameState.stageVisit?.phase == .waiting)
         #expect(gameState.celebrations.current == nil, "la llegada no re-encola su propia entrada")

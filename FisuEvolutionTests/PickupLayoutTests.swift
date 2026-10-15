@@ -51,7 +51,8 @@ struct PickupLayoutTests {
                     let layout = PickupLayout(sceneSize: size, bottomInset: 118, cellSize: cell, background: background, floorBottom: floorBottom)
                     let stage = StageLayout(sceneSize: size, bottomInset: 118, cellSize: cell, floorBottom: floorBottom)
                     let horizon = stage.standY(background: background)
-                    let stackTop = horizon + layout.side * (1 + CGFloat(PickupLayout.maxVisibleBoxes - 1) * PickupLayout.stackStep)
+                    let ground = stage.groundY(background: background)
+                    let stackTop = ground + layout.side * (1 + CGFloat(PickupLayout.maxVisibleBoxes - 1) * PickupLayout.stackStep)
                     let label = "\(size) \(background ?? "-") \(String(describing: floorBottom))"
                     #expect(layout.baselineY <= horizon + 0.5, "\(label): flota sobre el horizonte")
                     if stackTop < size.height * PickupLayout.maxTopRatio - 0.5 {
@@ -105,6 +106,42 @@ struct PickupLayoutTests {
                 #expect(layout.baselineY >= 118 + cell, "\(size) \(background): la caja toca la barra")
                 #expect(layout.baselineY <= stage.horizonY(background: background), "\(size) \(background): la caja flota sobre el horizonte")
                 #expect(layout.packagePosition(index: PickupLayout.maxVisibleBoxes - 1).y + layout.side / 2 < size.height * PickupLayout.maxTopRatio)
+            }
+        }
+    }
+
+    // MARK: - E14b B17: la caja y el colchón, 20 pt más abajo
+
+    @Test("la caja y el colchón bajan 20 pt sobre la línea de las hileras, también con el tope del SE, y nunca debajo de floorBottom")
+    func pickupsDropBelowTheGround() {
+        for (size, cell) in Self.screens {
+            for floorBottom in Self.floorBottoms {
+                for background in StageLayout.horizons.keys {
+                    let layout = PickupLayout(sceneSize: size, bottomInset: 118, cellSize: cell, background: background, floorBottom: floorBottom)
+                    let stage = StageLayout(sceneSize: size, bottomInset: 118, cellSize: cell, floorBottom: floorBottom)
+                    let ground = stage.groundY(background: background)
+                    let stackHeight = layout.side * (1 + CGFloat(PickupLayout.maxVisibleBoxes - 1) * PickupLayout.stackStep)
+                    let ceiling = size.height * PickupLayout.maxTopRatio - stackHeight - 0.5
+                    let label = "\(size) \(background) \(String(describing: floorBottom))"
+                    if layout.baselineY > stage.groundFloorY {
+                        #expect(abs(min(ground, ceiling) - layout.baselineY - StageLayout.walkDrop) < 0.001, "\(label): bajó \(min(ground, ceiling) - layout.baselineY)")
+                    }
+                    #expect(layout.baselineY >= stage.floorBase, "\(label): la caja pasa debajo de floorBottom")
+                    #expect(layout.packagePosition(index: 0).y - layout.side / 2 >= stage.floorBase - 0.001)
+                    #expect(layout.mattressPosition.y - layout.side * 0.35 >= stage.floorBase - 0.001)
+                }
+            }
+        }
+    }
+
+    @Test("en alley, luxury y moon la caja apoya donde pisa el visitante, 20 pt bajo las hileras")
+    func pickupsMatchTheWalkers() {
+        for (size, cell) in Self.screens {
+            for background in ["alley", "luxury", "moon"] {
+                let layout = PickupLayout(sceneSize: size, bottomInset: 118, cellSize: cell, background: background, floorBottom: 96)
+                let stage = StageLayout(sceneSize: size, bottomInset: 118, cellSize: cell, floorBottom: 96)
+                #expect(layout.baselineY <= stage.standY(background: background) + 0.001, "\(size) \(background)")
+                #expect(layout.baselineY <= stage.groundY(background: background) - StageLayout.walkDrop + 0.001, "\(size) \(background)")
             }
         }
     }

@@ -151,7 +151,7 @@ struct CrowdBandTests {
                 let stage = StageLayout(sceneSize: screen, bottomInset: BoardScene.bottomInset,
                                         cellSize: layout.cellSize, floorBottom: BoardScene.floorBottom)
                 for background in StageLayout.horizons.keys {
-                    let horizon = stage.standY(background: background)
+                    let horizon = stage.groundY(background: background)
                     let band = BoardScene.crowdBand(sceneHeight: screen.height, cellSize: layout.cellSize,
                                                     rows: layout.rows, horizon: horizon)
                     let backRowFeet = band.frontY + band.rowDepth * CGFloat(layout.rows - 1) + band.wanderRange / 2

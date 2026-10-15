@@ -7,8 +7,8 @@ import CoreGraphics
 /// tamaño de la escena).
 ///
 /// El horizonte de cada escenario es UN dato (`horizons`) y de él sale todo lo que se
-/// apoya en el suelo: los pies del visitante (`standY`), la caja y el colchón
-/// (`PickupLayout`) y el techo de las hileras (`BoardScene.crowdBand`).
+/// apoya en el suelo: el techo de las hileras (`groundY`, `BoardScene.crowdBand`) y, `walkDrop`
+/// más abajo, los pies del visitante (`standY`), la caja y el colchón (`PickupLayout`).
 struct StageLayout: Equatable {
     static let leftEdge: CGFloat = 0.28
     static let rightEdge: CGFloat = 0.72
@@ -41,6 +41,10 @@ struct StageLayout: Equatable {
     static let defaultHorizon: CGFloat = 0.42
     /// Los pies, un poco debajo de la línea, para que pise suelo y no cuelgue del fondo.
     static let footDrop: CGFloat = 0.1
+    /// Lo que bajan, sobre la línea de las hileras, los que caminan por el medio (visitantes y
+    /// especiales, `standY`) y la caja y el colchón (`PickupLayout`): el dueño los veía altos y
+    /// pidió «20 píxeles», en puntos (E14b B17). Un solo ajuste para los diez escenarios.
+    static let walkDrop: CGFloat = 20
     /// La cabeza del visitante nunca pasa de esta fracción del alto: más arriba queda bajo el HUD.
     static let maxHeadRatio: CGFloat = 0.85
 
@@ -84,12 +88,22 @@ struct StageLayout: Equatable {
         return floorBase - lift + Self.horizon(of: background) * Self.spriteHeight(sceneSize: sceneSize)
     }
 
-    /// Dónde apoya los pies en un piso con ese fondo: el horizonte, con los pies un poco abajo.
-    /// Nunca baja de la barra ni sube hasta que la cabeza quede bajo el HUD.
-    func standY(background: String?, backgroundOffset: Double = 0) -> CGFloat {
+    /// El piso más bajo donde algo puede apoyar los pies: arriba de la barra de abajo.
+    var groundFloorY: CGFloat { bottomInset + cellSize }
+
+    /// La línea del suelo en un piso con ese fondo: el horizonte, con los pies un poco abajo.
+    /// Nunca baja de la barra ni sube hasta que la cabeza quede bajo el HUD. Es el techo de las
+    /// hileras (`BoardScene.crowdBand`): la fila de atrás no apoya los pies más arriba.
+    func groundY(background: String?, backgroundOffset: Double = 0) -> CGFloat {
         let feet = horizonY(background: background, backgroundOffset: backgroundOffset) - actorSide * Self.footDrop
         let ceiling = sceneSize.height * Self.maxHeadRatio - actorSide - 1
-        return max(bottomInset + cellSize, min(feet, ceiling))
+        return max(groundFloorY, min(feet, ceiling))
+    }
+
+    /// Dónde apoya los pies quien camina por el medio (visitantes y especiales): la línea del
+    /// suelo, `walkDrop` más abajo (B17), sin pisar la barra.
+    func standY(background: String?, backgroundOffset: Double = 0) -> CGFloat {
+        max(groundFloorY, groundY(background: background, backgroundOffset: backgroundOffset) - Self.walkDrop)
     }
 
     func offstageX(left: Bool) -> CGFloat {

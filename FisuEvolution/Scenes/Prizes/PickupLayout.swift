@@ -39,13 +39,14 @@ struct PickupLayout: Equatable {
     var side: CGFloat { cellSize * Self.sideRatio }
     /// Lo que sube la pila entera de cajas sobre su línea de apoyo.
     private var stackHeight: CGFloat { side * (1 + CGFloat(Self.maxVisibleBoxes - 1) * Self.stackStep) }
-    /// La línea del horizonte: donde apoyan las cajas y el colchón, la misma de `StageLayout.standY`
-    /// (que ya queda arriba de las solapas de la barra). Si con la pila llena el tope pasaría de
-    /// `maxTopRatio`, baja lo justo.
+    /// Donde apoyan las cajas y el colchón: la línea del suelo (`StageLayout.groundY`, que ya queda
+    /// arriba de las solapas de la barra) `walkDrop` más abajo, como los pies de un visitante
+    /// (B17). Si con la pila llena el tope pasaría de `maxTopRatio`, primero baja lo justo y
+    /// después el mismo `walkDrop`: el corrimiento vale también con los topes del SE.
     var baselineY: CGFloat {
-        let horizon = stage.standY(background: background, backgroundOffset: backgroundOffset)
+        let ground = stage.groundY(background: background, backgroundOffset: backgroundOffset)
         let ceiling = sceneSize.height * Self.maxTopRatio - stackHeight - 0.5
-        return max(bottomInset + cellSize, min(horizon, ceiling))
+        return max(stage.groundFloorY, min(ground, ceiling) - StageLayout.walkDrop)
     }
 
     /// Lo que ocupa el cuerpo del visitante parado en el medio.

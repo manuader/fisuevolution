@@ -41,6 +41,41 @@ próximo deploy la aplica.
 reportes, aprobar u ocultar una partida, perdonar reportes, cambiar el piso de tiempo y el
 interruptor del ranking.
 
+## Telemetría (E15 F0) — en el repo, SIN aplicar
+
+Las migraciones `…20261015000001_telemetry_schema.sql` y `…20261015000002_telemetry_retention.sql` están escritas y
+probadas en local (`05_telemetry_test.sql`), pero **no están aplicadas** en el proyecto real. Aplicarlas es del dueño
+(🔒 O2), después de la verificación de F0: `supabase db push` con el proyecto enlazado, o el SQL editor (las dos en
+orden). La de retención necesita `pg_cron` (en local se saltea).
+
+Qué guarda `public.telemetry_events`, una fila por evento:
+
+| Columna | Qué |
+|---|---|
+| `install_id` | el UUID de instalación de la app (Keychain, no sincronizable). No es el IDFA ni el IDFV |
+| `session_id` | un UUID nuevo en cada sesión |
+| `client_ts`, `received_at` | la hora del teléfono (a ±30 días) y la de llegada (la pone el servidor) |
+| `name` | `session_start`, `session_end`, `ad_impression`, `offer`, `purchase` o `prestige` |
+| `app_version`, `build`, `os_version`, `device_model` | versión de la app y de iOS, modelo de máquina (`iPhone16,2`) |
+| `storefront` | el país de la tienda (ISO alfa-3) o null |
+| `props` | un objeto chico (≤ 2 KB) con claves cerradas por evento: número de sesión, duración, valor de la impresión, lugar y etapa de la oferta, producto comprado, cantidad de reencarnaciones |
+
+Qué **no** guarda: ni IDFA, ni IDFV, ni el nombre del ranking, ni la IP, ni texto libre, ni precios ni transacciones.
+Se borra a los **400 días** (cron `telemetry-retention`, una vez por día).
+
+Los candados:
+- **El interruptor** `settings.telemetry_enabled` arranca en `false`. La única política de la tabla (insert para
+  `anon`) lo mira: apagado, el insert falla aunque la app se equivoque. La app lo pregunta con
+  `POST /rest/v1/rpc/telemetry_enabled`. Se prende y apaga con `scripts/admin.sql` (10), **sólo** con la privacidad,
+  los términos y la etiqueta de App Store Connect actualizados (🔒 O6).
+- `anon` sólo inserta, y sólo las columnas de arriba (nunca `id` ni `received_at`). Nadie de afuera lee, actualiza ni
+  borra; `authenticated` no tiene nada.
+- Los `check` rechazan nombres fuera de la lista, textos largos, `props` que no sea objeto o pase de 2 KB, y horas
+  del teléfono corridas más de 30 días.
+
+Las consultas de lectura (impresiones y eCPM por país × formato, el embudo por lugar, sesiones e instalaciones
+activas por día) están en `scripts/admin.sql` (11–15).
+
 ## El despliegue real (2026-10-12, E12 T16)
 
 Proyecto `oejmjpwfxpwzzakdjxwp` (FisuEvolution, us-west-2). Se desplegó con el conector de Supabase (MCP), no con la

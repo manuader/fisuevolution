@@ -284,6 +284,65 @@ struct SaveCompatibilityTests {
         }
     }
 
+    // MARK: - E15: la medición vive en el save sin subir el schema
+
+    /// Un sobre v7 tal como lo escribe la base, con las dos claves de E15 reemplazadas por lo que se
+    /// pase (`nil` = sin la clave).
+    private func v7Blob(adRevenue: Any?, offerFunnel: Any?) throws -> (PlayerState, Data) {
+        var state = fxState()
+        state.run.coins = 4242
+        state.meta.blue = 17
+        var object = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(state)) as? [String: Any])
+        var meta = try #require(object["meta"] as? [String: Any])
+        meta["adRevenue"] = adRevenue
+        meta["offerFunnel"] = offerFunnel
+        object["meta"] = meta
+        let data = try JSONSerialization.data(withJSONObject: object)
+        return (state, data)
+    }
+
+    @Test("un save v7 sin adRevenue ni offerFunnel decodifica con los dos vacíos")
+    func v7WithoutMeasurementDecodesEmpty() throws {
+        let (original, data) = try v7Blob(adRevenue: nil, offerFunnel: nil)
+        let decoded = try JSONDecoder().decode(PlayerState.self, from: data)
+        #expect(decoded.schemaVersion == 7)
+        #expect(decoded.meta.adRevenue == .empty)
+        #expect(decoded.meta.offerFunnel == .empty)
+        #expect(decoded == original, "el resto de la partida, intacto")
+    }
+
+    @Test("basura en adRevenue u offerFunnel vale vacío y no toca la partida")
+    func garbageMeasurementDecodesEmpty() throws {
+        let garbage: [Any] = [42, "x", ["formats": "no"], ["sites": ["a": ["shown": "muchos"]]], [1, 2]]
+        for value in garbage {
+            let (original, data) = try v7Blob(adRevenue: value, offerFunnel: value)
+            let decoded = try JSONDecoder().decode(PlayerState.self, from: data)
+            #expect(decoded.meta.adRevenue == .empty)
+            #expect(decoded.meta.offerFunnel == .empty)
+            #expect(decoded.run.coins == 4242)
+            #expect(decoded.meta.blue == 17)
+            #expect(decoded == original)
+        }
+    }
+
+    @Test("un save con ledger y embudo hace ida y vuelta igual, sin subir el schema")
+    func measurementRoundTrips() throws {
+        var state = fxState()
+        state.meta.adRevenue.record(AdImpression(
+            format: .interstitial, site: "adBreak", valueMicros: 31_415, currency: "USD",
+            precision: .precise, adSource: nil, at: 1_760_000_000
+        ))
+        state.meta.offerFunnel.record(.accepted, site: "double.offline")
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .sortedKeys
+        let data = try encoder.encode(state)
+        let decoded = try JSONDecoder().decode(PlayerState.self, from: data)
+        #expect(decoded == state)
+        #expect(try encoder.encode(decoded) == data)
+        #expect(decoded.schemaVersion == PlayerState.currentSchemaVersion)
+        #expect(PlayerState.currentSchemaVersion == 7)
+    }
+
     @Test("una cuenta nueva nace en v7, sin nada que reconstruir ni pestañas heredadas")
     func newGameIsV7() {
         let state = fxState()

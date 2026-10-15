@@ -2,9 +2,11 @@ import Foundation
 import Testing
 @testable import FisuEvolution
 
-/// El manifiesto de privacidad que viaja en el bundle: lo que el ranking de la
-/// llegada a Dios recolecta (el `installId` y el nombre), sin vínculo ni
-/// seguimiento. Tiene que coincidir con la App Privacy de App Store Connect.
+/// El manifiesto de privacidad que viaja en el bundle: lo que el código de la app
+/// recolecta —el ranking de la llegada a Dios (el `installId` y el nombre) y la
+/// telemetría anónima de E15 (sesiones, ofertas, impresiones y compras)—, sin
+/// vínculo ni seguimiento. Dice la verdad del binario aunque el interruptor de la
+/// telemetría esté apagado. Tiene que coincidir con la App Privacy de App Store Connect.
 @Suite("El manifiesto de privacidad")
 struct PrivacyManifestTests {
     private var manifest: [String: Any] {
@@ -19,10 +21,24 @@ struct PrivacyManifestTests {
         manifest["NSPrivacyCollectedDataTypes"] as? [[String: Any]] ?? []
     }
 
-    @Test("declara exactamente el identificador del dispositivo y el contenido de usuario")
-    func declaresTheRankingData() {
-        let types = Set(collected.compactMap { $0["NSPrivacyCollectedDataType"] as? String })
-        #expect(types == ["NSPrivacyCollectedDataTypeDeviceID", "NSPrivacyCollectedDataTypeOtherUserContent"])
+    /// Cada tipo con sus propósitos: el ranking es funcionalidad de la app y la
+    /// telemetría (C4 de E15) es analítica propia. El `installId` sirve a los dos.
+    private static let expectedPurposes: [String: Set<String>] = [
+        "NSPrivacyCollectedDataTypeDeviceID": [
+            "NSPrivacyCollectedDataTypePurposeAppFunctionality",
+            "NSPrivacyCollectedDataTypePurposeAnalytics",
+        ],
+        "NSPrivacyCollectedDataTypeOtherUserContent": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"],
+        "NSPrivacyCollectedDataTypeProductInteraction": ["NSPrivacyCollectedDataTypePurposeAnalytics"],
+        "NSPrivacyCollectedDataTypeAdvertisingData": ["NSPrivacyCollectedDataTypePurposeAnalytics"],
+        "NSPrivacyCollectedDataTypePurchaseHistory": ["NSPrivacyCollectedDataTypePurposeAnalytics"],
+    ]
+
+    @Test("declara exactamente lo del ranking y lo de la telemetría, una vez cada tipo")
+    func declaresTheRankingAndTelemetryData() {
+        let types = collected.compactMap { $0["NSPrivacyCollectedDataType"] as? String }
+        #expect(Set(types) == Set(Self.expectedPurposes.keys))
+        #expect(types.count == Set(types).count, "un tipo repetido: Apple los quiere en una sola entrada")
     }
 
     @Test("ninguno está vinculado a la identidad ni se usa para seguimiento")
@@ -34,11 +50,13 @@ struct PrivacyManifestTests {
         }
     }
 
-    @Test("el único propósito es la funcionalidad de la app")
-    func appFunctionalityOnly() {
+    @Test("cada tipo declara exactamente sus propósitos")
+    func purposesPerType() {
         for entry in collected {
-            #expect(entry["NSPrivacyCollectedDataTypePurposes"] as? [String]
-                    == ["NSPrivacyCollectedDataTypePurposeAppFunctionality"])
+            let type = entry["NSPrivacyCollectedDataType"] as? String ?? "?"
+            let purposes = entry["NSPrivacyCollectedDataTypePurposes"] as? [String] ?? []
+            #expect(Set(purposes) == Self.expectedPurposes[type], "\(type) declara \(purposes)")
+            #expect(purposes.count == Set(purposes).count, "\(type) repite un propósito")
         }
     }
 

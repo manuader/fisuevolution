@@ -217,6 +217,53 @@ revisión según el riesgo.
   hoja (SE y Pro Max, en español y en inglés) con un personaje de texto largo (Fondo Buitre Estelar). Revisión:
   sonnet.
 
+
+### B17 — Caja, colchón y los que caminan por el centro, 20 pt más abajo (pedido del dueño, 2026-10-15)
+- En el tablero, la caja y el colchón (`PickupLayout`) y los personajes que caminan por el medio de la pantalla
+  (visitantes y especiales sobre `StageLayout.standY`) quedan un poco altos: **bajan ~20 pt** («20 píxeles», dijo
+  el dueño; se toma en puntos).
+- Un único ajuste en el horizonte de B3 (p. ej. `StageLayout.walkDrop = 20` aplicado a `standY` y a
+  `PickupLayout.baselineY`), no un parche por escenario. Sin pisar la barra inferior ni las hileras (D14), y con
+  los topes de B3 en el SE (moon/mars/galaxy).
+- **Listo cuando:** los tests de `StageLayoutTests`/`PickupLayoutTests` pinean el corrimiento y que nada pasa
+  debajo de `floorBottom`; capturas SE y Pro Max de 3 escenarios (alley, luxury, moon) con caja, colchón y un
+  visitante. Revisión: sonnet. Va junto con B18 o antes (tocan `PickupLayout`).
+
+### B18 — Cada caja pertenece a un piso y trae a alguien de ese piso (pedido del dueño, 2026-10-15)
+- **Hoy:** `PackagesState.waiting` es un contador; el contenido se sortea al abrir (`PackageRoller.typeOdds`) y
+  la caja se dibuja en el piso que estés mirando. Al cambiar de piso la caja «flota» entre pisos en la transición.
+- **Qué cambia:**
+  1. **El contenido se decide cuando la caja aparece** (mismo sorteo de hoy: `eligibleTypes` + `typeOdds`, con
+     las chances de hoy). El tipo sorteado define **el piso de la caja**: el piso de ese personaje (p. ej. una
+     Fisura → el callejón; el dueño de pyme → el piso de lujo que le corresponde por `floorTable`).
+  2. **La caja cae sólo en ese piso**, en un **lugar aleatorio** del piso (x al azar dentro de la franja válida de
+     `PickupLayout`, sin pisar otras cajas, el colchón, los visitantes ni las columnas; D14), y **se queda ahí**:
+     persistida en el save con su piso, su tipo y su posición. Al cambiar de piso se va con su piso (ya no flota en
+     la transición) y al volver sigue en el mismo lugar.
+  3. **Abrir una caja de un piso da sí o sí ese personaje de ese piso** (el que se sorteó al aparecer). Si al abrir
+     el piso está lleno, aplica lo de hoy (C28 punto 4 / B5: no se abre y sale el aviso arriba).
+  4. Varias cajas a la vez: cada una en su piso (pueden ser varias en el mismo piso, apiladas o separadas como hoy
+     con `stackStep`).
+- **Save:** `PackagesState` pasa de `waiting: Int` a una lista de cajas `[{floor, typeId, x}]` (campo nuevo
+  opcional, sin cambiar la versión). **Migración:** un save viejo con `waiting = N` sortea al cargar N cajas con
+  la regla nueva (o, si no hay candidatos, las deja como «sin asignar» y se sortean cuando haya lugar). Test de ida
+  y vuelta y de save viejo.
+- **Decisiones por default (el relevo no las re-pregunta; el dueño puede cambiarlas):**
+  - La columna y Regalos (D5) abren la caja **del piso que estás mirando**; si en ese piso no hay, **te llevan al
+    piso de la caja más vieja** y la abren ahí. La pantalla de C28 (la primera vez, B5) muestra **sólo la cara del
+    personaje que trae** esa caja (ya no la tabla de chances, porque el contenido está decidido) — o «?» si se
+    quiere mantener la sorpresa: default = mostrar la cara chica con «¡Llega a tu piso N!».
+  - El ascensor marca con un ícono chico los pisos con cajas (como la marca de visitantes de B7).
+  - Lluvia de paquetes (`package_rain`) y premios que dan cajas: cada caja se sortea y cae en su piso.
+- **Pacing:** el sorteo pasa del momento de abrir al de aparecer (con el estado de ese momento). Correr el
+  pacing-sim; Dios tiene que seguir en ~45 h (anotar en `balance-log.md`). EconomyKit con mutantes.
+- **Listo cuando:** tests de EK (el sorteo al aparecer fija piso y tipo; abrir da ese tipo; migración del save
+  viejo; persistencia entre cambios de piso), unit de `PickupController` (la caja sólo se dibuja en su piso, en su
+  x, no flota en la transición), UI test (cae una caja de otro piso → no se ve en el callejón; subís con el ascensor
+  → está; la abrís → llega el personaje de ese piso) y capturas SE/Pro Max de dos pisos con cajas. Revisión:
+  **opus** (save, plata, pacing). Archivos: EK `PackagesState`/`PackageRoller`/scheduler de paquetes,
+  `GameState+Packages`, `PickupController`/`PickupNode`/`PickupLayout`, `PackagePopupView`, el ascensor (marca).
+
 ---
 
 ## Orden (≤ 2 compilando)

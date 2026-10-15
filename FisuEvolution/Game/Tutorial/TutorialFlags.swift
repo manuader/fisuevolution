@@ -19,6 +19,13 @@ enum TutorialFlags {
     /// El "¡Nuevo!" de las pestañas (E3a T9, `GameState.newTabsKey`): una partida nueva las
     /// vuelve a cerrar, así que sus "¡Nuevo!" también se van.
     static let newTabsKey = "tabs.new"
+    /// El jugador ya jugaba con la barra vieja (Tienda de pestaña propia, Ranking en la barra): la
+    /// migración la enciende junto con el Tour. Sólo a él le sirve la lección `tabsMoved`.
+    static let knewOldBarKey = "tutorial.v2.knewOldBar"
+
+    static func knewOldBar(in defaults: UserDefaults = .standard) -> Bool {
+        defaults.bool(forKey: knewOldBarKey)
+    }
 
     static func lessonKey(_ id: String) -> String { lessonPrefix + id }
 
@@ -65,6 +72,7 @@ enum TutorialFlags {
         for key in milestoneKeys { defaults.set(false, forKey: key) }
         defaults.removeObject(forKey: sessionsAfterCoreKey)
         defaults.removeObject(forKey: newTabsKey)
+        defaults.removeObject(forKey: knewOldBarKey)
         defaults.removeObject(forKey: legacyCompletedKey)
         setCoreCompleted(false, in: defaults)
         setTourPending(false, in: defaults)
@@ -89,7 +97,11 @@ enum TutorialFlags {
         // Sólo se enciende, nunca se apaga: el `false` es el default, y el host de los tests
         // comparte los defaults (un test que arma "núcleo hecho" no puede perderlo en el arranque).
         if plan.coreCompleted { setCoreCompleted(true, in: defaults) }
-        if plan.tourPending { setTourPending(true, in: defaults) }
+        if plan.tourPending {
+            setTourPending(true, in: defaults)
+            // Quien recibe el Tour es el veterano: conoció la barra de antes de B26.
+            defaults.set(true, forKey: knewOldBarKey)
+        }
         for id in plan.lessonsDone { markLessonDone(id, in: defaults) }
         defaults.set(plan.version, forKey: versionKey)
         defaults.removeObject(forKey: legacyCompletedKey)

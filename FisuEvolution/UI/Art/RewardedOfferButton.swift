@@ -147,7 +147,10 @@ struct RewardedOfferButton: View {
         let funnel = self.funnel
         let started = offer.tap(ads: ads, placement: placement, onRewarded: Self.releasing(isBusy, then: onRewarded),
                                 onFinished: { earned in
-                                    finished(earned, attempt: ads.lastRewardedAttempt, funnel: funnel)
+                                    // Corre dentro del `Task` de `RewardedOffer`: cancelado es que la hoja se
+                                    // cerró con «Cargando…» y `offer.cancel()` cortó la espera.
+                                    finished(earned, attempt: ads.lastRewardedAttempt, cancelled: Task.isCancelled,
+                                             funnel: funnel)
                                 })
         if started {
             track(.tapped)
@@ -156,15 +159,16 @@ struct RewardedOfferButton: View {
     }
 
     /// El anuncio volvió. Corre aunque el botón ya no esté: `completed`/`unfilled` no dependen de su estado.
-    private func finished(_ earned: Bool, attempt: RewardedAttempt, funnel: OfferFunnelReporter) {
-        track(Self.outcome(earned: earned, attempt: attempt), to: funnel)
+    private func finished(_ earned: Bool, attempt: RewardedAttempt, cancelled: Bool, funnel: OfferFunnelReporter) {
+        track(Self.outcome(earned: earned, attempt: attempt, cancelled: cancelled), to: funnel)
         onWatchEnded(earned)
     }
 
-    /// Cómo terminó el intento, para el embudo.
-    static func outcome(earned: Bool, attempt: RewardedAttempt) -> OfferFunnelTracker.Transition {
+    /// Cómo terminó el intento, para el embudo. Cortar la espera de la carga (`cancelled`) también deja
+    /// `.noInventory` en el proveedor, pero no fue falta de video: es un abandono, no un `unfilled`.
+    static func outcome(earned: Bool, attempt: RewardedAttempt, cancelled: Bool) -> OfferFunnelTracker.Transition {
         if earned { return .earned }
-        return attempt == .noInventory ? .noInventory : .endedWithoutReward
+        return attempt == .noInventory && !cancelled ? .noInventory : .endedWithoutReward
     }
 
     private func track(_ transition: OfferFunnelTracker.Transition, to reporter: OfferFunnelReporter? = nil) {

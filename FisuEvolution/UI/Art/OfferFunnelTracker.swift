@@ -10,6 +10,17 @@ import SwiftUI
 ///   botón suele haberse ido de la pantalla (y con él su estado).
 /// - `dismissed` al irse, sólo si se mostró y nadie lo aceptó. Con un video en curso irse no cuenta
 ///   ni cierra la aparición: AdMob presenta encima de la hoja y SwiftUI puede darla por desaparecida.
+///
+/// Límites al leer los números:
+/// - `accepted / shown` puede pasar de 1: cada reintento (después de un `unfilled` o de cerrar el
+///   video a la mitad) es otro `accepted` dentro de la misma aparición.
+/// - En Regalos cuentan `shown` también las filas fuera de pantalla: la lista es un `VStack` (no
+///   `LazyVStack`) que arma todos sus botones al abrir, y el sondeo los da por mostrados aunque el
+///   jugador no haya bajado hasta ellos.
+/// - Un toque que choca con otro anuncio en curso (`.busy`) cuenta `accepted` y termina como
+///   abandono, sin `completed` ni `unfilled`.
+/// - El tracker vive en un `@State` del botón: si SwiftUI desmonta el paso 2 de B29 mientras AdMob
+///   presenta, el botón que vuelve arranca de cero y puede contar otro `shown` de la misma oferta.
 struct OfferFunnelTracker: Equatable {
     enum Transition: Equatable {
         /// El sondeo encontró el video listo: el botón ofrece.

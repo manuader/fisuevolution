@@ -21,12 +21,20 @@ struct TutorialFlagsTests {
         #expect(plan?.tourPending == true)
         #expect(TutorialFlags.coreCompleted(in: defaults))
         #expect(TutorialFlags.tourPending(in: defaults))
+        #expect(TutorialFlags.knewOldBar(in: defaults), "el veterano conoció la barra vieja")
         #expect(TutorialFlags.isLessonDone("store", in: defaults))
         #expect(TutorialFlags.isLessonDone("upgrades", in: defaults))
         #expect(defaults.integer(forKey: TutorialFlags.versionKey) == TutorialFlags.currentVersion)
         #expect(defaults.object(forKey: TutorialFlags.legacyCompletedKey) == nil, "la bandera vieja se va")
         #expect(TutorialFlags.migrate(hasSave: true, veteranKnownLessons: [], in: defaults) == nil,
                 "la segunda vez no hace nada")
+    }
+
+    @Test("una instalación nueva no conoció la barra vieja")
+    func freshInstallDidNotKnowTheOldBar() {
+        let defaults = scratch()
+        TutorialFlags.migrate(hasSave: false, veteranKnownLessons: ["upgrades"], in: defaults)
+        #expect(!TutorialFlags.knewOldBar(in: defaults))
     }
 
     @Test("una lección del blue hecha con su bandera vieja sigue hecha y no se repite")
@@ -52,6 +60,7 @@ struct TutorialFlagsTests {
         defaults.set(true, forKey: "ftue.merged")
         defaults.set(3, forKey: TutorialFlags.sessionsAfterCoreKey)
         defaults.set(["skins"], forKey: TutorialFlags.newTabsKey)
+        defaults.set(true, forKey: TutorialFlags.knewOldBarKey)
         defaults.set(["en"], forKey: "AppleLanguages")
         defaults.set("en", forKey: "settings.language")
         defaults.set(false, forKey: "settings.notificationsEnabled")
@@ -65,6 +74,7 @@ struct TutorialFlagsTests {
         #expect(!defaults.bool(forKey: "ftue.merged"))
         #expect(defaults.object(forKey: TutorialFlags.sessionsAfterCoreKey) == nil)
         #expect(defaults.object(forKey: TutorialFlags.newTabsKey) == nil)
+        #expect(!TutorialFlags.knewOldBar(in: defaults), "una partida nueva no conoció la barra vieja")
         #expect(defaults.integer(forKey: TutorialFlags.versionKey) == TutorialFlags.currentVersion,
                 "una partida borrada no es un veterano: no vuelve a pedir el Tour")
         #expect(defaults.stringArray(forKey: "AppleLanguages") == ["en"])

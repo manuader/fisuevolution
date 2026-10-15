@@ -31,6 +31,8 @@ struct WheelView: View {
     @State private var videoBusy = false
     /// El clip de festejo corre (el giro terminó y falta que las luces acaben).
     @State private var celebrating = false
+    /// Cómo se pagó el giro que está a la vista: sólo el gratis ofrece su ×2 al cobrar (E14b B29).
+    @State private var resultSource: WheelSpinSource?
 
     private var resolving: Bool { latch.isLocked }
 
@@ -60,6 +62,8 @@ struct WheelView: View {
             ads.preloadRewarded(for: .wheel)
             storefrontAllows = await LootBoxGate.current()
         }
+        // «Repetir premio» es el paso 2 de los giros gratis, adentro de la hoja.
+        .modifier(RewardDoubleLayer(host: .wheel))
     }
 
     private static let resultAnchor = "wheel.result.card"
@@ -172,10 +176,6 @@ struct WheelView: View {
                         if availability.canPayBlue { start(.blue) }
                     }
                 }
-                if availability.canRepeat, result != nil {
-                    RewardedOfferButton(title: String(localized: "wheel.repeat"), identifier: "wheel.repeat",
-                                        placement: .wheel, isBusy: $videoBusy, gameRole: .video) { repeatPrize() }
-                }
             }
         }
     }
@@ -192,7 +192,7 @@ struct WheelView: View {
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("wheel.result")
                     .accessibilityValue(Text(verbatim: outcome.segment.id))
-                GameButton("wheel.collect", role: .free, identifier: "wheel.collect") { result = nil }
+                GameButton("wheel.collect", role: .free, identifier: "wheel.collect") { collect(outcome) }
             }
             .frame(maxWidth: .infinity)
         }
@@ -215,6 +215,7 @@ struct WheelView: View {
               let outcome = gameState.beginWheelSpin(source, latch: &latch, storefrontAllows: storefrontAllows)
         else { return }
         result = nil
+        resultSource = source
         let arcs = WheelGeometry.arcs(count: outcome.segments.count)
         let target = WheelGeometry.stopRotation(from: resting, arc: arcs[outcome.index], turns: Self.turns,
                                                 landing: .random(in: 0...1))
@@ -255,14 +256,16 @@ struct WheelView: View {
         }
     }
 
-    private func repeatPrize() {
-        guard spin == nil, !resolving, let outcome = gameState.repeatWheelPrize() else { return }
-        result = outcome
+    /// Cobrar (paso 1) y, si el giro fue gratis, su ×2 con video (paso 2).
+    private func collect(_ outcome: WheelSpinOutcome) {
+        result = nil
+        if let source = resultSource { gameState.offerWheelDouble(outcome, source: source) }
+        resultSource = nil
     }
 }
 
-/// Quién puede tirar la rueda: nadie mientras gira, y mientras corre un video
-/// (el de «repetir» o el del giro por video) sólo el giro que ese video paga.
+/// Quién puede tirar la rueda: nadie mientras gira, y mientras corre el video
+/// del giro por video sólo el giro que ese video paga.
 /// Un giro por video llega cuando el video ya se miró, pero `videoBusy` se
 /// apaga recién en el próximo ciclo: no puede trabar el premio.
 enum WheelSpinGate {

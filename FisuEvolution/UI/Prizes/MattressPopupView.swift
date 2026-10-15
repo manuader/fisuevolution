@@ -61,12 +61,22 @@ struct MattressPopupView: View {
         if !watching { onClose() }
     }
 
+    /// Cobrar (paso 1); el de regalo ofrece después su ×2 con video (paso 2, E14b B29).
+    private func collect(_ outcome: MattressOutcome) {
+        guard !watching else { return }
+        onClose()
+        gameState.offerMattressDouble(outcome)
+    }
+
     var body: some View {
         let outcome = gameState.mattressPopup?.outcome
         // Abierto en el tablero, la animación ya se vio allá: el premio sale directo (E14b B6).
         let stage = MattressStage(hasOutcome: outcome != nil,
                                   revealed: revealed || gameState.mattressPopup?.openedOnBoard == true)
-        PopupContainer("mattress.title", ribbonTint: Color("PaletteOrange"), onClose: close) {
+        PopupContainer("mattress.title", ribbonTint: Color("PaletteOrange"), onClose: {
+            // Con el premio a la vista, la X también cobra (y el de regalo ofrece su ×2).
+            if let outcome, stage == .revealed { collect(outcome) } else { close() }
+        }) {
             if stage == .opening {
                 tapTheMattress
             } else if let outcome {
@@ -82,7 +92,9 @@ struct MattressPopupView: View {
                         if outcome.extraOpensLeft > 0 {
                             extraButton
                         }
-                        GameButton("mattress.collect", role: .free, identifier: "mattress.collect", action: close)
+                        GameButton("mattress.collect", role: .free, identifier: "mattress.collect") {
+                            collect(outcome)
+                        }
                     }
                 } else if gameState.mattressPopup?.extraOnly == true {
                     extraButton

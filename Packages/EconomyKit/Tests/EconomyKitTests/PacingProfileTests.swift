@@ -275,7 +275,7 @@ struct PacingAdsSourcesTests {
         #expect(none.videos == 0 && none.video == 0)
     }
 
-    @Test("la ruleta: giros del día, y el repetir premio es otro video por giro")
+    @Test("la ruleta: giros del día por video, sin «repetir premio» porque ya costaron uno (E14b B29)")
     func wheelSpinsAndRepeats() throws {
         let wheel = WheelConfig(
             schemaVersion: 1, videoSpinsPerDay: 3, blueSpinCost: 1, blueSpinsPerDay: 0, spinSeconds: 1,
@@ -286,10 +286,28 @@ struct PacingAdsSourcesTests {
         let single = try run(quiet { $0.wheel = wheel })
         let repeating = try run(quiet { $0.wheel = wheel; $0.wheelRepeats = true })
         #expect(single.sourceTotals["videos"] == 3)
-        #expect(repeating.sourceTotals["videos"] == 6)
+        #expect(repeating.sourceTotals["videos"] == 3)
         // Sin pintas que dar, el peso del cofre se va a la plata: 3 × 300 s.
         #expect((single.sourceTotals["coins.wheel"] ?? 0) > 0)
-        #expect((repeating.sourceTotals["coins.wheel"] ?? 0) > (single.sourceTotals["coins.wheel"] ?? 0))
+        #expect(repeating.sourceTotals["coins.wheel"] == single.sourceTotals["coins.wheel"])
+    }
+
+    @Test("el giro regalado (de un premio) sí ofrece su «repetir premio»: otro video y el mismo sorteo")
+    func freeSpinsRepeat() throws {
+        let wheel = WheelConfig(
+            schemaVersion: 1, videoSpinsPerDay: 0, blueSpinCost: 1, blueSpinsPerDay: 0, spinSeconds: 1,
+            chestFallbackSegmentId: "plata", segments: [.init(id: "plata", weight: 1, reward: .coinsSeconds(300))]
+        )
+        let treasures = TreasuresConfig(
+            schemaVersion: 1, spawnIntervalSeconds: 300, firstTreasureAfterSeconds: 300, extraOpensPerTreasure: 0,
+            prizes: [.init(id: "giro", weight: 1, rewards: [.wheelSpin(1)])]
+        )
+        let single = try run(quiet { $0.wheel = wheel; $0.treasures = treasures })
+        let repeating = try run(quiet { $0.wheel = wheel; $0.treasures = treasures; $0.wheelRepeats = true })
+        let mattressVideos = try #require(single.sourceTotals["videos"])
+        #expect(mattressVideos > 0)
+        #expect(repeating.sourceTotals["videos"] == 2 * mattressVideos, "un video por colchón y otro por su giro")
+        #expect((repeating.sourceTotals["coins.wheel"] ?? 0) > 1.9 * (single.sourceTotals["coins.wheel"] ?? 0))
     }
 
     @Test("el colchón: cada apertura es un video, con sus 'otro colchón'")
@@ -324,6 +342,24 @@ struct PacingAdsSourcesTests {
         #expect(abs((gifted.sourceTotals["videos"] ?? 0) - 0.75 * paidVideos) < 1e-9)
         #expect(abs((giftedExtra.sourceTotals["videos"] ?? 0) - 1.75 * paidVideos) < 1e-9)
         #expect((gifted.sourceTotals["coins.mattress"] ?? 0) > 0)
+    }
+
+    @Test("el colchón de regalo ofrece su ×2 con video al cobrarlo (E14b B29): un video y el premio otra vez")
+    func giftedMattressDoubles() throws {
+        let treasures = TreasuresConfig(
+            schemaVersion: 1, spawnIntervalSeconds: 300, firstTreasureAfterSeconds: 300,
+            extraOpensPerTreasure: 0, giftOneIn: 4,
+            prizes: [.init(id: "plata", weight: 1, rewards: [.coinsSeconds(600)])]
+        )
+        let paid = try run(quiet { $0.treasures = TreasuresConfig(
+            schemaVersion: 1, spawnIntervalSeconds: 300, firstTreasureAfterSeconds: 300,
+            extraOpensPerTreasure: 0, prizes: treasures.prizes
+        ) })
+        let plain = try run(quiet { $0.treasures = treasures })
+        let doubled = try run(quiet { $0.treasures = treasures; $0.giftDoubles = true })
+        let paidVideos = try #require(paid.sourceTotals["videos"])
+        #expect(abs((doubled.sourceTotals["videos"] ?? 0) - paidVideos) < 1e-9, "0,75 pagados + 0,25 del ×2")
+        #expect((doubled.sourceTotals["coins.mattress"] ?? 0) > (plain.sourceTotals["coins.mattress"] ?? 0))
     }
 
     @Test("Fusionar todo: sólo con ficha, y sólo cuando la tanda hace dos fusiones o más")

@@ -52,6 +52,11 @@ struct RewardedOfferButton: View {
     var gameRole: GameButton.Role = .video
     /// Chico y sin medallón, para la fila de cartas del Vendedor (tres en el SE).
     var gameCompact = false
+    /// El ciclo del video para quien lo sigue fuera de la vista (el paso 2 del ×2, E14b B29): `onWatchStarted`
+    /// al aceptar el toque y `onWatchEnded` cuando el anuncio vuelve —con premio, después de `onRewarded`—,
+    /// aunque el botón ya no esté en pantalla.
+    var onWatchStarted: () -> Void = {}
+    var onWatchEnded: (_ earned: Bool) -> Void = { _ in }
     let onRewarded: () -> Void
 
     @Environment(AdsCoordinator.self) private var ads
@@ -130,7 +135,9 @@ struct RewardedOfferButton: View {
     }
 
     private func tap() {
-        offer.tap(ads: ads, placement: placement, onRewarded: Self.releasing(isBusy, then: onRewarded))
+        let started = offer.tap(ads: ads, placement: placement, onRewarded: Self.releasing(isBusy, then: onRewarded),
+                                onFinished: onWatchEnded)
+        if started { onWatchStarted() }
     }
 
     /// El premio suelta el `isBusy` ANTES de entregarse: `onRewarded` suele sacar

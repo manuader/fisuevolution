@@ -11,10 +11,9 @@ struct AdPlacementMapTests {
     /// Rutas desde `FisuEvolution/`.
     static let map: [String: Set<RewardedPlacement>] = [
         "UI/Gifts/GiftsView.swift": [.gifts, .boost],
-        "UI/Popups/OfflineEarningsView.swift": [.offlineX2],
         "UI/Popups/ChestOpeningView.swift": [.chestExtra],
-        "UI/Popups/DailyRewardView.swift": [.daily],
-        "UI/Popups/CareerChoiceView.swift": [.daily],
+        // El paso 2 de las recompensas gratis (E14b B29): cada fuente cuenta en su unidad.
+        "Game/State/GameState+RewardDouble.swift": [.visitor, .offlineX2, .daily, .wheel, .treasure, .gifts],
         "UI/SideRail/SideRailOfferCard.swift": [.boost, .treasure],
         "UI/Wheel/WheelView.swift": [.wheel],
         "UI/Prizes/MattressPopupView.swift": [.treasure],

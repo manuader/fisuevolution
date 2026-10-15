@@ -24,6 +24,7 @@ extension GameState {
         return VisitValuation(coinsPerSecond: coinsPerProductionSecond, hireCostMultiplier: 1 - discount)
     }
 
+    /// El ×2 nunca va en el primer pop-up: sale después de cobrar (E14b B29, D17).
     func visitOffer(for script: VisitorsConfig.Script) -> VisitOffer? {
         guard let content, let player, let tower else { return nil }
         return VisitPlanner.offer(script, config: content.visitors, state: player, tower: tower,
@@ -164,8 +165,9 @@ extension GameState {
                 checked.rewards, coins: max(0, checked.coins) + grant(checked.rewards, source: source, now: now)
             )
             revealGossip()
+            offerVisitDouble(scriptId: offer.scriptId, coins: checked.coins, rewards: checked.rewards, source: source)
             return true
-        case .accept, .acceptWithVideo, .payBail, .release, .payFine, .forgiveWithVideo, .sell, .exchange, .card:
+        case .accept, .payBail, .release, .payFine, .forgiveWithVideo, .sell, .exchange, .card:
             creditCoins(checked.coins)
             announceReward(
                 checked.rewards, coins: max(0, checked.coins) + grant(checked.rewards, source: source, now: now)
@@ -177,17 +179,19 @@ extension GameState {
             if checked.kind == .release { playCinematicIfDue(.arresto) }
             for change in checked.departures { enqueueBoardChange(change) }
             finishVisit(saying: "visit.thanks")
+            if checked.kind == .accept {
+                offerVisitDouble(scriptId: offer.scriptId, coins: checked.coins, rewards: checked.rewards,
+                                 departures: checked.departures, source: source)
+            }
             return true
         }
     }
 
     /// El origen de lo que da una opción: con él la barra de bonus le pone la
-    /// cara y la duración (T4). Cada carta del Vendedor dura lo suyo; el "×2 con
-    /// video" tiene su propia fuente porque dura el doble.
+    /// cara y la duración (T4). Cada carta del Vendedor dura lo suyo.
     static func rewardSource(for option: VisitOption, scriptId: String) -> String {
         switch option.kind {
         case .card: "visit.\(scriptId).\(option.id)"
-        case .acceptWithVideo: "visit.\(scriptId).x2"
         case .accept, .payBail, .release, .payFine, .forgiveWithVideo, .sell, .exchange, .startChallenge, .listen:
             "visit.\(scriptId)"
         }
@@ -219,17 +223,10 @@ extension GameState {
         creditCoins(challenge.terms.coins)
         let granted = grant(challenge.terms.rewards, source: "visit.\(challenge.scriptId)", now: now)
         announceReward(challenge.terms.rewards, coins: max(0, challenge.terms.coins) + granted)
-        guard challenge.terms.videoDoubles, var visit = stageVisit else {
-            return finishVisit(saying: "visit.challenge.won")
-        }
-        // El ×2 del reto es OTRA tanda igual, por video: lo ofrece el mismo
-        // visitante, con su chip y su popup, y si no lo querés se va igual.
-        let double = VisitOption(id: "video", kind: .acceptWithVideo, coins: challenge.terms.coins,
-                                 rewards: challenge.terms.rewards, departures: [], requiresVideo: true, challenge: nil)
-        visit.offer = VisitOffer(scriptId: challenge.scriptId, visitorId: visit.actorId, subjectTypeId: nil, options: [double])
-        visit.bubble = VisitCopy.text("visit.challenge.double")
-        stageVisit = visit
-        stageRuntime.patienceLeft = content?.visitors.patienceSeconds ?? 30
+        finishVisit(saying: "visit.challenge.won")
+        // Lo ganado es gratis: el ×2 sale en el paso 2, como el de cualquier regalo (E14b B29).
+        offerVisitDouble(scriptId: challenge.scriptId, coins: challenge.terms.coins, rewards: challenge.terms.rewards,
+                         source: "visit.\(challenge.scriptId)")
     }
 
     /// Cierra el trato: sin oferta (el chip desaparece), una frase y se va al rato.

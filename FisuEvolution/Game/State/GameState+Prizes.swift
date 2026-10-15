@@ -72,8 +72,11 @@ extension GameState {
         wheelSheet = WheelSheet()
     }
 
+    /// El cierre real de la hoja: el paso 2 de la Ruleta que quedó abierto cuenta como «No, gracias»
+    /// (con su video en curso, sólo se anota: E14b B29).
     func closeWheel() {
         wheelSheet = nil
+        declineRewardDouble(host: .wheel)
     }
 
     /// El popup de un visitante terminó de irse. Si su premio fue un giro (el

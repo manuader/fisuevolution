@@ -2498,3 +2498,48 @@ que en el juego no pasa (`PackageRoller.belongs` la vuelve a sortear). Ahora una
 piso no está abierto se sortea de nuevo con el estado del momento; que el piso esté lleno no la invalida.
 `PackageBoxRebirthTests` muere sin el arreglo. EconomyKit: 976 tests en verde. Cifras sin cambio: Dios `.free` 45,40 h,
 `.ads` 30,60 h, `.max` 30,02 h (6 reencarnaciones).
+
+# E14b B29 — toda recompensa gratis en dos pasos: cobrar y después «×2 con video» (2026-10-15, D17)
+
+**Qué cambió:** el pop-up de cada fuente gratis cobra con un solo botón y recién después sale el paso 2,
+`RewardDoubleOffer` («¿Lo duplicás?», «×2 con video», «No, gracias»). Sin video cargado no aparece. Lo que ya costó
+un video o se pagó no tiene paso 2. Para el pacing importan dos cosas:
+
+1. **El giro de la Ruleta por video pierde su «repetir premio».** Ya costó un video (D17). El repetir queda como el
+   paso 2 de los giros gratis (los que dejan los premios). En el simulador, `drainSpins` lo sigue cobrando y los
+   giros diarios por video ya no.
+2. **El colchón de regalo (D4) ofrece su ×2** al cobrarlo: un video más y el premio otra vez, en la parte que llega
+   de regalo (`AdsSources.giftDoubles`, prendido en `SourcesLoader` y en `PacingFixture`).
+
+El offline, el diario y la carrera ya tenían su ×2 (sólo cambia el momento). Los visitantes, los logros y el
+Aguinaldo no mueven la curva del bot, porque el bot no los juega.
+
+**Pacing (medido):**
+
+| Perfil | Dios (h activas) | de pared | blue a Dios | Antes de B29 (B18) |
+|---|---|---|---|---|
+| `.free` | 45,40 | 816,07 | 5.996 | 45,40 (sin cambio) |
+| `.ads` | 32,19 | 576,19 | 7.073 | 30,60. Ahora es el 70,9 % de `.free` (guarda ≥ 65 %) |
+| `.max` | 30,38 | 542,04 | 7.541 | 30,02. Ahora es el 66,9 % (guarda ≥ 55 %) |
+
+Con `--seed-fraction 0.1` y `0.9`: `.free` 45,40 / 45,34 h, `.ads` 32,18 / 32,70 h. Repartido entre las dos
+causas, con `giftDoubles` apagado `.ads` da 32,18 h. Casi toda la diferencia es el giro por video sin repetir; el
+×2 del colchón de regalo mueve centésimas. Dios sigue en ~45 h y no hubo que tocar ningún dato.
+
+**Anuncios (AdMob):** el paso 2 es siempre opt-in y los topes no se tocan:
+- `ads.json` no tiene tope de rewarded. Su `graceSecondsAfterRewarded: 90` ya evita que un forzado caiga después
+  del ×2.
+- `rewarded_ads.json` sólo pone el cooldown de 4 h de los videos de Regalos, que no cambian.
+
+Las impresiones nuevas salen de fuentes que ya tienen su propio ritmo:
+- Visitantes: en el simulador, ~12 visitas por hora activa, y la mitad son regalos, chismes o retos. Antes de B29,
+  7 guiones ya ofrecían el ×2 de entrada. Los nuevos son la factura del Arca, el crédito del Contador, la lengua
+  del Lizard, el chisme de la Vecina y los retos del Zombie y del Coach: unas 2–3 ofertas más por hora activa.
+- Logros: son finitos (39).
+- El Aguinaldo y el colchón de regalo: uno de cada cuatro colchones, cada ~12 min.
+
+El diario y el offline, una vez por día y por vuelta, como antes.
+
+EconomyKit: 980 tests en verde. Los nuevos son `freeSpinsRepeat`, `giftedMattressDoubles` y `theGiftIsMarkedUntilOpened`.
+
+Comando: el de «Cómo re-correr» de la calibración 2.0, con `--profile free | ads | max`.

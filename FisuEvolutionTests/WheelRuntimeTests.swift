@@ -76,22 +76,6 @@ struct WheelRuntimeTests {
         }
     }
 
-    @Test("repetir un cofre que ya no tiene nada que dar da el segmento de respaldo")
-    func repeatingAChestFallsBackToCoins() async throws {
-        let gameState = await makeGameState()
-        let content = try #require(gameState.content)
-        gameState.player?.meta.engagement.wheel = WheelState(day: GameState.wheelDay(noon), repeatableSegmentId: "chest")
-        let unlocked = gameState.chestUnlockedCharacterTypes
-        gameState.player?.meta.milestoneSkins = content.skins.chestPool
-            .filter { unlocked.contains($0.characterType) }.map(\.id)
-        #expect(!gameState.wheelChestHasSomethingToGive)
-        let chests = try #require(gameState.player?.meta.chestsPending)
-        let outcome = try #require(gameState.repeatWheelPrize(now: noon))
-        #expect(outcome.segment.id == content.wheel.chestFallbackSegmentId)
-        #expect(outcome.coins > 0)
-        #expect(gameState.player?.meta.chestsPending == chests)
-    }
-
     @Test("el premio se acredita al girar, antes de cualquier animación")
     func thePrizeIsGrantedOnSpin() async throws {
         let gameState = await makeGameState()
@@ -118,35 +102,6 @@ struct WheelRuntimeTests {
         #expect(wheel.videoSpinsUsed == 1)
         #expect(wheel.repeatableSegmentId == outcome.segment.id)
         #expect(wheel.day == GameState.wheelDay(noon))
-    }
-
-    @Test("repetir da lo mismo, una sola vez por giro")
-    func repeatingOnce() async throws {
-        let gameState = await makeGameState()
-        let outcome = try #require(gameState.spinWheel(.video, now: noon))
-        #expect(gameState.wheelAvailability(storefrontAllows: false, now: noon).canRepeat)
-        let again = try #require(gameState.repeatWheelPrize(now: noon))
-        #expect(again.segment.id == outcome.segment.id)
-        #expect(gameState.repeatWheelPrize(now: noon) == nil)
-        #expect(!gameState.wheelAvailability(storefrontAllows: false, now: noon).canRepeat)
-        #expect(gameState.wheelAvailability(storefrontAllows: false, now: noon).videoLeft == 5, "repetir no gasta un giro")
-    }
-
-    @Test("repetir el premio de plata acredita otra vez; el de blue suma otra vez")
-    func repeatingPaysAgain() async throws {
-        let gameState = await makeGameState()
-        gameState.player?.meta.engagement.wheel = WheelState(day: GameState.wheelDay(noon), repeatableSegmentId: "blue_3")
-        let before = try #require(gameState.player?.meta.blue)
-        #expect(gameState.repeatWheelPrize(now: noon) != nil)
-        #expect(gameState.player?.meta.blue == before + 3)
-    }
-
-    @Test("sin giro previo, o al día siguiente, no hay nada que repetir")
-    func nothingToRepeat() async throws {
-        let gameState = await makeGameState()
-        #expect(gameState.repeatWheelPrize(now: noon) == nil)
-        _ = gameState.spinWheel(.video, now: noon)
-        #expect(gameState.repeatWheelPrize(now: noon + day) == nil)
     }
 
     @Test("el giro con blue cuesta 12, tiene su tope y se apaga donde la tienda no lo permite")
@@ -317,7 +272,6 @@ struct WheelRuntimeTests {
     func noPlayer() {
         let gameState = GameState()
         #expect(gameState.spinWheel(.video) == nil)
-        #expect(gameState.repeatWheelPrize() == nil)
         #expect(gameState.wheelAvailability(storefrontAllows: true) == .none)
     }
 }

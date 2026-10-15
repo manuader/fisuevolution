@@ -60,6 +60,8 @@ struct AchievementsView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) { ArtCloseButton(action: close) }
         }
+        // El ×2 con video de lo que se acaba de cobrar (paso 2, E14b B29), adentro de la hoja.
+        .modifier(RewardDoubleLayer(host: .menu))
     }
 
     // MARK: Cabecera

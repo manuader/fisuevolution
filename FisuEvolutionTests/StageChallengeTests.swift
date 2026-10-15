@@ -6,7 +6,7 @@ import Testing
 @Suite("El reto de toques: lo que dibuja su chip y cómo corre su reloj", .serialized)
 @MainActor
 struct StageChallengeTests {
-    private let terms = ChallengeTerms(taps: 15, windowSeconds: 20, coins: 0, rewards: [], videoDoubles: false)
+    private let terms = ChallengeTerms(taps: 15, windowSeconds: 20, coins: 0, rewards: [])
 
     @Test("el avance es toques sobre la meta, con tope")
     func progress() {

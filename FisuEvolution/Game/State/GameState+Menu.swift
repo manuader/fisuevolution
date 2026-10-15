@@ -22,6 +22,8 @@ extension GameState {
 
     func menuDidClose() async {
         tutorialEngine.openPage = nil
+        // El paso 2 de un logro que quedó abierto: cerrar el Menú es «No, gracias» (E14b B29).
+        declineRewardDouble(host: .menu)
         await naturalBreak(.sheetClosed)
     }
 }

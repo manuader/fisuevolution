@@ -20,11 +20,14 @@ struct GamePopups: ViewModifier {
                 SkinAwardView(award: award, onClose: { gameState.skinAward = nil })
             }
             .gamePopup(item: offlineRewardBinding, onDismiss: {
-                gameState.celebrationFinished(.offlineEarnings)
-                // El jugador acaba de cobrar lo de la noche y todavía no volvió al
-                // juego: un corte natural. El que duplicó con video tiene la gracia
-                // de 90 s de la política.
-                gameState.scheduleNaturalBreak(.offlinePopupDismissed)
+                // Con el ×2 en pantalla (paso 2, E14b B29) la cola y el corte esperan a que se resuelva.
+                gameState.whenRewardDoubleResolved {
+                    gameState.celebrationFinished(.offlineEarnings)
+                    // El jugador acaba de cobrar lo de la noche y todavía no volvió al
+                    // juego: un corte natural. El que duplicó con video tiene la gracia
+                    // de 90 s de la política.
+                    gameState.scheduleNaturalBreak(.offlinePopupDismissed)
+                }
             }) { reward in
                 OfflineEarningsView(reward: reward, onClose: { gameState.dismissOfflineReward() })
             }

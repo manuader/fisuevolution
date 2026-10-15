@@ -53,45 +53,6 @@ struct AdPlacementRewardsTests {
         #expect(!gameState.canDoubleDailyReward(chest))
     }
 
-    @Test("carrera ×2: elegir con video paga el premio de una vez dos veces")
-    func careerTimesTwo() async throws {
-        let once = await makeGameState()
-        once.debugPresentCareerChoice()
-        let before = try #require(once.player?.run.coins)
-        once.chooseCareer(optionId: "junior_lawyer")
-        let lump = try #require(once.player?.run.coins) - before
-
-        let twice = await makeGameState()
-        twice.debugPresentCareerChoice()
-        let start = try #require(twice.player?.run.coins)
-        twice.chooseCareerWithVideo(optionId: "junior_lawyer")
-        let paid = try #require(twice.player?.run.coins) - start
-
-        #expect(lump > 0)
-        #expect(abs(paid - 2 * lump) <= max(1, lump) * 0.0001)
-        #expect(twice.careerPrompt == nil, "se eligió")
-    }
-
-    @Test("sin prompt, con una opción ajena o en el segundo toque, el ×2 no paga")
-    func careerTimesTwoOnlyWhenApplied() async throws {
-        let gameState = await makeGameState()
-        let idle = try #require(gameState.player?.run.coins)
-        gameState.chooseCareerWithVideo(optionId: "junior_lawyer")
-        #expect(try #require(gameState.player?.run.coins) == idle, "sin prompt no paga")
-
-        gameState.debugPresentCareerChoice()
-        gameState.chooseCareerWithVideo(optionId: "no_existe")
-        #expect(try #require(gameState.player?.run.coins) == idle, "opción ajena no paga")
-        #expect(gameState.careerPrompt != nil)
-
-        gameState.chooseCareerWithVideo(optionId: "junior_lawyer")
-        let paid = try #require(gameState.player?.run.coins)
-        let videos = try #require(gameState.player?.meta.stats.videosWatchedEver)
-        gameState.chooseCareerWithVideo(optionId: "junior_lawyer")
-        #expect(try #require(gameState.player?.run.coins) == paid, "el segundo toque no paga")
-        #expect(try #require(gameState.player?.meta.stats.videosWatchedEver) == videos)
-    }
-
     @Test("sólo las carreras con premio de una vez ofrecen el ×2")
     func onlyLumpCareersOffer() async {
         let gameState = await makeGameState()

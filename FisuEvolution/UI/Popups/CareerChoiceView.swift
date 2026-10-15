@@ -22,9 +22,6 @@ struct CareerChoiceView: View {
     @Environment(GameState.self) private var gameState
     let prompt: GameState.CareerPrompt
 
-    /// Con un video en vuelo no se puede elegir otra carrera por abajo.
-    @State private var watching = false
-
     var body: some View {
         // Sin `onClose`: no hay X, la decisión no se cierra sin elegir.
         PopupContainer("career.title") {
@@ -36,24 +33,10 @@ struct CareerChoiceView: View {
             // ciegas entre cuatro botones idénticos no es una elección.
             let rewards = gameState.careerRewards
             VStack(spacing: Tokens.s12) {
+                // Elegir cobra el premio de una vez; su ×2 con video sale después, en su
+                // propio pop-up (paso 2, E14b B29): nunca se ofrece duplicar de entrada.
                 ForEach(prompt.options) { option in
-                    VStack(spacing: Tokens.s4) {
-                        optionRow(option, reward: rewards[option.id]?.previewText)
-                        // El ×2 va APARTE de la tarjeta (que es el control de
-                        // elegir): un video nunca es el mismo botón que la acción.
-                        if gameState.careerLumpMinutes(optionId: option.id) != nil {
-                            RewardedOfferButton(
-                                title: String(localized: "career.double"),
-                                identifier: "career.x2.\(option.id)",
-                                placement: .daily,
-                                isBusy: $watching,
-                                gameRole: .video
-                            ) {
-                                gameState.chooseCareerWithVideo(optionId: option.id)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .trailing)
-                        }
-                    }
+                    optionRow(option, reward: rewards[option.id]?.previewText)
                 }
             }
         }
@@ -63,7 +46,7 @@ struct CareerChoiceView: View {
     /// Una carrera, con la misma anatomía que una fila de FisuJobs.
     private func optionRow(_ option: CharacterType, reward: String?) -> some View {
         Button {
-            if !watching { gameState.chooseCareer(optionId: option.id) }
+            gameState.chooseCareerOfferingDouble(optionId: option.id)
         } label: {
             GameCard {
                 HStack(spacing: Tokens.s12) {

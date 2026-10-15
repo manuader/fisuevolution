@@ -148,6 +148,9 @@ final class AdMobAdsProvider: AdsProvider {
         }
     }
 
+    /// Cuánto se espera un premio que el SDK de una red mediada avisa después de `adDidDismiss`.
+    static let lateRewardGrace: Duration = .seconds(1)
+
     /// ⚠️ **No devuelve `false` en el acto si el video no está.** Espera la
     /// carga en curso —o la arranca— hasta `AdLoadWait.rewardedTimeout` y
     /// presenta apenas llega: antes el primer toque pedía el video y se rendía,
@@ -176,6 +179,13 @@ final class AdMobAdsProvider: AdsProvider {
         defer { presentation.onWillPresent = nil }
         await presentation.present {
             ad.present(from: nil) { earnedReward = true }
+        }
+        // Con mediación el premio puede llegar DESPUÉS del cierre (ver arriba): una gracia corta antes de
+        // darlo por no ganado. Mientras tanto quien espera el video (el paso 2 del ×2, E14b B29) sigue
+        // «mirando» y nada lo rechaza.
+        let graceEnds = ContinuousClock.now + Self.lateRewardGrace
+        while !earnedReward, lastRewardedAttempt == .presented, ContinuousClock.now < graceEnds {
+            try? await Task.sleep(for: .milliseconds(100))
         }
 
         // Reponer inventario para la próxima, gane o no gane.

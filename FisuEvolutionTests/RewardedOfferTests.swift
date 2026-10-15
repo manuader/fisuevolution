@@ -64,6 +64,21 @@ struct RewardedOfferTests {
         #expect(paid == 1)
     }
 
+    @Test("el fin del intento se avisa siempre, después del premio: con premio, sin premio y sin inventario")
+    func finishIsAlwaysReported() async {
+        for (earns, inventory, expected) in [(true, true, true), (false, true, false), (true, false, false)] {
+            let (offer, ads, _) = make {
+                $0.earnsReward = earns
+                $0.hasInventory = inventory
+            }
+            var events: [String] = []
+            offer.tap(ads: ads, placement: .gifts, onRewarded: { events.append("paid") },
+                      onFinished: { events.append("finished:\($0)") })
+            await offer.settle()
+            #expect(events == (expected ? ["paid", "finished:true"] : ["finished:false"]))
+        }
+    }
+
     @Test("sin inventario: avisa, no paga, y no gasta la gracia del próximo anuncio")
     func noInventorySaysSoAndSpendsNothing() async {
         let (offer, ads, provider) = make { $0.hasInventory = false }

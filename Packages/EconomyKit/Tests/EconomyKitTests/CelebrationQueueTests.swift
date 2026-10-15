@@ -274,6 +274,34 @@ struct CelebrationQueueTests {
         #expect(queue.current == nil, "y al terminar, nada no-permitido lo reemplaza")
     }
 
+    // MARK: La retención (el paso 2 del ×2, E14b B29)
+
+    @Test("lo retenido espera sin perderse y soltarlo lo promueve")
+    func heldKindsWaitAndPromoteOnRelease() {
+        var queue = CelebrationQueue()
+        queue.hold([.skinAward, .boardCelebration])
+        queue.enqueue(.skinAward)
+        queue.enqueue(.towerNotice)
+        #expect(queue.current == .towerNotice, "lo que no se retiene sigue su curso")
+        queue.finish(.towerNotice)
+        #expect(queue.current == nil, "la skin espera")
+        queue.hold([])
+        #expect(queue.current == .skinAward, "soltar la retención la promueve en el acto")
+    }
+
+    @Test("la retención se suma a la restricción del tutorial sin pisarla")
+    func holdComposesWithRestriction() {
+        var queue = CelebrationQueue()
+        queue.restrict(to: [.boardCelebration])
+        queue.hold([.boardCelebration])
+        queue.enqueue(.boardCelebration)
+        queue.enqueue(.dailyReward)
+        #expect(queue.current == nil)
+        queue.hold([])
+        #expect(queue.current == .boardCelebration, "la restricción sigue mandando: el daily espera")
+        #expect(queue.allowedKinds == [.boardCelebration])
+    }
+
     // MARK: El cofre
 
     /// El cofre llega ANTES que el reveal y sale igual DESPUÉS: la prioridad

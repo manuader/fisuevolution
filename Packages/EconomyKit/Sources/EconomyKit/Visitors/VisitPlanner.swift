@@ -19,14 +19,12 @@ public struct ChallengeTerms: Sendable, Equatable {
     public let windowSeconds: Double
     public let coins: Double
     public let rewards: [RewardSpec]
-    public let videoDoubles: Bool
 
-    public init(taps: Int, windowSeconds: Double, coins: Double, rewards: [RewardSpec], videoDoubles: Bool) {
+    public init(taps: Int, windowSeconds: Double, coins: Double, rewards: [RewardSpec]) {
         self.taps = taps
         self.windowSeconds = windowSeconds
         self.coins = coins
         self.rewards = rewards
-        self.videoDoubles = videoDoubles
     }
 }
 
@@ -34,7 +32,7 @@ public struct ChallengeTerms: Sendable, Equatable {
 /// además, a quién se lleva y si pide un video.
 public struct VisitOption: Sendable, Equatable, Identifiable {
     public enum Kind: String, Sendable, CaseIterable {
-        case accept, acceptWithVideo, payBail, release, payFine, forgiveWithVideo
+        case accept, payBail, release, payFine, forgiveWithVideo
         case sell, exchange, startChallenge, card, listen
     }
 
@@ -140,14 +138,10 @@ public enum VisitPlanner {
         }
 
         switch script.mechanic {
-        case let .gift(rewards, videoDoubles):
+        case .gift(let rewards, _):
+            // El ×2 con video sale después de cobrar, en el paso 2 de la app (E14b B29), nunca de entrada.
             let base = priced(rewards)
-            var options = [option("accept", .accept, coins: base.coins, rewards: base.others)]
-            if videoDoubles {
-                let doubled = priced(rewards.map { $0.scaled(by: 2) })
-                options.append(option("video", .acceptWithVideo, coins: doubled.coins, rewards: doubled.others, video: true))
-            }
-            return make(options)
+            return make([option("accept", .accept, coins: base.coins, rewards: base.others)])
 
         case let .arrest(unitPick, bailMultiplier, releaseMultiplier):
             guard let unit = pick(unitPick, count: 1), let price = replacement(unit.typeId) else { return nil }
@@ -181,10 +175,9 @@ public enum VisitPlanner {
             return make([option("accept", .accept, coins: coins, rewards: base.others, departures: unit.departures)],
                         subject: unit.typeId)
 
-        case let .challenge(taps, windowSeconds, rewards, videoDoubles):
+        case let .challenge(taps, windowSeconds, rewards, _):
             let base = priced(rewards)
-            let terms = ChallengeTerms(taps: taps, windowSeconds: windowSeconds, coins: base.coins,
-                                       rewards: base.others, videoDoubles: videoDoubles)
+            let terms = ChallengeTerms(taps: taps, windowSeconds: windowSeconds, coins: base.coins, rewards: base.others)
             return make([option("challenge", .startChallenge, challenge: terms)])
 
         case .vendor(let cards):

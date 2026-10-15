@@ -7,13 +7,21 @@ protocol InstallIdentityStore: Sendable {
     func write(_ value: String)
 }
 
-/// El UUID anónimo de esta instalación: lo único con lo que el servidor reconoce al jugador.
+/// El UUID al azar de esta instalación: lo único con lo que el servidor reconoce al jugador.
 /// Sobrevive a reinstalar (Keychain) y no se sincroniza entre dispositivos.
+///
+/// Hay dos, cada uno en su ítem del Keychain: el del ranking (`InstallIdentity()`) y el de la
+/// telemetría (`InstallIdentity.telemetry`), para que las estadísticas no se puedan cruzar con el
+/// nombre del ranking por el id.
 struct InstallIdentity: Sendable {
     let store: any InstallIdentityStore
 
-    init(store: any InstallIdentityStore = KeychainInstallIdentityStore()) {
+    init(store: any InstallIdentityStore = KeychainInstallIdentityStore.ranking) {
         self.store = store
+    }
+
+    static var telemetry: InstallIdentity {
+        InstallIdentity(store: KeychainInstallIdentityStore.telemetry)
     }
 
     func installId() -> String {
@@ -25,16 +33,29 @@ struct InstallIdentity: Sendable {
 }
 
 struct KeychainInstallIdentityStore: InstallIdentityStore {
-    static let service = "com.adergames.fisu.ranking"
-    static let account = "installId"
+    /// El del ranking, como estuvo siempre (cambiarle la accesibilidad no toca un ítem ya guardado).
+    static let ranking = KeychainInstallIdentityStore(
+        service: "com.adergames.fisu.ranking", account: "installId", thisDeviceOnly: false)
+    /// El de la telemetría: aparte del ranking, sólo de este dispositivo (no viaja en un backup a
+    /// otro teléfono) y no sincronizable.
+    static let telemetry = KeychainInstallIdentityStore(
+        service: "com.adergames.fisu.telemetry", account: "installId", thisDeviceOnly: true)
+
+    let service: String
+    let account: String
+    let thisDeviceOnly: Bool
 
     private var baseQuery: [CFString: Any] {
         [
             kSecClass: kSecClassGenericPassword,
-            kSecAttrService: Self.service,
-            kSecAttrAccount: Self.account,
+            kSecAttrService: service,
+            kSecAttrAccount: account,
             kSecAttrSynchronizable: false,
         ]
+    }
+
+    var accessibility: CFString {
+        thisDeviceOnly ? kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly : kSecAttrAccessibleAfterFirstUnlock
     }
 
     func read() -> String? {
@@ -53,7 +74,7 @@ struct KeychainInstallIdentityStore: InstallIdentityStore {
         guard update == errSecItemNotFound else { return }
         var add = baseQuery
         add[kSecValueData] = data
-        add[kSecAttrAccessible] = kSecAttrAccessibleAfterFirstUnlock
+        add[kSecAttrAccessible] = accessibility
         SecItemAdd(add as CFDictionary, nil)
     }
 }

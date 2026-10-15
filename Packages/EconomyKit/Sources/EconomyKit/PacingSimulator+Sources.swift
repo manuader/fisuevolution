@@ -188,6 +188,9 @@ extension PacingSimulator {
         var opened = 0
         var index = 0
         while index < clocks.packageBoxes.count {
+            if let content = clocks.packageBoxes[index], !belongs(content, state: state) {
+                clocks.packageBoxes[index] = nil
+            }
             if clocks.packageBoxes[index] == nil {
                 clocks.packageBoxes[index] = rollPackage(state: state, clocks: &clocks, packages: packages)
             }
@@ -220,6 +223,17 @@ extension PacingSimulator {
             content.append(contentsOf: Array(repeating: type.id, count: arrivals))
         }
         return content
+    }
+
+    /// Lo mismo que `PackageRoller.belongs` en el juego: cada tipo de la caja se vio y su piso
+    /// está abierto en esta run. Una reencarnación cierra los pisos y la caja vieja se vuelve a
+    /// sortear con el estado de ahora; que el piso esté lleno no la invalida.
+    private func belongs(_ content: [String], state: PlayerState) -> Bool {
+        content.allSatisfy { typeId in
+            guard let type = tiers.type(id: typeId) else { return false }
+            return state.run.seenTypes.contains(typeId)
+                && state.run.unlockedFloors.contains(floorTable[floorTable.ordinal(forTier: type.tier)].id)
+        }
     }
 
     /// Abre una caja ya sorteada: entran los que tienen lugar en su piso. `false` (y la caja

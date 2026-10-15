@@ -2489,3 +2489,12 @@ Con `--seed-fraction 0.1` y `0.9`: `.free` 45,40 / 45,34 h (2724,1 y 2720,4 min)
 sin tipo-piso, migración, sin `waiting`, x fija, reloj que asigna).
 
 Comando: el de «Cómo re-correr» de la calibración 2.0, con `--profile free | ads | max`.
+
+## Simulador: la caja vieja ya no cruza la reencarnación (R57)
+
+`tickPackages` no revisaba las cajas que esperaban: una trabada porque su piso estaba lleno sobrevivía a la
+reencarnación (`clocks` se crea una vez) y `deliver` podía meter un tier alto en un piso cerrado de la run nueva, cosa
+que en el juego no pasa (`PackageRoller.belongs` la vuelve a sortear). Ahora una caja cuyos tipos no se vieron o cuyo
+piso no está abierto se sortea de nuevo con el estado del momento; que el piso esté lleno no la invalida.
+`PackageBoxRebirthTests` muere sin el arreglo. EconomyKit: 976 tests en verde. Cifras sin cambio: Dios `.free` 45,40 h,
+`.ads` 30,60 h, `.max` 30,02 h (6 reencarnaciones).

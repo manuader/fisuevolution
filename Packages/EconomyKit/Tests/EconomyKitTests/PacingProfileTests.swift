@@ -422,3 +422,32 @@ struct PacingMaxProfileTests {
         #expect(fingerprint(try run(.max)) != fingerprint(try run(.free)))
     }
 }
+
+// MARK: - La caja vieja no cruza la reencarnación (E14b B18)
+
+@Suite("PacingSimulator · cajas de paquete tras reencarnar")
+struct PackageBoxRebirthTests {
+    @Test("una caja trabada de la run anterior no mete a un tier de un piso cerrado")
+    func staleBoxIsRerolled() throws {
+        var sources = PacingSources.none
+        sources.packages = PackagesConfig(
+            schemaVersion: 1, spawnIntervalSeconds: 600, firstPackageAfterSeconds: 600,
+            maxWaiting: 2, windowTiers: 4, tierRatioByBestSupplierLevel: [2, 1.8, 1.6, 1.4]
+        )
+        let tiers = try upTiers()
+        let sim = try PacingSimulator(config: upConfig(), tiers: tiers, profile: .free, sources: sources)
+        // Run nueva: sólo el piso 1 abierto, sólo el tier 1 visto.
+        var state = PlayerState.newGame(
+            startTypeId: tiers.baseType.id, startFloorId: sim.floorTable[0].id,
+            offlineEfficiencyBase: 0.35, critChanceBase: 0, now: 0
+        )
+        var clocks = PacingSimulator.SourceClocks(
+            nextPackageAt: .infinity, seedFraction: 0.5, ads: nil
+        )
+        // Una caja de la run anterior: un tier alto, de un piso que acá sigue cerrado.
+        clocks.packageBoxes = [["t13"]]
+        var report = PacingSimulator.Report()
+        _ = sim.tickPackages(state: &state, clocks: &clocks, report: &report, active: 0)
+        #expect((state.run.units["t13"] ?? 0) == 0)
+    }
+}

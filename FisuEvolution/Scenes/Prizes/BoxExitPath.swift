@@ -87,3 +87,44 @@ struct BoxExitPath: Equatable {
         return CGPoint(x: x, y: apexY + (landing.y - apexY) * down * down)
     }
 }
+
+/// Cómo queda un empleado en el campo: dónde están sus pies, su escala y su opacidad.
+struct CharacterPose: Equatable {
+    var position: CGPoint
+    var xScale: CGFloat = 1
+    var yScale: CGFloat = 1
+    var alpha: CGFloat = 1
+}
+
+/// Lo que corta la salida de la caja a mitad de camino (E14b B23). Agarrarlo no puede dejarlo
+/// varado donde estaba la caja (detrás del frente o en el aire), quieto o deformado: la regla es
+/// pura para que los tests la midan sin `SKView`, y `BoardScene` la aplica.
+enum BoxExitInterruption: Equatable {
+    /// El dedo lo agarró: queda donde está, ya sano (escala 1, opaco); lo que sigue lo decide el
+    /// gesto, que es el de cualquier empleado (arrastre, pasivo o toque).
+    case grab
+    /// El agarre terminó en un toque corto: vuelve a su lugar en la hilera.
+    case tap
+    /// El foco del tutorial lo apunta: va derecho a su lugar, quieto y sano.
+    case spotlight
+
+    /// La pose con que queda un empleado al que `self` le corta la salida, desde la que tenía
+    /// (`current`) y con su lugar en la hilera (`slot`).
+    func pose(from current: CharacterPose, slot: CGPoint) -> CharacterPose {
+        switch self {
+        case .grab: CharacterPose(position: current.position)
+        case .tap, .spotlight: CharacterPose(position: slot)
+        }
+    }
+
+    /// La pose después de una serie de cortes, en orden (agarrarlo y soltarlo con un toque).
+    static func pose(after interruptions: [BoxExitInterruption], from current: CharacterPose, slot: CGPoint) -> CharacterPose {
+        interruptions.reduce(current) { $1.pose(from: $0, slot: slot) }
+    }
+
+    /// Si el dedo ya arrastra: se movió más de `threshold` desde donde agarró al empleado, no desde
+    /// su celda (a mitad de la salida, o paseando, el empleado no está en su celda).
+    static func isDragging(from grabPoint: CGPoint, to location: CGPoint, threshold: CGFloat) -> Bool {
+        hypot(location.x - grabPoint.x, location.y - grabPoint.y) > threshold
+    }
+}

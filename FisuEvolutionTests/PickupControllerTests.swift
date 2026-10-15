@@ -315,7 +315,19 @@ struct PickupControllerTests {
 
     // MARK: E14b B23: el empleado sale de adentro de la caja
 
-    @Test("la caja abierta espera a su empleado: no se toca, deja la salida una sola vez y se va")
+    /// Abre en el tablero la caja de un paquete y devuelve la caja, dónde estaba y a quién trae.
+    private func openOnBoard(_ gameState: GameState, _ controller: PickupController) throws -> (PickupNode, CGPoint, String) {
+        let box = try #require(controller.boxes.last)
+        let spot = box.position
+        #expect(controller.handleTap(at: spot))
+        let typeId = try #require(gameState.pendingBoardChanges.last { $0.origin == .package }.flatMap { change -> String? in
+            if case let .arrival(typeId) = change.kind { return typeId }
+            return nil
+        })
+        return (box, spot, typeId)
+    }
+
+    @Test("la caja abierta espera a su empleado: no se toca, deja la salida una sola vez y se va sola")
     func theOpenedBoxWaitsAndLeaves() async throws {
         let pool = VideoPlayerPool(policy: .allowAll.with(.reduceMotion))
         let (gameState, controller) = await pickupsWithVideo(pool: pool)
@@ -323,28 +335,76 @@ struct PickupControllerTests {
         gameState.debugAddPackages(1)
         gameState.refreshPrizeAccess()
         controller.update(delta: 1, reduceMotion: true)
-        let box = try #require(controller.boxes.first)
-        let spot = box.position
-        #expect(controller.handleTap(at: spot))
+        let (box, spot, typeId) = try openOnBoard(gameState, controller)
         #expect(controller.boxes.isEmpty, "ya no es una caja que espera")
+        #expect(controller.openedBoxNodes.contains { $0 === box })
         #expect(box.parent === controller.layer, "abierta, se queda hasta que salga el empleado")
-        #expect(box.hasActions(), "con la espera de red por si la llegada no juega")
         #expect(controller.hitDepth(at: spot) == nil, "no se come los toques: el que toca ahí agarra lo de atrás")
         #expect(!controller.handleTap(at: spot))
-        let typeId = try #require(gameState.pendingBoardChanges.first { $0.origin == .package }.flatMap { change -> String? in
-            if case let .arrival(typeId) = change.kind { return typeId }
-            return nil
-        })
         let exit = try #require(controller.takeBoxExit(typeId: typeId))
         #expect(exit.node === box)
         #expect(abs(exit.feet.x - spot.x) < 0.01)
         #expect(exit.rimY > exit.feet.y)
         #expect(controller.takeBoxExit(typeId: typeId) == nil, "se usa una sola vez")
-        box.leaveEmpty(reduceMotion: true)
-        #expect(box.hasActions(), "la caja vacía se va (sin SKView la acción no corre)")
-        box.retire()
+        // El empleado saltó: la caja vacía se queda un instante y se va, por frame (sin `SKView`).
+        box.leaveEmpty()
+        controller.update(delta: PickupNode.emptyLingerSeconds + 0.01, reduceMotion: false)
+        #expect(box.parent === controller.layer && box.isCollapsing, "se está yendo")
+        controller.update(delta: PickupNode.collapseSeconds + 0.01, reduceMotion: false)
+        #expect(box.parent == nil, "se fue sola")
+        #expect(controller.openedBoxNodes.isEmpty, "y el controlador la soltó")
+    }
+
+    @Test("si la llegada no juega, la caja abierta se va sola igual y su salida deja de valer")
+    func theOpenedBoxLeavesWithoutItsEmployee() async throws {
+        let pool = VideoPlayerPool(policy: .allowAll.with(.reduceMotion))
+        let (gameState, controller) = await pickupsWithVideo(pool: pool)
+        gameState.player?.meta.engagement.packageIntroSeen = true
+        gameState.debugAddPackages(1)
+        gameState.refreshPrizeAccess()
         controller.update(delta: 1, reduceMotion: true)
+        let (box, _, typeId) = try openOnBoard(gameState, controller)
+        controller.update(delta: PickupNode.openHoldSeconds + 0.01, reduceMotion: true)
+        controller.update(delta: PickupNode.collapseSeconds + 0.01, reduceMotion: true)
         #expect(box.parent == nil)
+        #expect(controller.openedBoxNodes.isEmpty)
+        #expect(controller.takeBoxExit(typeId: typeId) == nil, "la caja ya no está: no hay de dónde salir")
+    }
+
+    @Test("dos cajas abiertas seguidas: cada llegada sale de la suya, en el orden en que se abrieron")
+    func twoOpenedBoxesKeepTheirExits() async throws {
+        let pool = VideoPlayerPool(policy: .allowAll.with(.reduceMotion))
+        let (gameState, controller) = await pickupsWithVideo(pool: pool)
+        gameState.player?.meta.engagement.packageIntroSeen = true
+        gameState.debugAddPackages(2)
+        gameState.refreshPrizeAccess()
+        controller.update(delta: 1, reduceMotion: true)
+        let (first, _, firstType) = try openOnBoard(gameState, controller)
+        controller.update(delta: 0.01, reduceMotion: true)
+        let (second, _, secondType) = try openOnBoard(gameState, controller)
+        #expect(first !== second)
+        let firstExit = try #require(controller.takeBoxExit(typeId: firstType))
+        let secondExit = try #require(controller.takeBoxExit(typeId: secondType))
+        #expect(firstExit.node === first, "la primera llegada sale de la primera caja")
+        #expect(secondExit.node === second, "la segunda no pisó la salida de la primera")
+    }
+
+    @Test("una caja que está cayendo no se come el toque: no cuenta para la profundidad ni se abre")
+    func aFallingBoxDoesNotEatTheTouch() async throws {
+        let (gameState, controller) = await pickups()
+        gameState.player?.meta.engagement.packageIntroSeen = true
+        controller.update(delta: 0.01, reduceMotion: false)
+        gameState.debugAddPackages(1)
+        gameState.refreshPrizeAccess()
+        controller.update(delta: 0.01, reduceMotion: false)
+        let box = try #require(controller.boxes.first)
+        #expect(box.isFalling, "cayó mientras se juega: entra desde arriba")
+        #expect(controller.hitDepth(at: box.position) == nil)
+        #expect(!controller.handleTap(at: box.position), "el toque sigue a lo de atrás")
+        #expect(gameState.packagesWaiting == 1, "no se abrió")
+        controller.update(delta: PickupNode.fallSeconds, reduceMotion: false)
+        #expect(!box.isFalling)
+        #expect(controller.hitDepth(at: box.position) != nil, "ya en el piso, se toca")
     }
 
     // MARK: con video (E8e T6)

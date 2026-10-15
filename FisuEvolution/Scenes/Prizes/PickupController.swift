@@ -45,9 +45,15 @@ final class PickupController {
     /// Cuánto subió la cámara respecto del piso 0 (`camera.y - alto/2`), como en `StageController`.
     private var cameraOffsetY: CGFloat?
     private(set) var mattress: PickupNode?
-    /// El empleado que acaba de salir de una caja del tablero y su caja abierta: la escena lo hace
-    /// salir de ahí cuando juega la llegada (E14b B5, B23).
-    private var boxExit: (typeId: String, node: PickupNode)?
+    /// Una caja abierta en el tablero y a quién trae: la escena lo hace salir de ahí cuando juega su
+    /// llegada (E14b B5, B23). No retiene la caja: si se va antes, la salida ya no vale.
+    private struct PendingExit {
+        let typeId: String
+        weak var node: PickupNode?
+    }
+    /// Las salidas que esperan su llegada, en el orden en que se abrieron las cajas: dos cajas
+    /// abiertas seguidas no se pisan la salida.
+    private var pendingExits: [PendingExit] = []
     /// El colchón estaba en la columna en el frame anterior: si ahora está en el tablero, se pagó y
     /// cae desde arriba; uno de regalo (o el que ya estaba al volver a abrir la app) aparece en su lugar.
     private var mattressWasInColumn = false
@@ -103,11 +109,11 @@ final class PickupController {
                 place(box, onFloor: ordinal, gameState: gameState)
             }
         }
+        // La caja abierta se va sola (`PickupNode.advanceEmpty`): la que salió del árbol se suelta.
+        for opened in openedBoxes { opened.node.update(delta: delta, reduceMotion: reduceMotion) }
         openedBoxes.removeAll { $0.node.parent == nil }
-        for opened in openedBoxes {
-            opened.node.update(delta: delta, reduceMotion: reduceMotion)
-            place(opened.node, onFloor: opened.ordinal, gameState: gameState)
-        }
+        pendingExits.removeAll { $0.node?.parent !== layer }
+        for opened in openedBoxes { place(opened.node, onFloor: opened.ordinal, gameState: gameState) }
         if let mattress {
             mattress.update(delta: delta, reduceMotion: reduceMotion)
             let spot = layout.mattressPosition
@@ -125,7 +131,7 @@ final class PickupController {
     /// cayendo, más arriba. Mientras cae va con el z de donde va a apoyar (B19).
     private func place(_ box: PickupNode, onFloor ordinal: Int, gameState: GameState) {
         let floorLayout = pickupLayout(onFloor: ordinal, gameState: gameState)
-        let feet = floorLayout.packageFeet(at: box.packageBox?.spot)
+        let feet = floorLayout.packageFeet(at: box.packageBox?.spot, unplacedIndex: box.unplacedIndex)
         box.position = CGPoint(x: feet.x, y: feet.y + floorLayout.side / 2 + floorShift(ordinal) + box.fallOffset)
         box.zPosition = DepthOrder.z(forFeetY: feet.y)
     }
@@ -179,12 +185,16 @@ final class PickupController {
 
     /// El z de la escena de la pieza que está bajo `point` (coordenadas de `layer`), o `nil`.
     /// `BoardScene` lo compara con el del visitante y el de los empleados: el toque es de lo de
-    /// adelante (E14b B19). Una caja detrás de un empleado se toca en la parte que se ve.
+    /// adelante (E14b B19). Una caja detrás de un empleado se toca en la parte que se ve. Una que
+    /// está cayendo no cuenta: el toque es de lo que hay debajo de ella.
     func hitDepth(at point: CGPoint) -> CGFloat? {
         guard !layer.isHidden else { return nil }
         let pieces = [mattress].compactMap { $0 } + floorBoxes.values.joined()
-        return pieces.filter { $0.hitTest(point) }.map { layer.zPosition + $0.zPosition }.max()
+        return pieces.filter { !$0.isFalling && $0.hitTest(point) }.map { layer.zPosition + $0.zPosition }.max()
     }
+
+    /// Las cajas abiertas que esperan que salga su empleado (o se están yendo).
+    var openedBoxNodes: [PickupNode] { openedBoxes.map(\.node) }
 
     /// `point` en coordenadas de `layer`. Devuelve si el toque era suyo.
     @discardableResult
@@ -203,7 +213,7 @@ final class PickupController {
         // que se tocan bajo el dedo, la de adelante (B19).
         let floors = [visibleOrdinal] + floorBoxes.keys.filter { $0 != visibleOrdinal }
         guard let box = floors.compactMap({ frontBox(onFloor: $0, at: point) }).first else { return false }
-        guard !box.isOpening, !box.isFalling else { return true }
+        guard !box.isOpening else { return true }
         switch gameState.boardPackageTapped(box: box.packageBox) {
         case .openInPlace:
             box.playOpening { [weak self, weak box] in
@@ -218,9 +228,9 @@ final class PickupController {
         return true
     }
 
-    /// La caja de adelante del piso `ordinal` bajo `point`, si hay.
+    /// La caja de adelante del piso `ordinal` bajo `point`, si hay. Las que caen no se tocan.
     private func frontBox(onFloor ordinal: Int, at point: CGPoint) -> PickupNode? {
-        floorBoxes[ordinal]?.filter { $0.hitTest(point) }.max { $0.zPosition < $1.zPosition }
+        floorBoxes[ordinal]?.filter { !$0.isFalling && $0.hitTest(point) }.max { $0.zPosition < $1.zPosition }
     }
 
     /// La caja terminó de abrirse: recién ahora se gasta el paquete y el empleado sale de ahí. La
@@ -231,13 +241,13 @@ final class PickupController {
             box.cancelOpening()
             return
         }
-        boxExit = (typeId, box)
+        pendingExits.append(PendingExit(typeId: typeId, node: box))
         for ordinal in Array(floorBoxes.keys) {
             guard floorBoxes[ordinal]?.contains(where: { $0 === box }) == true else { continue }
             floorBoxes[ordinal]?.removeAll { $0 === box }
             openedBoxes.append((ordinal, box))
         }
-        box.holdOpen(reduceMotion: reduceMotion)
+        box.holdOpen()
     }
 
     /// El colchón terminó de abrirse en el tablero (E14b B6, D3): recién ahora se sortea y se acredita,
@@ -252,13 +262,14 @@ final class PickupController {
         node.vanish(reduceMotion: reduceMotion)
     }
 
-    /// La caja abierta de la que sale `typeId`, una sola vez: la llegada que juega la escena. `nil`
-    /// si ya se fue (la llegada tardó más que `PickupNode.openHoldSeconds`).
+    /// La caja abierta de la que sale `typeId` (la primera que se abrió con él), una sola vez: la
+    /// llegada que juega la escena. `nil` si ya se fue (la llegada tardó más que
+    /// `PickupNode.openHoldSeconds`).
     func takeBoxExit(typeId: String) -> BoxExit? {
-        guard let exit = boxExit, exit.typeId == typeId else { return nil }
-        boxExit = nil
-        let node = exit.node
-        guard node.parent === layer else { return nil }
+        pendingExits.removeAll { $0.node?.parent !== layer }
+        guard let index = pendingExits.firstIndex(where: { $0.typeId == typeId }),
+              let node = pendingExits.remove(at: index).node
+        else { return nil }
         // El centro va medio lado arriba de los pies (`place`); el arte puede ser más alto que ancho.
         let size = node.boxSize
         return BoxExit(feet: CGPoint(x: node.position.x, y: node.position.y - size.width / 2),
@@ -306,8 +317,12 @@ final class PickupController {
                 }
             }
             spare.forEach { $0.retire() }
+            var unplaced = 0
             for node in nodes {
                 node.showsFull = !(node.packageBox.map(gameState.packageBoxOpenable) ?? true)
+                guard node.packageBox?.spot == nil else { continue }
+                node.unplacedIndex = unplaced
+                unplaced += 1
             }
             floorBoxes[ordinal] = nodes.isEmpty ? nil : nodes
         }

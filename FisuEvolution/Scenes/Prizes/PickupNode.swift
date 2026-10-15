@@ -25,8 +25,6 @@ final class PickupNode: SKNode {
     /// Lo que la caja vacía se queda después de que el empleado saltó afuera, antes de irse.
     static let emptyLingerSeconds: TimeInterval = 0.35
     static let collapseSeconds: TimeInterval = 0.3
-    private static let emptyKey = "empty"
-    private static let collapseKey = "collapse"
 
     /// La capa de las cajas no suma profundidad: cada pieza lleva el z de su línea de apoyo
     /// (`DepthOrder`, E14b B19). Lo de adentro de la pieza se apila en pasos de `DepthOrder.innerStep`,
@@ -39,6 +37,9 @@ final class PickupNode: SKNode {
     let kind: Kind
     /// La caja del save que dibuja (E14b B18): su piso, a quién trae y dónde se para.
     var packageBox: PackageBox?
+    /// Cuántas cajas sin lugar del mismo piso van antes que ésta: se corre a su costado para no
+    /// encimarse (`PickupLayout.packageFeet(at:unplacedIndex:)`).
+    var unplacedIndex = 0
     private let sprite: SKSpriteNode
     private let waitingVideo: LoopingVideoNode?
     private let fullSign = SKLabelNode(fontNamed: "AvenirNext-Heavy")
@@ -50,8 +51,22 @@ final class PickupNode: SKNode {
     /// Los clips de la apertura en el tablero (E14b B5): la sacudida y, encima, la apertura.
     private var openingClips: [LoopingVideoNode] = []
     private(set) var isOpening = false
+    /// La caja abierta, sin su empleado adentro (B23): cuánto le falta para irse. Va por frame, como
+    /// la caída: sin `SKView` también se va, y quien la lleva la suelta cuando sale del árbol.
+    private enum Empty {
+        /// Espera a que salga su empleado; si la llegada no juega, se va igual.
+        case holding(left: TimeInterval)
+        /// El empleado ya saltó: se queda un instante.
+        case lingering(left: TimeInterval)
+        /// Se va achicándose (o desvaneciéndose, con Reduce Motion) desde la escala que tenía.
+        case collapsing(left: TimeInterval, from: CGFloat)
+    }
+    private var empty: Empty?
     /// La caja vacía se está yendo (B23): el resorte y la respiración ya no la mueven.
-    private(set) var isCollapsing = false
+    var isCollapsing: Bool {
+        if case .collapsing? = empty { return true }
+        return false
+    }
     /// La caída que queda: desde qué altura y cuánto tiempo le falta.
     private var fall: (height: CGFloat, left: TimeInterval)?
     /// Cuánto más arriba de su lugar está mientras cae (0 quieto). Lo suma quien lo ubica.
@@ -164,30 +179,43 @@ final class PickupNode: SKNode {
     }
 
     /// La caja abierta espera a su empleado (B23). Si la llegada no juega, se va sola.
-    func holdOpen(reduceMotion: Bool) {
-        run(.sequence([
-            .wait(forDuration: Self.openHoldSeconds),
-            .run { [weak self] in self?.collapse(reduceMotion: reduceMotion) },
-        ]), withKey: Self.emptyKey)
+    func holdOpen() {
+        guard empty == nil else { return }
+        empty = .holding(left: Self.openHoldSeconds)
     }
 
-    /// El empleado ya saltó afuera: la caja vacía se queda un instante y se va achicándose; con
-    /// Reduce Motion, se desvanece.
-    func leaveEmpty(reduceMotion: Bool) {
-        run(.sequence([
-            .wait(forDuration: Self.emptyLingerSeconds),
-            .run { [weak self] in self?.collapse(reduceMotion: reduceMotion) },
-        ]), withKey: Self.emptyKey)
+    /// El empleado ya saltó afuera (o lo agarraron antes): la caja vacía se queda un instante y se
+    /// va achicándose; con Reduce Motion, se desvanece. Una vez que empezó a irse no se reinicia.
+    func leaveEmpty() {
+        switch empty {
+        case .lingering?, .collapsing?: return
+        case .holding?, nil: empty = .lingering(left: Self.emptyLingerSeconds)
+        }
     }
 
-    private func collapse(reduceMotion: Bool) {
-        guard !isCollapsing else { return }
-        isCollapsing = true
-        let fade = SKAction.fadeOut(withDuration: Self.collapseSeconds)
-        let shrink = SKAction.scale(to: 0.05, duration: Self.collapseSeconds)
-        shrink.timingMode = .easeIn
-        let out: SKAction = reduceMotion ? fade : .group([fade, shrink])
-        run(.sequence([out, .run { [weak self] in self?.retire() }]), withKey: Self.collapseKey)
+    /// Lo que le falta a la caja vacía para irse; al terminar se retira del tablero.
+    private func advanceEmpty(delta: TimeInterval, reduceMotion: Bool) {
+        switch empty {
+        case nil:
+            return
+        case let .holding(left)?:
+            empty = left - delta > 0 ? .holding(left: left - delta) : .collapsing(left: Self.collapseSeconds, from: xScale)
+        case let .lingering(left)?:
+            empty = left - delta > 0 ? .lingering(left: left - delta) : .collapsing(left: Self.collapseSeconds, from: xScale)
+        case let .collapsing(left, from)?:
+            let remaining = left - delta
+            guard remaining > 0 else {
+                empty = nil
+                retire()
+                return
+            }
+            empty = .collapsing(left: remaining, from: from)
+            let progress = CGFloat(1 - remaining / Self.collapseSeconds)
+            alpha = 1 - progress
+            zRotation = 0
+            // Se achica acelerando hasta un 5 % de lo que medía.
+            if !reduceMotion { setScale(from + (from * 0.05 - from) * progress * progress) }
+        }
     }
 
     /// Ya salió el premio del colchón: el colchón abierto se desvanece y se va del tablero.
@@ -264,7 +292,8 @@ final class PickupNode: SKNode {
         syncArt(videoAlpha: isOpening ? settleOpeningClips() : waitingVideo?.videoAlpha ?? 0)
         advanceFall(delta: delta, reduceMotion: reduceMotion)
         age += delta
-        guard !isCollapsing else { return }
+        advanceEmpty(delta: delta, reduceMotion: reduceMotion)
+        guard !isCollapsing, parent != nil else { return }
         if reduceMotion {
             setScale(1)
             zRotation = 0

@@ -76,6 +76,12 @@ final class BoardScene: SKScene {
     private var dragNode: CharacterNode?
     private var dragOriginCell = -1
     private var isDragging = false
+    /// Dónde apoyó el dedo al agarrar al empleado (coordenadas del campo): el umbral del arrastre se
+    /// mide desde ahí, no desde su celda. Se toma en el primer movimiento (`previousLocation`).
+    private var dragGrabPoint: CGPoint?
+    /// El empleado agarrado venía saliendo de su caja (E14b B23): si el gesto termina en un toque,
+    /// vuelve a su lugar.
+    private var dragInterruptedBoxExit = false
     private var emptyTouchStart: CGPoint?
     private static let dragThreshold: CGFloat = 10
     private static let longPressKey = "longPress"
@@ -133,8 +139,10 @@ final class BoardScene: SKScene {
     static let candidateZLift: CGFloat = 5
     static let candidateScale: CGFloat = 1.12
     private static let candidatePopDuration: TimeInterval = 0.1
-    /// El fundido de la salida de la caja con Reduce Motion: va aparte del paseo, así agarrarlo
-    /// en el medio no lo deja transparente (E14b B23).
+    /// La salida de la caja (E14b B23) va con su propia clave y no con la del paseo: así se sabe
+    /// que está en curso y quien la corta (el dedo, el foco del tutorial) deja al empleado sano.
+    private static let boxExitKey = "boxExit"
+    /// El fundido de la salida con Reduce Motion: va aparte del movimiento.
     private static let boxExitFadeKey = "boxExitFade"
     /// Ventana del doble toque. La de iOS, para que el gesto se sienta como el
     /// del sistema.
@@ -698,6 +706,9 @@ final class BoardScene: SKScene {
         for node in nodes where node.action(forKey: "wander") != nil {
             node.removeAction(forKey: "wander")
         }
+        // El que venía saliendo de su caja va derecho a su lugar, sano: si no, el foco apuntaría a
+        // un empleado a medio saltar, estirado o detrás de la caja (B23).
+        for node in nodes { interruptBoxExit(node, by: .spotlight) }
 
         // Unión de los cuerpos: con el par, el recorte tiene que incluir al
         // destino del arrastre y no sólo al que se agarra.
@@ -741,7 +752,7 @@ final class BoardScene: SKScene {
         spotlitNode = nil
         for (slot, node) in characterNodes
         where node !== dragNode && !mergeCandidates.contains(slot)
-            && node.action(forKey: "wander") == nil {
+            && node.action(forKey: "wander") == nil && node.action(forKey: Self.boxExitKey) == nil {
             startWander(node)
         }
     }
@@ -819,7 +830,9 @@ final class BoardScene: SKScene {
         dragNode = node
         dragOriginCell = node.cellIndex
         isDragging = false
+        dragGrabPoint = nil
         node.removeAction(forKey: "wander")
+        dragInterruptedBoxExit = interruptBoxExit(node, by: .grab)
 
         // Long-press: si en 0.45s sigue apretando sin arrastrar → popup de pasivo.
         run(.sequence([
@@ -848,9 +861,10 @@ final class BoardScene: SKScene {
         }
         guard let node = dragNode, let touch = touches.first else { return }
         let location = touch.location(in: fieldNode)
-        let origin = position(ofCell: dragOriginCell)
+        let grabPoint = dragGrabPoint ?? touch.previousLocation(in: fieldNode)
+        dragGrabPoint = grabPoint
 
-        if !isDragging, hypot(location.x - origin.x, location.y - origin.y) > Self.dragThreshold {
+        if !isDragging, BoxExitInterruption.isDragging(from: grabPoint, to: location, threshold: Self.dragThreshold) {
             isDragging = true
             removeAction(forKey: Self.longPressKey)
             node.zPosition = 50
@@ -903,8 +917,10 @@ final class BoardScene: SKScene {
         guard let node = dragNode, let touch = touches.first else { return }
 
         guard isDragging else {
-            // Tap corto: §2.3 regla 1.
+            // Tap corto: §2.3 regla 1. Si venía saliendo de su caja, además vuelve a su lugar.
             dragNode = nil
+            if dragInterruptedBoxExit { returnToAnchor(node) }
+            dragInterruptedBoxExit = false
             handleTap(on: node, at: touch.timestamp)
             return
         }
@@ -938,6 +954,7 @@ final class BoardScene: SKScene {
     ) {
         dragNode = nil
         isDragging = false
+        dragInterruptedBoxExit = false
         clearMergeCandidates()
 
         let resolution = gameState.handleDrop(fromCell: originCell, toCell: targetCell)
@@ -1036,6 +1053,7 @@ final class BoardScene: SKScene {
         guard let node = dragNode else { return }
         dragNode = nil
         isDragging = false
+        dragInterruptedBoxExit = false
         clearMergeCandidates()
         returnToAnchor(node, animated: snapBack)
     }
@@ -1103,6 +1121,8 @@ final class BoardScene: SKScene {
         for slot in mergeCandidates {
             guard let candidate = characterNodes[slot] else { continue }
             candidate.removeAction(forKey: "wander")
+            // El que venía saliendo de su caja se planta en su lugar para que el pop no le pelee el estirón (B23).
+            interruptBoxExit(candidate, by: .spotlight)
             candidate.run(
                 .scale(to: Self.candidateScale, duration: Self.candidatePopDuration),
                 withKey: "candidate"
@@ -1203,6 +1223,7 @@ final class BoardScene: SKScene {
         let meetingPoint = target.position
 
         partner.removeAction(forKey: "wander")
+        interruptBoxExit(partner, by: .spotlight)
         mergeCandidates.insert(originCell)
 
         let reduceMotion = Self.prefersReducedMotion
@@ -1305,6 +1326,7 @@ final class BoardScene: SKScene {
         for node in nodes {
             mergeCandidates.insert(node.cellIndex)
             node.removeAction(forKey: "wander")
+            interruptBoxExit(node, by: .spotlight)
             node.run(
                 .scale(to: Self.candidateScale, duration: Self.candidatePopDuration),
                 withKey: "candidate"
@@ -1337,8 +1359,9 @@ final class BoardScene: SKScene {
 
     /// El empleado de un paquete abierto en el tablero sale de adentro de la caja (E14b B5, B23):
     /// asoma tapado por el frente y se estira, salta en arco al costado, aterriza aplastándose con
-    /// polvo y camina a su lugar. La caja vacía se va cuando él salta. Va con la clave del paseo:
-    /// agarrarlo en el medio corta la salida y lo deja donde lo suelten, como a cualquiera.
+    /// polvo y camina a su lugar. La caja vacía se va cuando él salta. Va con su propia clave
+    /// (`boxExitKey`): agarrarlo o apuntarlo con el foco del tutorial la corta y lo deja sano
+    /// (`interruptBoxExit`).
     private func walkOutOfTheBox(_ node: CharacterNode, from exit: PickupController.BoxExit) {
         let feet = fieldNode.convert(exit.feet, from: pickups.layer)
         let rimY = fieldNode.convert(CGPoint(x: exit.feet.x, y: exit.rimY), from: pickups.layer).y
@@ -1349,6 +1372,7 @@ final class BoardScene: SKScene {
         node.removeAllActions()
         node.setScale(1)
         startFacingFlip(node)
+        exitingBoxes.setObject(exit.node, forKey: node)
         guard !Self.prefersReducedMotion else {
             appearBesideTheBox(node, path: path, box: exit.node)
             return
@@ -1382,7 +1406,7 @@ final class BoardScene: SKScene {
         walk.timingMode = .easeInEaseOut
         node.run(.sequence([
             rise,
-            .run { [weak box] in box?.leaveEmpty(reduceMotion: false) },
+            .run { [weak box] in box?.leaveEmpty() },
             jump,
             .run { [weak self] in
                 guard let self else { return }
@@ -1394,15 +1418,40 @@ final class BoardScene: SKScene {
             walk,
             .run { [weak self, weak node] in
                 guard let self, let node else { return }
+                self.exitingBoxes.removeObject(forKey: node)
                 self.startWander(node)
             },
-        ]), withKey: "wander")
+        ]), withKey: Self.boxExitKey)
+    }
+
+    /// Las cajas de las que están saliendo empleados, por empleado (sin retener a ninguno).
+    private let exitingBoxes = NSMapTable<CharacterNode, PickupNode>.weakToWeakObjects()
+
+    /// Corta la salida de la caja de `node`, si está en curso, y lo deja con la pose que pide
+    /// `interruption` (`BoxExitInterruption`): nunca varado, estirado ni transparente. Su caja
+    /// vacía se va como si él hubiera saltado. Devuelve si había una salida que cortar.
+    @discardableResult
+    private func interruptBoxExit(_ node: CharacterNode, by interruption: BoxExitInterruption) -> Bool {
+        guard node.action(forKey: Self.boxExitKey) != nil || node.action(forKey: Self.boxExitFadeKey) != nil else {
+            return false
+        }
+        node.removeAction(forKey: Self.boxExitKey)
+        node.removeAction(forKey: Self.boxExitFadeKey)
+        exitingBoxes.object(forKey: node)?.leaveEmpty()
+        exitingBoxes.removeObject(forKey: node)
+        let current = CharacterPose(position: node.position, xScale: node.xScale, yScale: node.yScale, alpha: node.alpha)
+        let pose = interruption.pose(from: current, slot: position(ofCell: node.cellIndex))
+        node.position = pose.position
+        node.xScale = pose.xScale
+        node.yScale = pose.yScale
+        node.alpha = pose.alpha
+        return true
     }
 
     /// Con Reduce Motion el empleado aparece al lado de la caja con un fundido y, con otro, en su
     /// lugar: nada salta ni camina. La caja vacía se desvanece.
     private func appearBesideTheBox(_ node: CharacterNode, path: BoxExitPath, box: PickupNode) {
-        box.leaveEmpty(reduceMotion: true)
+        box.leaveEmpty()
         node.position = path.landing
         node.alpha = 0
         let fade = BoxExitPath.fadeSeconds
@@ -1415,7 +1464,11 @@ final class BoardScene: SKScene {
         node.run(.sequence([
             .wait(forDuration: fade + BoxExitPath.holdSeconds + fade / 2),
             .move(to: path.target, duration: 0),
-        ]), withKey: "wander")
+            .run { [weak self, weak node] in
+                guard let self, let node else { return }
+                self.exitingBoxes.removeObject(forKey: node)
+            },
+        ]), withKey: Self.boxExitKey)
     }
 
     /// El polvo del aterrizaje: unas nubecitas que se abren a los costados de los pies y se apagan,

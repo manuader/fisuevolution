@@ -1,4 +1,5 @@
 import CoreGraphics
+import Foundation
 import Testing
 @testable import FisuEvolution
 
@@ -15,14 +16,68 @@ struct BoxExitPathTests {
         BoxExitPath(boxFeet: boxFeet, rimY: rimY, boxWidth: boxWidth, target: target)
     }
 
-    @Test("termina en su lugar de la hilera, después de aterrizar")
+    @Test("termina en su lugar de la hilera: camina del aterrizaje a su lugar a paso de caminata, después de aterrizar")
     func endsOnItsSlot() {
         let slot = CGPoint(x: 260, y: 180)
         let exit = path(to: slot)
-        #expect(exit.target == slot)
-        #expect(exit.walkSeconds >= BoxExitPath.minWalkSeconds)
+        let distance = hypot(slot.x - exit.landing.x, slot.y - exit.landing.y)
+        #expect(distance > 0, "aterriza al lado de la caja, no en su lugar: le queda caminar")
+        #expect(abs(exit.walkSeconds - max(BoxExitPath.minWalkSeconds, Double(distance / BoxExitPath.walkSpeed))) < 0.0001)
         #expect(exit.jumpStart < exit.landingTime)
         #expect(abs(exit.totalSeconds - (exit.landingTime + BoxExitPath.squashSeconds + exit.walkSeconds)) < 0.0001)
+        // Al lado, la caminata no baja del mínimo: no llega de golpe.
+        #expect(path(to: exit.landing).walkSeconds == BoxExitPath.minWalkSeconds)
+    }
+
+    // MARK: Cortar la salida a mitad de camino
+
+    /// El empleado a mitad de la salida: detrás del frente, aplastado debajo del borde, o en el aire
+    /// estirado; con Reduce Motion, a medio fundido.
+    private var midExitPoses: [CharacterPose] {
+        let exit = path(to: CGPoint(x: 260, y: 180))
+        return [
+            CharacterPose(position: exit.start, xScale: 1, yScale: BoxExitPath.hiddenYScale),
+            CharacterPose(position: exit.peek, xScale: BoxExitPath.stretchXScale, yScale: BoxExitPath.stretchYScale),
+            CharacterPose(position: exit.jumpPoint(at: 0.5), xScale: BoxExitPath.squashXScale, yScale: BoxExitPath.squashYScale),
+            CharacterPose(position: exit.landing, alpha: 0.4),
+        ]
+    }
+
+    @Test("agarrarlo a mitad de la salida lo deja sano donde está: escala 1 y opaco, sin saltar")
+    func grabbingMidExitHeals() {
+        let slot = CGPoint(x: 260, y: 180)
+        for pose in midExitPoses {
+            let grabbed = BoxExitInterruption.grab.pose(from: pose, slot: slot)
+            #expect(grabbed.position == pose.position, "el dedo lo agarró ahí")
+            #expect(grabbed.xScale == 1 && grabbed.yScale == 1, "no queda aplastado ni estirado: \(pose)")
+            #expect(grabbed.alpha == 1)
+        }
+    }
+
+    @Test("un toque a mitad de la salida (agarrar y soltar sin arrastrar) lo deja en su celda con escala 1")
+    func tappingMidExitEndsOnItsSlot() {
+        let slot = CGPoint(x: 260, y: 180)
+        for pose in midExitPoses {
+            let tapped = BoxExitInterruption.pose(after: [.grab, .tap], from: pose, slot: slot)
+            #expect(tapped == CharacterPose(position: slot), "varado en \(pose.position) en vez de su lugar")
+        }
+    }
+
+    @Test("el foco del tutorial a mitad de la salida lo planta en su celda, sano")
+    func theSpotlightPutsItOnItsSlot() {
+        let slot = CGPoint(x: 40, y: 150)
+        for pose in midExitPoses {
+            #expect(BoxExitInterruption.spotlight.pose(from: pose, slot: slot) == CharacterPose(position: slot))
+        }
+    }
+
+    @Test("el arrastre se mide desde donde apoyó el dedo, no desde la celda")
+    func theDragThresholdStartsAtTheGrab() {
+        let grab = CGPoint(x: 120, y: 330)
+        let threshold: CGFloat = 10
+        #expect(!BoxExitInterruption.isDragging(from: grab, to: CGPoint(x: 126, y: 336), threshold: threshold),
+                "un temblor del dedo es un toque, aunque el empleado esté lejos de su celda")
+        #expect(BoxExitInterruption.isDragging(from: grab, to: CGPoint(x: 120, y: 345), threshold: threshold))
     }
 
     @Test("asoma detrás del frente de la caja: sus pies van más atrás que la línea de la caja, y suben")

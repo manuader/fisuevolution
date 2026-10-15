@@ -190,24 +190,6 @@ struct BillPaper: View {
     }
 }
 
-/// Un destello de cuatro puntas.
-struct SparkleShape: Shape {
-    func path(in rect: CGRect) -> Path {
-        let c = CGPoint(x: rect.midX, y: rect.midY)
-        let long = min(rect.width, rect.height) / 2
-        let short = long * 0.28
-        var path = Path()
-        for step in 0..<8 {
-            let angle = Double(step) * .pi / 4 - .pi / 2
-            let r = step.isMultiple(of: 2) ? long : short
-            let point = CGPoint(x: c.x + CGFloat(cos(angle)) * r, y: c.y + CGFloat(sin(angle)) * r)
-            if step == 0 { path.move(to: point) } else { path.addLine(to: point) }
-        }
-        path.closeSubpath()
-        return path
-    }
-}
-
 /// Un destello que titila: nace, brilla y se va. Quieto si no hay movimiento.
 struct TwinkleView: View {
     let size: CGFloat

@@ -141,7 +141,8 @@ func loadSources(from directory: URL, requireDiscount: Bool) -> LoadedSources {
         adBreakPrizes: rewardedAds?.adBreak?.prizes ?? [],
         mergeAllCooldownSeconds: mergeAllCooldown,
         packageRainCooldownSeconds: rewardedAds?.sideRail?.packageRainCooldownSeconds ?? 0,
-        packageRain: rewardedAds?.sideRail?.packageRain
+        packageRain: rewardedAds?.sideRail?.packageRain,
+        giftDoubles: true
     )
 
     if let catalog = read("blue_shop.json", as: BlueShopCatalog.self) {

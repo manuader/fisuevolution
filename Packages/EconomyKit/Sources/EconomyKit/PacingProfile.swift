@@ -86,7 +86,8 @@ public struct AdsSources: Sendable, Equatable {
     public var dailyMultiplier: Double
     public var careerMultiplier: Double
     public var wheel: WheelConfig?
-    /// "Repetir premio": otro video por giro, y el mismo sorteo otra vez.
+    /// "Repetir premio" (el paso 2 de E14b B29): otro video por giro GRATIS, y el mismo sorteo
+    /// otra vez. Los giros que ya costaron un video no se repiten.
     public var wheelRepeats: Bool
     public var treasures: TreasuresConfig?
     /// Cada cuántos segundos activos sale la pausa publicitaria (`.infinity` = nunca).
@@ -98,12 +99,16 @@ public struct AdsSources: Sendable, Equatable {
     /// Cooldown de pared de la lluvia de paquetes.
     public var packageRainCooldownSeconds: Double
     public var packageRain: RewardSpec?
+    /// El «×2 con video» de las recompensas gratis (E14b B29, D17) que el bot cobra: el colchón de
+    /// regalo. Las de visitantes y logros no mueven la curva del bot (no las juega).
+    public var giftDoubles: Bool
 
     public init(
         videoSeconds: Double, offlineMultiplier: Double, dailyMultiplier: Double, careerMultiplier: Double,
         wheel: WheelConfig?, wheelRepeats: Bool, treasures: TreasuresConfig?,
         adBreakIntervalSeconds: Double, adBreakPrizes: [RewardSpec],
-        mergeAllCooldownSeconds: Double, packageRainCooldownSeconds: Double, packageRain: RewardSpec?
+        mergeAllCooldownSeconds: Double, packageRainCooldownSeconds: Double, packageRain: RewardSpec?,
+        giftDoubles: Bool = false
     ) {
         self.videoSeconds = videoSeconds
         self.offlineMultiplier = offlineMultiplier
@@ -117,5 +122,6 @@ public struct AdsSources: Sendable, Equatable {
         self.mergeAllCooldownSeconds = mergeAllCooldownSeconds
         self.packageRainCooldownSeconds = packageRainCooldownSeconds
         self.packageRain = packageRain
+        self.giftDoubles = giftDoubles
     }
 }

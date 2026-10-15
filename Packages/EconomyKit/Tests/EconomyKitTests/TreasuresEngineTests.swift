@@ -105,7 +105,21 @@ struct TreasureJourneyTests {
     func theGiftLandsOnTheBoard() {
         var state = TreasuresState(secondsUntilNext: 1, phase: .none, extraOpensLeft: 1)
         #expect(advanceTreasure(&state, delta: 1, config: config, fraction: 0.1) == .gift)
-        #expect(state == TreasuresState(secondsUntilNext: 480, phase: .onBoard, extraOpensLeft: 0))
+        #expect(state == TreasuresState(secondsUntilNext: 480, phase: .onBoard, extraOpensLeft: 0, gifted: true))
+    }
+
+    @Test("sólo el de regalo queda marcado (su ×2 con video, E14b B29); abrirlo borra la marca")
+    func theGiftIsMarkedUntilOpened() {
+        var gift = TreasuresState(secondsUntilNext: 1)
+        #expect(advanceTreasure(&gift, delta: 1, config: config, fraction: 0.1) == .gift)
+        #expect(gift.gifted)
+        #expect(TreasureScheduler.markOpened(&gift, config: config))
+        #expect(!gift.gifted)
+        var column = TreasuresState(secondsUntilNext: 1, gifted: true)
+        #expect(advanceTreasure(&column, delta: 1, config: config, fraction: 0.9) == .column)
+        #expect(!column.gifted, "el de la columna cuesta un video: no se marca")
+        #expect(TreasureScheduler.markPaid(&column))
+        #expect(!column.gifted, "pagarlo tampoco lo vuelve regalo")
     }
 
     @Test("el borde del sorteo: justo debajo de 1/4 es regalo, en 1/4 ya pide video")
@@ -170,6 +184,13 @@ struct TreasureStateMigrationTests {
             let state = TreasuresState(secondsUntilNext: 12.5, phase: phase, extraOpensLeft: 2)
             #expect(try JSONDecoder().decode(TreasuresState.self, from: JSONEncoder().encode(state)) == state)
         }
+        let gift = TreasuresState(secondsUntilNext: 3, phase: .onBoard, gifted: true)
+        #expect(try JSONDecoder().decode(TreasuresState.self, from: JSONEncoder().encode(gift)) == gift)
+    }
+
+    @Test("un save anterior a B29 no trae la marca del regalo: no ofrece ×2")
+    func theGiftMarkDefaultsToFalse() throws {
+        #expect(try decode(#"{"phase": "onBoard"}"#).gifted == false)
     }
 
     @Test("la fase manda sobre el `waiting` viejo, y uno desconocido no tira el save")

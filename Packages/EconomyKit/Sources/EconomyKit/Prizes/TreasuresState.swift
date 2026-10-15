@@ -17,20 +17,24 @@ public struct TreasuresState: Codable, Sendable, Equatable {
     /// Los "otro colchón" que le quedan al último que se abrió. Se pierden
     /// cuando aparece uno nuevo.
     public var extraOpensLeft: Int
+    /// El del tablero llegó de regalo (D4): al cobrarlo se ofrece el «×2 con video» (E14b B29).
+    /// El pagado con video no, porque ya costó uno.
+    public var gifted: Bool
 
     public static let initial = TreasuresState()
 
-    public init(secondsUntilNext: Double? = nil, phase: Phase = .none, extraOpensLeft: Int = 0) {
+    public init(secondsUntilNext: Double? = nil, phase: Phase = .none, extraOpensLeft: Int = 0, gifted: Bool = false) {
         self.secondsUntilNext = secondsUntilNext
         self.phase = phase
         self.extraOpensLeft = extraOpensLeft
+        self.gifted = gifted
     }
 
     /// Hay un colchón en juego, en la columna o en el tablero: el reloj no corre.
     public var isPresent: Bool { phase != .none }
 
     private enum CodingKeys: String, CodingKey {
-        case secondsUntilNext, phase, extraOpensLeft
+        case secondsUntilNext, phase, extraOpensLeft, gifted
         /// El de antes de B6: un colchón esperando en la columna.
         case waiting
     }
@@ -40,6 +44,7 @@ public struct TreasuresState: Codable, Sendable, Equatable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         secondsUntilNext = try container.decodeIfPresent(Double.self, forKey: .secondsUntilNext)
         extraOpensLeft = try container.decodeIfPresent(Int.self, forKey: .extraOpensLeft) ?? 0
+        gifted = try container.decodeIfPresent(Bool.self, forKey: .gifted) ?? false
         if let phase = (try? container.decodeIfPresent(Phase.self, forKey: .phase)) ?? nil {
             self.phase = phase
         } else {
@@ -55,6 +60,7 @@ public struct TreasuresState: Codable, Sendable, Equatable {
         try container.encodeIfPresent(secondsUntilNext, forKey: .secondsUntilNext)
         try container.encode(phase, forKey: .phase)
         try container.encode(extraOpensLeft, forKey: .extraOpensLeft)
+        try container.encode(gifted, forKey: .gifted)
         try container.encode(isPresent, forKey: .waiting)
     }
 }

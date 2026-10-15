@@ -27,7 +27,8 @@ enum PacingFixture {
             adBreakPrizes: content.rewardedAds.effectiveAdBreak.prizes,
             mergeAllCooldownSeconds: rail.mergeAllCooldownSeconds,
             packageRainCooldownSeconds: rail.packageRainCooldownSeconds,
-            packageRain: rail.packageRain
+            packageRain: rail.packageRain,
+            giftDoubles: true
         )
         let topLevels = Dictionary(
             uniqueKeysWithValues: content.blueShop.items.filter(\.isPermanent).map { ($0.id, $0.levels.count) }

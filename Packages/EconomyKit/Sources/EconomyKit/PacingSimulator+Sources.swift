@@ -108,13 +108,10 @@ extension PacingSimulator {
 
         if let ads, let wheel = ads.wheel, day != clocks.wheelDay {
             clocks.wheelDay = day
+            // El giro por video ya costó uno: no tiene «repetir premio» (E14b B29).
             for _ in 0..<max(0, wheel.videoSpinsPerDay + (activeShop?.bonusDailyWheelSpins ?? 0)) {
                 videoSeconds += watchVideo(ads, report: &report)
                 spin(wheel, state: &state, clocks: &clocks, report: &report)
-                if ads.wheelRepeats {
-                    videoSeconds += watchVideo(ads, report: &report)
-                    spin(wheel, state: &state, clocks: &clocks, report: &report)
-                }
             }
         }
         if let ads {
@@ -282,13 +279,16 @@ extension PacingSimulator {
         if let treasures = ads.treasures, active >= clocks.nextMattressAt {
             // Cada apertura es un video: la primera (salvo la parte que llega de regalo, E14b B6)
             // y los "otro colchón".
+            // El de regalo, además, ofrece su ×2 con video al cobrarlo (E14b B29): un video más y el
+            // mismo premio otra vez, en la parte que llega de regalo.
             for open in 0...max(0, treasures.extraOpensPerTreasure) {
                 let paidShare = open == 0 ? 1 - treasures.giftShare : 1
-                seconds += ads.videoSeconds * paidShare
-                report.sourceTotals["videos", default: 0] += paidShare
+                let doubledShare = open == 0 && ads.giftDoubles ? treasures.giftShare : 0
+                seconds += ads.videoSeconds * (paidShare + doubledShare)
+                report.sourceTotals["videos", default: 0] += paidShare + doubledShare
                 for (prize, odds) in zip(treasures.prizes, treasures.odds) {
                     for reward in prize.rewards {
-                        apply(reward, probability: odds.probability, source: "mattress",
+                        apply(reward, probability: odds.probability * (1 + doubledShare), source: "mattress",
                               state: &state, clocks: &clocks, report: &report)
                     }
                 }
@@ -325,8 +325,8 @@ extension PacingSimulator {
         }
     }
 
-    /// Gira los giros que dejaron los premios (sin video; el "repetir premio"
-    /// sí cuesta uno). Los premios de esos giros pueden dejar más: se corta en 100.
+    /// Gira los giros que dejaron los premios (sin video; su "repetir premio",
+    /// el paso 2 de B29, sí cuesta uno). Los premios de esos giros pueden dejar más: se corta en 100.
     private func drainSpins(
         _ ads: AdsSources, state: inout PlayerState, clocks: inout SourceClocks, report: inout Report
     ) -> Double {

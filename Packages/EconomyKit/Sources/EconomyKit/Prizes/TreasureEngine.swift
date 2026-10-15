@@ -24,6 +24,7 @@ public enum TreasureScheduler {
         }
         let arrival: Arrival = Double.random(in: 0..<1, using: &rng) < config.giftShare ? .gift : .column
         state.phase = arrival == .gift ? .onBoard : .waiting
+        state.gifted = arrival == .gift
         state.extraOpensLeft = 0
         state.secondsUntilNext = config.spawnIntervalSeconds
         return arrival
@@ -38,11 +39,12 @@ public enum TreasureScheduler {
     }
 
     /// Se abrió el del tablero: deja de estar en juego, habilita "otro colchón" y el reloj
-    /// arranca de nuevo. `false` si no había uno en el tablero.
+    /// arranca de nuevo. `false` si no había uno en el tablero. Quien abre lee `gifted` antes.
     @discardableResult
     public static func markOpened(_ state: inout TreasuresState, config: TreasuresConfig) -> Bool {
         guard state.phase == .onBoard else { return false }
         state.phase = .none
+        state.gifted = false
         state.extraOpensLeft = config.extraOpensPerTreasure
         state.secondsUntilNext = config.spawnIntervalSeconds
         return true

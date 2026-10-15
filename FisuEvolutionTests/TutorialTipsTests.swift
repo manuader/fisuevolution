@@ -207,6 +207,7 @@ struct TutorialTipsTests {
         // Con la bandera del cofre se abren pestañas: el deslizar y el «¡Nuevo!» son de otras lecciones.
         gameState.markLessonDone(.menuSwipe)
         gameState.markLessonDone(.newTabs)
+        gameState.markLessonDone(.tabsMoved)
         gameState.refreshProjections()
         #expect(gameState.tutorialTip == nil,
                 "partida nueva sin una sola pinta: en Pintas no hay nada que ponerse")

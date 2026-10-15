@@ -37,6 +37,7 @@ struct BarFlaps: View {
 
 /// La geometría de las dos solapas contra el plato del medio, en una función
 /// pura para poder probarla sin dibujar nada.
+@MainActor
 struct BarFlapLayout: Equatable {
     /// El marco de cada solapa y el hueco del plato, en coordenadas de la barra
     /// (x desde el borde izquierdo de la pantalla).

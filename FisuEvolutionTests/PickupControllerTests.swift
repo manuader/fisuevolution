@@ -143,7 +143,7 @@ struct PickupControllerTests {
         #expect(fresh.isFalling && fresh.fallOffset > 0, "cae desde arriba")
         #expect(!gameState.boardPackagesMarker.contains(";"), "mientras cae no se toca: el marcador trae sólo la quieta")
         let airborne = fresh.position.y
-        controller.update(delta: 1, reduceMotion: false)
+        run(controller, seconds: 1)
         #expect(!fresh.isFalling && fresh.position.y < airborne, "llegó a su lugar")
         #expect(gameState.boardPackagesMarker.split(separator: ";").count == 2)
 
@@ -238,20 +238,35 @@ struct PickupControllerTests {
         #expect(!mattress.isOpening)
     }
 
-    @Test("el pagado cae desde arriba hasta su lugar; el de regalo aparece ahí mismo")
+    /// Avanza el controlador `seconds` en cuadros de 60 Hz, como la escena.
+    private func run(_ controller: PickupController, seconds: TimeInterval, reduceMotion: Bool = false) {
+        for _ in 0..<Int((seconds * 60).rounded(.up)) {
+            controller.update(delta: 1.0 / 60, reduceMotion: reduceMotion)
+        }
+    }
+
+    @Test("el pagado espera que el pop-up se vaya y recién ahí cae; el que ya estaba al abrir la app aparece ahí mismo")
     func thePaidOneFalls() async throws {
         let (gameState, controller) = await pickups()
         gameState.debugSpawnMattress()
         gameState.refreshPrizeAccess()
         controller.update(delta: 0.016, reduceMotion: false)
-        gameState.payMattress()
-        gameState.refreshPrizeAccess()
+        gameState.mattressTapped()
+        gameState.mattressVideoWatched()
+        #expect(gameState.mattressOnBoard && gameState.mattressPopup == nil)
+        // El pop-up del video se está yendo: el colchón todavía no está a la vista.
         controller.update(delta: 0.016, reduceMotion: false)
         let falling = try #require(controller.mattress)
-        #expect(falling.isFalling && falling.fallOffset > 0)
+        #expect(falling.isAwaitingDrop && falling.alpha == 0, "no cae bajo el pop-up que se cierra")
         #expect(gameState.boardMattressMarker.isEmpty, "mientras cae no se toca")
+        #expect(controller.hitDepth(at: falling.position) == nil)
+        run(controller, seconds: PickupNode.popupCloseSeconds - 0.1)
+        #expect(falling.isAwaitingDrop, "espera lo que tarda el pop-up en irse")
+        run(controller, seconds: 0.15)
+        #expect(!falling.isAwaitingDrop && falling.isFalling && falling.fallOffset > 0, "ahora sí cae, a la vista")
+        #expect(falling.alpha > 0)
         let airborne = falling.position.y
-        controller.update(delta: 1, reduceMotion: false)
+        run(controller, seconds: PickupNode.fallSeconds + 0.1)
         #expect(!falling.isFalling && falling.fallOffset == 0)
         #expect(falling.position.y < airborne, "cayó")
         #expect(gameState.boardMattressMarker.contains(","))
@@ -262,6 +277,75 @@ struct PickupControllerTests {
         giftController.update(delta: 0.016, reduceMotion: false)
         let gift = try #require(giftController.mattress)
         #expect(!gift.isFalling && gift.fallOffset == 0)
+    }
+
+    @Test("con un pop-up arriba la caída no arranca: espera a que se vaya")
+    func theDropWaitsForThePopup() async throws {
+        let (gameState, controller) = await pickups()
+        controller.update(delta: 0.016, reduceMotion: false)
+        gameState.debugSpawnMattress(onBoard: true, gifted: true)
+        gameState.refreshPrizeAccess()
+        gameState.mattressPopup = MattressPopup(extraOnly: true)
+        run(controller, seconds: 2)
+        let mattress = try #require(controller.mattress)
+        #expect(mattress.isAwaitingDrop, "de regalo, mientras se juega, también cae; pero no bajo un pop-up")
+        gameState.closeMattressPopup()
+        run(controller, seconds: PickupNode.popupCloseSeconds + PickupNode.fallSeconds + 0.2)
+        #expect(!mattress.isFalling)
+        #expect(gameState.boardMattressMarker.contains(","))
+    }
+
+    @Test("el primer cuadro después del anuncio, con un delta enorme, no se come la caída")
+    func aHugeDeltaDoesNotSkipTheFall() async throws {
+        let (gameState, controller) = await pickups()
+        controller.update(delta: 0.016, reduceMotion: false)
+        gameState.debugSpawnMattress(onBoard: true)
+        gameState.refreshPrizeAccess()
+        controller.update(delta: 0.016, reduceMotion: false)
+        run(controller, seconds: PickupNode.popupCloseSeconds + 0.05)
+        let mattress = try #require(controller.mattress)
+        #expect(mattress.isFalling && !mattress.isAwaitingDrop)
+        controller.update(delta: 3, reduceMotion: false)
+        #expect(mattress.isFalling && mattress.fallOffset > 0, "un cuadro de 3 s avanza a lo sumo un paso")
+    }
+
+    @Test("cae en el piso que se mira, en su lugar libre de adelante, delante de las hileras, y se queda en ese piso")
+    func itLandsOnTheVisibleFloorInFront() async throws {
+        let (gameState, controller) = await pickups()
+        gameState.debugSpawnMattress(onBoard: true)
+        gameState.refreshPrizeAccess()
+        controller.update(delta: 1, reduceMotion: true)
+        let mattress = try #require(controller.mattress)
+        let floor = try #require(gameState.mattressFloor)
+        let spot = try #require(gameState.mattressSpot)
+        #expect(floor == gameState.visibleFloorOrdinal)
+        #expect(spot.y < GameState.mattressBackDepth.lowerBound, "en la mitad de adelante")
+        let layout = try floorLayout(gameState)
+        let feet = layout.packageFeet(at: spot)
+        #expect(abs(mattress.position.x - feet.x) < 0.01)
+        #expect(abs(mattress.position.y - (feet.y + mattress.boxSize.height / 2)) < 0.01, "los pies en su lugar")
+        #expect(abs(mattress.zPosition - DepthOrder.z(forFeetY: feet.y)) < 0.0005, "con el z de sus pies (B19)")
+        #expect(mattress.zPosition >= DepthOrder.z(forFeetY: layout.baselineY), "nunca detrás de la hilera de atrás")
+        // El centro del colchón es suyo: el toque de ahí lo abre (lo que pide el UI test de B24).
+        #expect(controller.hitDepth(at: mattress.position) == mattress.zPosition)
+        #expect(mattress.callsForTap, "pide que lo toquen")
+    }
+
+    @Test("una caja nueva no cae encima del colchón, ni el colchón encima de una caja")
+    func boxesKeepClearOfTheMattress() async throws {
+        let (gameState, _) = await pickups()
+        gameState.debugAddPackages(2)
+        gameState.debugSpawnMattress(onBoard: true)
+        let floor = try #require(gameState.mattressFloor)
+        let spot = try #require(gameState.mattressSpot)
+        let areas = gameState.packageAreas(onFloor: floor)
+        #expect(!areas.isEmpty)
+        #expect(PackagePlacer.crowding(of: spot, among: [], in: areas) >= Double(areas.count), "su lugar está ocupado")
+        let boxes = gameState.packageBoxes.filter { $0.floor == floor }.compactMap(\.spot)
+        let bare = PickupLayout.placementAreas(background: gameState.visibleFloorDef?.background,
+                                               backgroundOffset: gameState.visibleFloorDef?.backgroundOffset ?? 0)
+        #expect(PackagePlacer.crowding(of: spot, among: boxes, in: bare.map { $0.keepingToTheFront(GameState.mattressBackDepth) }) == 0,
+                "cayó en un lugar libre de las cajas y adelante")
     }
 
     @Test("con Reduce Motion el pagado no cae: aparece en su lugar")
@@ -402,7 +486,7 @@ struct PickupControllerTests {
         #expect(controller.hitDepth(at: box.position) == nil)
         #expect(!controller.handleTap(at: box.position), "el toque sigue a lo de atrás")
         #expect(gameState.packagesWaiting == 1, "no se abrió")
-        controller.update(delta: PickupNode.fallSeconds, reduceMotion: false)
+        run(controller, seconds: PickupNode.fallSeconds + 0.1)
         #expect(!box.isFalling)
         #expect(controller.hitDepth(at: box.position) != nil, "ya en el piso, se toca")
     }

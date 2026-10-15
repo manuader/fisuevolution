@@ -77,6 +77,23 @@ public struct PackageFloorArea: Sendable, Equatable {
 
     /// Sin reglas: cualquier lugar vale.
     public static let open = PackageFloorArea(gapX: 0, gapY: 0)
+
+    /// La misma superficie con `spot` ocupado (el colchón, E14b B24): nada cae a menos de la
+    /// separación entre cajas, de costado y de fondo. Sin fondo (`gapY` infinito) separa el costado.
+    public func keepingClear(of spot: PackageSpot) -> PackageFloorArea {
+        let depth = gapY.isFinite ? (spot.y - gapY)...(spot.y + gapY) : -Double.infinity...Double.infinity
+        var area = self
+        area.keepOut.append(Zone(x: (spot.x - gapX)...(spot.x + gapX), y: depth))
+        return area
+    }
+
+    /// La misma superficie con la mitad de atrás prohibida: lo que tiene que verse entero cae
+    /// adelante, delante de las hileras (E14b B24, B19).
+    public func keepingToTheFront(_ depth: ClosedRange<Double>) -> PackageFloorArea {
+        var area = self
+        area.keepOut.append(Zone(x: -Double.infinity...Double.infinity, y: depth))
+        return area
+    }
 }
 
 /// El buzón del Paquete de la Aduana (vive en `meta.engagement`). El reloj es

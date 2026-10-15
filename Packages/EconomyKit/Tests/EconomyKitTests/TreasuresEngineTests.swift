@@ -453,3 +453,58 @@ struct LossyModifierTests {
         #expect(back.run.activeModifiers.first?.effect == .eventImmunity)
     }
 }
+
+@Suite("El colchón del tablero tiene piso y lugar (E14b B24)")
+struct TreasurePlacementTests {
+    let config = fxTreasures()
+
+    @Test("cae en un piso y un lugar, viaja en el save, y un save sin ellos pide ubicarlo")
+    func landsAndRoundTrips() throws {
+        var state = TreasuresState(secondsUntilNext: 300, phase: .onBoard)
+        #expect(state.needsPlacement)
+        state.land(onFloor: 2, at: PackageSpot(x: 0.3, y: 0.2))
+        #expect(!state.needsPlacement)
+        #expect(state.floor == 2 && state.spot == PackageSpot(x: 0.3, y: 0.2))
+        let back = try JSONDecoder().decode(TreasuresState.self, from: JSONEncoder().encode(state))
+        #expect(back == state)
+        let old = try JSONDecoder().decode(TreasuresState.self, from: Data(#"{"phase":"onBoard","gifted":true}"#.utf8))
+        #expect(old.needsPlacement, "el de un save anterior a B24 se ubica al cargar")
+    }
+
+    @Test("en la columna no tiene lugar; abierto o reemplazado, lo olvida")
+    func onlyTheBoardOneHasASpot() {
+        var waiting = TreasuresState(phase: .waiting)
+        waiting.land(onFloor: 1, at: PackageSpot(x: 0.5, y: 0.5))
+        #expect(waiting.floor == nil && waiting.spot == nil)
+        #expect(!waiting.needsPlacement)
+
+        var opened = TreasuresState(secondsUntilNext: 1, phase: .onBoard, floor: 1, spot: PackageSpot(x: 0.5, y: 0.5))
+        #expect(TreasureScheduler.markOpened(&opened, config: config))
+        #expect(opened.floor == nil && opened.spot == nil)
+
+        var stale = TreasuresState(secondsUntilNext: 1, phase: .none, floor: 1, spot: PackageSpot(x: 0.5, y: 0.5))
+        #expect(advanceTreasure(&stale, delta: 1, config: fxTreasures(giftOneIn: 1), fraction: 0) == .gift)
+        #expect(stale.floor == nil && stale.spot == nil && stale.needsPlacement, "el regalo nuevo se ubica de cero")
+    }
+}
+
+@Suite("Lo que respeta una caja: el colchón y la mitad de atrás (E14b B24)")
+struct PackageAreaClearanceTests {
+    @Test("nada cae a menos de una separación de un lugar ocupado")
+    func keepsClearOfASpot() {
+        let area = PackageFloorArea(gapX: 0.2, gapY: 0.3).keepingClear(of: PackageSpot(x: 0.5, y: 0.5))
+        #expect(PackagePlacer.crowding(of: PackageSpot(x: 0.55, y: 0.6), among: [], in: area) >= 1)
+        #expect(PackagePlacer.crowding(of: PackageSpot(x: 0.9, y: 0.5), among: [], in: area) == 0)
+        let flat = PackageFloorArea(gapX: 0.2, gapY: .infinity).keepingClear(of: PackageSpot(x: 0.5, y: 0))
+        #expect(PackagePlacer.crowding(of: PackageSpot(x: 0.55, y: 1), among: [], in: flat) >= 1, "sin fondo separa el costado")
+    }
+
+    @Test("con la mitad de atrás prohibida, el lugar sale adelante")
+    func keepsToTheFront() {
+        let area = PackageFloorArea(gapX: 0.1, gapY: 0.1).keepingToTheFront(0.5...1)
+        var rng = SystemRandomNumberGenerator()
+        for _ in 0..<100 {
+            #expect(PackagePlacer.place(among: [], in: area, using: &rng).y < 0.5)
+        }
+    }
+}

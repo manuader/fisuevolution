@@ -69,7 +69,7 @@ extension GameState {
             debugSpawnMattress(extraSaved: true)
         }
         if arguments.contains("--uitest-mattress-board") {
-            debugSpawnMattress(onBoard: true)
+            debugSpawnMattress(onBoard: true, gifted: true)
         }
     }
 

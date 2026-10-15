@@ -186,9 +186,17 @@ final class AdMobAdsProvider: AdsProvider {
         // Con mediación el premio puede llegar DESPUÉS del cierre (ver arriba): una gracia corta antes de
         // darlo por no ganado. Mientras tanto quien espera el video (el paso 2 del ×2, E14b B29) sigue
         // «mirando» y nada lo rechaza.
-        let graceEnds = ContinuousClock.now + Self.lateRewardGrace
+        let dismissed = ContinuousClock.now
+        let earnedBeforeDismiss = earnedReward
+        let graceEnds = dismissed + Self.lateRewardGrace
         while !earnedReward, lastRewardedAttempt == .presented, ContinuousClock.now < graceEnds {
             try? await Task.sleep(for: .milliseconds(100))
+        }
+        // E14b B24 (H4): lo que dice el dispositivo de una red mediada. «late» = el premio llegó en la
+        // gracia; «none» con `presented` = se cerró sin premio (o llegó más tarde que la gracia).
+        if lastRewardedAttempt == .presented, !earnedBeforeDismiss {
+            let outcome = earnedReward ? "late \(ContinuousClock.now - dismissed)" : "none"
+            Log.ads.info("rewarded \(placement.rawValue, privacy: .public) reward after dismiss: \(outcome, privacy: .public)")
         }
 
         // Reponer inventario para la próxima, gane o no gane.

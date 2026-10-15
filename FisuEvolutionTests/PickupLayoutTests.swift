@@ -26,20 +26,15 @@ struct PickupLayoutTests {
         PackageSpot(x: 0.5, y: 0.5),
     ]
 
-    @Test("las cajas lejos de las columnas de los dos bordes; el colchón al costado del visitante")
-    func clearOfTheEdgesAndTheVisitor() {
+    @Test("las cajas y el colchón lejos de las columnas de los dos bordes")
+    func clearOfTheEdges() {
         for (size, cell) in Self.screens {
             let layout = PickupLayout(sceneSize: size, bottomInset: 118, cellSize: cell)
-            let stage = StageLayout(sceneSize: size, bottomInset: 118, cellSize: cell)
-            let visitorRight = stage.standX + stage.actorSide * PickupLayout.visitorBodyRatio / 2
             for spot in Self.spots {
                 let box = layout.packagePosition(at: spot)
                 #expect(box.x - layout.side / 2 >= PickupLayout.edgeClearance - 0.001, "\(size) \(spot): bajo la columna izquierda")
                 #expect(box.x + layout.side / 2 <= size.width - PickupLayout.edgeClearance + 0.001, "\(size) \(spot): bajo la columna derecha")
             }
-            let mattress = layout.mattressPosition
-            #expect(mattress.x - layout.side / 2 >= visitorRight - 0.5, "\(size): el colchón pisa al visitante")
-            #expect(mattress.x + layout.side / 2 <= size.width - PickupLayout.edgeClearance, "\(size): el colchón va al borde")
         }
     }
 
@@ -95,15 +90,6 @@ struct PickupLayoutTests {
         }
     }
 
-    @Test("el colchón también va en el horizonte y entero a la vista")
-    func mattressOnTheHorizon() {
-        for (size, cell) in Self.screens {
-            let layout = PickupLayout(sceneSize: size, bottomInset: 118, cellSize: cell, background: "urban")
-            #expect(abs(layout.mattressPosition.y - layout.side * 0.35 - layout.baselineY) < 0.01)
-            #expect(layout.mattressPosition.y + layout.side / 2 < size.height)
-        }
-    }
-
     @Test("en los diez escenarios la caja y el colchón apoyan en el suelo: ni bajo la barra ni sobre el horizonte")
     func neverFloatsInAnyScenario() {
         for (size, cell) in Self.screens {
@@ -135,7 +121,6 @@ struct PickupLayoutTests {
                     }
                     #expect(layout.baselineY >= stage.floorBase, "\(label): la caja pasa debajo de floorBottom")
                     #expect(layout.packageFeetRange.lowerBound >= stage.floorBase - 0.001)
-                    #expect(layout.mattressPosition.y - layout.side * 0.35 >= stage.floorBase - 0.001)
                 }
             }
         }
@@ -198,8 +183,8 @@ struct PickupLayoutTests {
         }
     }
 
-    @Test("el centro de ninguna caja cae en la zona de caminata del visitante, ni la caja sobre el colchón")
-    func boxesStayOffTheWalkAndTheMattress() {
+    @Test("el centro de ninguna caja cae en la zona de caminata del visitante")
+    func boxesStayOffTheWalk() {
         for (size, cell) in Self.screens {
             let layout = PickupLayout(sceneSize: size, bottomInset: 118, cellSize: cell, background: "alley", floorBottom: 96)
             let area = layout.packageArea
@@ -214,8 +199,6 @@ struct PickupLayoutTests {
                     #expect(box.x <= walk.lowerBound + 0.5 || box.x >= walk.upperBound - 0.5,
                             "\(size) \(spot): la caja cae en la zona de caminata")
                 }
-                #expect(abs(box.x - layout.mattressX) >= layout.side - 0.5 || spot.y < 1 - min(1, area.gapY),
-                        "\(size) \(spot): la caja pisa el colchón")
             }
         }
     }

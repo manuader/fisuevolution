@@ -25,6 +25,17 @@ final class PickupNode: SKNode {
     /// Lo que la caja vacía se queda después de que el empleado saltó afuera, antes de irse.
     static let emptyLingerSeconds: TimeInterval = 0.35
     static let collapseSeconds: TimeInterval = 0.3
+    /// Lo que tarda en irse un pop-up del juego (`GamePopupPresenter`: 0,24 s) con aire: la caída
+    /// del colchón pagado empieza recién cuando el pop-up del video ya no está (E14b B24).
+    static let popupCloseSeconds: TimeInterval = 0.35
+    /// El paso más largo que avanza la caída en un cuadro: el primero después de un anuncio o de
+    /// un tirón trae un delta grande, y la caída terminaba sin verse (E14b B24, H5).
+    static let maxFallStep: TimeInterval = 1.0 / 20
+    /// El colchón que espera que lo toquen salta cada tanto (E14b B24): cuánto dura el ciclo y
+    /// cuánto sube, en lados.
+    static let hopPeriod: TimeInterval = 1.4
+    static let hopSeconds: TimeInterval = 0.38
+    static let hopHeightSides: CGFloat = 0.18
 
     /// La capa de las cajas no suma profundidad: cada pieza lleva el z de su línea de apoyo
     /// (`DepthOrder`, E14b B19). Lo de adentro de la pieza se apila en pasos de `DepthOrder.innerStep`,
@@ -69,6 +80,19 @@ final class PickupNode: SKNode {
     }
     /// La caída que queda: desde qué altura y cuánto tiempo le falta.
     private var fall: (height: CGFloat, left: TimeInterval)?
+    /// La caída que todavía no empezó: espera `left` segundos con la pantalla libre (E14b B24).
+    private var pendingDrop: (height: CGFloat, left: TimeInterval)?
+    /// Algo tapa el tablero (el pop-up que se cierra, una celebración): la espera de la caída no corre.
+    var dropHeld = false
+    /// Pide que lo toquen (E14b B24): salta, brilla y dice «¡Tocame!» hasta que se abre.
+    var callsForTap = false {
+        didSet { if callsForTap != oldValue { syncCall() } }
+    }
+    private let glow: SKSpriteNode
+    private let tapMeSign = SKLabelNode(fontNamed: "AvenirNext-Heavy")
+    private let tapMeShadow = SKLabelNode(fontNamed: "AvenirNext-Heavy")
+    /// Cuánto más arriba de su lugar está por el salto (0 quieto). Lo suma quien lo ubica, como la caída.
+    private(set) var hopOffset: CGFloat = 0
     /// Cuánto más arriba de su lugar está mientras cae (0 quieto). Lo suma quien lo ubica.
     private(set) var fallOffset: CGFloat = 0
 
@@ -80,12 +104,20 @@ final class PickupNode: SKNode {
         self.pool = pool
         self.packs = packs
         sprite = SKSpriteNode(texture: texture)
+        glow = SKSpriteNode(texture: texture)
         waitingVideo = waitingClip.map {
             // El póster va transparente: el arte quieto es `sprite`, y dos copias del PNG se sumarían.
             LoopingVideoNode(clip: $0, poster: Self.clearTexture, size: .zero, role: .icon, manifest: manifest, pool: pool,
                              packs: packs)
         }
         super.init()
+        // El brillo es el mismo arte en amarillo y sumado, detrás del colchón.
+        glow.color = UIColor(named: "PaletteYellow") ?? .yellow
+        glow.colorBlendFactor = 1
+        glow.blendMode = .add
+        glow.zPosition = -DepthOrder.innerStep
+        glow.isHidden = true
+        addChild(glow)
         addChild(sprite)
         if let waitingVideo {
             waitingVideo.zPosition = DepthOrder.innerStep
@@ -97,6 +129,16 @@ final class PickupNode: SKNode {
         fullSign.isHidden = true
         fullSign.zPosition = Self.labelZ
         addChild(fullSign)
+        for (label, color) in [(tapMeShadow, UIColor(named: "PaletteInk") ?? .black),
+                               (tapMeSign, UIColor(named: "PaletteCream") ?? .white)] {
+            label.text = String(localized: "mattress.board.tapme")
+            label.fontColor = color
+            label.verticalAlignmentMode = .center
+            label.isHidden = true
+            label.zPosition = Self.labelZ
+            addChild(label)
+        }
+        tapMeShadow.zPosition = Self.labelZ - DepthOrder.innerStep
         resize(side: side)
         setScale(0.01)
     }
@@ -127,6 +169,43 @@ final class PickupNode: SKNode {
         for clip in openingClips { clip.resize(sprite.size) }
         fullSign.fontSize = side * 0.3
         fullSign.position = CGPoint(x: 0, y: sprite.size.height * 0.75)
+        glow.size = CGSize(width: sprite.size.width * 1.16, height: sprite.size.height * 1.16)
+        for label in [tapMeSign, tapMeShadow] { label.fontSize = side * 0.24 }
+        placeTapMe(bob: 0)
+    }
+
+    /// «¡Tocame!» arriba del colchón, con su sombra corrida un punto y medio.
+    private func placeTapMe(bob: CGFloat) {
+        let y = sprite.size.height * 0.72 + bob
+        tapMeSign.position = CGPoint(x: 0, y: y)
+        tapMeShadow.position = CGPoint(x: 0, y: y - 1.5)
+    }
+
+    /// El brillo y el cartel se ven sólo mientras pide que lo toquen y está quieto en su lugar.
+    private func syncCall() {
+        let shown = callsForTap && !isFalling && !isOpening
+        glow.isHidden = !shown
+        tapMeSign.isHidden = !shown
+        tapMeShadow.isHidden = !shown
+        if !shown { hopOffset = 0 }
+    }
+
+    /// El salto, el brillo y el cartel de quien pide que lo toquen: un saltito cada `hopPeriod`, el
+    /// brillo que respira y el cartel que sube y baja. Con Reduce Motion, quieto y brillando.
+    private func advanceCall(reduceMotion: Bool) {
+        syncCall()
+        guard !glow.isHidden else { return }
+        let pulse = CGFloat(0.5 + 0.5 * sin(age * 4))
+        glow.alpha = reduceMotion ? 0.45 : 0.25 + 0.4 * pulse
+        guard !reduceMotion else {
+            hopOffset = 0
+            placeTapMe(bob: 0)
+            return
+        }
+        let phase = age.truncatingRemainder(dividingBy: Self.hopPeriod)
+        let hop = phase < Self.hopSeconds ? sin(phase / Self.hopSeconds * .pi) : 0
+        hopOffset = sprite.size.width * Self.hopHeightSides * CGFloat(hop)
+        placeTapMe(bob: CGFloat(sin(age * 3)) * sprite.size.height * 0.04)
     }
 
     private(set) var isWaiting = false
@@ -162,6 +241,7 @@ final class PickupNode: SKNode {
         guard !isOpening else { return }
         isOpening = true
         setWaiting(false)
+        syncCall()
         shake()
         // La sacudida va con el rol de ícono; la apertura, con el de popup: con el mismo rol el pool
         // bajaría la sacudida antes de que la apertura asome, y la caja quieta se vería un instante.
@@ -265,16 +345,38 @@ final class PickupNode: SKNode {
     }
 
     /// Cae desde `height` puntos más arriba de su lugar, ya a tamaño completo, y tiembla al llegar.
-    func drop(from height: CGFloat) {
+    /// Con `delay`, primero espera ese tiempo con la pantalla libre (`dropHeld` lo frena) y fuera de
+    /// la vista: el colchón pagado cae recién cuando el pop-up del video terminó de irse (B24).
+    func drop(from height: CGFloat, after delay: TimeInterval = 0) {
         guard height > 0 else { return }
         age = max(age, Self.popSeconds)
-        fall = (height: height, left: Self.fallSeconds)
         fallOffset = height
+        if delay > 0 {
+            pendingDrop = (height: height, left: delay)
+        } else {
+            fall = (height: height, left: Self.fallSeconds)
+        }
     }
 
-    var isFalling: Bool { fall != nil }
+    /// Está cayendo o esperando para caer: no se toca ni se marca.
+    var isFalling: Bool { fall != nil || pendingDrop != nil }
+
+    /// Esperando para caer, todavía fuera de la vista.
+    var isAwaitingDrop: Bool { pendingDrop != nil }
 
     private func advanceFall(delta: TimeInterval, reduceMotion: Bool) {
+        let delta = min(delta, Self.maxFallStep)
+        if let pending = pendingDrop {
+            guard !dropHeld else { return }
+            let left = pending.left - delta
+            guard left <= 0 else {
+                pendingDrop = (height: pending.height, left: left)
+                return
+            }
+            pendingDrop = nil
+            fall = (height: pending.height, left: Self.fallSeconds)
+            return
+        }
         guard let current = fall else { return }
         let left = current.left - delta
         guard left > 0, !reduceMotion else {
@@ -293,7 +395,13 @@ final class PickupNode: SKNode {
         advanceFall(delta: delta, reduceMotion: reduceMotion)
         age += delta
         advanceEmpty(delta: delta, reduceMotion: reduceMotion)
+        advanceCall(reduceMotion: reduceMotion)
         guard !isCollapsing, parent != nil else { return }
+        // Antes de caer no se ve: entra cayendo desde arriba de la pantalla.
+        guard pendingDrop == nil else {
+            alpha = 0
+            return
+        }
         if reduceMotion {
             setScale(1)
             zRotation = 0

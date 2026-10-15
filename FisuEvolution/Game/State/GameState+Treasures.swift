@@ -30,12 +30,39 @@ extension GameState {
 
     var mattressExtraOpensLeft: Int { player?.meta.engagement.treasures.extraOpensLeft ?? 0 }
 
+    /// El piso donde está el del tablero (E14b B24): el que se miraba cuando cayó.
+    var mattressFloor: Int? { mattressOnBoard ? player?.meta.engagement.treasures.floor : nil }
+
+    /// Su lugar sobre la superficie de ese piso, en las fracciones de una caja.
+    var mattressSpot: PackageSpot? { mattressOnBoard ? player?.meta.engagement.treasures.spot : nil }
+
+    /// El del tablero cae en el piso que se mira, en un lugar libre de la mitad de adelante (E14b
+    /// B24): la regla de las cajas (B22), lejos de ellas y de la zona del visitante, y adelante para
+    /// que quede delante de las hileras (B19). El recién pagado, el de regalo y el de un save
+    /// anterior a B24; uno que ya tiene lugar no se mueve.
+    func placeMattressIfNeeded() {
+        guard var player, player.meta.engagement.treasures.needsPlacement else { return }
+        let floor = visibleFloorOrdinal
+        let taken = player.meta.engagement.packages.boxes(onFloor: floor).compactMap(\.spot)
+        let areas = packageAreas(onFloor: floor).map { $0.keepingToTheFront(Self.mattressBackDepth) }
+        let spot = PackagePlacer.place(among: taken, in: areas, using: &rng)
+        player.meta.engagement.treasures.land(onFloor: floor, at: spot)
+        self.player = player
+        Log.economy.info("mattress landed on floor \(floor)")
+    }
+
+    /// La parte de atrás de la superficie, de 0 (el frente) a 1 (el horizonte), donde el colchón no
+    /// cae: ahí lo taparía la hilera de adelante.
+    static let mattressBackDepth: ClosedRange<Double> = 0.5...1
+
     /// El «otro colchón» de uno ya abierto sigue guardado: sobrevive a cerrar el
     /// popup y a matar la app, hasta que aparece un colchón nuevo.
     var mattressExtraPending: Bool { mattressPhase == .none && mattressExtraOpensLeft > 0 }
 
     /// El reloj de juego activo. Lo llama `advanceEngagement` con el delta del tick.
     func advanceTreasures(delta: TimeInterval) {
+        // El del tablero de un save anterior a B24 todavía no tiene lugar: se ubica al cargar.
+        placeMattressIfNeeded()
         guard engagementAutorun, !tutorialPhaseActive, mattressPopup == nil, let content, var player else { return }
         let arrival = TreasureScheduler.advance(&player.meta.engagement.treasures, delta: delta,
                                                 config: content.treasures, using: &rng)
@@ -43,6 +70,7 @@ extension GameState {
         guard let arrival else { return }
         let kind = arrival == .gift ? "gift" : "column"
         Log.economy.info("mattress appeared: \(kind)")
+        placeMattressIfNeeded()
         scheduleSave()
     }
 
@@ -52,6 +80,7 @@ extension GameState {
         guard var player, TreasureScheduler.markPaid(&player.meta.engagement.treasures) else { return false }
         self.player = player
         Log.economy.info("mattress paid")
+        placeMattressIfNeeded()
         scheduleSave()
         return true
     }
@@ -91,13 +120,19 @@ extension GameState {
     }
 
     #if DEBUG
-    /// En la columna; `onBoard`: ya pagado o regalado, en el tablero; `extraSaved`: el colchón ya
-    /// se abrió y le queda «otro colchón» guardado.
-    func debugSpawnMattress(onBoard: Bool = false, extraSaved: Bool = false) {
+    /// En la columna; `onBoard`: ya pagado o regalado, en el tablero (`gifted`: de regalo, D4);
+    /// `extraSaved`: el colchón ya se abrió y le queda «otro colchón» guardado. El del tablero cae en
+    /// un lugar libre del piso que se mira, como el de verdad (B24).
+    func debugSpawnMattress(onBoard: Bool = false, extraSaved: Bool = false, gifted: Bool = false) {
         guard var player else { return }
         player.meta.engagement.treasures.phase = extraSaved ? .none : onBoard ? .onBoard : .waiting
         player.meta.engagement.treasures.extraOpensLeft = extraSaved ? 1 : 0
+        player.meta.engagement.treasures.gifted = onBoard && gifted
+        player.meta.engagement.treasures.floor = nil
+        player.meta.engagement.treasures.x = nil
+        player.meta.engagement.treasures.y = nil
         self.player = player
+        placeMattressIfNeeded()
     }
     #endif
 }

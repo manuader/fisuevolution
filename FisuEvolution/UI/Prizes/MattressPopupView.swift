@@ -15,6 +15,29 @@ enum MattressStage: Equatable {
     }
 }
 
+/// Lo que muestra el pop-up del premio del colchón (E14b B24): la imagen del premio, el monto y su
+/// nombre. Puro, para pinear que cada premio de `treasures.json` tiene imagen y nombre.
+struct MattressReveal: Equatable {
+    let kind: RewardKind
+    /// Lo grande: la plata ganada o, si no es plata, el nombre del premio.
+    let text: String
+    /// El nombre debajo de la plata («20 min de ingresos»); `nil` si el texto ya es el nombre.
+    let caption: String?
+
+    init(_ outcome: MattressOutcome) {
+        let name = outcome.rewards.map(RewardCopy.title).joined(separator: " + ")
+        if outcome.coins > 0 {
+            kind = .coins
+            text = "+\(CoinFormatter.string(from: outcome.coins))"
+            caption = name.isEmpty ? nil : name
+        } else {
+            kind = outcome.rewards.first.flatMap { RewardKind($0) } ?? .mattressTreasure
+            text = name
+            caption = nil
+        }
+    }
+}
+
 /// Los toques que abren el colchón (E14 C4 «durante»): cada uno lo sacude y el
 /// tercero lo descose. Con Reduce Motion alcanza un toque. Puro, para pinearlo.
 struct MattressOpening: Equatable {
@@ -169,15 +192,21 @@ struct MattressPopupView: View {
         }
     }
 
+    /// Después: la imagen del premio, el monto y su nombre (E14b B24: siempre con imagen). La marca
+    /// invisible `mattress.result.art` dice qué arte se dibujó, para los UI tests.
     private func result(_ outcome: MattressOutcome) -> some View {
-        let text = outcome.coins > 0
-            ? "+\(CoinFormatter.string(from: outcome.coins))"
-            : outcome.rewards.map(RewardCopy.title).joined(separator: " + ")
-        let kind = outcome.coins > 0 ? RewardKind.coins : outcome.rewards.first.flatMap { RewardKind($0) } ?? .mattressTreasure
-        return PrizeReveal(kind: kind, text: text)
-            .accessibilityElement(children: .combine)
-            .accessibilityIdentifier("mattress.result")
-            .accessibilityValue(Text(verbatim: outcome.prizeId))
+        let reveal = MattressReveal(outcome)
+        return VStack(spacing: 0) {
+            PrizeReveal(kind: reveal.kind, text: reveal.text, caption: reveal.caption)
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("mattress.result")
+                .accessibilityValue(Text(verbatim: outcome.prizeId))
+            Color.clear
+                .frame(width: 1, height: 1)
+                .accessibilityElement()
+                .accessibilityIdentifier("mattress.result.art")
+                .accessibilityValue(Text(verbatim: reveal.kind.resolvedArtKey ?? ""))
+        }
     }
 
     private var oddsRows: [OddsDisclosureView.Row] {

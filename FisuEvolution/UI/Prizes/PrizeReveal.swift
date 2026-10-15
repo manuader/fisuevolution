@@ -7,6 +7,8 @@ struct PrizeReveal: View {
     let kind: RewardKind
     /// El monto o lo que se ganó, ya resuelto.
     let text: String
+    /// El nombre del premio debajo del monto, cuando el monto solo no dice qué es (E14b B24).
+    var caption: String?
     var size: CGFloat = 96
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -26,6 +28,14 @@ struct PrizeReveal: View {
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .minimumScaleFactor(0.6)
+            if let caption {
+                Text(verbatim: caption)
+                    .font(Tokens.body)
+                    .foregroundStyle(Color("PaletteInk").opacity(0.8))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.7)
+            }
         }
         .frame(maxWidth: .infinity)
         .onAppear {

@@ -79,7 +79,7 @@ extension View {
             .padding(.bottom, GameTabBar.flapOverlap)
             .frame(height: GameTabBar.flapHeight)
             .background {
-                BarFlapShape().fill(Color("PaletteCream"))
+                BarFlapShape().fill(Color("PaletteParchment"))
                 if let tint {
                     BarFlapShape().fill(tint.opacity(0.24))
                 }

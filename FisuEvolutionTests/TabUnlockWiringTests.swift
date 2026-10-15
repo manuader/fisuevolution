@@ -32,31 +32,60 @@ struct TabUnlockWiringTests {
         #expect(gameState.unlockedTabsInBarOrder == [.upgrades, .jobs])
     }
 
-    @Test("terminar el núcleo abre Bonus, Menú y Ranking, con ¡Nuevo!, y se guarda")
+    @Test("terminar el núcleo abre Bonus, Menú y Tienda, con ¡Nuevo!, y se guarda")
     func coreUnlocksAndPersists() async throws {
         let gameState = await makeGameState(core: false, sessions: 0)
         gameState.refreshProjections()
         TutorialFlags.setCoreCompleted(true, in: gameState.flagDefaults)
         gameState.refreshProjections()
-        #expect(gameState.unlockedTabs == [.jobs, .upgrades, .gifts, .menu, .ranking])
-        #expect(gameState.newTabs == [.gifts, .menu, .ranking])
+        #expect(gameState.unlockedTabs == [.jobs, .upgrades, .gifts, .menu, .store])
+        #expect(gameState.newTabs == [.gifts, .menu, .store])
         let saved = try #require(gameState.player?.meta.unlockedTabs)
         #expect(saved.isSuperset(of: ["gifts", "menu"]))
 
         gameState.markTabOpened(.gifts)
-        #expect(gameState.newTabs == [.menu, .ranking])
+        #expect(gameState.newTabs == [.menu, .store])
     }
 
-    @Test("con el interruptor del ranking apagado la pestaña no está, pero sigue abierta en el save")
-    func rankingSwitchHidesTheTab() async {
+    @Test("con el interruptor del ranking apagado la tarjeta del Menú no aparece, y la barra no cambia")
+    func rankingSwitchHidesTheCard() async {
         let gameState = await makeGameState(core: true, sessions: 0)
         let off = RankingConfig(
             schemaVersion: RankingConfig.supportedSchemaVersion, enabled: false, baseURL: nil, anonKey: nil)
         let store = RankingStore(client: SimulatedRankingClient(), config: off)
         gameState.attachRanking(store)
         gameState.refreshProjections()
-        #expect(gameState.unlockedTabs.contains(.ranking))
+        #expect(!gameState.rankingCardIsShown)
         #expect(!gameState.unlockedTabsInBarOrder.contains(.ranking))
+        #expect(gameState.unlockedTabsInBarOrder.contains(.store))
+    }
+
+    @Test("con el interruptor del ranking prendido la tarjeta del Menú está")
+    func rankingCardShowsWhenEnabled() async {
+        let gameState = await makeGameState(core: true, sessions: 0)
+        gameState.refreshProjections()
+        #expect(gameState.rankingCardIsShown)
+    }
+
+    @Test("la Tienda pedida por el + de la moneda abre sola mientras la barra no la tiene, y como página si ya está")
+    func storePagesDependOnTheBar() async {
+        let gameState = await makeGameState(core: false, sessions: 0)
+        gameState.refreshProjections()
+        #expect(gameState.menuPages(startingAt: .store) == [.store])
+        TutorialFlags.setCoreCompleted(true, in: gameState.flagDefaults)
+        gameState.refreshProjections()
+        #expect(gameState.menuPages(startingAt: .store) == gameState.unlockedTabsInBarOrder)
+        #expect(gameState.menuPages(startingAt: .store).first == .store)
+    }
+
+    @Test("un save que trae el Ranking como pestaña no lo cuela en la barra, y no se lo borra")
+    func legacyRankingStaysOutOfTheBar() async {
+        let gameState = await makeGameState(core: true, sessions: 1)
+        gameState.player?.meta.unlockedTabs.insert("ranking")
+        gameState.refreshProjections()
+        #expect(!gameState.unlockedTabsInBarOrder.contains(.ranking))
+        #expect(!gameState.unlockedTabs.contains(.ranking))
+        #expect(gameState.player?.meta.unlockedTabs.contains("ranking") == true)
     }
 
     @Test("una pestaña abierta no se vuelve a cerrar")
@@ -86,15 +115,5 @@ struct TabUnlockWiringTests {
         gameState.refreshProjections()
         #expect(gameState.unlockedTabs == Set(GameScreen.barOrder))
         #expect(gameState.newTabs.isEmpty)
-    }
-
-    @Test("un save de la v1 que trae la Tienda no la cuela en la barra, y no se la borra")
-    func legacyStoreStaysOutOfTheBar() async {
-        let gameState = await makeGameState(core: true, sessions: 1)
-        gameState.player?.meta.unlockedTabs.insert("store")
-        gameState.refreshProjections()
-        #expect(!gameState.unlockedTabsInBarOrder.contains(.store))
-        #expect(!gameState.unlockedTabs.contains(.store))
-        #expect(gameState.player?.meta.unlockedTabs.contains("store") == true)
     }
 }

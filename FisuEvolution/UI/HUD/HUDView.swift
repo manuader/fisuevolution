@@ -94,7 +94,8 @@ struct HUDView: View {
         // 2026-08-19; la inferior va al 90% — el contador de arriba tolera más
         // fondo que los labels chicos de los tabs). El contorno ink queda
         // opaco: es el trazo, no el fondo.
-        .fill(Color("PaletteCream").opacity(0.8))
+        // El crema de FisuJobs (`PaletteParchment`, E14b B27), igual que la barra de abajo.
+        .fill(Color("PaletteParchment").opacity(0.8))
         .overlay(
             UnevenRoundedRectangle(
                 bottomLeadingRadius: 24, bottomTrailingRadius: 24, style: .continuous

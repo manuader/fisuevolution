@@ -102,9 +102,12 @@ final class RankingEntryCardUITests: XCTestCase {
 
     @MainActor
     private func openRanking(in app: XCUIApplication) {
-        let tab = app.buttons["hud.ranking"]
-        XCTAssertTrue(tab.waitForExistence(timeout: 10), "la barra no tiene el Ranking")
+        let tab = app.buttons["hud.settings"]
+        XCTAssertTrue(tab.waitForExistence(timeout: 10), "la barra no tiene el Menú")
         tab.tap()
+        let card = app.buttons["menu.card.ranking"]
+        XCTAssertTrue(card.waitForExistence(timeout: 10), "el Menú no tiene la tarjeta del Ranking")
+        card.tap()
         XCTAssertTrue(app.buttons["sheet.close"].waitForExistence(timeout: 10))
     }
 

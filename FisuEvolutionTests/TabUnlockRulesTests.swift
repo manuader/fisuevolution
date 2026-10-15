@@ -7,12 +7,12 @@ import Testing
 @MainActor
 struct TabUnlockRulesTests {
     private let config = TabsConfig(schemaVersion: 1, tabs: [
+        .init(id: "store", unlockWhen: [.tutorialCore]),
         .init(id: "upgrades", unlockWhen: [.always]),
         .init(id: "skins", unlockWhen: [.firstSkin]),
         .init(id: "jobs", unlockWhen: [.always]),
         .init(id: "gifts", unlockWhen: [.tutorialCore, .firstChest]),
         .init(id: "menu", unlockWhen: [.tutorialCore]),
-        .init(id: "ranking", unlockWhen: [.tutorialCore]),
     ])
 
     private func signals(core: Bool = false, skin: Bool = false, chest: Bool = false, sessions: Int = 0) -> TabUnlockSignals {
@@ -24,9 +24,9 @@ struct TabUnlockRulesTests {
         #expect(TabUnlockRules.unlocked(config: config, signals: signals()) == [.jobs, .upgrades])
     }
 
-    @Test("el núcleo del tutorial abre Bonus, Menú y Ranking")
+    @Test("el núcleo del tutorial abre Bonus, Menú y Tienda")
     func coreOpensGiftsAndMenu() {
-        #expect(TabUnlockRules.unlocked(config: config, signals: signals(core: true)) == [.jobs, .upgrades, .gifts, .menu, .ranking])
+        #expect(TabUnlockRules.unlocked(config: config, signals: signals(core: true)) == [.jobs, .upgrades, .gifts, .menu, .store])
     }
 
     @Test("el primer cofre abre Bonus aunque el tutorial siga")
@@ -46,12 +46,20 @@ struct TabUnlockRulesTests {
         #expect(Set(content.tabs.tabs.compactMap(\.screen)) == Set(GameScreen.barOrder))
     }
 
-    @Test("un tabs.json con la Tienda no es válido: ya no está en la barra")
-    func storeInTabsIsInvalid() {
-        let withStore = TabsConfig(schemaVersion: 1, tabs: GameScreen.allCases.map {
+    @Test("un tabs.json con el Ranking no es válido: ya no está en la barra (vive en el Menú)")
+    func rankingInTabsIsInvalid() {
+        let withRanking = TabsConfig(schemaVersion: 1, tabs: GameScreen.allCases.map {
             .init(id: $0.rawValue, unlockWhen: [.always])
         })
-        #expect(throws: GameError.self) { try withStore.validate() }
+        #expect(throws: GameError.self) { try withRanking.validate() }
+    }
+
+    @Test("la Tienda abre con el núcleo del tutorial, en el mismo momento en que abría el Ranking")
+    func storeOpensWithTheCore() throws {
+        let content = try GameContentLoader.load(from: .main)
+        let store = try #require(content.tabs.tabs.first { $0.screen == .store })
+        #expect(store.unlockWhen == [.tutorialCore])
+        #expect(!content.tabs.tabs.contains { $0.id == "ranking" })
     }
 
     @Test("una config sin Contratar siempre abierto no valida")

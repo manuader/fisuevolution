@@ -382,6 +382,37 @@ struct TutorialLessonsTests {
         #expect(gameState.tutorialRun?.step?.id == "menu_swipe.swipe")
     }
 
+    @Test("la Tienda en la barra y el Ranking en el Menú: se enseña una vez, después de las pestañas nuevas")
+    func tabsMovedExplainsTheStoreAndTheRanking() async {
+        let gameState = await makeGameState()
+        only(.tabsMoved, in: gameState)
+        gameState.markLessonDone(.newTabs)
+        gameState.progressiveTabsEnabled = false
+        gameState.refreshProjections()
+        #expect(gameState.isEligible(.tabsMoved))
+        gameState.refreshProjections()
+        #expect(gameState.tutorialRun?.steps.map(\.id)
+                == ["tabs_moved.store", "tabs_moved.menu", "tabs_moved.ranking"])
+        let steps = GameState.TutorialLesson.tabsMoved.steps
+        #expect(steps.map(\.target) == [.storeTab, .menu, .menuRanking])
+        #expect(steps[1].signal == .screenOpened(.menu))
+        #expect(steps[2].surface == .page(.menu))
+    }
+
+    @Test("la lección de las pestañas movidas espera al «¡Nuevo!» y a que haya tarjeta del Ranking")
+    func tabsMovedWaitsForItsPieces() async {
+        let gameState = await makeGameState()
+        gameState.progressiveTabsEnabled = false
+        gameState.refreshProjections()
+        #expect(!gameState.isEligible(.tabsMoved), "las pestañas nuevas van primero")
+        gameState.markLessonDone(.newTabs)
+        #expect(gameState.isEligible(.tabsMoved))
+        let off = RankingConfig(
+            schemaVersion: RankingConfig.supportedSchemaVersion, enabled: false, baseURL: nil, anonKey: nil)
+        gameState.attachRanking(RankingStore(client: SimulatedRankingClient(), config: off))
+        #expect(!gameState.isEligible(.tabsMoved), "sin tarjeta del Ranking no hay qué señalar")
+    }
+
     @Test("las pestañas nuevas: nacen con un «¡Nuevo!» y no sin él")
     func newTabsNeedANewBadge() async {
         let gameState = await makeGameState()
@@ -542,7 +573,7 @@ struct TutorialLessonsTests {
     @Test("las de T2 declaran su versión")
     func declaredReleaseT2() {
         for lesson in [GameState.TutorialLesson.boosts, .chests] { #expect(lesson.introducedIn == .v1, "\(lesson)") }
-        let v2: [GameState.TutorialLesson] = [.hirePriceStep, .menuSwipe, .newTabs, .blueShop, .luck, .cosmetics,
+        let v2: [GameState.TutorialLesson] = [.hirePriceStep, .menuSwipe, .newTabs, .tabsMoved, .blueShop, .luck, .cosmetics,
                                                .pendingTriple, .autoTap, .offers, .extraSlots]
         for lesson in v2 { #expect(lesson.introducedIn == .v2, "\(lesson)") }
     }
@@ -551,7 +582,7 @@ struct TutorialLessonsTests {
     func theT2GapsAreCovered() {
         let expected: [TutorialMechanic: GameState.TutorialLesson] = [
             .boosts: .boosts, .chests: .chests, .hirePriceStep: .hirePriceStep, .menuSwipe: .menuSwipe,
-            .newTabs: .newTabs, .blueShopShelf: .blueShop, .luckOdds: .luck, .cosmetics: .cosmetics,
+            .newTabs: .newTabs, .tabsMoved: .tabsMoved, .blueShopShelf: .blueShop, .luckOdds: .luck, .cosmetics: .cosmetics,
             .pendingTriple: .pendingTriple, .autoTap: .autoTap, .offers: .offers, .extraSlots: .extraSlots,
         ]
         for (mechanic, lesson) in expected {
@@ -578,6 +609,7 @@ struct TutorialLessonsTests {
         #expect(index(.newTabs) < index(.skins))
         #expect(index(.newTabs) < index(.store))
         #expect(index(.newTabs) < index(.menuSwipe))
+        #expect(index(.newTabs) < index(.tabsMoved))
         #expect(index(.elevator) < index(.elevatorKeypad))
         #expect(index(.elevator) < index(.floorSwipe))
         #expect(index(.blueShop) < index(.luck))
@@ -592,7 +624,7 @@ struct TutorialLessonsTests {
     func everyLessonIsListedOnce() {
         let all = GameState.TutorialLesson.allCases
         #expect(Set(all).count == all.count)
-        #expect(all.count == 38)
+        #expect(all.count == 39)
     }
 
     @Test("las que dejaron el paso heredado conservan su señal, su ancla y su texto")

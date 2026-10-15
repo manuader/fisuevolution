@@ -53,6 +53,10 @@ enum TutorialTarget: String, Hashable, CaseIterable {
     case upgradesRow
     /// La tarjeta del Organigrama en el Menú.
     case menuOrgChart
+    /// La tarjeta del Ranking en el Menú (E14b B26).
+    case menuRanking
+    /// La pestaña de la Tienda en la barra de abajo (E14b B26).
+    case storeTab
     /// La primera tarjeta de boost de Regalos.
     case giftsBoosts
     /// La tarjeta del cofre sin abrir de Regalos.

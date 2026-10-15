@@ -1,7 +1,7 @@
 import XCTest
 
-/// La pestaña Ranking del menú deslizable (E12): vive en la barra con el núcleo del tutorial hecho, se
-/// alcanza deslizando, muestra la fila propia fija abajo y se apaga con el interruptor del servidor.
+/// El Ranking (E12): desde E14b B26 vive en una tarjeta de Menú › Oficina central (ya no es pestaña de la
+/// barra), muestra la fila propia fija abajo y se apaga con el interruptor del servidor.
 final class RankingTabUITests: XCTestCase {
     override func setUp() {
         continueAfterFailure = false
@@ -18,15 +18,10 @@ final class RankingTabUITests: XCTestCase {
     }
 
     @MainActor
-    func testSeDeslizaHastaElRankingDesdeMejoras() throws {
+    func testLaBarraNoTieneElRankingYLaTiendaOcupaSuLugar() throws {
         let app = launch(scenario: "outside-top")
-        let tab = app.buttons["hud.upgrades"]
-        XCTAssertTrue(tab.waitForExistence(timeout: 10))
-        tab.tap()
-        XCTAssertTrue(app.buttons["upgrades.tab.permanent"].waitForExistence(timeout: 10))
-        app.windows.firstMatch.swipeRight()
-        XCTAssertTrue(app.descendants(matching: .any)["ranking.row.pinned"].waitForExistence(timeout: 10),
-                      "deslizar a la izquierda de Mejoras no llevó al Ranking")
+        XCTAssertTrue(app.buttons["hud.store"].waitForExistence(timeout: 10), "la Tienda no está en la barra")
+        XCTAssertFalse(app.buttons["hud.ranking"].exists, "el Ranking sigue en la barra")
     }
 
     @MainActor
@@ -59,15 +54,15 @@ final class RankingTabUITests: XCTestCase {
     }
 
     @MainActor
-    func testConElServidorApagadoLaPestanaNoEstaMas() throws {
+    func testConElServidorApagadoLaTarjetaDelMenuDesaparece() throws {
         let app = launch(scenario: "disabled")
         openRanking(in: app)
-        // El primer pedido al tablero recibe 503 y el store se apaga: al cerrar, la barra ya no la tiene.
-        let close = app.buttons["sheet.close"]
-        close.tap()
-        XCTAssertTrue(close.waitForNonExistence(timeout: 10))
-        XCTAssertTrue(app.buttons["hud.ranking"].waitForNonExistence(timeout: 10),
-                      "con el interruptor apagado la pestaña sigue en la barra")
+        // El primer pedido al tablero recibe 503 y el store se apaga: al volver al Menú, la tarjeta ya no está.
+        XCTAssertTrue(app.descendants(matching: .any)["ranking.disabled"].waitForExistence(timeout: 10))
+        app.windows.firstMatch.swipeRight()
+        XCTAssertTrue(app.buttons["menu.card.orgchart"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["menu.card.ranking"].waitForNonExistence(timeout: 10),
+                      "con el interruptor apagado la tarjeta sigue en el Menú")
     }
 
     @MainActor
@@ -96,9 +91,12 @@ final class RankingTabUITests: XCTestCase {
 
     @MainActor
     private func openRanking(in app: XCUIApplication) {
-        let tab = app.buttons["hud.ranking"]
-        XCTAssertTrue(tab.waitForExistence(timeout: 10), "la barra no tiene el Ranking")
+        let tab = app.buttons["hud.settings"]
+        XCTAssertTrue(tab.waitForExistence(timeout: 10), "la barra no tiene el Menú")
         tab.tap()
+        let card = app.buttons["menu.card.ranking"]
+        XCTAssertTrue(card.waitForExistence(timeout: 10), "el Menú no tiene la tarjeta del Ranking")
+        card.tap()
         XCTAssertTrue(app.buttons["sheet.close"].waitForExistence(timeout: 10))
     }
 

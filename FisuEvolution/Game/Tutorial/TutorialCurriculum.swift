@@ -90,7 +90,7 @@ enum TutorialMechanic: String, CaseIterable {
     case quickHire, passiveIncome, characterMultipliers, orgChart, elevatorPanel, elevatorKeypad
     case floorSwipe, floorFull
     case offlineDoubling, boosts, dailyGifts, skins, achievements, chests, prestigeAndBlue, blueUpgrades
-    case career, store, menuSwipe, characterSheet, newTabs, hirePriceStep, staffedFloors, prestigeGate
+    case career, store, menuSwipe, characterSheet, newTabs, tabsMoved, hirePriceStep, staffedFloors, prestigeGate
     case customsPackage, mattress, wheel, visitor, visitorPopup, eventChip, album, sideRail
     case mergeAll, share, blueShopShelf, pendingTriple, autoTap, luckOdds, offers
     case cosmetics, skinEffects, extraSlots, notificationsPermission, adBreak
@@ -136,6 +136,7 @@ enum TutorialMechanic: String, CaseIterable {
         case .chests: .lesson(.chests)
         case .menuSwipe: .lesson(.menuSwipe)
         case .newTabs: .lesson(.newTabs)
+        case .tabsMoved: .lesson(.tabsMoved)
         case .hirePriceStep: .lesson(.hirePriceStep)
         case .blueShopShelf: .lesson(.blueShop)
         case .pendingTriple: .lesson(.pendingTriple)

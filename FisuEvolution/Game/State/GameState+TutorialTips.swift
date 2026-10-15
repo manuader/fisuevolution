@@ -30,6 +30,9 @@ extension GameState {
         case passive
         /// Una pestaña recién abierta, con su «¡Nuevo!».
         case newTabs
+        /// La Tienda se mudó a la barra y el Ranking, a Menú › Oficina central (E14b B26, D19).
+        /// Una vez, como novedad: también al que ya vio el Tour.
+        case tabsMoved
         /// Ya hay una pinta para ponerse. Desde que las 41 pintas de piso salen
         /// **sólo** de cofres, la primera llega en el cofre de bienvenida, al
         /// cerrar la fase obligatoria — la vía vieja (la skin de milestone del
@@ -126,7 +129,7 @@ extension GameState {
             switch self {
             case .upgrades, .passive, .orgChart, .elevator, .floorSwipe, .floorFull, .skins, .achievements, .blueUpgrades,
                  .gifts, .store, .prestige, .boosts, .chests: .v1
-            case .quickHire, .newTabs, .elevatorKeypad, .characterSheet, .menuSwipe, .hirePriceStep, .staffedFloors,
+            case .quickHire, .newTabs, .tabsMoved, .elevatorKeypad, .characterSheet, .menuSwipe, .hirePriceStep, .staffedFloors,
                  .prestigeGate, .share, .sideRail, .packages, .mattress, .wheel, .mergeAllVideo, .visitor, .eventChip,
                  .album, .blueShop, .luck, .cosmetics, .pendingTriple, .autoTap, .offers, .extraSlots: .v2
             }
@@ -153,6 +156,7 @@ extension GameState {
             case .blueUpgrades: .upgrades
             case .gifts: .gifts
             case .store: .store
+            case .tabsMoved: .storeTab
             case .prestige: .prestige
             case .share: .share
             case .sideRail: .sideRail
@@ -186,7 +190,7 @@ extension GameState {
             case .hirePriceStep: .jobs
             case .visitor, .eventChip, .elevator, .elevatorKeypad, .quickHire, .floorSwipe, .floorFull, .staffedFloors,
                  .prestige, .prestigeGate, .characterSheet, .share, .sideRail, .packages, .mattress, .wheel, .mergeAllVideo,
-                 .menuSwipe, .newTabs, .pendingTriple, .autoTap, .offers, .extraSlots: nil
+                 .menuSwipe, .newTabs, .tabsMoved, .pendingTriple, .autoTap, .offers, .extraSlots: nil
             }
         }
 
@@ -264,6 +268,12 @@ extension GameState {
             ]
             case .newTabs: [
                 .explain("new_tabs.explain", text: "tutorial.new_tabs.explain"),
+            ]
+            case .tabsMoved: [
+                .explain("tabs_moved.store", text: "tutorial.tabs_moved.store", on: .storeTab),
+                .act("tabs_moved.menu", .screenOpened(.menu), text: "tutorial.tabs_moved.menu", on: .menu),
+                .explain("tabs_moved.ranking", text: "tutorial.tabs_moved.ranking", on: .menuRanking,
+                         surface: .page(.menu)),
             ]
             case .blueShop: [
                 .act("blue_shop.open", .screenOpened(.upgrades), text: "tutorial.blue_shop.open", on: .upgrades),
@@ -450,6 +460,10 @@ extension GameState {
             unlockedTabsInBarOrder.count >= 3
         case .newTabs:
             !newTabs.isEmpty
+        case .tabsMoved:
+            // Después del «¡Nuevo!» de las pestañas, y sólo si hay Tienda en la barra y tarjeta del Ranking.
+            isLessonDone(.newTabs) && unlockedTabs.contains(.store) && unlockedTabs.contains(.menu)
+                && rankingCardIsShown
         case .blueShop:
             cheapestBlueShopPrice().map { (player?.meta.blue ?? 0) >= $0 } ?? false
         case .luck:

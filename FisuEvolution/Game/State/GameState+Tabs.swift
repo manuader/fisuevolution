@@ -8,12 +8,21 @@ extension GameState {
     /// `UserDefaults` y no en el save: es una pista de UI, como las lecciones.
     static let newTabsKey = "tabs.new"
 
-    /// Las pestañas abiertas, en el orden de la barra (y del paginador del menú). Con el
-    /// interruptor del ranking apagado la pestaña no está, pero sigue abierta en el save:
-    /// al prenderlo vuelve sin otro "¡Nuevo!".
+    /// Las pestañas abiertas, en el orden de la barra (y del paginador del menú).
     var unlockedTabsInBarOrder: [GameScreen] {
-        let rankingOn = ranking?.isEnabled != false
-        return GameScreen.barOrder.filter { unlockedTabs.contains($0) && ($0 != .ranking || rankingOn) }
+        GameScreen.barOrder.filter { unlockedTabs.contains($0) }
+    }
+
+    /// Las páginas de la hoja del menú: las pestañas abiertas; la Tienda pedida por el + de la
+    /// moneda antes de que la barra la tenga abre sola.
+    func menuPages(startingAt start: GameScreen) -> [GameScreen] {
+        start == .store && !unlockedTabs.contains(.store) ? [.store] : unlockedTabsInBarOrder
+    }
+
+    /// La tarjeta del Ranking en Menú › Oficina central (E14b B26, D19): con el interruptor del
+    /// servidor apagado no aparece.
+    var rankingCardIsShown: Bool {
+        ranking?.isEnabled != false
     }
 
     /// Lo llama `refreshProjections` a 8 Hz: son cuatro lecturas y unas
@@ -23,8 +32,8 @@ extension GameState {
         let earned = progressiveTabsEnabled
             ? TabUnlockRules.unlocked(config: content.tabs, signals: tabSignals(player: player))
             : Set(GameScreen.barOrder)
-        // Un save viejo puede traer "store": no se reescribe (por si la Tienda
-        // vuelve), pero tampoco se cuela en la barra.
+        // Un save viejo puede traer "ranking" (era pestaña hasta E14b B26): no se reescribe,
+        // pero tampoco se cuela en la barra.
         let saved = Set(player.meta.unlockedTabs.compactMap(GameScreen.init(rawValue:)))
             .intersection(GameScreen.barOrder)
         let fresh = earned.subtracting(saved)

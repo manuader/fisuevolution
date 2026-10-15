@@ -48,7 +48,7 @@ struct RewardDoubleTests {
         var boxes: Int
         var modifierSeconds: Double
 
-        static func read(_ gameState: GameState, now: TimeInterval) -> Wallet {
+        @MainActor static func read(_ gameState: GameState, now: TimeInterval) -> Wallet {
             let player = gameState.player
             return Wallet(
                 coins: player?.run.coins ?? 0,
@@ -519,6 +519,7 @@ struct RewardDoubleTests {
 private final class NotReadyAds: AdsProvider {
     var lastRewardedAttempt = RewardedAttempt.noInventory
     var lastRewardedInterstitialAttempt = RewardedAttempt.noInventory
+    var onImpression: (@MainActor (AdImpression) -> Void)?
     var isInterstitialReady: Bool { false }
     var isRewardedInterstitialReady: Bool { false }
     var isAppOpenReady: Bool { false }

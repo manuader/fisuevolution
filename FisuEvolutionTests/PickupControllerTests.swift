@@ -195,7 +195,7 @@ struct PickupControllerTests {
         gameState.refreshPrizeAccess()
         controller.update(delta: 1, reduceMotion: true)
         #expect(controller.boxes.count == 2)
-        #expect(controller.boxes.allSatisfy(\.showsFull))
+        #expect(controller.boxes.allSatisfy { $0.showsFull })
         let top = try #require(controller.boxes.last)
         #expect(controller.handleTap(at: top.position))
         #expect(gameState.packagesWaiting == 2)

@@ -25,8 +25,10 @@ final class MergeAllChainUITests: XCTestCase {
     @MainActor
     func testLaCadenaTerminaYRevelaLosTresTiers() {
         let app = launch()
-        // 7 eslabones (~2,7 s) + 3 reveals (~2 s c/u) + el arranque; en un simulador cargado midió 19,9 s: 30 s de techo.
-        waitForTheEnd(app, timeout: 30)
+        // 7 eslabones (~2,7 s) + 3 reveals (~2 s c/u) + el arranque; en un simulador cargado midió 19,9 s.
+        // r56: con la máquina a carga ~500 la cadena terminó en pantalla y las marcas de
+        // accesibilidad tardaron más de 30 s en publicarlo: 60 s de techo.
+        waitForTheEnd(app, timeout: 60)
         XCTAssertTrue(app.buttons["hud.map"].waitForExistence(timeout: 5), "el HUD volvió")
     }
 

@@ -157,7 +157,20 @@ final class AppStoreScreenshotTests: XCTestCase {
             "--uitest-visitor=turista_propina",
         ]
         app.launch()
-        guard app.buttons["stage.chip.visitor"].waitForExistence(timeout: 40) else {
+        let onStage = app.buttons["stage.chip.visitor"]
+        let elsewhere = app.buttons["stage.chip.waiting"]
+        // Desde B7 el visitante se queda en el piso donde entró: si la cámara todavía bajaba al
+        // callejón cuando llegó, espera en otro piso y el aviso lleva hasta él (abre su trato).
+        let deadline = Date().addingTimeInterval(40)
+        while !onStage.exists, !elsewhere.exists, Date() < deadline {
+            _ = onStage.waitForExistence(timeout: 2)
+        }
+        if !onStage.exists, elsewhere.exists {
+            elsewhere.tap()
+            let close = app.buttons["sheet.close"]
+            if close.waitForExistence(timeout: 8) { close.tap() }
+        }
+        guard onStage.waitForExistence(timeout: 10) else {
             return XCTFail("el visitante nunca llegó al escenario")
         }
         settle(seconds: 8)

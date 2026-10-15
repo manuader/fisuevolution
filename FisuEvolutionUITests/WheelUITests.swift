@@ -1,7 +1,8 @@
 import XCTest
 
 /// La ruleta se gira desde Regalos (PLAN-v2 E5): un giro regalado, el premio
-/// a la vista, "repetir" una vez y la tabla siempre visible. El candado anti
+/// a la vista, cobrarlo y su ×2 con video (el «repetir» de E14b B29, una vez) y
+/// la tabla siempre visible. El candado anti
 /// doble toque vive en la vista y se prueba acá: el simulador corre con
 /// Reduce Motion (`Tools/v2/oraculo.sh` lo deja prendido para esta clase).
 @MainActor
@@ -51,12 +52,21 @@ final class WheelUITests: XCTestCase {
         let result = app.descendants(matching: .any)["wheel.result"]
         XCTAssertTrue(result.waitForExistence(timeout: 8))
         snap(app, "ruleta 3 despues")
-        XCTAssertFalse((result.value as? String ?? "").isEmpty)
-        let again = app.buttons["wheel.repeat"]
-        XCTAssertTrue(again.waitForExistence(timeout: 3))
-        again.tap()
-        XCTAssertTrue(again.waitForNonExistence(timeout: 6), "repetir es una vez por giro")
-        XCTAssertTrue(app.buttons["wheel.spin.video"].exists, "después del regalado quedan los de video")
+        let segment = result.value as? String ?? ""
+        XCTAssertFalse(segment.isEmpty)
+        XCTAssertFalse(app.buttons["double.wheel"].exists, "el ×2 nunca va de entrada (B29)")
+        let collect = app.buttons["wheel.collect"]
+        XCTAssertTrue(collect.waitForExistence(timeout: 3))
+        collect.tap()
+        // El cofre trae una skin única: no se duplica (5 % del sorteo).
+        if segment != "chest" {
+            let again = app.buttons["double.wheel"]
+            XCTAssertTrue(again.waitForExistence(timeout: 5), "cobrado el gratis, sale su ×2 con video")
+            snap(app, "ruleta 4 paso 2")
+            again.tap()
+            XCTAssertTrue(again.waitForNonExistence(timeout: 10), "repetir es una vez por giro")
+        }
+        XCTAssertTrue(app.buttons["wheel.spin.video"].waitForExistence(timeout: 5), "después del regalado quedan los de video")
     }
 
     /// Un toque al giro regalado gasta UNO: con dos regalados, queda uno. El doble
@@ -104,11 +114,19 @@ final class WheelUITests: XCTestCase {
         let free = app.buttons["wheel.spin.bonus"]
         XCTAssertTrue(free.waitForExistence(timeout: 5))
         free.tap()
-        let again = app.buttons["wheel.repeat"]
+        let result = app.descendants(matching: .any)["wheel.result"]
+        XCTAssertTrue(result.waitForExistence(timeout: 8))
+        let collect = app.buttons["wheel.collect"]
+        XCTAssertTrue(collect.waitForExistence(timeout: 3))
+        let segment = result.value as? String ?? ""
+        collect.tap()
+        // El cofre no se duplica: sin paso 2 no hay video que probar.
+        guard segment != "chest" else { return }
+        let again = app.buttons["double.wheel"]
         XCTAssertTrue(again.waitForExistence(timeout: 8))
         again.tap()
 
-        let watching = app.descendants(matching: .any)["wheel.repeat.watching"]
+        let watching = app.descendants(matching: .any)["double.wheel.watching"]
         XCTAssertTrue(watching.waitForExistence(timeout: 3))
         XCTAssertTrue(watching.waitForNonExistence(timeout: 10))
         XCTAssertFalse(app.descendants(matching: .any)["wheel.spinning"].exists, "repetir no gira la rueda")

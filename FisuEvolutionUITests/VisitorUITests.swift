@@ -31,24 +31,12 @@ final class VisitorUITests: XCTestCase {
         let chip = app.buttons["stage.chip.visitor"]
         let accept = app.buttons["visit.option.accept"]
         XCTAssertTrue(accept.waitForExistence(timeout: 25), "el turista llega y el popup sale solo, sin tocar nada")
-        XCTAssertTrue(app.buttons["visit.option.video"].exists, "y el ×2 con video")
+        XCTAssertFalse(app.buttons["visit.option.video"].exists, "el ×2 sale después de cobrar, nunca de entrada (B29)")
         XCTAssertTrue(app.buttons["visit.option.decline"].exists, "«No, gracias» siempre a la vista")
         attach(app, "visitante: el popup salió solo")
         accept.tap()
         XCTAssertTrue(accept.waitForNonExistence(timeout: 6), "elegir cierra el popup")
         XCTAssertTrue(chip.waitForNonExistence(timeout: 6), "y sin trato no queda chip")
-    }
-
-    @MainActor
-    func testElVideoDelVisitanteCierraElTratoAlTerminar() throws {
-        let app = launch("ministro_subsidio")
-        let chip = app.buttons["stage.chip.visitor"]
-        let video = app.buttons["visit.option.video"]
-        XCTAssertTrue(video.waitForExistence(timeout: 25))
-        video.tap()
-        // El anuncio del stub dura 2 s; el trato se cierra cuando termina.
-        XCTAssertTrue(video.waitForNonExistence(timeout: 10))
-        XCTAssertTrue(chip.waitForNonExistence(timeout: 6))
     }
 
     @MainActor

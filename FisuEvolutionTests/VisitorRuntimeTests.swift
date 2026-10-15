@@ -69,9 +69,8 @@ struct VisitorRuntimeTests {
         try arrive(gameState, "turista_propina")
         let visit = try #require(gameState.stageVisit)
         let offer = try #require(visit.offer)
-        #expect(offer.options.map(\.id) == ["accept", "video"])
+        #expect(offer.options.map(\.id) == ["accept"], "el ×2 no va en el primer pop-up (E14b B29)")
         #expect(offer.options[0].coins > 0)
-        #expect(offer.options[1].coins == offer.options[0].coins * 2)
         #expect(visit.bubble?.isEmpty == false)
     }
 
@@ -116,15 +115,23 @@ struct VisitorRuntimeTests {
         #expect(gameState.stageVisit?.phase == .leaving)
     }
 
-    @Test("un modificador de visita lleva la fuente del guion; con video, la del ×2")
+    @Test("un modificador de visita lleva la fuente del guion, y su ×2 con video lo hace durar el doble")
     func modifiersCarryTheScript() async throws {
         let gameState = await world()
+        gameState.ads = AdsCoordinator(provider: ScriptedAdsProvider())
         gameState.player?.meta.ownedSpecials.append("sp_cryptobro")
         try arrive(gameState, "cryptobro_senal")
-        #expect(gameState.chooseVisitOption("video"))
+        let now = Date().timeIntervalSince1970
+        #expect(gameState.chooseVisitOption("accept", now: now))
         let modifier = try #require(gameState.player?.run.activeModifiers.last)
-        #expect(modifier.sourceKey == "visit.cryptobro_senal.x2")
+        #expect(modifier.sourceKey == "visit.cryptobro_senal")
         #expect(modifier.effect == .incomeMultiplier)
+        let double = try #require(gameState.rewardDouble)
+        #expect(gameState.claimRewardDouble(id: double.id, now: now))
+        let doubled = try #require(gameState.player?.run.activeModifiers.filter { $0.sourceKey == "visit.cryptobro_senal" })
+        #expect(doubled.count == 1, "no pega dos veces")
+        #expect(abs((doubled.first?.expiresAt ?? 0) - modifier.expiresAt - (modifier.expiresAt - now)) < 0.01,
+                "dura el doble")
     }
 
     @Test("dejar ir al arrestado paga más de lo que cuesta reponerlo y se lo lleva a la vista")
@@ -233,18 +240,20 @@ struct VisitorRuntimeTests {
         #expect(gameState.stageVisit?.bubble == VisitCopy.text("visit.challenge.lost"))
     }
 
-    @Test("un reto ganado con video doble ofrece el ×2 de lo que acaba de dar")
+    @Test("un reto ganado ofrece el ×2 de lo que acaba de dar en el paso 2, y el visitante se va")
     func aWonChallengeOffersTheDouble() async throws {
         let gameState = await world()
+        gameState.ads = AdsCoordinator(provider: ScriptedAdsProvider())
         try arrive(gameState, "turista_propina")
         let terms = ChallengeTerms(taps: 1, windowSeconds: 10, coins: 100, rewards: [], videoDoubles: true)
         gameState.beginChallenge(scriptId: "vecina_favor", terms: terms, now: 0)
         let before = coins(gameState)
         gameState.noteStageTap(now: 1)
         #expect(coins(gameState) == before + 100)
-        let double = try #require(gameState.stageVisit?.offer?.option(id: "video"))
-        #expect(double.requiresVideo)
-        #expect(gameState.chooseVisitOption("video"))
+        #expect(gameState.stageVisit?.offer == nil, "el trato se cerró: no vuelve a ofrecer en su chip")
+        let double = try #require(gameState.rewardDouble)
+        #expect(double.site == "double.visit.vecina_favor")
+        #expect(gameState.claimRewardDouble(id: double.id))
         #expect(coins(gameState) == before + 200)
     }
 

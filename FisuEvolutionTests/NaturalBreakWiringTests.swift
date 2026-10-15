@@ -39,7 +39,10 @@ struct NaturalBreakWiringTests {
             guardrail -= 1
             switch kind {
             case .chestOpening: gameState.dismissChestReward()
-            case .dailyReward: gameState.dismissDailyClaim()
+            case .dailyReward:
+                gameState.dismissDailyClaim()
+                // Con video listo sale su ×2 (paso 2, E14b B29): «No, gracias» suelta la cola.
+                if let id = gameState.rewardDouble?.id { gameState.declineRewardDouble(id: id) }
             case .specialDrop: gameState.dismissSpecialDrop()
             case .skinAward:
                 gameState.skinAward = nil
@@ -140,8 +143,24 @@ struct NaturalBreakWiringTests {
         try queueDailyClaim(rig.gameState)
         #expect(rig.gameState.showing == .dailyReward)
         rig.gameState.dismissDailyClaim()
+        let double = try #require(rig.gameState.rewardDouble, "con video listo, el diario ofrece su ×2")
+        rig.gameState.declineRewardDouble(id: double.id)
         await rig.ads.naturalBreakTask?.value
         #expect(rig.provider.shown == ["interstitial"])
+    }
+
+    @Test("con el ×2 del paso 2 en pantalla no hay corte: la cola espera a que se resuelva (E14b B29)")
+    func noBreakOverTheDoubleOffer() async throws {
+        let rig = await rig()
+        defer { rig.scratch.clear() }
+        try queueDailyClaim(rig.gameState)
+        rig.gameState.dismissDailyClaim()
+        let double = try #require(rig.gameState.rewardDouble)
+        await rig.ads.naturalBreakTask?.value
+        #expect(rig.provider.shown.isEmpty, "nada encima del paso 2")
+        #expect(rig.gameState.showing == .dailyReward, "la cola no avanza hasta que se resuelva")
+        rig.gameState.declineRewardDouble(id: double.id)
+        #expect(rig.gameState.showing == nil)
     }
 
     @Test("un aviso chico que se va no es un corte")

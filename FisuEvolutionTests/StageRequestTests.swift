@@ -4,7 +4,7 @@ import SpriteKit
 import Testing
 @testable import FisuEvolution
 
-@Suite("El escenario: el popup solo, el piso y el pedido con la cara", .serialized)
+@Suite("El escenario: el popup al tocarlo, el piso y el pedido con la cara", .serialized)
 @MainActor
 struct StageRequestTests {
     private let size = CGSize(width: 393, height: 852)
@@ -40,17 +40,21 @@ struct StageRequestTests {
         for _ in 0..<count { controller.update(delta: 1.0 / 60, reduceMotion: false, cameraOffsetY: cameraOffsetY) }
     }
 
-    // MARK: - C2: el popup sale solo, una vez
+    // MARK: - B21 (D15): el popup sale sólo al tocarlo
 
-    @Test("al llegar abre su popup solo; cerrado sin elegir, no se reabre solo")
-    func popupOpensByItself() async throws {
+    @Test("al llegar no abre su popup solo; tocarlo lo abre, y cerrado sin elegir no se reabre solo")
+    func popupOpensOnlyOnTap() async throws {
         let (gameState, controller) = try await world("turista_propina")
+        frames(controller, 120)
+        #expect(gameState.visitorPopup == nil, "sin un toque no hay popup")
+        #expect(gameState.stageVisit?.phase == .waiting)
+        let actor = try #require(controller.actor)
+        #expect(controller.handleTap(at: CGPoint(x: actor.position.x, y: actor.position.y + 20)))
         #expect(gameState.visitorPopup != nil)
         gameState.closeVisitorPopup()
         frames(controller, 10)
         #expect(gameState.visitorPopup == nil, "cerrar no lo reabre")
         #expect(gameState.stageVisit?.offer != nil, "sigue esperando")
-        #expect(gameState.stageVisit?.phase == .waiting)
     }
 
     @Test("sin globo de texto: el popup es el que habla")
@@ -59,18 +63,22 @@ struct StageRequestTests {
         #expect(controller.bubble == nil)
     }
 
-    @Test("el popup no sale si no se mira su piso, y sale al volver a él")
-    func popupWaitsForItsFloor() async throws {
+    @Test("al volver a su piso retoma la entrada donde quedó, sin popup")
+    func backOnItsFloorItKeepsWalking() async throws {
         let (gameState, controller) = try await world("turista_propina", arrival: false)
         let home = gameState.visibleFloorOrdinal
+        frames(controller, 20)
+        let x = try #require(controller.actor).position.x
         #expect(gameState.moveVisibleFloor(by: -1) || gameState.moveVisibleFloor(by: 1))
         #expect(gameState.stageVisit == nil, "se congeló en su piso (E14b B7)")
         frames(controller, 10)
-        #expect(gameState.visitorPopup == nil, "estás en otro piso")
         gameState.setVisibleFloor(home)
-        frames(controller, 3)
+        controller.update(delta: 0, reduceMotion: false)
         #expect(controller.anchorOrdinal == home)
-        #expect(gameState.visitorPopup != nil)
+        #expect(gameState.stageVisit?.phase == .entering, "no llegó de golpe")
+        #expect(abs(try #require(controller.actor).position.x - x) < 0.5, "sigue desde donde quedó")
+        frames(controller, 3)
+        #expect(gameState.visitorPopup == nil)
     }
 
     // MARK: - C6: anclado a su piso
@@ -103,15 +111,17 @@ struct StageRequestTests {
         #expect(abs(try #require(controller.actor).position.y - (home - 100)) < 0.5)
     }
 
-    @Test("se para en el horizonte, no en la franja de abajo")
-    func standsAtTheHorizon() async throws {
+    @Test("espera en el medio del piso, caminando por la franja central (B20)")
+    func waitsMidFloor() async throws {
         let (gameState, controller) = try await world("turista_propina")
-        gameState.closeVisitorPopup()
         frames(controller, 2)
         let actor = try #require(controller.actor)
         let layout = StageLayout(sceneSize: size, bottomInset: 118, cellSize: 72)
-        #expect(actor.position.y > layout.baselineY + 72)
-        #expect(actor.position.x == layout.standX)
+        let floor = try #require(gameState.visibleFloorDef)
+        let middle = layout.visitorY(background: floor.background, backgroundOffset: floor.backgroundOffset)
+        #expect(abs(actor.position.y - middle) < 0.5)
+        let zone = layout.walkRange(feetY: middle, corners: [])
+        #expect(zone.contains(actor.position.x))
     }
 
     // MARK: - C16: el globo con la cara

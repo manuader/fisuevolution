@@ -232,7 +232,8 @@ extension GameState {
         let run = TutorialRun(script: script, steps: steps, probe: tutorialProbe())
         tutorialRun = run
         resetTutorialClock()
-        if runTakesAQueueTurn(run) {
+        // Con un visitante entrando a la vista espera su llegada (E14b B21): la encola `syncCelebrations`.
+        if runTakesAQueueTurn(run), !stageEntranceInProgress {
             celebrations.enqueue(.tutorialTip)
             publishCelebration()
         }

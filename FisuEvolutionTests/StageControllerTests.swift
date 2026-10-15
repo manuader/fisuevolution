@@ -31,9 +31,10 @@ struct StageControllerTests {
         controller.update(delta: 1.0 / 60, reduceMotion: false)
         let entering = try #require(controller.actor)
         #expect(entering.position.x < 0 || entering.position.x > 393, "arranca afuera de la pantalla")
+        #expect(gameState.stageVisit?.onStage == true)
+        #expect(gameState.showing != .visitorEncounter, "empezar a caminar libera el turno: la entrada es de la escena (B21)")
         run(controller, seconds: 8) { gameState.stageVisit?.phase == .waiting }
         #expect(gameState.stageVisit?.phase == .waiting)
-        #expect(gameState.showing != .visitorEncounter, "llegar libera el turno")
         let actor = try #require(controller.actor)
         let layout = StageLayout(sceneSize: CGSize(width: 393, height: 852), bottomInset: 118, cellSize: 72)
         #expect(layout.stageRange.contains(actor.position.x))
@@ -93,15 +94,14 @@ struct StageControllerTests {
         #expect(controller.bubble == nil)
     }
 
-    @Test("saltear la entrada lo deja llegado, una sola vez")
-    func skippingTheEntrance() async throws {
+    @Test("un toque no saltea su turno de entrada: sigue entrando (B21)")
+    func aTapDoesNotSkipTheEntrance() async throws {
         let (gameState, _) = await stage()
         gameState.presentOnStage(actorId: "npc_vecina", role: .visitor(scriptId: "vecina_chisme"))
         gameState.advanceCelebrations(delta: CelebrationQueue.skipFloor)
-        #expect(gameState.skipCurrentCelebration())
-        #expect(gameState.stageVisit?.phase == .waiting)
-        gameState.settleStageArrival()
-        #expect(gameState.stageVisit?.phase == .waiting)
+        #expect(!gameState.skipCurrentCelebration())
+        #expect(gameState.stageVisit?.phase == .entering)
+        #expect(gameState.showing == .visitorEncounter)
     }
 
     @Test("tocarlo mientras espera le avisa a la partida; antes, no")

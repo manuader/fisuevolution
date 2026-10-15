@@ -17,12 +17,21 @@ final class VisitorMechanicsUITests: XCTestCase {
         return app
     }
 
+    /// Llega y espera con su tarjeta; el popup se abre al tocarla (E14b B21, D15).
+    @MainActor
+    private func openPopup(_ app: XCUIApplication, waitingFor option: XCUIElement) {
+        let chip = app.buttons["stage.chip.visitor"]
+        XCTAssertTrue(chip.waitForExistence(timeout: 25), "el visitante no llegó")
+        chip.tap()
+        XCTAssertTrue(option.waitForExistence(timeout: 6), "tocar su tarjeta no abrió el popup")
+    }
+
     @MainActor
     func testAceptarElRetoCambiaElChipPorElDelReto() throws {
         let app = launch("coach_reto")
         let chip = app.buttons["stage.chip.visitor"]
         let accept = app.buttons["visit.option.challenge"]
-        XCTAssertTrue(accept.waitForExistence(timeout: 25), "el popup sale solo al llegar")
+        openPopup(app, waitingFor: accept)
         accept.tap()
         let challenge = app.otherElements["stage.chip.challenge"]
         XCTAssertTrue(challenge.waitForExistence(timeout: 6), "el reto se juega en el tablero, con su contador")
@@ -37,7 +46,7 @@ final class VisitorMechanicsUITests: XCTestCase {
     func testElVendedorMuestraTresCartasYSeLlevaUna() throws {
         let app = launch("vendedor_ofertas")
         let chip = app.buttons["stage.chip.visitor"]
-        XCTAssertTrue(app.buttons["visit.option.card.mate"].waitForExistence(timeout: 25), "el popup sale solo al llegar")
+        openPopup(app, waitingFor: app.buttons["visit.option.card.mate"])
         for card in ["mate", "cafe", "turbo"] {
             XCTAssertTrue(app.buttons["visit.option.card.\(card)"].waitForExistence(timeout: 6), "falta la carta \(card)")
         }
@@ -56,7 +65,7 @@ final class VisitorMechanicsUITests: XCTestCase {
     func testElVendedorSeOfendeYSeVaPisandoFuerte() throws {
         let app = launch("vendedor_ofertas")
         let decline = app.buttons["visit.option.decline"]
-        XCTAssertTrue(decline.waitForExistence(timeout: 25))
+        openPopup(app, waitingFor: decline)
         decline.tap()
         let bye = app.buttons["visit.offended.bye"]
         XCTAssertTrue(bye.waitForExistence(timeout: 6), "el berretín: su frase ofendida y un «Chau»")

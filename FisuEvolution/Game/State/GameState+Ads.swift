@@ -21,8 +21,9 @@ extension GameState {
         NaturalBreakContext(
             removedAds: player?.meta.removedAds ?? false,
             tutorialActive: tutorialPhaseActive || celebrations.allowedKinds != nil,
-            // La oferta de Compartir gasta sus 10 s a la vista: la pausa no la tapa.
-            sheetOpen: isBoardBusy || shareOffer != nil,
+            // La oferta de Compartir gasta sus 10 s a la vista: la pausa no la tapa. Ni al
+            // visitante que entra caminando (E14b B21): sin el turno, igual se lo está mirando.
+            sheetOpen: isBoardBusy || shareOffer != nil || stageEntranceInProgress,
             celebrationActive: celebrations.current != nil,
             adOnScreen: ads?.isPresentingFullScreen ?? false,
             lastRewardedAt: ads?.lastRewardedAt,
@@ -46,7 +47,8 @@ extension GameState {
     /// hoja, la ficha, la carrera, el reto de un visitante, el popup de un
     /// visitante o de un evento (que además entran por `uiCoversBoard`), la
     /// pantalla previa de la pausa, la escena inactiva, el viaje en ascensor o una compra en curso. Es la
-    /// única definición: `isCalmMoment` y los cortes naturales la comparten.
+    /// única definición: `isCalmMoment` y los cortes naturales la comparten (los dos
+    /// suman, además, la entrada del visitante: `stageEntranceInProgress`).
     var isBoardBusy: Bool {
         uiCoversBoard || characterSheet != nil || careerPrompt != nil || stageChallenge != nil
             || visitorPopup != nil || eventPopup != nil || mattressPopup != nil || wheelSheet != nil

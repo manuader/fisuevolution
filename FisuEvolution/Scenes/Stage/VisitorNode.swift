@@ -11,6 +11,11 @@ final class VisitorNode: SKSpriteNode {
     private var videoNode: LoopingVideoNode?
 
     private(set) var videoClip: ArtClip?
+    /// El arte de `npcs.atlas` mira apenas hacia la izquierda de la pantalla: caminando a la derecha
+    /// se lo da vuelta (B20), como a los empleados.
+    static let drawnHeading: CGFloat = -1
+    /// −1 dado vuelta, 1 como está dibujado.
+    private(set) var facing: CGFloat = 1
 
     init(visitId: UUID, actorId: String, texture: SKTexture, side: CGFloat,
          loops: LoopsManifest = .main, pool: VideoPlayerPool = .shared, packs: ArtPacks = .shared) {
@@ -80,6 +85,18 @@ final class VisitorNode: SKSpriteNode {
     /// El pulso de espera: respira.
     func breathe(delta: TimeInterval) {
         clock += delta
-        setScale(1 + 0.03 * CGFloat(sin(clock * .pi * 1.6)))
+        scaleKeepingFacing(1 + 0.03 * CGFloat(sin(clock * .pi * 1.6)))
+    }
+
+    /// Mira hacia donde camina: `heading` 1 a la derecha, −1 a la izquierda.
+    func face(_ heading: CGFloat) {
+        facing = (heading < 0) == (Self.drawnHeading < 0) ? 1 : -1
+        xScale = abs(xScale) * facing
+    }
+
+    /// La escala, sin perder hacia dónde mira.
+    func scaleKeepingFacing(_ scale: CGFloat) {
+        xScale = scale * facing
+        yScale = scale
     }
 }

@@ -14,10 +14,9 @@ final class VisitorFloorsUITests: XCTestCase {
         app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-unlock-tower",
                                "--uitest-visitor=turista_propina"]
         app.launch()
-        let close = app.buttons["sheet.close"]
-        XCTAssertTrue(close.waitForExistence(timeout: 25), "el turista no llegó con su popup")
-        close.tap()
-        XCTAssertTrue(app.buttons["stage.chip.visitor"].waitForExistence(timeout: 6), "no quedó esperando")
+        // Desde B21 (D15) el popup no sale solo: llega y espera con su tarjeta.
+        XCTAssertTrue(app.buttons["stage.chip.visitor"].waitForExistence(timeout: 25), "el turista no llegó")
+        XCTAssertFalse(app.buttons["visit.option.accept"].exists, "el popup no sale solo")
         return app
     }
 
@@ -55,7 +54,7 @@ final class VisitorFloorsUITests: XCTestCase {
         let chip = app.buttons["stage.chip.visitor"]
         XCTAssertTrue(chip.waitForExistence(timeout: 6), "al volver, el visitante sigue ahí")
         XCTAssertTrue(waiting.waitForNonExistence(timeout: 4), "y el aviso de otro piso se fue")
-        XCTAssertFalse(app.buttons["visit.option.accept"].waitForExistence(timeout: 3), "el popup cerrado no vuelve solo")
+        XCTAssertFalse(app.buttons["visit.option.accept"].waitForExistence(timeout: 3), "el popup no sale solo al volver")
         chip.tap()
         XCTAssertTrue(app.buttons["visit.option.accept"].waitForExistence(timeout: 6), "la tarjeta lo reabre")
     }

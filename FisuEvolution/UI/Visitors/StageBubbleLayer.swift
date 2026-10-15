@@ -11,7 +11,10 @@ import SwiftUI
 /// el reveal) lo esconde: el globo es del tablero. Los pop-ups y las hojas van después, encima.
 ///
 /// Es un `ViewModifier` porque `RootView.body` está al límite del type-checker. Mide el borde de
-/// abajo del HUD con el ancla que el HUD ya publica (`.hudBar`), como `NoticesLayer`.
+/// abajo del HUD con el ancla que el HUD ya publica (`.hudBar`), como `NoticesLayer`. Les pasa el
+/// feed a las esquinas (`\.stageBubbleFeed`), que le anotan sus marcos: el visitante camina y el
+/// globo se acomoda sin tocarlos (E14b B20). El globo sigue la cabeza mientras camina: la escena
+/// la republica cada medio punto.
 struct StageBubbleLayer: ViewModifier {
     let feed: StageBubbleFeed?
     /// Algo de `RootView` que esta capa no puede ver tapa el tablero (la tarjeta del ranking).
@@ -20,13 +23,14 @@ struct StageBubbleLayer: ViewModifier {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func body(content: Content) -> some View {
-        content.overlayPreferenceValue(TutorialAnchorKey.self) { anchors in
+        content.environment(\.stageBubbleFeed, feed).overlayPreferenceValue(TutorialAnchorKey.self) { anchors in
             GeometryReader { proxy in
                 let hudBottom = anchors[.hudBar].map { proxy[$0].maxY }
                 ZStack(alignment: .topLeading) {
                     if let bubble = visibleBubble {
                         let placement = StageBubbleLayout.place(bubble, screen: proxy.size,
-                                                                safeTop: proxy.safeAreaInsets.top, hudBottom: hudBottom)
+                                                                safeTop: proxy.safeAreaInsets.top, hudBottom: hudBottom,
+                                                                corners: feed?.cornerFrames ?? [])
                         StageBubbleView(bubble: bubble, placement: placement) { feed?.tap() }
                             .id(Self.identity(of: bubble))
                             .transition(popTransition(for: placement))
@@ -92,4 +96,9 @@ private struct StageBubbleView: View {
             .accessibilityIdentifier("stage.bubble")
             .offset(x: frame.minX, y: frame.minY)
     }
+}
+
+extension EnvironmentValues {
+    /// El feed del globo del visitante, para que las esquinas le anoten sus marcos (E14b B20).
+    @Entry var stageBubbleFeed: StageBubbleFeed? = nil
 }

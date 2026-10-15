@@ -60,12 +60,13 @@ anuncios" y skins (no consumibles, se compran una sola vez).
   solo uso por diseño.
 - **El progreso se puede perder.** Tu partida vive en tu dispositivo y, si
   activás iCloud, en tu base privada de iCloud. No guardamos copias de tu
-  partida: lo único que sale de tu dispositivo es, si entrás al ranking, tu
-  nombre y tus tiempos de partida (con un identificador anónimo), que se
-  guardan en Supabase; el nombre lo revisa un modelo de Anthropic para filtrar
-  insultos. Si borrás la app, perdés el dispositivo o desactivás iCloud,
-  el progreso —incluidos objetos comprados que ya se consumieron— puede
-  perderse y no podemos recuperarlo.
+  partida: lo que sale de tu dispositivo es, si entrás al ranking, tu nombre y
+  tus tiempos de partida (con un identificador anónimo), que se guardan en
+  Supabase (el nombre lo revisa un modelo de Anthropic para filtrar insultos),
+  y las estadísticas de uso que explica la Política de Privacidad,
+  con las que no se puede rearmar tu partida. Si borrás la app, perdés el
+  dispositivo o desactivás iCloud, el progreso —incluidos objetos comprados
+  que ya se consumieron— puede perderse y no podemos recuperarlo.
 - **Reencarnar reinicia cosas a propósito.** Reencarnar (prestigio) borra
   parte de tu progreso a cambio de dólares blue y multiplicadores permanentes. Es una
   mecánica del juego, está avisada en pantalla antes de confirmar, y no da
@@ -246,12 +247,14 @@ skins (non-consumables, bought once).
   Apple Account. Consumables already spent are not restorable: they are
   single-use by design.
 - **Progress can be lost.** Your save lives on your device and, if you enable
-  iCloud, in your private iCloud database. We keep no copy of your game: the
-  only thing that leaves your device is, if you join the leaderboard, your
-  name and run times (with an anonymous identifier), stored on Supabase; an
-  Anthropic model checks the name to filter insults. If you delete the app, lose the device or turn off iCloud,
-  your progress — including already-consumed purchased items — may be lost
-  and we cannot recover it.
+  iCloud, in your private iCloud database. We keep no copy of your game: what
+  leaves your device is, if you join the leaderboard, your name and run times
+  (with an anonymous identifier), stored on Supabase (an Anthropic model
+  checks the name to filter insults), and the usage statistics
+  described in the Privacy Policy, which cannot be used to rebuild your game.
+  If you delete the app, lose the device or turn off iCloud, your progress —
+  including already-consumed purchased items — may be lost and we cannot
+  recover it.
 - **Reincarnating resets things on purpose.** Reincarnating (prestige) wipes
   part of your progress in exchange for Blue Dollars and permanent multipliers. It's a
   game mechanic, it is shown on screen before you confirm, and it does not

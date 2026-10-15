@@ -289,10 +289,13 @@ Lo nuevo de la 2.0 es la sección de **actividades de azar**:
 
 ### 1.7 App Privacy
 
-La app en sí no recolecta nada: `PrivacyInfo.xcprivacy` declara
-`NSPrivacyCollectedDataTypes = []` y `NSPrivacyTracking = false` (HANDOFF-v2
-explica por qué `true` sin dominios hizo rechazar el build: ITMS-91064). Lo
-que hay que declarar es **lo que juntan los SDK de anuncios**.
+`PrivacyInfo.xcprivacy` declara lo que junta **nuestro código**: lo del
+ranking (E12) y lo de las estadísticas de uso (E15: Product Interaction,
+Advertising Data, Purchase History y Device ID, con propósito Analytics, no
+vinculados y sin tracking), y `NSPrivacyTracking = false` (HANDOFF-v2 explica
+por qué `true` sin dominios hizo rechazar el build: ITMS-91064). Además hay
+que declarar **lo que juntan los SDK de anuncios**; el detalle de lo propio
+está en `Distribution/release/privacidad-e15-BORRADOR.md` §4.
 
 **Lo que declara Google** para el SDK de AdMob
 ([data disclosure](https://developers.google.com/admob/ios/privacy/data-disclosure)):

@@ -18,6 +18,8 @@ final class BoardScene: SKScene {
     /// escena sólo lo adjunta, lo ubica, lo actualiza y le pasa los toques.
     private lazy var stage = StageController(gameState: gameState)
     private lazy var stageEffects = StageEffects(gameState: gameState)
+    /// El globo de texto del visitante: lo dibuja SwiftUI encima del HUD (`StageBubbleLayer`, E14b B19).
+    var stageBubbleFeed: StageBubbleFeed { stage.bubbleFeed }
     /// Las cajas del Paquete y el colchón (PLAN-v2 E5): un colaborador más, como el escenario.
     private lazy var pickups = PickupController(gameState: gameState, manifest: loops, pool: videoPool, packs: packs)
 
@@ -121,9 +123,9 @@ final class BoardScene: SKScene {
     private var lastTapSlot = -1
     private var lastTapTime: TimeInterval = 0
     private var lastAssistedMergeTime: TimeInterval = 0
-    /// Cuánto sube un candidato por encima de su profundidad de multitud. El
-    /// `depthZ` de la franja va de ~−0,3 a ~2,0 y el arrastrado está en 50: con
-    /// 5 el candidato le gana a toda la multitud, pierde contra el que llevás en
+    /// Cuánto sube un candidato por encima de su profundidad de multitud. La
+    /// franja abarca unos 2 a 5 de z (`DepthOrder`, 0,01 por punto) y el
+    /// arrastrado está en 50: con 5 el candidato le gana a la multitud, pierde contra el que llevás en
     /// la mano y conserva la profundidad relativa **entre** candidatos, así que
     /// un par no se dibuja plano.
     ///
@@ -245,10 +247,11 @@ final class BoardScene: SKScene {
     /// Base de profundidad del campo de personajes.
     ///
     /// **Existe para que la multitud y los fondos NO compartan espacio de z.**
-    /// Los `FloorNode` viven en `ordinal × 0.01` (0 … 0.10 con once pisos) y
-    /// `depthZ` puede dar negativo en cuanto una fila se ubica por encima de
-    /// `rows × cellSize`. Cuando las dos bandas se tocan, un personaje queda
-    /// detrás del fondo de su propio piso: invisible pero clickeable, porque el
+    /// Los `FloorNode` viven en `ordinal × 0.01` (0 … 0.10 con once pisos). Desde
+    /// E14b B19 el z de cada personaje sale de `DepthOrder` (el mismo que el de
+    /// visitantes, cajas y colchón) y `depthZ` lo devuelve RELATIVO a esta base:
+    /// la banda entera queda por encima de los fondos. Cuando las dos bandas se
+    /// tocan, un personaje queda detrás del fondo de su propio piso: invisible pero clickeable, porque el
     /// hit-testing es geométrico y no mira el z. Ya pasó una vez —subir la franja
     /// de piso mandó la fila trasera a y≈156 con el cruce en 148— y la única
     /// forma de que no vuelva a pasar con el próximo cambio de layout es que las
@@ -319,6 +322,7 @@ final class BoardScene: SKScene {
         addChild(fieldNode)
         cameraNode.addChild(cameraOverlay)
         addChild(cameraNode)
+        stage.bubbleFeed.onTap = { [weak self] in self?.bubbleTapped() }
         stage.attach(to: cameraOverlay)
         stageEffects.attach(to: cameraOverlay)
         pickups.attach(to: cameraOverlay)
@@ -385,6 +389,8 @@ final class BoardScene: SKScene {
             abortBoardCelebration()
         }
         startBoardCelebrationIfItsTurn()
+        stage.bubbleSuppressed = isCelebrationOnScreen
+        stage.aboveEffects = stageEffects.veilAlpha > 0
         stage.update(delta: delta, reduceMotion: Self.prefersReducedMotion,
                      cameraOffsetY: cameraNode.position.y - size.height / 2)
         stage.markRequested(Array(characterNodes.values))
@@ -756,15 +762,56 @@ final class BoardScene: SKScene {
         // mitad del gesto.
         guard !tapDuringCelebration() else { return }
 
-        // El que está en escena se toca antes que la multitud: está adelante.
-        if stage.handleTap(at: touch.location(in: stage.layer)) { return }
-        if pickups.handleTap(at: touch.location(in: pickups.layer)) { return }
-
-        guard let node = characterNode(at: touch.location(in: self)) else {
-            let point = touch.location(in: self)
-            emptyTouchStart = point
-            return
+        // El toque es de lo que se ve adelante (E14b B19): el visitante, una caja o el colchón, o
+        // un empleado, por su z. Si lo de adelante no lo toma (un visitante a mitad de su entrada,
+        // un reto de toques), sigue al de atrás.
+        let character = characterNode(at: touch.location(in: self))
+        for target in Self.touchOrder(stage: stage.hitDepth(at: touch.location(in: stage.layer)),
+                                      pickups: pickups.hitDepth(at: touch.location(in: pickups.layer)),
+                                      character: character.map { fieldNode.zPosition + $0.zPosition }) {
+            switch target {
+            case .stage:
+                if stage.handleTap(at: touch.location(in: stage.layer)) { return }
+            case .pickups:
+                if pickups.handleTap(at: touch.location(in: pickups.layer)) { return }
+            case .character:
+                if let character { return grab(character) }
+            }
         }
+        emptyTouchStart = touch.location(in: self)
+    }
+
+    /// Quién puede recibir un toque del tablero.
+    enum TouchTarget: Equatable {
+        case stage, pickups, character
+    }
+
+    /// El orden en que se le ofrece un toque a lo que está debajo del dedo: el de z más alto
+    /// primero (D13: lo de adelante recibe el toque). Ante un empate, el escenario, después las
+    /// cajas y por último los empleados, el orden de siempre. Lo que no está bajo el dedo no entra.
+    static func touchOrder(stage: CGFloat?, pickups: CGFloat?, character: CGFloat?) -> [TouchTarget] {
+        var hits: [(target: TouchTarget, z: CGFloat, rank: Int)] = []
+        if let stage { hits.append((target: .stage, z: stage, rank: 0)) }
+        if let pickups { hits.append((target: .pickups, z: pickups, rank: 1)) }
+        if let character { hits.append((target: .character, z: character, rank: 2)) }
+        return hits.sorted { $0.z != $1.z ? $0.z > $1.z : $0.rank < $1.rank }.map(\.target)
+    }
+
+    /// El globo de texto del visitante (SwiftUI, E14b B19) se tocó: pasa por la misma puerta que
+    /// un toque del tablero, que primero saltea una celebración si corresponde.
+    private func bubbleTapped() {
+        guard dragNode == nil, !tapDuringCelebration() else { return }
+        stage.tapBubble()
+    }
+
+    /// Hay una celebración en pantalla (el velo del reveal, el flash): tapa al escenario, y el
+    /// globo del visitante, que va en SwiftUI encima de todo, se esconde.
+    private var isCelebrationOnScreen: Bool {
+        cameraOverlay.children.contains { $0.name?.hasPrefix(Self.celebrationNodePrefix) == true }
+    }
+
+    /// El dedo agarró a un empleado: un toque, un arrastre o, si se queda, el pasivo.
+    private func grab(_ node: CharacterNode) {
         dragNode = node
         dragOriginCell = node.cellIndex
         isDragging = false
@@ -2091,10 +2138,12 @@ final class BoardScene: SKScene {
 
     /// Los de abajo (más "cerca") tapan a los de arriba — profundidad de campo.
     ///
-    /// Es RELATIVA a `fieldNode`, que va montado en `fieldBaseZ`: acá el valor
-    /// puede ser negativo sin que eso hunda a nadie detrás del fondo.
-    static func depthZ(y: CGFloat, rows: Int, cellSize: CGFloat) -> CGFloat {
-        (CGFloat(rows) * cellSize - y) * 0.01
+    /// Es la regla única de `DepthOrder` (E14b B19): los pies del campo (`y`, en coordenadas de
+    /// `fieldNode`) están `bottomInset` más arriba en la pantalla. El valor es RELATIVO a
+    /// `fieldNode`, que va montado en `fieldBaseZ`: el z de la escena es el de `DepthOrder`, el
+    /// mismo con el que se comparan visitantes, cajas y colchón.
+    static func depthZ(fieldY y: CGFloat) -> CGFloat {
+        DepthOrder.z(forFeetY: y + bottomInset) - fieldBaseZ
     }
 
     /// La franja vertical por la que se mueve la multitud, resuelta para una
@@ -2146,7 +2195,7 @@ final class BoardScene: SKScene {
     }
 
     private func depthZ(for point: CGPoint) -> CGFloat {
-        Self.depthZ(y: point.y, rows: boardRows, cellSize: cellSize)
+        Self.depthZ(fieldY: point.y)
     }
 
     /// Deambulación idle alrededor del ancla (estilo Cow Evolution). Se corta al

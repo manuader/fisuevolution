@@ -19,8 +19,13 @@ final class PickupNode: SKNode {
     /// El colchón pagado cae desde arriba al tablero (E14b B6, D3).
     static let fallSeconds: TimeInterval = 0.55
 
-    /// Debajo del escenario y de los empleados (`BoardScene.fieldBaseZ`), arriba de los fondos.
-    static let layerZ: CGFloat = 5
+    /// La capa de las cajas no suma profundidad: cada pieza lleva el z de su línea de apoyo
+    /// (`DepthOrder`, E14b B19). Lo de adentro de la pieza se apila en pasos de `DepthOrder.innerStep`,
+    /// para que su video no se dibuje encima de alguien parado delante.
+    static let layerZ: CGFloat = 0
+    /// El cartel «LLENO» es una etiqueta: va arriba de la multitud y de lo que se arrastra, como
+    /// las etiquetas del campo.
+    static let labelZ: CGFloat = 100
 
     let kind: Kind
     /// La caja del save que dibuja (E14b B18): su piso, a quién trae y dónde se para.
@@ -57,13 +62,14 @@ final class PickupNode: SKNode {
         super.init()
         addChild(sprite)
         if let waitingVideo {
-            waitingVideo.zPosition = 0.5
+            waitingVideo.zPosition = DepthOrder.innerStep
             addChild(waitingVideo)
         }
         fullSign.text = String(localized: "prize.package.full")
         fullSign.fontColor = UIColor(named: "PaletteOrange")
         fullSign.verticalAlignmentMode = .center
         fullSign.isHidden = true
+        fullSign.zPosition = Self.labelZ
         addChild(fullSign)
         resize(side: side)
         setScale(0.01)
@@ -153,7 +159,7 @@ final class PickupNode: SKNode {
     private func startOpeningClip(_ id: String, role: VideoRole, onEnd: @escaping @MainActor () -> Void) {
         let clip = LoopingVideoNode(clip: .object(id), poster: Self.clearTexture, size: sprite.size, role: role,
                                     playback: .once(onEnd: onEnd), manifest: manifest, pool: pool, packs: packs)
-        clip.zPosition = 0.6 + CGFloat(openingClips.count) * 0.1
+        clip.zPosition = DepthOrder.innerStep * CGFloat(2 + openingClips.count)
         addChild(clip)
         openingClips.append(clip)
         clip.setVisible(true)

@@ -20,6 +20,12 @@ extension GameState {
     /// Las puertas de test del engagement, colgadas de UNA línea del bootstrap:
     /// cada épica suma la suya acá y no vuelve a abrir `GameState.swift`.
     func applyEngagementFixtures(arguments: [String] = ProcessInfo.processInfo.arguments) {
+        // El piso a la vista al arrancar (E14b B19: el globo largo en un piso alto). Va antes del
+        // evento: el presentador entra en el piso que se mira. Con el piso cerrado no hace nada.
+        if let floorId = Self.fixtureValue("--uitest-floor=", in: arguments),
+           let ordinal = content?.floorTable.floors.firstIndex(where: { $0.id == floorId }) {
+            jumpToFloor(ordinal: ordinal)
+        }
         if let id = Self.fixtureValue("--uitest-event=", in: arguments) {
             debugPresentEvent(id: id)
         }

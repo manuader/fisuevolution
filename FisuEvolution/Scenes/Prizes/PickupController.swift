@@ -10,7 +10,8 @@ import SpriteKit
 /// la cámara como el piso (`floorShift`), así en el viaje se va con su piso en vez de flotar.
 @MainActor
 final class PickupController {
-    /// Detrás de los personajes: los empleados (campo, `fieldBaseZ` 10) y los visitantes (190) los pisan siempre.
+    /// La capa no suma profundidad: cada caja y el colchón van con el z de su línea de apoyo
+    /// (`DepthOrder`), entre los empleados y los visitantes (E14b B19, D13).
     static let layerZ: CGFloat = PickupNode.layerZ
 
     let layer = SKNode()
@@ -82,9 +83,13 @@ final class PickupController {
             let floorLayout = pickupLayout(onFloor: ordinal, gameState: gameState)
             let place = nodes.first?.packageBox?.x
             let shift = floorShift(ordinal)
+            // La pila entera apoya en la línea de la de abajo: se ordena como una sola pieza y,
+            // adentro, cada caja va delante de la que pisa.
+            let stackZ = DepthOrder.z(forFeetY: floorLayout.baselineY)
             for (index, box) in nodes.enumerated() {
                 let spot = floorLayout.packagePosition(index: index, at: place)
                 box.position = CGPoint(x: spot.x, y: spot.y + shift)
+                box.zPosition = stackZ + CGFloat(index) * DepthOrder.stackStep
                 box.update(delta: delta, reduceMotion: reduceMotion)
             }
         }
@@ -92,6 +97,8 @@ final class PickupController {
             mattress.update(delta: delta, reduceMotion: reduceMotion)
             let spot = layout.mattressPosition
             mattress.position = CGPoint(x: spot.x, y: spot.y + mattress.fallOffset)
+            // Mientras cae va con el z de donde va a apoyar, no con el de la altura de la caída.
+            mattress.zPosition = DepthOrder.z(forFeetY: layout.baselineY)
         }
         gameState.publishBoardPackage(marker(of: boxes.last))
         gameState.publishBoardMattress(marker(of: mattress?.isFalling == false ? mattress : nil))
@@ -142,6 +149,15 @@ final class PickupController {
             floors.insert(Int(position.rounded(.up)))
         }
         return floors.filter { $0 >= 0 && $0 < max(count, 1) }
+    }
+
+    /// El z de la escena de la pieza que está bajo `point` (coordenadas de `layer`), o `nil`.
+    /// `BoardScene` lo compara con el del visitante y el de los empleados: el toque es de lo de
+    /// adelante (E14b B19). Una caja detrás de un empleado se toca en la parte que se ve.
+    func hitDepth(at point: CGPoint) -> CGFloat? {
+        guard !layer.isHidden else { return nil }
+        let pieces = [mattress].compactMap { $0 } + floorBoxes.values.joined()
+        return pieces.filter { $0.hitTest(point) }.map { layer.zPosition + $0.zPosition }.max()
     }
 
     /// `point` en coordenadas de `layer`. Devuelve si el toque era suyo.
@@ -247,7 +263,6 @@ final class PickupController {
             }
             spare.forEach { $0.retire() }
             for (index, node) in nodes.enumerated() {
-                node.zPosition = CGFloat(index)
                 let isTop = index == nodes.count - 1
                 node.showsFull = isTop && !(node.packageBox.map(gameState.packageBoxOpenable) ?? true)
             }

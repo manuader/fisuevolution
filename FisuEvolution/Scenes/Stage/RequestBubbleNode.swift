@@ -2,7 +2,7 @@ import SpriteKit
 
 /// El globo de pensamiento de quien pide un empleado (PLAN-v2 E14 C16): las
 /// burbujitas bajan hasta la cabeza y adentro va la cara de quien se lleva. La
-/// punta de la cola está en el origen del nodo, igual que `SpeechBubbleNode`.
+/// punta de la cola está en el origen del nodo, como la cola del globo de texto (`StageBubble`).
 final class RequestBubbleNode: SKNode {
     enum Kind: Equatable {
         case take, arrest, sale

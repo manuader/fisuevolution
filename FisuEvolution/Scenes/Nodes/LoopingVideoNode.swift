@@ -179,7 +179,9 @@ final class LoopingVideoNode: SKNode, VideoLeaseHolder {
         let video = SKVideoNode(avPlayer: queue)
         video.size = size
         video.alpha = 0
-        video.zPosition = 1
+        // Apenas encima del póster: el nodo va en piezas ordenadas por profundidad (`DepthOrder`,
+        // E14b B19) y un z de 1 sacaría el video delante de quien está parado más adelante.
+        video.zPosition = DepthOrder.innerStep / 3
         addChild(video)
         videoNode = video
         video.play()

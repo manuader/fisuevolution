@@ -56,12 +56,20 @@ final class RankingTabUITests: XCTestCase {
     @MainActor
     func testConElServidorApagadoLaTarjetaDelMenuDesaparece() throws {
         let app = launch(scenario: "disabled")
-        openRanking(in: app)
-        // El primer pedido al tablero recibe 503 y el store se apaga: al volver al Menú, la tarjeta ya no está.
-        XCTAssertTrue(app.descendants(matching: .any)["ranking.disabled"].waitForExistence(timeout: 10))
-        app.windows.firstMatch.swipeRight()
+        // El servidor contesta 503 y el store se apaga, a veces antes de abrir el Menú: lo que
+        // importa es que, con el interruptor apagado, la tarjeta no queda en Oficina central.
+        let tab = app.buttons["hud.settings"]
+        XCTAssertTrue(tab.waitForExistence(timeout: 10), "la barra no tiene el Menú")
+        tab.tap()
         XCTAssertTrue(app.buttons["menu.card.orgchart"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.buttons["menu.card.ranking"].waitForNonExistence(timeout: 10),
+        let card = app.buttons["menu.card.ranking"]
+        if card.waitForExistence(timeout: 3) {
+            card.tap()
+            XCTAssertTrue(app.descendants(matching: .any)["ranking.disabled"].waitForExistence(timeout: 10))
+            app.windows.firstMatch.swipeRight()
+            XCTAssertTrue(app.buttons["menu.card.orgchart"].waitForExistence(timeout: 10))
+        }
+        XCTAssertTrue(card.waitForNonExistence(timeout: 10),
                       "con el interruptor apagado la tarjeta sigue en el Menú")
     }
 

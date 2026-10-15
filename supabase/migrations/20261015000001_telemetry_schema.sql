@@ -1,6 +1,7 @@
 -- La telemetría anónima de la 2.0 (E15 F0). La app inserta con la clave anon; nadie de afuera lee.
 -- Tres candados: el interruptor (settings.telemetry_enabled, sembrado en false) que mira la única
 -- política, las columnas que anon puede escribir (nunca id ni received_at) y los checks de C4.
+-- Sin límite de frecuencia por instalación: riesgo aceptado (ver supabase/README.md).
 create table public.telemetry_events (
   id uuid primary key default gen_random_uuid(),
   received_at timestamptz not null default now(),
@@ -15,6 +16,29 @@ create table public.telemetry_events (
   storefront text check (storefront is null or storefront ~ '^[A-Z]{3}$'),
   props jsonb not null default '{}'::jsonb
     check (jsonb_typeof(props) = 'object' and pg_column_size(props) <= 2048),
+  -- Las claves de props por evento (C4): las mismas, todas presentes (source es opcional), cada una
+  -- con su tipo y su largo. Una clave de más, de menos o un texto que no corresponde rechaza la fila.
+  constraint telemetry_props_by_name check (coalesce(case name
+    when 'session_start' then props - 'n' = '{}'::jsonb and jsonb_typeof(props -> 'n') = 'number'
+    when 'session_end' then props - 'seconds' = '{}'::jsonb and jsonb_typeof(props -> 'seconds') = 'number'
+    when 'ad_impression' then
+      props - array['format', 'site', 'micros', 'currency', 'precision', 'source'] = '{}'::jsonb
+      and jsonb_typeof(props -> 'format') = 'string' and char_length(props ->> 'format') <= 32
+      and jsonb_typeof(props -> 'site') = 'string' and char_length(props ->> 'site') <= 64
+      and jsonb_typeof(props -> 'micros') = 'number'
+      and jsonb_typeof(props -> 'currency') = 'string' and (props ->> 'currency') ~ '^[A-Z]{3}$'
+      and jsonb_typeof(props -> 'precision') = 'string' and char_length(props ->> 'precision') <= 32
+      and (not props ? 'source'
+           or (jsonb_typeof(props -> 'source') = 'string' and char_length(props ->> 'source') <= 32))
+    when 'offer' then
+      props - array['site', 'stage'] = '{}'::jsonb
+      and jsonb_typeof(props -> 'site') = 'string' and char_length(props ->> 'site') <= 64
+      and jsonb_typeof(props -> 'stage') = 'string' and char_length(props ->> 'stage') <= 32
+    when 'purchase' then
+      props - 'product' = '{}'::jsonb
+      and jsonb_typeof(props -> 'product') = 'string' and char_length(props ->> 'product') <= 128
+    when 'prestige' then props - 'count' = '{}'::jsonb and jsonb_typeof(props -> 'count') = 'number'
+  end, false)),
   -- La hora del teléfono, a ±30 días de la llegada (received_at la pone el servidor: es now()).
   check (client_ts between received_at - interval '30 days' and received_at + interval '30 days')
 );

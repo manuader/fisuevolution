@@ -60,7 +60,9 @@ Qué guarda `public.telemetry_events`, una fila por evento:
 | `storefront` | el país de la tienda (ISO alfa-3) o null |
 | `props` | un objeto chico (≤ 2 KB) con claves cerradas por evento: número de sesión, duración, valor de la impresión, lugar y etapa de la oferta, producto comprado, cantidad de reencarnaciones |
 
-Qué **no** guarda: ni IDFA, ni IDFV, ni el nombre del ranking, ni la IP, ni texto libre, ni precios ni transacciones.
+Qué **no** guarda la tabla: ni IDFA, ni IDFV, ni el nombre del ranking, ni la IP, ni texto libre, ni precios ni
+transacciones. La IP **sí** queda, fuera de la tabla, en los logs del gateway/PostgREST de Supabase durante su
+retención (la del plan): los textos de privacidad (E15 T7) lo tienen que decir así, no «ni la IP».
 Se borra a los **400 días** (cron `telemetry-retention`, una vez por día).
 
 Los candados:
@@ -71,7 +73,13 @@ Los candados:
 - `anon` sólo inserta, y sólo las columnas de arriba (nunca `id` ni `received_at`). Nadie de afuera lee, actualiza ni
   borra; `authenticated` no tiene nada.
 - Los `check` rechazan nombres fuera de la lista, textos largos, `props` que no sea objeto o pase de 2 KB, y horas
-  del teléfono corridas más de 30 días.
+  del teléfono corridas más de 30 días. `props` además tiene sus claves cerradas por evento (C4): ni una de más ni
+  de menos (`source` de `ad_impression` es opcional), números donde van números y textos acotados (`site` ≤ 64,
+  `product` ≤ 128, el resto ≤ 32, `currency` tres mayúsculas; `XXX` es «sin moneda»).
+- **Riesgo aceptado: no hay límite de frecuencia.** Con la clave anon (que va en la app) cualquiera puede insertar
+  filas válidas en cantidad mientras el interruptor esté prendido. Los checks acotan el tamaño de cada fila, no la
+  cantidad. Si pasa: apagar el interruptor (`scripts/admin.sql` 10) y borrar por `install_id`/`received_at`.
+- Un build de DEBUG con `--telemetry-debug` escribe en producción: para las cifras reales, filtrar por `build` (ver `scripts/admin.sql`).
 
 Las consultas de lectura (impresiones y eCPM por país × formato, el embudo por lugar, sesiones e instalaciones
 activas por día) están en `scripts/admin.sql` (11–15).

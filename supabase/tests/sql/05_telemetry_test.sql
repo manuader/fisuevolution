@@ -191,17 +191,46 @@ begin
   for c in
     select * from (values
       ('nombre fuera de la lista', $q$ select pg_temp.send('install', '{}') $q$),
-      ('app_version de 17', $q$ select pg_temp.send('session_start', '{}', p_app_version => repeat('9', 17)) $q$),
-      ('device_model de 33', $q$ select pg_temp.send('session_start', '{}', p_device_model => repeat('x', 33)) $q$),
-      ('storefront de 2 letras', $q$ select pg_temp.send('session_start', '{}', p_storefront => 'AR') $q$),
-      ('storefront en minúscula', $q$ select pg_temp.send('session_start', '{}', p_storefront => 'arg') $q$),
+      ('app_version de 17', $q$ select pg_temp.send('session_start', '{"n": 1}', p_app_version => repeat('9', 17)) $q$),
+      ('device_model de 33', $q$ select pg_temp.send('session_start', '{"n": 1}', p_device_model => repeat('x', 33)) $q$),
+      ('storefront de 2 letras', $q$ select pg_temp.send('session_start', '{"n": 1}', p_storefront => 'AR') $q$),
+      ('storefront en minúscula', $q$ select pg_temp.send('session_start', '{"n": 1}', p_storefront => 'arg') $q$),
       ('props que es un arreglo', $q$ select pg_temp.send('session_start', '[1, 2]') $q$),
       ('props que es un texto', $q$ select pg_temp.send('session_start', '"hola"') $q$),
       ('props de más de 2 KB', $q$ select pg_temp.send('session_start',
                                    jsonb_build_object('x', (select string_agg(md5(i::text), '')
                                                             from generate_series(1, 80) i))) $q$),
-      ('client_ts de hace 31 días', $q$ select pg_temp.send('session_start', '{}', now() - interval '31 days') $q$),
-      ('client_ts de dentro de 31 días', $q$ select pg_temp.send('session_start', '{}', now() + interval '31 days') $q$)
+      ('client_ts de hace 31 días', $q$ select pg_temp.send('session_start', '{"n": 1}', now() - interval '31 days') $q$),
+      ('client_ts de dentro de 31 días', $q$ select pg_temp.send('session_start', '{"n": 1}', now() + interval '31 days') $q$),
+      -- Las claves de props por evento (C4): ni de más, ni de menos, ni de otro tipo o largo.
+      ('session_start sin props', $q$ select pg_temp.send('session_start', '{}') $q$),
+      ('session_start con una clave de más', $q$ select pg_temp.send('session_start', '{"n": 1, "name": "Pepe"}') $q$),
+      ('session_start con n de texto', $q$ select pg_temp.send('session_start', '{"n": "1"}') $q$),
+      ('session_end con la clave de otro evento', $q$ select pg_temp.send('session_end', '{"n": 412}') $q$),
+      ('ad_impression sin currency', $q$ select pg_temp.send('ad_impression', '{"format": "rewarded",
+        "site": "doubleEarnings", "micros": 10000, "precision": "precise"}') $q$),
+      ('ad_impression con currency en minúscula', $q$ select pg_temp.send('ad_impression', '{"format": "rewarded",
+        "site": "doubleEarnings", "micros": 10000, "currency": "usd", "precision": "precise"}') $q$),
+      ('ad_impression con currency vacía', $q$ select pg_temp.send('ad_impression', '{"format": "rewarded",
+        "site": "doubleEarnings", "micros": 10000, "currency": "", "precision": "precise"}') $q$),
+      ('ad_impression con micros de texto', $q$ select pg_temp.send('ad_impression', '{"format": "rewarded",
+        "site": "doubleEarnings", "micros": "10000", "currency": "USD", "precision": "precise"}') $q$),
+      ('ad_impression con site de 65', $q$ select pg_temp.send('ad_impression', jsonb_build_object('format',
+        'rewarded', 'site', repeat('s', 65), 'micros', 1, 'currency', 'USD', 'precision', 'precise')) $q$),
+      ('ad_impression con source de 33', $q$ select pg_temp.send('ad_impression', jsonb_build_object('format',
+        'rewarded', 'site', 'x', 'micros', 1, 'currency', 'USD', 'precision', 'precise', 'source',
+        repeat('g', 33))) $q$),
+      ('ad_impression con source numérico', $q$ select pg_temp.send('ad_impression', '{"format": "rewarded",
+        "site": "x", "micros": 1, "currency": "USD", "precision": "precise", "source": 7}') $q$),
+      ('offer con una clave de más', $q$ select pg_temp.send('offer', '{"site": "offline.x2", "stage": "shown",
+        "note": "hola"}') $q$),
+      ('offer con stage de 33', $q$ select pg_temp.send('offer', jsonb_build_object('site', 'offline.x2',
+        'stage', repeat('s', 33))) $q$),
+      ('offer con site de objeto', $q$ select pg_temp.send('offer', '{"site": {"a": 1}, "stage": "shown"}') $q$),
+      ('purchase con precio', $q$ select pg_temp.send('purchase', '{"product": "pack1", "price": 0.99}') $q$),
+      ('purchase con product de 129', $q$ select pg_temp.send('purchase',
+        jsonb_build_object('product', repeat('p', 129))) $q$),
+      ('prestige con count de texto', $q$ select pg_temp.send('prestige', '{"count": "dos"}') $q$)
     ) as t(what, stmt)
   loop
     begin
@@ -212,13 +241,20 @@ begin
     end;
   end loop;
   begin
-    perform pg_temp.send(null, '{}');
+    perform pg_temp.send(null, '{"n": 1}');
     raise exception 'el check dejó pasar: name null';
   exception when not_null_violation then
     null;
   end;
-  perform pg_temp.send('session_start', '{}', now() - interval '29 days', repeat('9', 16), repeat('x', 32), 'USA');
-  raise notice 'OK cada check rechaza su basura y el borde válido entra';
+  perform pg_temp.send('session_start', '{"n": 1}', now() - interval '29 days', repeat('9', 16), repeat('x', 32), 'USA');
+  -- Los bordes válidos de props: los largos justos, source ausente y currency XXX (ISO 4217 «sin moneda»).
+  perform pg_temp.send('ad_impression', jsonb_build_object('format', repeat('f', 32), 'site', repeat('s', 64),
+    'micros', 0, 'currency', 'XXX', 'precision', repeat('p', 32)));
+  perform pg_temp.send('ad_impression', jsonb_build_object('format', 'rewarded', 'site', 'x', 'micros', 1,
+    'currency', 'EUR', 'precision', 'unknown', 'source', repeat('g', 32)));
+  perform pg_temp.send('offer', jsonb_build_object('site', repeat('s', 64), 'stage', repeat('t', 32)));
+  perform pg_temp.send('purchase', jsonb_build_object('product', repeat('p', 128)));
+  raise notice 'OK cada check rechaza su basura (también las claves de props por evento) y el borde válido entra';
 end $$;
 reset role;
 
@@ -230,9 +266,9 @@ begin
   insert into public.telemetry_events
     (install_id, session_id, client_ts, name, app_version, build, os_version, device_model, props, received_at)
   values
-    (gen_random_uuid(), gen_random_uuid(), '2025-08-01Z', 'session_start', '2.0.0', '1', '18.1', 'iPhone16,2', '{}',
+    (gen_random_uuid(), gen_random_uuid(), '2025-08-01Z', 'session_start', '2.0.0', '1', '18.1', 'iPhone16,2', '{"n": 1}',
      '2025-08-01Z'),
-    (gen_random_uuid(), gen_random_uuid(), '2025-09-20Z', 'session_start', '2.0.0', '1', '18.1', 'iPhone16,2', '{}',
+    (gen_random_uuid(), gen_random_uuid(), '2025-09-20Z', 'session_start', '2.0.0', '1', '18.1', 'iPhone16,2', '{"n": 1}',
      '2025-09-20Z');
   deleted := public.cleanup_telemetry('2026-10-15Z');
   if deleted <> 1 then

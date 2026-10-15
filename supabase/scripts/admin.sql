@@ -48,14 +48,19 @@ order by start_time desc limit 20;
 
 -- ── Telemetría (E15) ────────────────────────────────────────────────────────────────────────
 -- Anónima: install_id es el UUID de instalación de la app (no el IDFA). Se guarda 400 días.
+-- OJO: un build de DEBUG con --telemetry-debug escribe en ESTA tabla (producción). Para las cifras
+-- reales, filtrar los build de desarrollo: `and build <> '<build de prueba>'` en cada consulta.
 
 -- 10) El interruptor de la telemetría. Arranca en false. Prenderlo SÓLO con la política de
 --     privacidad, los términos y la etiqueta de App Store Connect ya actualizados (🔒 O6).
-update settings set value = 'true'::jsonb where key = 'telemetry_enabled';
+--     Apagar (la que se corre por defecto):
 update settings set value = 'false'::jsonb where key = 'telemetry_enabled';
+--     Prender (descomentar a mano, nunca de pasada):
+-- update settings set value = 'true'::jsonb where key = 'telemetry_enabled';
 
 -- 11) Impresiones y eCPM por país × formato (últimos 30 días). eCPM = valor medio × 1000.
---     Sólo la moneda más usada; las otras salen en filas aparte.
+--     Cada moneda sale en su fila (la moneda es parte del agrupamiento): los importes no se suman
+--     entre monedas. AdMob informa en la moneda de la cuenta, así que en la práctica hay una sola.
 select coalesce(storefront, '???') as pais,
        props ->> 'format' as formato,
        props ->> 'currency' as moneda,

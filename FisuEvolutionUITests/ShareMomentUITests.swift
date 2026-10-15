@@ -81,6 +81,29 @@ final class ShareMomentUITests: XCTestCase {
         XCTAssertTrue(tip.waitForNonExistence(timeout: 5), "el botón no cerró el tip")
     }
 
+    /// r56: con la X puesta EN la fila y `maxHeight: .infinity`, la tarjeta del tip se estiraba a
+    /// la pantalla entera. Es un pop-up del tamaño de su texto, con la X arriba a la derecha.
+    @MainActor
+    func testElTipConSuXMideLoQueSuContenido() throws {
+        let app = launch(extra: ["--uitest-lesson=share", "--uitest-tutorial-lock=0.3"])
+        XCTAssertTrue(app.otherElements["tutorial.tip"].waitForExistence(timeout: 20), "la lección no salió")
+        let card = app.descendants(matching: .any)["tutorial.card"]
+        XCTAssertTrue(card.waitForExistence(timeout: 5), "la tarjeta no publica su marco")
+        let close = app.buttons["tutorial.tip.close"]
+        XCTAssertTrue(close.waitForExistence(timeout: 3), "el tip no tiene botón de cerrar")
+        let box = card.frame
+        XCTAssertLessThan(box.height, app.frame.height * 0.5,
+                          "la tarjeta \(box) ocupa media pantalla o más: se estiró")
+        XCTAssertTrue(box.insetBy(dx: -1, dy: -1).contains(close.frame), "la X tiene que ir adentro de la tarjeta")
+        XCTAssertLessThan(close.frame.midY, box.midY, "la X va arriba")
+        XCTAssertGreaterThan(close.frame.midX, box.midX, "la X va a la derecha")
+
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = "tip con X"
+        shot.lifetime = .keepAlways
+        add(shot)
+    }
+
     @MainActor
     private func launch(extra: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()

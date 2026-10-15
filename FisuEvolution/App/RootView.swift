@@ -219,6 +219,9 @@ struct GameBoardView: View {
         // El selector del atajo va ANTES del overlay del tutorial: así su cara fijada le llega.
         .modifier(QuickHirePickerLayer(isPresented: $showQuickHirePicker))
         .modifier(NoticesLayer())
+        // El globo del visitante va encima del HUD y de los avisos (E14b B19); los pop-ups y el
+        // tutorial, que se montan después, encima de él.
+        .modifier(StageBubbleLayer(feed: scene?.stageBubbleFeed, hidden: rankingCardUp))
         .modifier(RewardFlightLayer())
         .modifier(ShareOfferLayer())
         .modifier(NewCharacterCardPopup())

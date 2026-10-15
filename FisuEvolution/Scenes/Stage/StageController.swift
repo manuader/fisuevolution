@@ -3,18 +3,25 @@ import SpriteKit
 
 /// El escenario de la escena (PLAN-v2 E4, E14 C2/C6/C16): quien entra desde un
 /// borde, camina hasta el horizonte de su piso, abre su popup y se va por el otro
-/// lado. Se queda en el piso donde apareció (`StageVisit.floorOrdinal`; si se deja
-/// de mirar, `+Stage` lo congela, E14b B7): la capa cuelga de la cámara, pero la
-/// posición de cada visita se corre con el desplazamiento de la cámara para que
-/// scrollear lo deje en su piso. Todo se mueve por frame y no con `SKAction`: lo
+/// lado. El visitante va por profundidad con todo lo que está parado en el piso
+/// (`DepthOrder`, E14b B19); su globo de texto no se dibuja acá: se publica en
+/// `bubbleFeed` y lo dibuja SwiftUI encima del HUD. Se queda en el piso donde
+/// apareció (`StageVisit.floorOrdinal`; si se deja de mirar, `+Stage` lo congela,
+/// E14b B7): la capa cuelga de la cámara, pero la posición de cada visita se
+/// corre con el desplazamiento de la cámara para que scrollear lo deje en su piso. Todo se mueve por frame y no con `SKAction`: lo
 /// que hace se prueba con un `SKNode` pelado y deltas inyectados
 /// (`StageControllerTests`).
 @MainActor
 final class StageController {
-    /// Delante de toda la multitud (el campo llega a ~110 con sus etiquetas) y
-    /// detrás del reveal (su velo arranca en 195): un ascenso tapa al visitante,
-    /// nunca al revés.
-    static let layerZ: CGFloat = 190
+    /// La capa no suma profundidad: el visitante va con el z de sus pies (`DepthOrder`), entre los
+    /// empleados, las cajas y el colchón (E14b B19, D13).
+    static let layerZ: CGFloat = 0
+    /// El globo con la cara del que piden es una etiqueta: va arriba de la multitud y de lo que se
+    /// arrastra, como antes, y detrás del reveal (su velo arranca en 195): un ascenso lo tapa.
+    static let requestZ: CGFloat = 191
+    /// Con el velo del Apagón arriba (`StageEffects`, 185) el que está en escena sale por encima de
+    /// él, como siempre: el presentador se ve aunque esté oscuro. Debajo del pedido y del reveal.
+    static let aboveEffectsZ: CGFloat = StageEffects.layerZ + 1
     static let fadeDuration: TimeInterval = 0.3
     static let bubblePopDuration: TimeInterval = 0.18
     static let feedbackDuration: TimeInterval = 0.35
@@ -29,14 +36,24 @@ final class StageController {
     let layer = SKNode()
     private weak var gameState: GameState?
     private(set) var actor: VisitorNode?
-    private(set) var bubble: SpeechBubbleNode?
+    /// El globo de texto que se le publica a SwiftUI (`StageBubbleLayer`).
+    let bubbleFeed = StageBubbleFeed()
+    /// Lo que dice el globo ahora, o `nil`.
+    var bubble: StageBubble? { bubbleFeed.bubble }
+    /// Una celebración tapa el escenario (el velo del reveal): el globo, que va en SwiftUI por
+    /// encima de todo, se esconde mientras tanto. Lo pone `BoardScene` por cuadro.
+    var bubbleSuppressed = false
+    /// El velo del Apagón está arriba: el visitante va por encima de él (`aboveEffectsZ`). Lo pone
+    /// `BoardScene` por cuadro.
+    var aboveEffects = false
+    /// El texto del globo que se está mostrando: lo que dice la visita mientras espera.
+    private var bubbleText: String?
     /// El globo con la cara del empleado que pide (`take`, `arrest`, `sale`).
     private(set) var request: RequestBubbleNode?
     /// El piso donde apareció la visita: ahí se queda.
     private(set) var anchorOrdinal = 0
     private var layout = StageLayout(sceneSize: CGSize(width: 393, height: 852), bottomInset: 118, cellSize: 72)
     private var entersFromLeft = false
-    private var bubbleAge: TimeInterval = 0
     private var requestClock: TimeInterval = 0
     private var cameraOffsetY: CGFloat?
     /// La oferta que ya abrió su popup sola, por visita: cerrarlo sin elegir no lo
@@ -85,7 +102,9 @@ final class StageController {
         case .waiting: wait(node, visit: visit, delta: delta, reduceMotion: reduceMotion)
         case .leaving: leave(node, visit: visit, delta: delta, reduceMotion: reduceMotion)
         }
+        node.zPosition = aboveEffects ? Self.aboveEffectsZ : DepthOrder.z(forFeetY: standY)
         applyFloorShift(to: node)
+        publishBubble(for: visit, actor: node)
     }
 
     /// Corre al actor con el desplazamiento de su piso y lo apaga si ese piso no se ve.
@@ -94,8 +113,6 @@ final class StageController {
         node.position.y += shift
         let onScreen = node.position.y + layout.actorSide > 0 && node.position.y < layout.sceneSize.height
         node.setOnScreen(onScreen)
-        bubble?.position.y += shift
-        bubble?.isHidden = !onScreen
         request?.position.y += shift
         request?.isHidden = !onScreen
     }
@@ -113,20 +130,48 @@ final class StageController {
         return layout.standY(background: floor?.background, backgroundOffset: floor?.backgroundOffset ?? 0)
     }
 
-    /// Tocar al que espera (o sus globos) abre su popup. `point` en coordenadas de `layer`.
-    /// Durante un reto de toques no se come nada: los toques son para los empleados.
-    /// Y tiene que estar parado en su lugar: el toque que saltea la entrada deja
-    /// la fase en `waiting` en el acto, pero el nodo sigue a mitad de camino hasta
-    /// el próximo frame, y ese mismo toque no puede abrir además el popup.
+    /// Tocar al que espera (o su globo del pedido) abre su popup. `point` en coordenadas de `layer`.
+    /// El globo de texto se toca en SwiftUI (`tapBubble`).
     @discardableResult
     func handleTap(at point: CGPoint) -> Bool {
-        guard let gameState, let actor, let visit = gameState.stageVisit,
-              visit.id == actor.visitId, visit.phase == .waiting, gameState.stageChallenge == nil,
-              actor.alpha >= 1, abs(actor.position.x - layout.standX) < 1,
-              actor.contains(point) || (bubble?.contains(point) ?? false) || (request?.contains(point) ?? false)
+        guard let gameState, let visit = tappableVisit,
+              actor?.contains(point) == true || (request?.contains(point) ?? false)
         else { return false }
         gameState.stageActorTapped(id: visit.id)
         return true
+    }
+
+    /// El toque sobre el globo de texto (lo dibuja SwiftUI): lo mismo que tocar al visitante.
+    @discardableResult
+    func tapBubble() -> Bool {
+        guard let gameState, let visit = tappableVisit, bubbleText != nil else { return false }
+        gameState.stageActorTapped(id: visit.id)
+        return true
+    }
+
+    /// La visita que acepta un toque, o `nil`. Durante un reto de toques no se come nada: los
+    /// toques son para los empleados. Y tiene que estar parado en su lugar: el toque que saltea la
+    /// entrada deja la fase en `waiting` en el acto, pero el nodo sigue a mitad de camino hasta el
+    /// próximo frame, y ese mismo toque no puede abrir además el popup.
+    private var tappableVisit: StageVisit? {
+        guard let gameState, let actor, let visit = gameState.stageVisit,
+              visit.id == actor.visitId, visit.phase == .waiting, gameState.stageChallenge == nil,
+              actor.alpha >= 1, abs(actor.position.x - layout.standX) < 1
+        else { return nil }
+        return visit
+    }
+
+    /// El z de la escena de lo que el escenario tiene bajo `point` (coordenadas de `layer`), o `nil`.
+    /// `BoardScene` lo compara con el de las cajas y los empleados: el toque es de lo de adelante
+    /// (E14b B19). El globo del pedido va siempre arriba; el visitante, con el z de sus pies.
+    func hitDepth(at point: CGPoint) -> CGFloat? {
+        if let request, !request.isHidden, request.contains(point) {
+            return layer.zPosition + request.zPosition
+        }
+        if let actor, !actor.isHidden, actor.contains(point) {
+            return layer.zPosition + actor.zPosition
+        }
+        return nil
     }
 
     /// Un empleado soltado sobre el que pide (C16): el pedido se entrega; cualquier otro rebota. Las dos
@@ -286,18 +331,34 @@ final class StageController {
            let script = gameState?.content?.visitors.script(id: scriptId), VisitorPopupView.isVendor(script) {
             leavingOffended = true
         }
-        let bubble = self.bubble ?? makeBubble()
-        if bubble.text != text {
-            bubble.setText(text, maxWidth: layout.bubbleMaxWidth)
-            bubbleAge = 0
+        bubbleText = text
+    }
+
+    /// Le dice a SwiftUI qué dice el globo y a qué cabeza apunta, ya con el corrimiento del piso.
+    /// Sin texto, con su piso fuera de la pantalla o con una celebración encima, no hay globo.
+    private func publishBubble(for visit: StageVisit, actor node: VisitorNode) {
+        guard let text = bubbleText, visit.phase == .waiting, !node.isHidden, !bubbleSuppressed else {
+            return bubbleFeed.publish(nil)
         }
-        let tip = CGPoint(x: node.position.x, y: node.position.y + layout.actorSide + 4)
-        bubble.pointTail(at: tip.x - layout.bubbleLeft(width: bubble.size.width, tipX: tip.x))
-        bubble.position = tip
-        bubbleAge += delta
-        let progress = reduceMotion ? 1 : min(1, bubbleAge / Self.bubblePopDuration)
-        bubble.setScale(CGFloat(0.6 + 0.4 * progress))
-        bubble.alpha = CGFloat(progress)
+        let height = layout.sceneSize.height
+        let head = node.position.y + layout.actorSide + 4
+        bubbleFeed.publish(StageBubble(
+            visitId: visit.id,
+            text: text,
+            tip: CGPoint(x: Self.halfPoint(node.position.x), y: Self.halfPoint(height - head)),
+            sceneSize: layout.sceneSize,
+            preferredWidth: layout.bubbleMaxWidth,
+            maxDrop: layout.actorSide * Self.bubbleMaxDropRatio,
+            tappable: tappableVisit != nil
+        ))
+    }
+
+    /// Cuánto de la cabeza puede tapar el globo para no tapar el HUD (`StageBubbleLayout`).
+    static let bubbleMaxDropRatio: CGFloat = 0.2
+
+    /// Medio punto: la cabeza que respira o se balancea no republica el globo en cada cuadro.
+    private static func halfPoint(_ value: CGFloat) -> CGFloat {
+        (value * 2).rounded() / 2
     }
 
     /// El popup sale solo al llegar (C2) y sólo si se está mirando su piso (C6); espera su turno en la
@@ -346,24 +407,15 @@ final class StageController {
         node.showClip(clip, poster: texture(for: visit.actorId, pose: poster))
     }
 
-    private func makeBubble() -> SpeechBubbleNode {
-        let node = SpeechBubbleNode()
-        node.zPosition = 1
-        layer.addChild(node)
-        bubble = node
-        return node
-    }
-
     private func hideBubble() {
-        bubble?.removeFromParent()
-        bubble = nil
+        bubbleText = nil
     }
 
     private func makeRequest(_ ask: RequestedUnit) -> RequestBubbleNode {
         hideRequest()
         let bubble = RequestBubbleNode(kind: ask.kind, typeId: ask.typeId, count: ask.count,
                                        face: faceTexture(typeId: ask.typeId), tint: faceTint(typeId: ask.typeId))
-        bubble.zPosition = 1
+        bubble.zPosition = Self.requestZ
         layer.addChild(bubble)
         request = bubble
         requestClock = 0
@@ -389,6 +441,7 @@ final class StageController {
 
     private func clear() {
         hideBubble()
+        bubbleFeed.publish(nil)
         hideRequest()
         actor?.removeClip()
         actor?.removeFromParent()

@@ -37,7 +37,7 @@ struct CrowdDepthTests {
     private func lowestCrowdZ(screen: CGSize, capacity: Int) -> CGFloat {
         let layout = PlayLayout(size: screen, capacity: capacity)
         let band = BoardScene.crowdBand(sceneHeight: screen.height, cellSize: layout.cellSize, rows: layout.rows)
-        return BoardScene.fieldBaseZ + BoardScene.depthZ(y: band.topY, rows: layout.rows, cellSize: layout.cellSize)
+        return BoardScene.fieldBaseZ + BoardScene.depthZ(fieldY: band.topY)
     }
 
     private func highestFloorZ() throws -> CGFloat {
@@ -78,8 +78,8 @@ struct CrowdDepthTests {
     func nearerCharactersStayInFront(rows: Int) {
         let cell: CGFloat = 74
         let band = BoardScene.crowdBand(sceneHeight: 874, cellSize: cell, rows: rows)
-        let front = BoardScene.depthZ(y: band.frontY, rows: rows, cellSize: cell)
-        let back = BoardScene.depthZ(y: band.frontY + band.rowDepth, rows: rows, cellSize: cell)
+        let front = BoardScene.depthZ(fieldY: band.frontY)
+        let back = BoardScene.depthZ(fieldY: band.frontY + band.rowDepth)
         #expect(front > back, "la fila delantera tiene que dibujarse sobre la trasera")
     }
 }

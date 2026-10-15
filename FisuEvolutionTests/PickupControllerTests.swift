@@ -61,13 +61,23 @@ struct PickupControllerTests {
         #expect(box.staticArtAlpha == 0)
     }
 
-    @Test("la caja y el colchón van debajo de los empleados y de los visitantes, y encima de los fondos")
-    func layerOrder() async {
-        let (_, controller) = await pickups()
+    /// E14b B19 (D13): ya no van en una capa fija detrás de todos. La capa no suma z; cada pieza
+    /// lleva el de su línea de apoyo (`DepthOrderTests` prueba el orden contra los demás).
+    @Test("la caja y el colchón van por profundidad, con el z de su línea de apoyo, y encima de los fondos")
+    func layerOrder() async throws {
+        let (gameState, controller) = await pickups()
         #expect(controller.layer.zPosition == PickupController.layerZ)
-        #expect(PickupController.layerZ > FloorNode.backgroundZ(ordinal: 99))
-        #expect(PickupController.layerZ < BoardScene.fieldBaseZ)
-        #expect(PickupController.layerZ < StageController.layerZ)
+        #expect(PickupController.layerZ == 0)
+        gameState.debugAddPackages(3)
+        gameState.debugSpawnMattress(onBoard: true)
+        gameState.refreshPrizeAccess()
+        controller.update(delta: 1, reduceMotion: true)
+        let mattress = try #require(controller.mattress)
+        for (index, box) in controller.boxes.enumerated() {
+            #expect(box.zPosition > FloorNode.backgroundZ(ordinal: 99))
+            if index > 0 { #expect(box.zPosition > controller.boxes[index - 1].zPosition, "la de arriba de la pila, delante") }
+        }
+        #expect(mattress.zPosition > FloorNode.backgroundZ(ordinal: 99))
     }
 
     @Test("tocar una caja abre la pantalla del paquete, sin gastarlo")

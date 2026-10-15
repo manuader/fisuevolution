@@ -5,8 +5,8 @@ import SpriteKit
 /// `BoardScene`, como `StageController`: todo por frame, probado sin vista.
 @MainActor
 final class StageEffects {
-    /// Encima del tablero y DEBAJO del escenario (190): el presentador del Apagón
-    /// se ve aunque esté oscuro.
+    /// Encima del tablero y DEBAJO de quien está en escena: con el velo arriba el visitante sube a
+    /// `StageController.aboveEffectsZ` (E14b B19), así el presentador del Apagón se ve aunque esté oscuro.
     static let layerZ: CGFloat = 185
     static let maxVeilAlpha: CGFloat = 0.62
     static let confettiEvery: TimeInterval = 1.2

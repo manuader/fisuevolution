@@ -4,9 +4,14 @@ import Testing
 
 /// El manifiesto de privacidad que viaja en el bundle: lo que el código de la app
 /// recolecta —el ranking de la llegada a Dios (el `installId` y el nombre) y la
-/// telemetría anónima de E15 (sesiones, ofertas, impresiones y compras)—, sin
-/// vínculo ni seguimiento. Dice la verdad del binario aunque el interruptor de la
-/// telemetría esté apagado. Tiene que coincidir con la App Privacy de App Store Connect.
+/// telemetría de E15 (sesiones, ofertas, impresiones y compras, con su propio id al
+/// azar)—, sin vínculo ni seguimiento. Dice la verdad del binario aunque el
+/// interruptor de la telemetría esté apagado.
+///
+/// Describe **sólo nuestro código**: cada SDK de anuncios trae su propio manifiesto,
+/// y la App Privacy de App Store Connect es la unión de todos. Por eso allá Device ID y
+/// Advertising Data figuran como vinculados y con tracking (los declara Meta) aunque
+/// acá no lo estén; lo nuestro sólo les suma propósitos.
 @Suite("El manifiesto de privacidad")
 struct PrivacyManifestTests {
     private var manifest: [String: Any] {
@@ -22,7 +27,8 @@ struct PrivacyManifestTests {
     }
 
     /// Cada tipo con sus propósitos: el ranking es funcionalidad de la app y la
-    /// telemetría (C4 de E15) es analítica propia. El `installId` sirve a los dos.
+    /// telemetría (C4 de E15) es analítica propia. Device ID cubre los dos ids (el del
+    /// ranking y el propio de la telemetría).
     private static let expectedPurposes: [String: Set<String>] = [
         "NSPrivacyCollectedDataTypeDeviceID": [
             "NSPrivacyCollectedDataTypePurposeAppFunctionality",

@@ -379,7 +379,10 @@ final class StoreManager {
             // muere en el medio la plata igual llega. Que no llegue DOS veces
             // lo garantiza la guarda de `creditStorePurchase`, que está en el save.
             if let entry {
-                settled = gameState?.creditStorePurchase(entry, transactionID: String(transaction.id)) ?? false
+                settled = gameState?.creditStorePurchase(
+                    entry, transactionID: String(transaction.id),
+                    boughtByThisAccount: transaction.ownershipType == .purchased
+                ) ?? false
             }
             // Un consumible no queda "comprado": se vuelve a vender.
             if entry?.isConsumable != true {

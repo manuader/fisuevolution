@@ -16,10 +16,25 @@ private final class SpyTelemetry: TelemetryRecording {
     func didBecomeActive() { activations += 1 }
     func record(_ event: TelemetryPayload) { events.append(event) }
     func flush() { flushes += 1 }
+    func settle() async {}
 
     func events(named name: TelemetryEventName) -> [TelemetryPayload] {
         events.filter { $0.name == name }
     }
+}
+
+/// Anota qué tareas de background se piden y se devuelven.
+@MainActor
+private final class TelemetryBackgroundTasks: BackgroundTaskRunning {
+    private(set) var begun: [String] = []
+    private(set) var ended = 0
+
+    func begin(_ name: String) -> BackgroundTaskToken {
+        begun.append(name)
+        return BackgroundTaskToken()
+    }
+
+    func end(_ token: BackgroundTaskToken) { ended += 1 }
 }
 
 /// El cableado de E15 T6: cada fuente emite **un** evento con sus `props` de C4, todo pasa por
@@ -35,6 +50,10 @@ struct TelemetryWiringTests {
         ProductCatalog.Entry(
             id: id, type: "consumable", entitlement: .blue, skinId: nil, coinMinutes: nil, blueAmount: amount)
     }
+
+    private static let removeAds = ProductCatalog.Entry(
+        id: "remove_ads", type: "nonConsumable", entitlement: .removeAds, skinId: nil, coinMinutes: nil,
+        blueAmount: nil)
 
     /// Un juego listo con el espía adjunto y la escena quieta: la sesión la abre cada test.
     private func rig() async -> (GameState, SpyTelemetry) {
@@ -58,16 +77,48 @@ struct TelemetryWiringTests {
 
     // MARK: - Las sesiones
 
-    @Test("al adjuntar con la escena activa arranca el servicio y abre la sesión 1")
+    @Test("al adjuntar con la escena activa abre la sesión 1 con la hora del arranque, no la de adjuntar")
     func attachingWhileActiveOpensTheFirstSession() async {
         let gameState = await makeGameState()
         let spy = SpyTelemetry()
+        gameState.noteLaunchScene(inBackground: false, now: 1_000)
 
         gameState.attachTelemetry(spy, defaults: .isolatedForTest())
+        gameState.telemetrySceneChanged(to: .background, now: 1_090)
 
         #expect(spy.starts == 1)
+        #expect(spy.events == [.sessionStart(number: 1), .sessionEnd(seconds: 90)],
+                "la sesión cuenta desde el arranque, con el bootstrap adentro")
+    }
+
+    @Test("un arranque en background no abre sesión; el primer .active sí")
+    func backgroundLaunchOpensNothing() async {
+        let gameState = await makeGameState()
+        let spy = SpyTelemetry()
+        gameState.noteLaunchScene(inBackground: true, now: 1_000)
+
+        gameState.attachTelemetry(spy, defaults: .isolatedForTest())
+        #expect(spy.starts == 1)
+        #expect(spy.events.isEmpty, "isSceneActive arranca en true, pero no alcanza para abrir")
+        #expect(gameState.telemetry?.isSessionOpen == false)
+
+        gameState.telemetrySceneChanged(to: .active, now: 2_000)
         #expect(spy.events == [.sessionStart(number: 1)])
-        #expect(gameState.telemetry?.isSessionOpen == true)
+    }
+
+    @Test("el envío al irse va dentro de una tarea de background que se devuelve al terminar")
+    func sessionEndRunsInsideABackgroundTask() async {
+        let (gameState, spy) = await rig()
+        let tasks = TelemetryBackgroundTasks()
+        gameState.attachBackgroundTasks(tasks)
+
+        gameState.telemetrySceneChanged(to: .active, now: 0)
+        gameState.telemetrySceneChanged(to: .background, now: 30)
+        await gameState.telemetry?.flushTask?.value
+
+        #expect(tasks.begun == ["fisu.telemetry"])
+        #expect(tasks.ended == 1)
+        #expect(spy.flushes == 1)
     }
 
     @Test("activa → background: session_start, session_end con la duración y el envío")
@@ -101,6 +152,7 @@ struct TelemetryWiringTests {
     func scenePhaseDrivesTheSession() async {
         let gameState = await makeGameState()
         let spy = SpyTelemetry()
+        gameState.noteLaunchScene(inBackground: false)
         gameState.attachTelemetry(spy, defaults: .isolatedForTest())
 
         gameState.handleScenePhase(from: .active, to: .background)
@@ -150,14 +202,75 @@ struct TelemetryWiringTests {
         #expect(spy.events.first?.props == ["product": .string("pack.blue")])
     }
 
-    @Test("una compra restaurada (la transacción ya acreditada) no emite")
-    func restoredPurchaseDoesNotEmit() async {
+    @Test("la misma transacción consumible entregada dos veces emite una sola vez")
+    func redeliveredConsumableEmitsOnce() async {
         let (gameState, spy) = await rig()
 
         gameState.creditStorePurchase(Self.bluePack(), transactionID: "tx-1")
         #expect(gameState.creditStorePurchase(Self.bluePack(), transactionID: "tx-1"))
 
         #expect(spy.events(named: .purchase).count == 1)
+    }
+
+    @Test("remove_ads reentregado por StoreKit emite un solo purchase, aunque su id no quede en el save")
+    func redeliveredNonConsumableEmitsOnce() async {
+        let (gameState, spy) = await rig()
+
+        #expect(gameState.creditStorePurchase(Self.removeAds, transactionID: "tx-ads"))
+        #expect(gameState.creditStorePurchase(Self.removeAds, transactionID: "tx-ads"))
+
+        #expect(spy.events(named: .purchase) == [.purchase(product: "remove_ads")])
+    }
+
+    @Test("la reentrega no cuenta tampoco después de reabrir la app (lo emitido persiste)")
+    func emittedPurchasesSurviveARelaunch() async {
+        let defaults = UserDefaults.isolatedForTest()
+        let first = await makeGameState()
+        first.isSceneActive = false
+        first.attachTelemetry(SpyTelemetry(), defaults: defaults)
+        first.creditStorePurchase(Self.removeAds, transactionID: "tx-ads")
+
+        let second = await makeGameState()
+        second.isSceneActive = false
+        let spy = SpyTelemetry()
+        second.attachTelemetry(spy, defaults: defaults)
+        second.creditStorePurchase(Self.removeAds, transactionID: "tx-ads")
+
+        #expect(spy.events(named: .purchase).isEmpty)
+    }
+
+    @Test("lo que llega por En Familia se acredita pero no emite purchase")
+    func familySharedDoesNotEmit() async {
+        let (gameState, spy) = await rig()
+
+        #expect(gameState.creditStorePurchase(Self.removeAds, transactionID: "tx-family", boughtByThisAccount: false))
+
+        #expect(spy.events(named: .purchase).isEmpty)
+    }
+
+    @Test("comprar una oferta emite un purchase con el producto de la oferta")
+    func offerPurchaseEmits() async throws {
+        let (gameState, spy) = await rig()
+        let offer = try #require(try ProductCatalog.load(from: .main).products.first { $0.offerId == "renacer" })
+
+        #expect(gameState.creditStorePurchase(offer, transactionID: "tx-offer"))
+
+        #expect(spy.events(named: .purchase) == [.purchase(product: offer.id)])
+    }
+
+    @Test("lo recordado tiene tope: guarda las últimas transacciones y nada más")
+    func emittedPurchasesAreBounded() async {
+        let defaults = UserDefaults.isolatedForTest()
+        let hookup = TelemetryHookup(recorder: SpyTelemetry(), defaults: defaults)
+
+        for index in 0...TelemetryHookup.emittedPurchasesLimit {
+            hookup.recordPurchase(product: "pack.blue", transactionID: "tx-\(index)", boughtByThisAccount: true)
+        }
+
+        let kept = defaults.stringArray(forKey: TelemetryHookup.emittedPurchasesKey) ?? []
+        #expect(kept.count == TelemetryHookup.emittedPurchasesLimit)
+        #expect(kept.first == "tx-1")
+        #expect(kept.last == "tx-\(TelemetryHookup.emittedPurchasesLimit)")
     }
 
     @Test("una compra que no se pudo acreditar no emite")
@@ -207,13 +320,20 @@ struct TelemetryWiringTests {
         #expect(after.meta.blue == before.meta.blue)
     }
 
-    @Test("sin telemetría adjunta, las fuentes son un no-op")
-    func detachedIsANoOp() async {
+    @Test("sin telemetría adjunta, cada gancho es un no-op: el save no cambia")
+    func detachedIsANoOp() async throws {
         let gameState = await makeGameState()
+        let before = try #require(gameState.player)
 
-        playAllSources(gameState)
+        gameState.telemetrySceneChanged(to: .active, now: 1_000)
+        gameState.telemetryImpression(Self.impression)
+        gameState.telemetryOffer(.shown, site: "double.offline")
+        gameState.telemetryPurchase(Self.bluePack(), transactionID: "tx-1", boughtByThisAccount: true)
+        gameState.telemetryPrestige()
+        gameState.telemetrySceneChanged(to: .background, now: 1_300)
 
         #expect(gameState.telemetry == nil)
+        #expect(gameState.player == before)
     }
 
     // MARK: - La compuerta manda

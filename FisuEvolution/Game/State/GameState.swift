@@ -429,6 +429,9 @@ final class GameState {
     @ObservationIgnored var ads: AdsCoordinator?
     /// La telemetría de E15 (`+Telemetry`). `nil` en los tests que no la piden.
     @ObservationIgnored var telemetry: TelemetryHookup?
+    /// Desde cuándo la escena está en primer plano, para la sesión de telemetría (`+Telemetry`).
+    /// `nil` hasta el primer `.active` anotado: un arranque en background no abre sesión.
+    @ObservationIgnored var sceneActiveSince: TimeInterval?
     /// La señal del consentimiento que la intro de una partida nueva espera (`+Cinematics`).
     @ObservationIgnored var consentGate: ConsentGate?
     @ObservationIgnored var introWait: Task<Void, Never>?

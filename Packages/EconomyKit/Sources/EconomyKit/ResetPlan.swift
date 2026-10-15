@@ -7,7 +7,8 @@ import Foundation
 /// o ganado: no se distingue el origen, así que gastar blue ganado en pintas antes de resetear
 /// es legal y es la forma de llevárselo. Lo demás es la partida nueva que
 /// recibe. De las ofertas queda lo ya usado y lo pagado (no se vuelven a vender las de una
-/// vez); las abiertas se cierran.
+/// vez); las abiertas se cierran. La medición de anuncios (`adRevenue`, `offerFunnel`) cruza
+/// entera: nada de la economía la lee.
 public struct ResetPlan: Sendable, Equatable {
     public struct Summary: Sendable, Equatable {
         public let blueBalance: Int
@@ -48,6 +49,9 @@ public struct ResetPlan: Sendable, Equatable {
         result.meta.engagement.firstLaunchDay = old.engagement.firstLaunchDay
         result.meta.ranking = old.ranking.forNewGame()
         result.meta.resetEpoch = old.resetEpoch + 1
+        // La medición de anuncios es de la cuenta, no de la partida (E15): cruza el reset.
+        result.meta.adRevenue = old.adRevenue
+        result.meta.offerFunnel = old.offerFunnel
 
         let lostSkins = old.allOwnedSkins.subtracting(keptSkins)
         let summary = Summary(

@@ -192,4 +192,30 @@ struct ResetEpochTests {
         let loser = state(epoch: 2, earnings: 5, blue: 0, purchases: ["legacy": 160])
         #expect(SaveConflictResolver.resolve(local: winnerCredited, remote: loser).meta.blue == 160)
     }
+
+    @Test("entre épocas, la medición de anuncios se une igual que dentro de una (E15)")
+    func adMeasurementMergesAcrossEpochs() {
+        func impression(_ micros: Int64) -> AdImpression {
+            AdImpression(format: .rewarded, site: "wheel", valueMicros: micros, currency: "USD",
+                         precision: .precise, adSource: nil, at: 1)
+        }
+        var fresh = state(epoch: 1, earnings: 10, blue: 0)
+        fresh.meta.adRevenue.record(impression(10))
+        fresh.meta.offerFunnel.record(.shown, site: "offline.x2")
+        var old = state(epoch: 0, earnings: 1e12, blue: 0)
+        for micros in [100, 200, 300] as [Int64] { old.meta.adRevenue.record(impression(micros)) }
+        old.meta.offerFunnel.record(.shown, site: "double.wheel")
+        old.meta.offerFunnel.record(.shown, site: "offline.x2")
+        old.meta.offerFunnel.record(.shown, site: "offline.x2")
+
+        for resolved in [
+            SaveConflictResolver.resolve(local: fresh, remote: old),
+            SaveConflictResolver.resolve(local: old, remote: fresh)
+        ] {
+            #expect(resolved.meta.resetEpoch == 1)
+            #expect(resolved.meta.adRevenue.stats(.rewarded).count == 3, "gana el formato con más impresiones")
+            #expect(resolved.meta.offerFunnel.counts(site: "offline.x2")[.shown] == 2)
+            #expect(resolved.meta.offerFunnel.counts(site: "double.wheel")[.shown] == 1)
+        }
+    }
 }

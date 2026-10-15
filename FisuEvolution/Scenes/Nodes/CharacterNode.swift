@@ -50,13 +50,39 @@ final class CharacterNode: SKNode {
         coinBadge.texture = Self.coinTexture
         coinBadge.color = Palette.yellow
         coinBadge.colorBlendFactor = Self.coinTexture == nil ? 1 : 0
-        coinBadge.zPosition = 1
+        // Un paso interno y no 1: un punto de z es 100 pt de profundidad, y la moneda se asomaría
+        // delante de quien está parado hasta 100 pt más adelante (E14b B19, `DepthOrder`).
+        coinBadge.zPosition = DepthOrder.innerStep
         coinBadge.isUserInteractionEnabled = false
         coinBadge.isHidden = true
         addChild(coinBadge)
     }
 
     var showsPassiveCoin: Bool { !coinBadge.isHidden }
+
+    /// Lo que del arte ocupa el cuerpo, a lo ancho: el cuadro del sprite trae aire transparente a
+    /// los costados y la figura va por el medio.
+    static let visibleBodyWidthRatio: CGFloat = 0.5
+    /// Y a lo alto, desde los pies: la cabeza llega casi al borde de arriba del cuadro.
+    static let visibleBodyHeightRatio: CGFloat = 0.92
+
+    /// El cuerpo que se ve, en las coordenadas del padre (el campo): la figura del arte o la placa.
+    /// Con algo de atrás bajo el dedo, el toque es del empleado sólo acá (E14b B19, D13).
+    var visibleBody: CGRect {
+        let local: CGRect
+        if plate.isHidden {
+            let side = sprite.size
+            let bottom = sprite.position.y - side.height / 2
+            let width = side.width * Self.visibleBodyWidthRatio
+            local = CGRect(x: sprite.position.x - width / 2, y: bottom,
+                           width: width, height: side.height * Self.visibleBodyHeightRatio)
+        } else {
+            local = plate.path?.boundingBoxOfPath ?? .zero
+        }
+        let scaleX = abs(xScale), scaleY = abs(yScale)
+        return CGRect(x: position.x + local.minX * scaleX, y: position.y + local.minY * scaleY,
+                      width: local.width * scaleX, height: local.height * scaleY)
+    }
 
     @available(*, unavailable)
     required init?(coder: NSCoder) {

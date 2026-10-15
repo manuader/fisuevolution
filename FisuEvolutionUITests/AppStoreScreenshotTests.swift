@@ -116,10 +116,15 @@ final class AppStoreScreenshotTests: XCTestCase {
         }
         closeSheet(app)
 
-        // 06. El Ranking, la pestaña de la punta del menú deslizable.
-        if open(app, tab: "hud.ranking", marker: "ranking.row.pinned") {
-            settle()
-            shoot(app, "06-ranking")
+        // 06. El Ranking, la tarjeta de Menú › Oficina central (E14b B26).
+        if open(app, tab: "hud.settings", marker: "menu.card.ranking") {
+            app.buttons["menu.card.ranking"].tap()
+            if app.descendants(matching: .any)["ranking.row.pinned"].waitForExistence(timeout: 15) {
+                settle()
+                shoot(app, "06-ranking")
+            } else {
+                XCTFail("el Ranking no mostró la fila propia")
+            }
         }
         closeSheet(app)
 

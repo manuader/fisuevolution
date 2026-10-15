@@ -1,0 +1,15 @@
+{
+  "menu.card.ranking": {"es": "Ranking", "en": "Ranking"},
+  "tutorial.tabs_moved.store": {
+    "es": "La Tienda ahora está abajo, en la barra: ahí tenés packs, pintas y blue.",
+    "en": "The Shop is now down here in the bar: packs, outfits and blue are all there."
+  },
+  "tutorial.tabs_moved.menu": {
+    "es": "El Ranking se mudó al Menú. Tocá el Menú.",
+    "en": "The Ranking moved into the Menu. Tap the Menu."
+  },
+  "tutorial.tabs_moved.ranking": {
+    "es": "Acá está el Ranking: la tarjeta de la Oficina central.",
+    "en": "Here is the Ranking: the card in the Head Office."
+  }
+}

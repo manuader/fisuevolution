@@ -130,16 +130,18 @@ struct BottomMenuBar: View {
                 GameIcon(artKey: "ui_tab_gifts", size: side) { VectorTabGiftsIcon() }
                     .tutorialAnchor(.gifts)
             )
-        // La Tienda no llega a la barra (`barOrder`); la abre el + de la moneda.
+        // La Tienda ocupa el lugar del Ranking (E14b B26); el + de la moneda también la abre.
         case .store:
             return AnyView(
                 GameIcon(artKey: "ui_tab_shop", size: side) { VectorTabShopIcon() }
+                    .tutorialAnchor(.storeTab)
             )
         case .menu:
             return AnyView(
                 GameIcon(artKey: "ui_tab_menu", size: side) { VectorTabMenuIcon() }
                     .tutorialAnchor(.menu)
             )
+        // Ya no es pestaña (vive en Menú › Oficina central): `barOrder` no lo trae.
         case .ranking:
             return AnyView(VectorTrophyIcon(tier: .gold).frame(width: side, height: side))
         }

@@ -17,6 +17,9 @@ import SwiftUI
 /// lado que ya hace eso. El cierre viaja como closure desde acá, que es el único
 /// lugar donde `dismiss` significa "cerrar el menú".
 struct MenuView: View {
+    /// Lleva a la Tienda (el gancho de la cabecera del Ranking): lo cablea el menú deslizable.
+    var onStore: () -> Void = {}
+
     @Environment(\.dismiss) private var dismiss
     /// Para el puntito de logros cobrables en la tarjeta de Logros (el mismo
     /// que trae al jugador desde el tab Menú).
@@ -44,6 +47,7 @@ struct MenuView: View {
         case achievements
         case settings
         case specials
+        case ranking
     }
 
     var body: some View {
@@ -77,6 +81,14 @@ struct MenuView: View {
                     card(.specials, "menu.card.specials", identifier: "menu.card.specials") {
                         AnyView(GameGlyphView(glyph: .people, size: 72))
                     }
+                    // El Ranking (E14b B26, D19): ya no es pestaña, vive acá. Con el interruptor del
+                    // servidor apagado la tarjeta no aparece. Ícono propio (la corona): el trofeo es
+                    // de Logros.
+                    if gameState.rankingCardIsShown {
+                        card(.ranking, "menu.card.ranking", identifier: "menu.card.ranking") {
+                            AnyView(GameGlyphView(glyph: .crown, size: 72))
+                        }
+                    }
                 }
                 .padding(.horizontal, Self.panelInset)
                 .padding(.top, Tokens.s12)
@@ -96,6 +108,7 @@ struct MenuView: View {
                     case .achievements: AchievementsView(close: { dismiss() })
                     case .settings: SettingsView(close: { dismiss() })
                     case .specials: SpecialsAlbumView(close: { dismiss() })
+                    case .ranking: RankingPage(onStore: onStore, close: { dismiss() })
                     }
                 }
                 // Empujada, la vista pierde el telón transparente de la hoja:
@@ -196,6 +209,7 @@ struct MenuView: View {
         }
         .buttonStyle(.plain)
         .tutorialAnchor(.menuOrgChart, when: destination == .orgChart)
+        .tutorialAnchor(.menuRanking, when: destination == .ranking)
         .accessibilityIdentifier(identifier)
         .accessibilityLabel(Text(titleKey))
         .accessibilityValue(showsBadge ? Text("badge.claimable.ax") : Text(verbatim: ""))
@@ -211,6 +225,7 @@ struct MenuView: View {
         case .achievements: "ui_menu_trophy"
         case .settings: "ui_menu_settings"
         case .specials: "ui_menu_specials"
+        case .ranking: "ui_menu_ranking"
         }
     }
 }

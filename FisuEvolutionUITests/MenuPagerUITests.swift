@@ -13,18 +13,19 @@ final class MenuPagerUITests: XCTestCase {
         let app = launch()
         tapTab("hud.upgrades", in: app)
         XCTAssertTrue(app.buttons["upgrades.tab.permanent"].waitForExistence(timeout: 10))
-        XCTAssertEqual(dots(app), "1/5")
+        // La barra es Tienda · Mejoras · Pintas · Contratar · Regalos · Menú (E14b B26): Mejoras es la 2.ª de 6.
+        XCTAssertEqual(dots(app), "2/6")
         XCTAssertEqual(app.buttons.matching(identifier: "sheet.close").count, 1,
                        "las páginas ocultas no exponen su X")
-        XCTAssertFalse(app.buttons["menu.pager.previous"].isEnabled, "en el extremo no hay vuelta")
+        XCTAssertTrue(app.buttons["menu.pager.previous"].isEnabled, "a la izquierda de Mejoras está la Tienda")
 
         app.windows.firstMatch.swipeLeft()
         XCTAssertTrue(app.descendants(matching: .any)["skins.row.base"].waitForExistence(timeout: 5), "deslizar no llevó a Vestimenta")
-        XCTAssertEqual(dots(app), "2/5")
+        XCTAssertEqual(dots(app), "3/6")
 
         app.buttons["menu.pager.next"].tap()
         XCTAssertTrue(app.buttons["jobs.hire.homeless"].waitForExistence(timeout: 5), "la flecha no llevó a Contratar")
-        XCTAssertEqual(dots(app), "3/5")
+        XCTAssertEqual(dots(app), "4/6")
         attach(app, named: "E3 paginador en Contratar")
 
         app.buttons["menu.pager.previous"].tap()
@@ -35,11 +36,23 @@ final class MenuPagerUITests: XCTestCase {
         XCTAssertTrue(close.waitForNonExistence(timeout: 10), "la X cierra la sesión entera")
     }
 
+    /// La Tienda ocupa el extremo izquierdo (E14b B26): primera página, sin vuelta atrás.
+    @MainActor
+    func testLaTiendaEsLaPrimeraPaginaYNoTieneVueltaAtras() throws {
+        let app = launch()
+        tapTab("hud.store", in: app)
+        XCTAssertEqual(dots(app), "1/6")
+        XCTAssertFalse(app.buttons["menu.pager.previous"].isEnabled, "en el extremo no hay vuelta")
+        app.buttons["menu.pager.next"].tap()
+        XCTAssertTrue(app.buttons["upgrades.tab.permanent"].waitForExistence(timeout: 5), "la flecha no llevó a Mejoras")
+        XCTAssertEqual(dots(app), "2/6")
+    }
+
     @MainActor
     func testConAjustesAbiertoElMenuNoSeDesliza() throws {
         let app = launch()
         tapTab("hud.settings", in: app)
-        XCTAssertEqual(dots(app), "5/5")
+        XCTAssertEqual(dots(app), "6/6")
         let settingsCard = app.buttons["menu.card.settings"]
         XCTAssertTrue(settingsCard.waitForExistence(timeout: 10))
         settingsCard.tap()
@@ -53,7 +66,7 @@ final class MenuPagerUITests: XCTestCase {
         // al Menú, no pasa a la pestaña de al lado.
         app.windows.firstMatch.swipeRight()
         XCTAssertTrue(settingsCard.waitForExistence(timeout: 10), "volver no llegó a la grilla del Menú")
-        XCTAssertEqual(dots(app), "5/5")
+        XCTAssertEqual(dots(app), "6/6")
     }
 
     /// Arrastrar hacia una pestaña nueva y soltar para volver no la muestra quieta:
@@ -120,7 +133,7 @@ final class MenuPagerUITests: XCTestCase {
         let app = launch()
         tapTab("hud.upgrades", in: app)
         XCTAssertTrue(app.buttons["upgrades.tab.permanent"].waitForExistence(timeout: 10))
-        for expected in ["2/5", "3/5"] {
+        for expected in ["3/6", "4/6"] {
             app.buttons["menu.pager.next"].tap()
             let settled = NSPredicate(format: "value == %@", expected)
             let dots = app.otherElements["menu.pager.dots"]

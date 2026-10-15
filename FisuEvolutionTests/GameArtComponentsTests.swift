@@ -20,10 +20,10 @@ struct GameArtComponentsTests {
         #expect(GameScreen.allCases.map(\.rawValue) == ["jobs", "upgrades", "skins", "gifts", "store", "menu", "ranking"])
     }
 
-    @Test("la barra va con Contratar en el medio, el Ranking a la izquierda y la Tienda afuera")
+    @Test("la barra va con Contratar en el medio, la Tienda a la izquierda y el Ranking afuera (vive en el Menú)")
     func barOrderPutsHiringInTheCenter() {
-        #expect(GameScreen.barOrder == [.ranking, .upgrades, .skins, .jobs, .gifts, .menu])
-        #expect(Set(GameScreen.barOrder) == Set(GameScreen.allCases).subtracting([.store]))
+        #expect(GameScreen.barOrder == [.store, .upgrades, .skins, .jobs, .gifts, .menu])
+        #expect(Set(GameScreen.barOrder) == Set(GameScreen.allCases).subtracting([.ranking]))
         #expect(GameScreen.centerTab == .jobs)
     }
 

@@ -23,12 +23,14 @@ final class BottomMenuUITests: XCTestCase {
         // empezada.
         ("hud.skins", ["skins.row.base"]),
         ("hud.bonus", ["bonus.activate.mate"]),
-        // La Tienda ya no está en la barra: se abre con el + de la moneda, así
-        // que ése es su camino. Depende de StoreKit y su lista es perezosa: con los
+        // La Tienda ocupa el lugar del Ranking en la barra (E14b B26) y el + de la moneda
+        // la sigue abriendo: los dos caminos llevan a la misma hoja. Depende de StoreKit y su lista es perezosa: con los
         // productos cargados se ve la primera fila, mientras carga se ve el
         // botón de restaurar, y si la carga falla, el cartel de "no hay nada"
         // con su reintento. Los cuatro son ids exclusivos de `StoreView`, así
         // que cualquiera de ellos la discrimina de las otras cinco pantallas.
+        ("hud.store", ["store.buy.com.fisuevolution.iap.starter_pack", "store.restore",
+                       "store.unavailable", "store.retry"]),
         ("hud.coins.plus", ["store.buy.com.fisuevolution.iap.starter_pack", "store.restore",
                        "store.unavailable", "store.retry"]),
         // El Menú dejó de ser un placeholder en la T15: abre la grilla 2×2, y
@@ -90,7 +92,7 @@ final class BottomMenuUITests: XCTestCase {
         let screen = app.windows.element(boundBy: 0).frame
         attach(app, named: "E3 Contratar al centro")
 
-        // Con Ranking al borde izquierdo (E14 T22) la barra es 3 + Contratar + 2: el
+        // Con la Tienda al borde izquierdo (E14b B26) la barra es 3 + Contratar + 2: el
         // plato destacado ya no cae en el eje de la pantalla, pero sigue en el
         // medio de la barra (entre Pintas y Regalos) y a menos de una celda del
         // eje. La simetría 2 + 1 + 2 la pinea `testLaBarraEsSimetrica`.
@@ -109,7 +111,8 @@ final class BottomMenuUITests: XCTestCase {
             XCTAssertGreaterThan(tab.frame.minY, screen.height - 110,
                                  "\(identifier) arrancó en \(tab.frame.minY): la barra no bajó")
         }
-        XCTAssertFalse(app.buttons["hud.store"].exists, "la Tienda salió de la barra")
+        XCTAssertTrue(app.buttons["hud.store"].exists, "la Tienda ocupa el lugar del Ranking en la barra")
+        XCTAssertFalse(app.buttons["hud.ranking"].exists, "el Ranking salió de la barra: vive en el Menú")
         XCTAssertGreaterThan(jobs.frame.minY, screen.height * 0.75,
                              "la barra tiene que estar pegada abajo, arrancó en \(jobs.frame.minY)")
     }

@@ -400,20 +400,24 @@ struct MenuPage: View {
         case .skins: CustomizationView()
         case .gifts: GiftsView(adsProvider: adsProvider)
         case .store: StoreView()
-        case .menu: MenuView()
+        case .menu: MenuView(onStore: onStore)
+        // Ya no es página del paginador (`barOrder` no la trae): el Ranking vive en el Menú.
         case .ranking: RankingPage(onStore: onStore)
         }
     }
 }
 
-/// La pestaña Ranking: el store y el estado de la partida rankeada salen del entorno.
-private struct RankingPage: View {
+/// El Ranking, adentro de Menú › Oficina central: el store y el estado de la partida rankeada
+/// salen del entorno.
+struct RankingPage: View {
     @Environment(GameState.self) private var gameState
     @Environment(RankingStore.self) private var store
     let onStore: () -> Void
+    /// Con cierre, es una vista empujada en la pila del Menú; sin él, lleva su propia pila.
+    var close: (() -> Void)?
 
     var body: some View {
-        RankingView(store: store, state: gameState.rankingState, onStore: onStore)
+        RankingView(store: store, state: gameState.rankingState, onStore: onStore, close: close)
     }
 }
 

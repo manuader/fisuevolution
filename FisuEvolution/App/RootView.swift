@@ -291,11 +291,11 @@ struct GameBoardView: View {
         // su marco y su X; al deslizar se desmonta y pierde su estado); el
         // panel del `panelSheet` ES la hoja (`fisuSheet` la deja sin el material
         // del sistema debajo): flota sobre el juego atenuado con su banda
-        // inferior a la vista, como los popups. La Tienda no está en la barra
-        // (E13b): el `+` de la plata la abre sola, sin flechas ni puntos.
+        // inferior a la vista, como los popups. La Tienda es pestaña (E14b B26); si el `+` de la
+        // plata la abre antes de que la barra la tenga, va sola, sin flechas ni puntos.
         .fisuSheet(item: $menuSession) { session in
             MenuPagerView(
-                pages: session.start == .store ? [.store] : gameState.unlockedTabsInBarOrder,
+                pages: gameState.menuPages(startingAt: session.start),
                 start: session.start,
                 adsProvider: adsProvider,
                 onStore: { menuSession?.start = .store }

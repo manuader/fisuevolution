@@ -9,6 +9,9 @@ struct RankingView: View {
     let state: RankingState?
     var now: TimeInterval = Date().timeIntervalSince1970
     let onStore: () -> Void
+    /// Con cierre, la vista va empujada en la pila del Menú (Oficina central): no arma su propia
+    /// `NavigationStack` y la X cierra el menú entero. Sin él (previews), lleva su pila.
+    var close: (() -> Void)?
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.menuPager) private var pager
@@ -24,42 +27,50 @@ struct RankingView: View {
 
     var body: some View {
         let model = model
-        NavigationStack(path: $path) {
-            ScrollView {
-                VStack(spacing: Tokens.s12) {
-                    if model.isEnabled {
-                        content(model)
-                    } else {
-                        message("ranking.disabled", identifier: "ranking.disabled")
-                    }
-                }
-                .padding(.horizontal, MenuView.panelInset)
-                .padding(.top, Tokens.s12)
-                .padding(.bottom, Tokens.s24)
+        Group {
+            if close == nil {
+                NavigationStack(path: $path) { screen(model) }
+                    .onChange(of: path.isEmpty) { _, isEmpty in pager?.lock(!isEmpty) }
+            } else {
+                screen(model)
             }
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                if let pinned = model.pinned {
-                    GameCard(style: .highlighted(Color("PaletteOrange"))) {
-                        RankingRow(row: pinned, placement: .pinned, onReport: { _ in })
-                    }
-                    .padding(.horizontal, MenuView.panelInset)
-                    .padding(.bottom, Tokens.s8)
-                }
-            }
-            .panelSheet { header }
-            .navigationTitle(Text(verbatim: ""))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) { ArtCloseButton { dismiss() } }
-            }
-            .navigationDestination(for: Destination.self) { _ in
-                MyRunsView(store: store).clearNavigationBackdrop()
-            }
-            .task { await store.refreshBoard(mine: false) }
         }
         .overlay { overlays(model) }
         .tint(Color("PaletteInk"))
-        .onChange(of: path.isEmpty) { _, isEmpty in pager?.lock(!isEmpty) }
+    }
+
+    private func screen(_ model: RankingBoardModel) -> some View {
+        ScrollView {
+            VStack(spacing: Tokens.s12) {
+                if model.isEnabled {
+                    content(model)
+                } else {
+                    message("ranking.disabled", identifier: "ranking.disabled")
+                }
+            }
+            .padding(.horizontal, MenuView.panelInset)
+            .padding(.top, Tokens.s12)
+            .padding(.bottom, Tokens.s24)
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if let pinned = model.pinned {
+                GameCard(style: .highlighted(Color("PaletteOrange"))) {
+                    RankingRow(row: pinned, placement: .pinned, onReport: { _ in })
+                }
+                .padding(.horizontal, MenuView.panelInset)
+                .padding(.bottom, Tokens.s8)
+            }
+        }
+        .panelSheet { header }
+        .navigationTitle(Text(verbatim: ""))
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) { ArtCloseButton { if let close { close() } else { dismiss() } } }
+        }
+        .navigationDestination(for: Destination.self) { _ in
+            MyRunsView(store: store).clearNavigationBackdrop()
+        }
+        .task { await store.refreshBoard(mine: false) }
     }
 
     // MARK: Contenido

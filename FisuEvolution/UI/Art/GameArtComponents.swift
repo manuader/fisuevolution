@@ -1051,10 +1051,11 @@ enum GameScreen: String, Identifiable, CaseIterable {
     }
 
     /// El orden de la barra de abajo y del paginador del menú (PLAN-v2 E3):
-    /// Contratar al centro, tres lugares por lado (el Ranking abre el tercero de la
-    /// izquierda). La Tienda no está: la abre el + de la moneda (PLAN-v2 E13, ítem
-    /// 14). NO es `allCases`, que conserva el orden histórico.
-    static let barOrder: [GameScreen] = [.ranking, .upgrades, .skins, .jobs, .gifts, .menu]
+    /// Contratar al centro, tres lugares por lado (la Tienda abre el tercero de la
+    /// izquierda, donde estaba el Ranking: E14b B26, D19). El Ranking ya no es
+    /// pestaña: vive en una tarjeta de Menú › Oficina central. El + de la moneda
+    /// sigue abriendo la Tienda. NO es `allCases`, que conserva el orden histórico.
+    static let barOrder: [GameScreen] = [.store, .upgrades, .skins, .jobs, .gifts, .menu]
 
     /// La pestaña del centro, la más grande.
     static let centerTab: GameScreen = .jobs

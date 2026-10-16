@@ -206,3 +206,82 @@ select dia, segmento, count(*) as instalaciones,
 from con_segmento
 group by 1, 2
 order by 1 desc, 2;
+
+-- ── Panel (2.1) ─────────────────────────────────────────────────────────────────────────────
+-- Las consultas semanales del valor por jugador. Necesitan …20261016000003_panel_views.sql y
+-- …20261016000004_panel_guards.sql aplicadas. Lectura sola: nada de acá escribe. Tools/v21/panel.sh corre
+-- estas consultas (menos la 23) con psql y las imprime como tablas.
+-- Antes de leer nada: el día es received_at en UTC; los build de desarrollo entran igual (filtrar por app_version
+-- en las consultas de arriba si hace falta); y con menos de ~100 instalaciones por fila es ruido, no señal.
+
+-- 21) La semana: ingreso por instalación-día por segmento (últimos 7 días, todos los formatos y países).
+--     Una moneda por fila. Lo que importa: mid y high no pueden quedar abajo de la base por mucho, y la base
+--     (o sin_dato) es la referencia 2.0.
+select segmento, moneda, sum(instalaciones) as instalaciones_dia, sum(impresiones) as impresiones,
+       round(sum(ingreso), 2) as ingreso,
+       round(sum(ingreso) / nullif(sum(instalaciones), 0), 4) as ingreso_por_instalacion_dia
+from panel_value_daily
+where dia >= (now() at time zone 'UTC')::date - 7
+group by 1, 2
+order by 1, 2;
+
+-- 22) Por segmento y formato (últimos 7 días): de dónde sale el ingreso (rewarded, interstitial, banner…).
+select segmento, formato, moneda, sum(impresiones) as impresiones, round(sum(ingreso), 2) as ingreso
+from panel_value_daily
+where dia >= (now() at time zone 'UTC')::date - 7 and formato is not null
+group by 1, 2, 3
+order by 1, 5 desc;
+
+-- 23) Por país (últimos 7 días). Sirve para la tabla de países propia (R3), no para decidir con pocos datos.
+select pais, moneda, sum(impresiones) as impresiones, round(sum(ingreso), 2) as ingreso,
+       round(sum(ingreso) / nullif(sum(instalaciones), 0), 4) as ingreso_por_instalacion_dia
+from panel_value_daily
+where dia >= (now() at time zone 'UTC')::date - 7
+group by 1, 2
+order by 4 desc;
+
+-- 24) Por brazo: el embudo de las ofertas (últimos 7 días). Las filas con exp vacío son el total; las otras, una
+--     por experimento y brazo ('moments' y 'vej'). conversion = completadas / mostradas.
+select exp, arm, ver, site, sum(mostradas) as mostradas, sum(aceptadas) as aceptadas, sum(completadas) as completadas,
+       round(sum(completadas)::numeric / nullif(sum(mostradas), 0), 4) as conversion
+from panel_offer_funnel
+where dia >= (now() at time zone 'UTC')::date - 7
+group by 1, 2, 3, 4
+order by exp nulls first, arm, site;
+
+-- 25) La retención D1/D7 por segmento y brazo (cohortes de los últimos 30 días; sólo cuentan las maduras).
+--     Las filas con exp y arm vacíos son las cohortes de instalación.
+select exp, arm, segmento, sum(instalaciones) as instalaciones,
+       sum(d1_elegibles) as d1_n, round(sum(d1_retenidas)::numeric / nullif(sum(d1_elegibles), 0), 4) as d1,
+       sum(d7_elegibles) as d7_n, round(sum(d7_retenidas)::numeric / nullif(sum(d7_elegibles), 0), 4) as d7
+from panel_retention
+where dia0 >= (now() at time zone 'UTC')::date - 30
+group by 1, 2, 3
+order by exp nulls first, arm, segmento;
+
+-- 26) El ritmo real contra el simulado: horas activas (p50) hasta cada tier por segmento, en la primera vida
+--     (prestige 0). Compararlo con `pacing-sim --segment-matrix`; si el real es más rápido que el sim en un
+--     segmento, bajar las palancas de ese segmento (F2). Sólo filas con 30+ instalaciones.
+select segmento, tier, instalaciones, horas_p25, horas_p50, horas_p75
+from panel_pacing
+where prestige = 0 and instalaciones >= 30
+order by segmento, tier;
+
+-- 27) Los guardianes de la retención (R6). Un brazo con veredicto 'apagar' (peor que el control por más de
+--     1 punto en D1 o D7, con el intervalo de 95 % entero abajo de 0) NO se apaga solo: se saca editando la
+--     config (consulta 17) con la versión subida, y eso es decisión del dueño (P4/P5).
+--     Cómo leerlo: d*_rate es la retención del brazo; d*_diff, la diferencia con el control (en puntos, 0,01 = 1);
+--     d*_lo y d*_hi, su intervalo de 95 %. Veredictos: control (referencia), ok, pocos_datos (faltan 100
+--     instalaciones maduras en el brazo o en el control: no concluir nada), apagar.
+--     En moments el control es 'control'; en vej, 'rules'.
+select * from panel_retention_guard('moments', 'control');
+-- select * from panel_retention_guard('vej', 'rules');
+
+-- 28) Los priors del bandido (moments) para la config. Cambiar '1' por la versión de la sección moments que
+--     está cargada (la «version» de la sección, no la de la config). shown/completed son las cuentas reales;
+--     alpha/beta ya vienen con el tope de 200 pseudo-cuentas (la media se conserva; el teléfono sigue aprendiendo).
+select * from panel_bandit_priors('1');
+--     Pegarlos: en el JSON de la consulta 17, dentro de sections.moments.arms[], cada brazo lleva sus
+--     "alpha" y "beta" (los de la fila con su mismo arm); el control también. Subir la "version" de la config,
+--     validarla con pacing-sim y los tests antes de cargarla, y volver a leerla con la 18. Con pocos datos
+--     (shown < 100 por brazo) dejar los priors planos (1, 1): un prior flojo aprende más rápido que uno inventado.

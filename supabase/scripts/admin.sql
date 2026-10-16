@@ -134,3 +134,75 @@ select key, value -> 'version' as version,
 from settings where key = 'personalization_config'
 union all
 select key, value, null, null from settings where key = 'personalization_enabled';
+
+-- ── Telemetría de la 2.1 (E15 F1 T6) ────────────────────────────────────────────────────────
+-- Necesita …20261016000002_telemetry_v21.sql aplicada (segment, exposure, progress y ctx en offer).
+-- El segmento de una instalación en un día es el último `segment` que mandó hasta el fin de ese día; sin ninguno,
+-- «sin_dato» (instalaciones de la 2.0, o sin consentimiento o con la personalización apagada: juegan la base).
+-- Mismo cuidado que arriba con los build de desarrollo.
+
+-- 19) Ingreso por instalación-día por segmento (últimos 30 días). Las instalaciones son las activas del día (con
+--     cualquier evento), así que las que no vieron un video cuentan con 0. Una moneda por fila, como la 11; un
+--     segmento-día sin impresiones sale con moneda vacía e ingreso 0.
+with activas as (
+  select install_id, date_trunc('day', received_at)::date as dia
+  from telemetry_events
+  where received_at > now() - interval '30 days'
+  group by 1, 2
+),
+con_segmento as (
+  select a.install_id, a.dia, coalesce(s.id, 'sin_dato') as segmento
+  from activas a
+  left join lateral (
+    select e.props ->> 'id' as id
+    from telemetry_events e
+    where e.name = 'segment' and e.install_id = a.install_id and e.received_at < a.dia + interval '1 day'
+    order by e.received_at desc
+    limit 1
+  ) s on true
+),
+ingresos as (
+  select install_id, date_trunc('day', received_at)::date as dia, props ->> 'currency' as moneda,
+         sum((props ->> 'micros')::bigint) as micros
+  from telemetry_events
+  where name = 'ad_impression' and received_at > now() - interval '30 days'
+  group by 1, 2, 3
+),
+por_segmento as (
+  select dia, segmento, count(*) as instalaciones from con_segmento group by 1, 2
+),
+ingreso_por_segmento as (
+  select c.dia, c.segmento, i.moneda, sum(i.micros) as micros
+  from con_segmento c join ingresos i using (install_id, dia)
+  group by 1, 2, 3
+)
+select p.dia, p.segmento, p.instalaciones, g.moneda,
+       round(coalesce(g.micros, 0) / 1e6, 2) as ingreso,
+       round(coalesce(g.micros, 0) / 1e6 / p.instalaciones, 4) as ingreso_por_instalacion_dia
+from por_segmento p
+left join ingreso_por_segmento g using (dia, segmento)
+order by p.dia desc, p.segmento, g.moneda;
+
+-- 20) El reparto de segmentos por día (últimos 30 días): instalaciones activas en cada uno y su porcentaje.
+with activas as (
+  select install_id, date_trunc('day', received_at)::date as dia
+  from telemetry_events
+  where received_at > now() - interval '30 days'
+  group by 1, 2
+),
+con_segmento as (
+  select a.install_id, a.dia, coalesce(s.id, 'sin_dato') as segmento
+  from activas a
+  left join lateral (
+    select e.props ->> 'id' as id
+    from telemetry_events e
+    where e.name = 'segment' and e.install_id = a.install_id and e.received_at < a.dia + interval '1 day'
+    order by e.received_at desc
+    limit 1
+  ) s on true
+)
+select dia, segmento, count(*) as instalaciones,
+       round(100.0 * count(*) / sum(count(*)) over (partition by dia), 1) as pct
+from con_segmento
+group by 1, 2
+order by 1 desc, 2;

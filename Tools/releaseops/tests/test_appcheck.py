@@ -82,6 +82,10 @@ class AppCheckTests(unittest.TestCase):
         self.assertIn("status", self.config["mediation"]["networks"]["applovin"])
         self.assertNotIn("applovin", appcheck.required_networks(self.config))
 
+    def test_meta_is_out(self):
+        self.assertIn("status", self.config["mediation"]["networks"]["meta"])
+        self.assertEqual(appcheck.required_networks(self.config), ["google", "unity"])
+
     def test_missing_id_from_source(self):
         self.info["SKAdNetworkItems"] = [i for i in self.info["SKAdNetworkItems"]
                                          if i["SKAdNetworkIdentifier"] != "ludvb6z3bs.skadnetwork"]

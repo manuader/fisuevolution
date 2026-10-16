@@ -254,9 +254,10 @@ struct LegalDocumentTests {
         }
     }
 
-    /// La política dice lo que la 2.0 hace: las dos redes de mediación que
-    /// viajan (Unity y Meta), con el link de cada una, el servidor del ranking
-    /// y la revisión de Anthropic; y ninguna red que quedó afuera.
+    /// La política dice lo que la 2.0 hace: la red de mediación que viaja
+    /// (Unity), con su link, el servidor del ranking y la revisión de
+    /// Anthropic; y ninguna red que quedó afuera (Meta incluida: la 2.0 sale
+    /// sin Meta).
     @Test("la política nombra a las redes de mediación y al ranking, en las dos lenguas")
     func privacyNamesTheNetworksAndTheRanking() throws {
         let blocks = try #require(LegalDocument.load(.privacy))
@@ -267,11 +268,11 @@ struct LegalDocumentTests {
                 case .title(let t), .heading(let t), .bullet(let t), .paragraph(let t): return t
                 }
             }.joined(separator: "\n")
-            for debe in ["Google AdMob", "Unity Ads", "Meta Audience Network", "Supabase", "Anthropic",
-                         "https://unity.com/legal/privacy-policy", "https://www.facebook.com/privacy/policy/"] {
+            for debe in ["Google AdMob", "Unity Ads", "Supabase", "Anthropic",
+                         "https://unity.com/legal/privacy-policy"] {
                 #expect(texto.contains(debe), "la mitad \(lengua) no nombra \"\(debe)\"")
             }
-            for noDebe in ["AppLovin", "Mintegral"] {
+            for noDebe in ["AppLovin", "Mintegral", "Meta Audience Network", "facebook.com"] {
                 #expect(!texto.contains(noDebe), "la mitad \(lengua) nombra a \"\(noDebe)\", una red que no viaja")
             }
         }

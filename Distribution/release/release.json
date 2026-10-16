@@ -480,7 +480,7 @@
   "store": {
     "version": "2.0.0",
     "platform": "IOS",
-    "_comment": "Ficha de la App Store por idioma (base: lo publicado en la 1.0, con los cambios de setup-v2 §1.1, §1.2 y §1.8). whatsNew y reviewNotes se confirman contra el build de TestFlight antes de enviar.",
+    "_comment": "Ficha de la App Store por idioma (base: lo publicado en la 1.0, con los cambios de setup-v2 §1.1, §1.2 y §1.8). whatsNew y reviewNotes se confirman contra el build de TestFlight antes de enviar. BORRADOR de E10 T11 (relevo 59): el dueño aprueba los textos; falta decidir si «La Marcha» (E14b B25) entra al build y, si entra, sumar su línea (ver app-review-notes-e12.md).",
     "localizations": {
       "en-US": {
         "name": "HoboEvolution",
@@ -491,7 +491,7 @@
         "promotionalText": "Tap, merge and evolve: from neighborhood hobo to God of the universe, with stops at the corner store, the delivery bike, the office and a university diploma",
         "marketingUrl": "https://adergames-site.vercel.app/",
         "supportUrl": "https://adergames-site.vercel.app/support",
-        "whatsNew": "Version 2.0 is here: the biggest overhaul since the Hobo left the alley.\n\n• Visitors: the Police Chief, the Union Boss, the Gringo Tourist and friends drop by with requests, trades and surprises.\n• New events like We Won the Cup!, Long Weekend, General Strike and Blackout, each with a way out by video.\n• Customs Parcels, the Mattress Stash and the TV Host's Prize Wheel.\n• Blue Dollar Shop: boosts, shortcuts, permanent upgrades and new outfits.\n• 15 spots per floor, an elevator panel, and fully staffed floors that boost your income.\n• The quick-hire button never disappears, and pressing and holding it lets you pin who you hire.\n• A music theme for every floor.\n• Now on iPad too.\n• A brand-new tutorial, plus a tour of what's new for 1.0 veterans.\n• Fixes: background earnings no longer freeze, and no evolution happens without you seeing it."
+        "whatsNew": "Version 2.0 is here: the biggest overhaul since the Hobo left the alley.\n\n• A new bottom bar: the Store is one tap away and Hire sits right in the middle.\n• Free rewards in two steps: collect with one tap, then choose \"x2 with a video\" or \"No, thanks\". Nothing is ever forced.\n• Leaderboard: reach God and post your time under a name you choose (optional, found in the Menu).\n• Visitors: the Police Chief, the Union Boss, the Gringo Tourist and friends walk around your floor with requests, trades and surprises. Tap them to talk.\n• Customs Parcels land on your floor and open right there. The Mattress Stash drops onto the board.\n• Every reward flies to your counter, so you see it arrive.\n• New events like We Won the Cup!, Long Weekend, General Strike and Blackout, each with a way out by video.\n• Blue Dollar Shop: boosts, shortcuts, permanent upgrades and new outfits.\n• The TV Host's Prize Wheel, with up to 6 spins a day.\n• A bio for every character, 15 spots per floor, an elevator panel, and fully staffed floors that boost your income.\n• A music theme for every floor, and the music pauses during ads.\n• Now on iPad too.\n• A brand-new tutorial, plus a tour of what's new for 1.0 veterans.\n• Fixes: background earnings no longer freeze, and no evolution happens without you seeing it."
       },
       "es-MX": {
         "name": "FisuEvolution",
@@ -502,7 +502,7 @@
         "promotionalText": "De fisura a dios del universo. Tocá para ganar monedas, fusioná personajes y subí niveles sin parar. ¿Hasta dónde llegás?",
         "marketingUrl": "https://adergames-site.vercel.app/",
         "supportUrl": "https://adergames-site.vercel.app/es/support",
-        "whatsNew": "¡Llegó la 2.0! La reforma más grande desde que el Fisura salió del callejón.\n\n• Visitantes: el Comisario, el Sindicalista, el Turista Gringo y compañía pasan por tu empresa con pedidos, trueques y sorpresas.\n• Eventos nuevos, como ¡Salimos campeones!, el Feriado Puente, el Paro General o el Apagón, con su escape por video.\n• El Paquete de la Aduana, El Colchón y la Ruleta del Conductor de TV.\n• Tienda de dólares blue: boosts, atajos, mejoras permanentes y pintas nuevas.\n• 15 lugares por piso, la botonera del ascensor y pisos en marcha que suben tus ingresos.\n• El atajo de contratar ya no desaparece, y manteniéndolo presionado elegís a quién fijar.\n• Un tema musical para cada piso.\n• Ahora también en iPad.\n• Tutorial nuevo y un recorrido por las novedades para los que vienen de la 1.0.\n• Arreglos: las ganancias en segundo plano ya no se congelan, y ninguna evolución pasa sin que la veas."
+        "whatsNew": "¡Llegó la 2.0! La reforma más grande desde que el Fisura salió del callejón.\n\n• Barra inferior nueva: la Tienda a un toque y Contratar en el medio.\n• Premios gratis en dos pasos: cobrás con un toque y después elegís «×2 con video» o «No, gracias». Nada es obligatorio.\n• Ranking: llegá a Dios y publicá tu tiempo con el nombre que elijas (es opcional y está en el Menú).\n• Visitantes: el Comisario, el Sindicalista, el Turista Gringo y compañía caminan por tu piso con pedidos, trueques y sorpresas. Tocalos para hablar.\n• El Paquete de la Aduana cae en tu piso y se abre ahí mismo. El Colchón baja al tablero.\n• Cada premio vuela hasta tu contador para que lo veas llegar.\n• Eventos nuevos, como ¡Salimos campeones!, el Feriado Puente, el Paro General o el Apagón, con su escape por video.\n• Tienda de dólares blue: boosts, atajos, mejoras permanentes y pintas nuevas.\n• La Ruleta del Conductor de TV, con hasta 6 giros por día.\n• Una descripción para cada personaje, 15 lugares por piso, la botonera del ascensor y pisos en marcha que suben tus ingresos.\n• Un tema musical para cada piso, y la música se pausa durante los anuncios.\n• Ahora también en iPad.\n• Tutorial nuevo y un recorrido por las novedades para los que vienen de la 1.0.\n• Arreglos: las ganancias en segundo plano ya no se congelan, y ninguna evolución pasa sin que la veas."
       },
       "es-ES": {
         "name": "FisuEvolution",
@@ -513,10 +513,10 @@
         "promotionalText": "De fisura a dios del universo. Tocá para ganar monedas, fusioná personajes y subí niveles sin parar. ¿Hasta dónde llegás?",
         "marketingUrl": "https://adergames-site.vercel.app/",
         "supportUrl": "https://adergames-site.vercel.app/es/support",
-        "whatsNew": "¡Llegó la 2.0! La reforma más grande desde que el Fisura salió del callejón.\n\n• Visitantes: el Comisario, el Sindicalista, el Turista Gringo y compañía pasan por tu empresa con pedidos, trueques y sorpresas.\n• Eventos nuevos, como ¡Salimos campeones!, el Feriado Puente, el Paro General o el Apagón, con su escape por video.\n• El Paquete de la Aduana, El Colchón y la Ruleta del Conductor de TV.\n• Tienda de dólares blue: boosts, atajos, mejoras permanentes y pintas nuevas.\n• 15 lugares por piso, la botonera del ascensor y pisos en marcha que suben tus ingresos.\n• El atajo de contratar ya no desaparece, y manteniéndolo presionado elegís a quién fijar.\n• Un tema musical para cada piso.\n• Ahora también en iPad.\n• Tutorial nuevo y un recorrido por las novedades para los que vienen de la 1.0.\n• Arreglos: las ganancias en segundo plano ya no se congelan, y ninguna evolución pasa sin que la veas."
+        "whatsNew": "¡Llegó la 2.0! La reforma más grande desde que el Fisura salió del callejón.\n\n• Barra inferior nueva: la Tienda a un toque y Contratar en el medio.\n• Premios gratis en dos pasos: cobrás con un toque y después elegís «×2 con video» o «No, gracias». Nada es obligatorio.\n• Ranking: llegá a Dios y publicá tu tiempo con el nombre que elijas (es opcional y está en el Menú).\n• Visitantes: el Comisario, el Sindicalista, el Turista Gringo y compañía caminan por tu piso con pedidos, trueques y sorpresas. Tocalos para hablar.\n• El Paquete de la Aduana cae en tu piso y se abre ahí mismo. El Colchón baja al tablero.\n• Cada premio vuela hasta tu contador para que lo veas llegar.\n• Eventos nuevos, como ¡Salimos campeones!, el Feriado Puente, el Paro General o el Apagón, con su escape por video.\n• Tienda de dólares blue: boosts, atajos, mejoras permanentes y pintas nuevas.\n• La Ruleta del Conductor de TV, con hasta 6 giros por día.\n• Una descripción para cada personaje, 15 lugares por piso, la botonera del ascensor y pisos en marcha que suben tus ingresos.\n• Un tema musical para cada piso, y la música se pausa durante los anuncios.\n• Ahora también en iPad.\n• Tutorial nuevo y un recorrido por las novedades para los que vienen de la 1.0.\n• Arreglos: las ganancias en segundo plano ya no se congelan, y ninguna evolución pasa sin que la veas."
       }
     },
-    "reviewNotes": "HoboEvolution 2.0 - review notes\n\nSatirical single-player merge/idle game with Argentine humor. Brands are parodies, characters are archetypes, not real people. No accounts, no login: progress is stored on device. Our only server (Supabase): the optional leaderboard (see LEADERBOARD) and pseudonymous analytics (own random ID; no IDFA, no tracking). Game Center and iCloud are disabled.\n\nLEADERBOARD (Guideline 1.2)\nThe Ranking tab is in the bottom bar right after the tutorial: open the board and long-press any row for Report or Hide this name (local block). Entering a name is only offered after reaching the final stage (God), hours in, so not reachable in review; publishing it means accepting the Terms (zero tolerance for offensive names), linked above the button. It is optional; the name (max 15 chars) is checked by rules, a word list and an automated classifier (Claude Haiku, which receives only the name), hidden after 3 reports, and we act on reports within 24 hours.\n\nHOW TO TEST\nTap the character for coins, tap Hire to buy another, and drag one onto another to merge. The tutorial cannot be skipped; it ends with a welcome chest. Bottom-bar tabs appear one by one as you play. The Store tab has every IAP and Restore Purchases.\n\nADS (Google AdMob; mediation partners: Unity Ads and Meta Audience Network)\n1. Opt-in rewarded videos, always started by an explicit tap on a button that says what you get; they never autoplay. Places: the Gifts list (4 prizes, and skipping a boost cooldown); the side column of the board (\"Merge all\" and parcel rain); doubling offline earnings; opening another skin chest; the prize wheel (spin and \"repeat prize\"); the Mattress Stash (open and \"another mattress\"); visitors (reward x2, forgiving a fine, the street vendor's boosts, the x2 challenge); escaping a negative event; daily and career rewards x2.\n2. Ads that appear on their own, only at natural breaks: at least 2 minutes apart, never during the tutorial, never over an open screen or a celebration, never two in the same break.\n- Interstitial and \"ad break\" (rewarded interstitial) alternate. Breaks: closing a menu screen back to the board, dismissing the offline-earnings popup, reincarnating, and the end of a chain of celebrations. The ad break always shows an intro with a 5-second countdown and a visible \"No, thanks\" button; declining is free.\n- App open: only when returning after 3+ minutes away, at most once every 20 minutes, from the second session on, never on first launch or in the tutorial.\n\"Remove Ads\" (US$2.99) and the Starter Pack remove these three formats. Opt-in rewarded videos stay (optional, they pay prizes).\nATT is requested on first launch; declining is fully supported. In the EEA, UK and Switzerland, Google's UMP consent form is shown before any ad, and Settings > Privacy options lets the player change it.\n\nRANDOMIZED ITEMS (Guideline 3.1.1)\nThe prize wheel, the skin chest bought with Blue Dollars, the Mattress Stash and the skin chest in the Welcome Pack give randomized items. The odds of every prize are shown on screen before spinning, buying or opening. Blue Dollars, the premium currency, can be bought with real money; it has no real-world value and cannot be cashed out or transferred. No real-money gambling or betting. Extra wheel spins and skin chests bought with Blue Dollars are off in Belgium and Australia.\n\n24-HOUR OFFERS (consumable IAPs)\n- Welcome Pack (US$0.99): once, on the player's 2nd calendar day. To see it: play once, set the device date one day ahead and reopen the app.\n- Rebirth Pack (US$2.99): right after reincarnating.\n- Moving Day Pack (US$4.99): when a new floor opens outside the tutorial; early floors open within the first minutes.\nEach stays 24 hours behind a chip atop the board, never in the tutorial.\n\nIAPs (14): starter pack, remove ads, three cash packs, three Blue Dollar packs, three skin purchases and the three offers above. Consumables are not restored by design; remove ads and skins are.",
+    "reviewNotes": "HoboEvolution 2.0 - review notes\n\nSatirical single-player merge/idle game with Argentine humor. Brands are parodies, characters are archetypes. No accounts, no login: progress is stored on device. Our only server (Supabase): the optional leaderboard (see LEADERBOARD) and pseudonymous analytics (own random ID; no IDFA, no tracking). Game Center and iCloud are disabled.\n\nLEADERBOARD (Guideline 1.2)\nThe Ranking is a card in the Menu tab (last in the bottom bar, open right after the tutorial): open the board and long-press any row for Report or Hide this name (local block). Entering a name is only offered after reaching the final stage (God), hours in, so not reachable in review; publishing it means accepting the Terms (zero tolerance for offensive names), linked above the button. The name (optional, max 15 chars) is checked by rules, a word list and an automated classifier (Claude Haiku, which receives only the name), hidden after 3 reports, and we act on reports within 24 hours.\n\nHOW TO TEST\nTap the character for coins, tap Hire to buy another, and drag one onto another to merge. The tutorial cannot be skipped; it ends with a welcome chest. Bottom-bar tabs appear one by one as you play. The Store tab has every IAP and Restore Purchases.\n\nADS (Google AdMob; mediation partner: Unity Ads)\n1. Opt-in rewarded videos, always started by an explicit tap on a button that says what you get; they never autoplay. Free rewards (visitor gifts, daily, career, offline earnings, achievements, gifted mattress, free wheel spins) are collected first with one tap; only then a second pop-up offers \"x2 with a video\" or \"No, thanks\". Other places: the Gifts list (prizes, boost cooldown); the board's side column (\"Merge all\", parcel rain); another skin chest; wheel and Mattress Stash extras; visitors (forgiving a fine, the vendor's boosts, the x2 challenge); escaping a negative event.\n2. Ads that appear on their own, only at natural breaks: at least 2 minutes apart, never during the tutorial, never over an open screen or a celebration, never two in the same break.\n- Interstitial and \"ad break\" (rewarded interstitial) alternate. Breaks: closing a menu screen back to the board, dismissing the offline-earnings popup, reincarnating, and the end of a chain of celebrations. The ad break always shows an intro with a 5-second countdown and a visible \"No, thanks\" button; declining is free.\n- App open: only when returning after 3+ minutes away, at most once every 20 minutes, never on first launch or in the tutorial.\n\"Remove Ads\" (US$2.99) and the Starter Pack remove these three formats. Opt-in rewarded videos stay (optional, they pay prizes).\nATT is requested on first launch; declining is fully supported. In the EEA, UK and Switzerland, Google's UMP consent form is shown before any ad, and Settings > Privacy options lets the player change it.\n\nRANDOMIZED ITEMS (Guideline 3.1.1)\nThe prize wheel, the skin chest bought with Blue Dollars, the Mattress Stash and the skin chest in the Welcome Pack give randomized items. The odds of every prize are shown on screen before spinning, buying or opening. Blue Dollars, the premium currency, can be bought with real money; it has no real-world value and cannot be cashed out or transferred. No real-money gambling or betting. Extra wheel spins and skin chests bought with Blue Dollars are off in Belgium and Australia.\n\n24-HOUR OFFERS (consumable IAPs)\n- Welcome Pack (US$0.99): once, on the player's 2nd calendar day. To see it: play once, set the device date one day ahead and reopen the app.\n- Rebirth Pack (US$2.99): right after reincarnating.\n- Moving Day Pack (US$4.99): when a new floor opens outside the tutorial; early floors open within the first minutes.\nAll last 24 hours, behind a chip atop the board, never in the tutorial.\n\nIAPs (14): starter pack, remove ads, 3 cash packs, 3 Blue Dollar packs, 3 skin purchases, the 3 offers above. Consumables are not restored by design; remove ads and skins are.",
     "availability": {
       "appleSiliconMac": false,
       "visionPro": false,
@@ -524,7 +524,7 @@
     }
   },
   "mediation": {
-    "_comment": "Redes por bidding a través de AdMob. AppLovin rechazó la cuenta (no acepta publishers nuevos) y Mintegral no funcionó: quedan afuera. Los IDs no son secretos (van en el binario o en el mapeo de AdMob).",
+    "_comment": "Redes por bidding a través de AdMob. AppLovin rechazó la cuenta (no acepta publishers nuevos), Mintegral no funcionó y Meta quedó afuera por decisión del dueño (la 2.0 sale sin Meta, 2026-10-15): queda sólo Unity. Los IDs no son secretos (van en el binario o en el mapeo de AdMob).",
     "networks": {
       "unity": {
         "organizationCoreId": "4674265102273",
@@ -538,24 +538,7 @@
         "appAdsTxt": "Distribution/release/app-ads.unity.txt"
       },
       "meta": {
-        "businessId": "4634477516796912",
-        "propertyId": "1495757002385306",
-        "appId": "1067256102983663",
-        "placements": {
-          "interstitial": "1067256102983663_1067256366316970",
-          "rewardedInterstitial": "1067256102983663_1067256369650303",
-          "rewarded": "1067256102983663_1067256362983637"
-        },
-        "appAdsTxt": [
-          "facebook.com, 4634477516796912, RESELLER, c3e20eee3f780d68"
-        ],
-        "pending": [
-          "2FA del negocio",
-          "cuenta de pagos",
-          "información fiscal",
-          "vincular la app a la cuenta de pagos",
-          "verificar la app"
-        ]
+        "status": "afuera: la 2.0 sale sin Meta (decisión del dueño, 2026-10-15). El adaptador salió del binario; la línea de facebook.com en app-ads.txt puede quedar."
       },
       "applovin": {
         "status": "rechazada: AppLovin no acepta publishers nuevos (mail del 2026-10-08)"
@@ -579,8 +562,7 @@
           "rewardedDaily"
         ],
         "networks": [
-          "unity",
-          "meta"
+          "unity"
         ]
       },
       {
@@ -590,21 +572,10 @@
           "interstitial"
         ],
         "networks": [
-          "unity",
-          "meta"
-        ]
-      },
-      {
-        "name": "Rewarded interstitial iOS",
-        "format": "rewardedInterstitial",
-        "units": [
-          "rewardedInterstitial"
-        ],
-        "networks": [
-          "meta"
+          "unity"
         ]
       }
     ],
-    "_noGroup": "App open: ni Unity ni Meta pujan en app open; queda sólo con AdMob."
+    "_noGroup": "App open y rewarded interstitial: Unity no puja en esos formatos; quedan sólo con AdMob."
   }
 }

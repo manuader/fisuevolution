@@ -36,12 +36,14 @@ Data: the leaderboard stores a random install identifier (not linked to the play
 Apple account or advertising identifier) and the chosen name plus run times. Neither is used for
 tracking. See App Privacy.
 
-To test: the Ranking tab is in the bottom bar right after the tutorial.
+To test: the Ranking is a card in the Menu tab (last tab of the bottom bar, available right after the tutorial).
 ```
 
 ## App Privacy (App Store Connect)
 
-Se suman a lo que ya declara AdMob (que no se toca). Coincide con `NSPrivacyCollectedDataTypes` de
+⚠️ **Esta tabla es sólo la parte del ranking.** La etiqueta que se carga el día del envío es **una sola**, con los 8
+tipos (ranking + telemetría + AdMob; la 2.0 sale sin Meta): `Distribution/release/privacidad-e15-BORRADOR.md` §4 y
+`Distribution/setup-v2-asc-admob-mediacion.md` §1.7. Lo del ranking coincide con `NSPrivacyCollectedDataTypes` de
 `PrivacyInfo.xcprivacy`, que fija `PrivacyManifestTests`.
 
 | Tipo de dato | Categoría ASC | Vinculado a la identidad | Usado para seguimiento | Propósito |
@@ -51,19 +53,29 @@ Se suman a lo que ya declara AdMob (que no se toca). Coincide con `NSPrivacyColl
 
 ## Avisos para E10
 
+- **BORRADOR de E10 T11 (relevo 59), para que apruebe el dueño:** `release.json → store.reviewNotes` y las Novedades de
+  `en-US`, `es-MX` y `es-ES` ya cubren lo que entró a `v2i/integ-r58` (barra nueva con la Tienda, el Ranking en Menú,
+  recompensas en dos pasos con «×2 con video» / «No, gracias», visitantes, cajas y colchón en el tablero, ruleta de 6
+  giros por día). Quedan por confirmar contra el build de TestFlight y por decidir: **«La Marcha» del Puntero
+  (E14b B25) no está en el build todavía**. Si entra, sumar a las Novedades esta línea (y a las notas, no hace falta:
+  es un evento gratis más con el mismo ×2 de «Dale»):
+  - en-US: `• The Puntero's March: tap 420 times in an hour and win 30 Blue Dollars, once a week.`
+  - es-MX y es-ES: `• La Marcha del Puntero: 420 toques en una hora y ganás 30 dólares blue, una vez por semana.`
+  Las notas están en 3.971 de 4.000 caracteres (sin Meta en el encabezado ADS): una línea nueva de más de 29 exige
+  recortar otra.
 - **Resuelto en E10 T5:** la sección LEADERBOARD ya está en `release.json → store.reviewNotes` (resumida
   por el tope de 4000 caracteres, con el atajo a la pestaña Ranking) y las notas nombran sólo a
-  Google, Unity Ads y Meta Audience Network.
+  Google y Unity Ads (Meta salió: la 2.0 sale sin Meta, dueño, 2026-10-15).
 - Llegar a Dios lleva horas, así que la nota no promete que el revisor pueda anotarse. Lo que sí
-  puede ver: la pestaña **Ranking** aparece en la barra inferior apenas termina el tutorial
-  (`tabs.json`: `unlockWhen: tutorialCore`), muestra el tablero y permite **Reportar** con un
+  puede ver: el **Ranking** aparece apenas termina el tutorial
+  (desde E14b B26 la Tienda ocupa ese lugar de la barra: el Ranking es una tarjeta de Menú › Oficina central, que está en `tabs.json` con `unlockWhen: tutorialCore`, y aparece sólo con el interruptor del servidor prendido), muestra el tablero y permite **Reportar** con un
   mantener apretado. El texto aplicado a ASC vive en `release.json → store.reviewNotes`
   (sección LEADERBOARD, resumida por el tope de 4000 caracteres); este archivo es la versión larga.
 - **`NSPrivacyTracking` sigue en `false` a propósito (B22 pendiente de dominios).** El dueño
   aceptó pasarlo a `true`, pero Apple rechaza el build si es `true` sin `NSPrivacyTrackingDomains`
   (ITMS-91064, ya pasó dos veces en la v1: `Docs/HANDOFF-v2.md`). Ni el manifiesto de
-  GoogleMobileAds ni el de UMP (SPM resuelto) declaran dominios, y los adaptadores de Unity y Meta
-  no están en el proyecto, así que no hay una fuente en el repo para listarlos. Hay que sacar los
+  GoogleMobileAds ni el de UMP (SPM resuelto) declaran dominios, y el de Unity tampoco (Meta, que
+  sí los declaraba, salió de la 2.0), así que no hay una fuente en el repo para listarlos. Hay que sacar los
   dominios de la documentación de cada SDK (o de un reporte de privacidad de la app corriendo en
   un dispositivo), ponerlos en `NSPrivacyTrackingDomains` y recién ahí pasar a `true`.
   `PrivacyManifestTests.trackingNeedsDomains` impide que quede `true` sin dominios.

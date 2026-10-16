@@ -13,7 +13,6 @@ from pathlib import Path
 OWN_SKADNETWORK = {
     "google": ["cstr6suwn9"],
     "unity": ["4dzt52r2t5"],
-    "meta": ["v9wttpbfk9", "n38lu8286q"],
 }
 MIN_BUILD = 5
 

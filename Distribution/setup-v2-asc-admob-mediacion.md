@@ -12,6 +12,17 @@ Este doc es también el insumo del script de Selenium que algún día lo
 automatice (sección 5). Por eso cada paso dice **dónde** se hace y **qué
 valor** va, no sólo qué hay que lograr.
 
+> **La 2.0 sale sin Meta (decisión del dueño, 2026-10-15).** La mediación es
+> sólo Unity Ads: AppLovin y Mintegral quedaron afuera el 2026-10-08 y Meta
+> ahora. Lo de Meta que sigue abajo (la columna de 2.3, la lista de socios
+> de 2.4, el Ad Inspector de 2.6, toda la 3.4, su fila de 3.5 y 3.6 y su
+> línea de `app-ads.txt` en 4.1) queda como registro, igual que lo de
+> AppLovin y Mintegral: **no se hace**. 🔒 Fuera del repo le queda al dueño
+> sacar Meta Audience Network de los grupos de mediación de AdMob; la línea
+> de `facebook.com` en `app-ads.txt` puede quedar. Los SKAdNetwork de Meta
+> (`v9wttpbfk9`, `n38lu8286q`) siguen en el `Info.plist` porque están en la
+> lista de Google.
+
 Qué manda si hay conflicto:
 
 - **Los IDs de producto y los textos de los IAP**: `Distribution/iap-appstore-connect.md`.
@@ -290,12 +301,37 @@ Lo nuevo de la 2.0 es la sección de **actividades de azar**:
 ### 1.7 App Privacy
 
 `PrivacyInfo.xcprivacy` declara lo que junta **nuestro código**: lo del
-ranking (E12) y lo de las estadísticas de uso (E15: Product Interaction,
-Advertising Data, Purchase History y Device ID, con propósito Analytics, no
-vinculados y sin tracking), y `NSPrivacyTracking = false` (HANDOFF-v2 explica
-por qué `true` sin dominios hizo rechazar el build: ITMS-91064). Además hay
-que declarar **lo que juntan los SDK de anuncios**; el detalle de lo propio
-está en `Distribution/release/privacidad-e15-BORRADOR.md` §4.
+ranking (E12: Device ID con el `installId` y Other User Content con el
+nombre y los tiempos) y lo de las estadísticas de uso (E15: Product
+Interaction, Advertising Data, Purchase History y Device ID, con propósito
+Analytics), todo no vinculado y sin tracking, y `NSPrivacyTracking = false`
+(HANDOFF-v2 explica por qué `true` sin dominios hizo rechazar el build:
+ITMS-91064). Además hay que declarar **lo que juntan los SDK de anuncios**.
+
+⚠️ **Se carga el día que se manda la 2.0 a revisión, no antes**: el formulario
+de ASC pide que las respuestas reflejen sólo lo que recolecta esa versión, y
+la 1.0 en la tienda no tiene ranking ni telemetría. La etiqueta publicada con
+la 1.0 tiene 5 tipos (Coarse Location, Device ID, Advertising Data, Crash
+Data y Performance Data); el borrador anterior de esta sección suponía que
+Product Interaction y Other Diagnostic Data ya estaban, y no.
+
+**La etiqueta final (la que se carga; la fuente es `DUENO.md`, «E15 🔒 O4»):**
+
+| Tipo de dato en App Store Connect | Vinculado | Tracking | Propósitos |
+|---|---|---|---|
+| Location → Coarse Location | como figura hoy | Sí | Third-Party Advertising + Developer's Advertising |
+| Identifiers → Device ID | Sí | Sí | Third-Party Advertising + App Functionality + Analytics |
+| Usage Data → Advertising Data | Sí | Sí | Third-Party Advertising + Analytics |
+| Usage Data → Product Interaction (**nuevo**) | Sí | Sí | Analytics + Third-Party Advertising |
+| User Content → Other User Content (**nuevo**, ranking) | No | No | App Functionality |
+| Purchases → Purchase History (**nuevo**, E15) | No | No | Analytics |
+| Diagnostics → Crash Data | como figura hoy | No | Analytics |
+| Diagnostics → Performance Data | como figura hoy | No | App Functionality |
+
+Donde un SDK vincula o rastrea un tipo, el tipo entero se marca así aunque
+nuestra parte no lo sea. El detalle y el porqué de cada fila, en
+`Distribution/release/privacidad-e15-BORRADOR.md` §4. Lo carga el dueño en su
+Chrome, con su sesión de ASC (no hay API para esto).
 
 **Lo que declara Google** para el SDK de AdMob
 ([data disclosure](https://developers.google.com/admob/ios/privacy/data-disclosure)):
@@ -312,26 +348,29 @@ Propósitos que declara Google: publicidad de terceros, analytics y
 desarrollo del producto. La misma página pide que, **con mediación**, cada
 adaptador y SDK traiga su propio manifiesto de privacidad.
 
-**Lo que declaran los SDK de la mediación** (leído de los `PrivacyInfo.xcprivacy`
-de los binarios resueltos, 2026-10-12; mediación sólo con Unity Ads 4.21.0 y
-Meta Audience Network 6.22.0; AppLovin y Mintegral quedaron afuera):
+**Lo que declara el SDK de la mediación** (leído del `PrivacyInfo.xcprivacy`
+del binario resuelto, 2026-10-12; la mediación es sólo Unity Ads 4.21.0:
+AppLovin y Mintegral quedaron afuera, y Meta salió el 2026-10-15):
 
 | SDK | `NSPrivacyTracking` | `NSPrivacyTrackingDomains` | `NSPrivacyCollectedDataTypes` |
 |---|---|---|---|
 | Unity Ads 4.21.0 | no lo declara (ausente) | ninguno | vacío. APIs de razón requerida: UserDefaults (CA92.1), FileTimestamp (C617.1), DiskSpace (E174.1) |
-| Meta Audience Network 6.22.0 | `true` | `ep1.facebook.com`, `ep6.facebook.com` | Crash Data y Other Diagnostic Data (analytics, sin vincular, sin tracking); Advertising Data (publicidad de terceros y analytics, vinculado, con tracking); Device ID (publicidad de terceros, vinculado, con tracking). APIs: UserDefaults (CA92.1), SystemBootTime (35F9.1), FileTimestamp (C617.1) |
 
 Consecuencias:
 
-- Meta declara **tracking** y vincula Device ID y Advertising Data: App Privacy
-  tiene que declarar "Data Used to Track You" (identificador de publicidad y
-  datos de publicidad), como la v1.
-- El `PrivacyInfo.xcprivacy` de la app describe el código de la app (que no
-  rastrea) y no cambia; App Privacy en App Store Connect declara la unión de
-  esta tabla y de la de Google (E10).
-- Los dominios de tracking de Meta (`ep1.facebook.com`, `ep6.facebook.com`) son
-  los que el dueño pasa cuando se decide `NSPrivacyTracking = true` en la app
-  (test `trackingNeedsDomains`); hasta entonces sigue `false`.
+- Unity no declara nada: la unión es la de Google más lo propio. "Data Used to
+  Track You" (identificador de publicidad y datos de publicidad) sigue por
+  AdMob, como en la etiqueta publicada con la 1.0, que ya los tenía
+  vinculados y con tracking antes de que existiera la mediación.
+- **Other Diagnostic Data sale de la etiqueta**: estaba sólo por Meta. Queda
+  en **8 tipos**.
+- El `PrivacyInfo.xcprivacy` de la app describe sólo el código de la app (que
+  no rastrea; `NSPrivacyTracking` sigue en `false`); App Privacy en App Store
+  Connect declara la unión de esta tabla, la de Google y lo propio, que es la
+  tabla final de arriba (E10).
+- Sin Meta no queda en el repo ninguna fuente de dominios de tracking para
+  `NSPrivacyTracking = true` (eran `ep1.facebook.com` y `ep6.facebook.com`):
+  sigue en `false` (test `trackingNeedsDomains`).
 
 Cómo armar la declaración de la 2.0:
 
@@ -339,16 +378,16 @@ Cómo armar la declaración de la 2.0:
    Generate Privacy Report**. Xcode junta los `PrivacyInfo.xcprivacy` de
    todos los SDK en un PDF con el formato de las etiquetas
    ([WWDC23, Get started with privacy manifests](https://developer.apple.com/videos/play/wwdc2023/10060/)).
-2. ⚠️ Revisar que el PDF **traiga los SDK de las dos redes (Unity y Meta)**. Hay reportes de
+2. ⚠️ Revisar que el PDF **traiga el SDK de Unity** y que **no** aparezca
+   Meta (FBAudienceNetwork): si aparece, el build no es el de la 2.0. Hay reportes de
    que sólo incluye los frameworks embebidos
    ([foro de Apple](https://developer.apple.com/forums/thread/734971)), y este
    proyecto ya tuvo los frameworks de AdMob como stubs en el archive
    (`checklist-submission.md`, punto 6). Si falta alguno, abrir el
    `PrivacyInfo.xcprivacy` del paquete SPM de esa red.
-3. 🔒 Declarar en App Store Connect **la unión** de lo que dicen Google y las
-   dos redes. Como punto de partida, la v1 declaró **"Data Used to Track You"**
-   (identificador de publicidad) más datos de uso y diagnóstico de
-   publicidad de terceros (`checklist-submission.md`, punto 5).
+3. 🔒 Declarar en App Store Connect **la unión** de lo que dicen Google y
+   Unity y lo propio: es la tabla final de arriba (8 tipos). Contrastarla
+   con el reporte de Xcode del paso 1 antes de cargarla.
 4. Tiene que coincidir con la política del sitio (4.2). Declarar de menos es
    rechazo, y declarar de más también es declarar mal.
 
@@ -359,8 +398,8 @@ aplicado vive en `Distribution/release/release.json → store.reviewNotes`** (la
 fuente de verdad; `releaseops asc listing plan` lo muestra y `asc listing apply`
 lo sube): lo de abajo es una copia de lectura. Tiene 3,837 caracteres, todos ASCII.
 Lista **cada** lugar de anuncios del código (las 8 unidades de video más la
-columna del tablero), con las redes reales (Google, Unity Ads y Meta Audience
-Network: AppLovin y Mintegral quedaron afuera el 2026-10-08), el atajo al Ranking,
+columna del tablero), con las redes reales (Google y Unity Ads: AppLovin y
+Mintegral quedaron afuera el 2026-10-08 y Meta el 2026-10-15), el atajo al Ranking,
 las probabilidades y las ofertas de 24 h.
 
 ⚠️ Borrador de E10 T5: se cierra contra el build de TestFlight (E10 T11). Si E7b-b
@@ -377,7 +416,7 @@ The Ranking tab is in the bottom bar right after the tutorial: open it to see th
 HOW TO TEST
 Tap the character to earn coins, tap Hire to buy another one, and drag one onto another to merge them. The tutorial cannot be skipped; it ends with a welcome chest. The bottom-bar tabs appear one by one as you play. The Store tab has every IAP and Restore Purchases.
 
-ADS (Google AdMob; mediation partners: Unity Ads and Meta Audience Network)
+ADS (Google AdMob; mediation partner: Unity Ads)
 1. Opt-in rewarded videos, always started by an explicit tap on a button that says what you get; they never autoplay. Places: the Gifts list (4 prizes, and skipping a boost cooldown); the side column of the board ("Merge all" and parcel rain); doubling offline earnings; opening another skin chest; the prize wheel (spin and "repeat prize"); the Mattress Stash (open and "another mattress"); visitors (reward x2, forgiving a fine, the street vendor's boosts, the x2 challenge); escaping a negative event; daily and career rewards x2.
 2. Ads that appear on their own, only at natural breaks: at least 2 minutes apart, never during the tutorial, never over an open screen or a celebration, never two in the same break.
 - Interstitial and "ad break" (rewarded interstitial) alternate. Breaks: closing a menu screen back to the board, dismissing the offline-earnings popup, reincarnating, and the end of a chain of celebrations. The ad break always shows an intro with a 5-second countdown and a visible "No, thanks" button; declining has no penalty.

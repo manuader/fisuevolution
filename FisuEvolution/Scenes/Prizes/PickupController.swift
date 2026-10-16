@@ -149,8 +149,12 @@ final class PickupController {
         let ordinal = mattressOrdinal(of: gameState)
         node.isHidden = !floorsInView(of: gameState).contains(ordinal)
         let rest = mattressRestPosition(of: gameState)
-        node.position = CGPoint(x: rest.x, y: rest.y + node.fallOffset + node.hopOffset)
-        node.zPosition = DepthOrder.z(forFeetY: mattressFeet(onFloor: ordinal, gameState: gameState).y)
+        let feet = mattressFeet(onFloor: ordinal, gameState: gameState)
+        // La escala por distancia (B30) achica alrededor del centro: se baja el centro para que los pies no se muevan.
+        node.depthScale = depthScale(forFeetY: feet.y, onFloor: ordinal, gameState: gameState)
+        let height = node.boxSize.height
+        node.position = CGPoint(x: rest.x, y: rest.y - height / 2 * (1 - node.depthScale) + node.fallOffset + node.hopOffset)
+        node.zPosition = DepthOrder.z(forFeetY: feet.y)
     }
 
     /// El centro del colchón quieto en su lugar: los pies más medio alto, corrido con su piso; sin
@@ -167,12 +171,20 @@ final class PickupController {
         pickupLayout(onFloor: ordinal, gameState: gameState).packageFeet(at: gameState.mattressSpot)
     }
 
+    /// La escala por distancia (`DepthScale`, E14b B30) de unos pies en `feetY` del piso `ordinal`.
+    private func depthScale(forFeetY feetY: CGFloat, onFloor ordinal: Int, gameState: GameState) -> CGFloat {
+        DepthScale.scale(forFeetY: feetY, in: pickupLayout(onFloor: ordinal, gameState: gameState).depthSpan)
+    }
+
     /// Una caja en su lugar de su piso: los pies en su x y su y, corrida con el piso y, si está
     /// cayendo, más arriba. Mientras cae va con el z de donde va a apoyar (B19).
     private func place(_ box: PickupNode, onFloor ordinal: Int, gameState: GameState) {
         let floorLayout = pickupLayout(onFloor: ordinal, gameState: gameState)
         let feet = floorLayout.packageFeet(at: box.packageBox?.spot, unplacedIndex: box.unplacedIndex)
-        box.position = CGPoint(x: feet.x, y: feet.y + floorLayout.side / 2 + floorShift(ordinal) + box.fallOffset)
+        // La escala por distancia (B30) achica alrededor del centro: se baja el centro para que los pies no se muevan.
+        box.depthScale = depthScale(forFeetY: feet.y, onFloor: ordinal, gameState: gameState)
+        let half = floorLayout.side / 2 * box.depthScale
+        box.position = CGPoint(x: feet.x, y: feet.y + half + floorShift(ordinal) + box.fallOffset)
         box.zPosition = DepthOrder.z(forFeetY: feet.y)
     }
 

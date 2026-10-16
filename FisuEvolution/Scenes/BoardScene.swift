@@ -66,6 +66,8 @@ final class BoardScene: SKScene {
     /// La franja de la multitud vigente. La recalcula `rebuildAnchors`; la leen
     /// el deambular.
     private var band = CrowdBand(frontY: 0, rowDepth: 0, wanderRange: 0, topY: 0)
+    /// El tramo de `DepthScale` del piso que se arma (E14b B30), en la y de la pantalla.
+    private var depthSpan = DepthScale.Span(backY: 0, frontY: 0)
     private var cellSize: CGFloat = 0
     /// La geometría vigente; la recalcula `layoutBoard`.
     private var layout = PlayLayout(size: CGSize(width: 390, height: 844), capacity: 10)
@@ -590,6 +592,7 @@ final class BoardScene: SKScene {
             let z = depthZ(for: node.position)
                 + (mergeCandidates.contains(slot) ? Self.candidateZLift : 0)
             if node.zPosition != z { node.zPosition = z }
+            node.setDepthScale(DepthScale.scale(forFeetY: node.position.y + Self.bottomInset, in: depthSpan))
         }
     }
 
@@ -2168,8 +2171,9 @@ final class BoardScene: SKScene {
         // contra el borde de la pantalla; las columnas se centran dentro del campo.
         let edgeInset = cellSize * 0.68
         let colSpacing = (cellSize * CGFloat(cols) - 2 * edgeInset) / CGFloat(cols)
-        let horizon = StageLayout(sceneSize: size, bottomInset: Self.bottomInset, cellSize: cellSize, floorBottom: Self.floorBottom)
-            .groundY(background: floorDef.background, backgroundOffset: floorDef.backgroundOffset)
+        let stageLayout = StageLayout(sceneSize: size, bottomInset: Self.bottomInset, cellSize: cellSize, floorBottom: Self.floorBottom)
+        let horizon = stageLayout.groundY(background: floorDef.background, backgroundOffset: floorDef.backgroundOffset)
+        depthSpan = stageLayout.depthSpan(background: floorDef.background, backgroundOffset: floorDef.backgroundOffset)
         band = Self.crowdBand(sceneHeight: size.height, cellSize: cellSize, rows: boardRows, horizon: horizon)
         let frontY = band.frontY
         let rowDepth = band.rowDepth

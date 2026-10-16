@@ -119,6 +119,7 @@ final class StageController {
         else { return clear() }
         let node = actorNode(for: visit, reduceMotion: reduceMotion)
         anchorOrdinal = visit.floorOrdinal
+        node.setDepthScale(depthScale)
         if visit.phase == .entering, !visit.onStage { gameState.stageEntranceBegan(id: visit.id) }
         switch visit.phase {
         case .entering: enter(node, visit: visit, delta: delta, reduceMotion: reduceMotion)
@@ -147,11 +148,21 @@ final class StageController {
         return CGFloat(anchorOrdinal) * height - cameraOffsetY
     }
 
+    /// El piso del visitante en la tabla, si se conoce.
+    private var anchorFloor: FloorDef? {
+        let table = gameState?.content?.floorTable
+        return table.flatMap { $0.floors.indices.contains(anchorOrdinal) ? $0[anchorOrdinal] : nil }
+    }
+
     /// Los pies del visitante: en el medio de su piso (B20).
     private var feetY: CGFloat {
-        let table = gameState?.content?.floorTable
-        let floor = table.flatMap { $0.floors.indices.contains(anchorOrdinal) ? $0[anchorOrdinal] : nil }
-        return layout.visitorY(background: floor?.background, backgroundOffset: floor?.backgroundOffset ?? 0)
+        layout.visitorY(background: anchorFloor?.background, backgroundOffset: anchorFloor?.backgroundOffset ?? 0)
+    }
+
+    /// Su tamaño según la distancia (`DepthScale`, E14b B30): sale de la y de sus pies.
+    private var depthScale: CGFloat {
+        let span = layout.depthSpan(background: anchorFloor?.background, backgroundOffset: anchorFloor?.backgroundOffset ?? 0)
+        return DepthScale.scale(forFeetY: feetY, in: span)
     }
 
     /// Por dónde camina mientras espera, sin tocar las esquinas que le quedan a la altura de sus pies
@@ -165,7 +176,7 @@ final class StageController {
     @discardableResult
     func handleTap(at point: CGPoint) -> Bool {
         guard let gameState, let visit = tappableVisit,
-              actor?.contains(point) == true || (request?.contains(point) ?? false)
+              actor?.isHit(by: point) == true || (request?.contains(point) ?? false)
         else { return false }
         gameState.stageActorTapped(id: visit.id)
         return true
@@ -197,7 +208,7 @@ final class StageController {
         if let request, !request.isHidden, request.contains(point) {
             return layer.zPosition + request.zPosition
         }
-        if let actor, !actor.isHidden, actor.contains(point) {
+        if let actor, !actor.isHidden, actor.isHit(by: point) {
             return layer.zPosition + actor.zPosition
         }
         return nil
@@ -356,7 +367,7 @@ final class StageController {
         walkX = stroll(node, delta: delta, reduceMotion: reduceMotion)
         node.position = CGPoint(x: walkX + sway, y: feetY + lift)
         if reduceMotion { node.scaleKeepingFacing(1) } else { node.breathe(delta: delta) }
-        if hoveringRight, !reduceMotion { node.scaleKeepingFacing(node.yScale * 1.08) }
+        if hoveringRight, !reduceMotion { node.scaleKeepingFacing(node.baseScale * 1.08) }
 
         if let ask = requestedUnit(of: visit) {
             hideBubble()
@@ -383,7 +394,7 @@ final class StageController {
             return bubbleFeed.publish(nil)
         }
         let height = layout.sceneSize.height
-        let head = node.position.y + layout.actorSide + 4
+        let head = node.position.y + layout.actorSide * node.depthScale + 4
         bubbleFeed.publish(StageBubble(
             visitId: visit.id,
             text: text,
@@ -424,7 +435,7 @@ final class StageController {
         requestClock += delta
         let beat = reduceMotion ? 0 : CGFloat(sin(requestClock * .pi * 2.2))
         bubble.setScale(1 + 0.05 * beat + (hoveringRight && !reduceMotion ? 0.25 : 0))
-        bubble.position = CGPoint(x: node.position.x, y: node.position.y + layout.actorSide + 2)
+        bubble.position = CGPoint(x: node.position.x, y: node.position.y + layout.actorSide * node.depthScale + 2)
     }
 
     private func leave(_ node: VisitorNode, visit: StageVisit, delta: TimeInterval, reduceMotion: Bool) {

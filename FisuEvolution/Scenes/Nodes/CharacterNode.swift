@@ -29,6 +29,13 @@ final class CharacterNode: SKNode {
     private(set) var typeId: String = ""
     private(set) var cellIndex: Int = -1
 
+    /// La escala por distancia (`DepthScale`, E14b B30). Se aplica a las piezas VISIBLES, alrededor
+    /// de los pies, y no al nodo: `xScale`/`yScale` del nodo son de las animaciones del tablero.
+    private(set) var depthScale: CGFloat = 1
+    /// Dónde apoyan los pies, en las coordenadas del nodo, y la pose a escala 1 de cada pieza.
+    private var feetLocalY: CGFloat = 0
+    private var basePositions: [ObjectIdentifier: CGPoint] = [:]
+
     override init() {
         super.init()
         name = Self.nodeName
@@ -69,19 +76,51 @@ final class CharacterNode: SKNode {
     /// El cuerpo que se ve, en las coordenadas del padre (el campo): la figura del arte o la placa.
     /// Con algo de atrás bajo el dedo, el toque es del empleado sólo acá (E14b B19, D13).
     var visibleBody: CGRect {
+        let scale = depthScale
         let local: CGRect
         if plate.isHidden {
             let side = sprite.size
-            let bottom = sprite.position.y - side.height / 2
-            let width = side.width * Self.visibleBodyWidthRatio
+            let bottom = sprite.position.y - side.height * scale / 2
+            let width = side.width * Self.visibleBodyWidthRatio * scale
             local = CGRect(x: sprite.position.x - width / 2, y: bottom,
-                           width: width, height: side.height * Self.visibleBodyHeightRatio)
+                           width: width, height: side.height * Self.visibleBodyHeightRatio * scale)
         } else {
-            local = plate.path?.boundingBoxOfPath ?? .zero
+            let box = plate.path?.boundingBoxOfPath ?? .zero
+            local = CGRect(x: box.minX * scale, y: feetLocalY + (box.minY - feetLocalY) * scale,
+                           width: box.width * scale, height: box.height * scale)
         }
         let scaleX = abs(xScale), scaleY = abs(yScale)
-        return CGRect(x: position.x + local.minX * scaleX, y: position.y + local.minY * scaleY,
-                      width: local.width * scaleX, height: local.height * scaleY)
+        let body = CGRect(x: position.x + local.minX * scaleX, y: position.y + local.minY * scaleY,
+                          width: local.width * scaleX, height: local.height * scaleY)
+        // Más chico por la distancia, el toque no baja del mínimo (B30).
+        return DepthScale.enforcingMinimumTouch(body)
+    }
+
+    /// Cambia el tamaño según la distancia (`DepthScale`) sin mover los pies: cada pieza se achica
+    /// o agranda alrededor de ellos. Barato: lo llama `BoardScene` por frame.
+    func setDepthScale(_ scale: CGFloat) {
+        guard scale.isFinite, scale > 0, abs(scale - depthScale) > 0.0005 else { return }
+        depthScale = scale
+        applyDepthScale()
+    }
+
+    private func visibleParts() -> [SKNode] { [shadow, plate, sprite, nameLabel, coinBadge] }
+
+    /// Guarda la pose a escala 1 de cada pieza (después de `configure`) y vuelve a aplicar la escala.
+    private func rememberBasePositions() {
+        basePositions = Dictionary(uniqueKeysWithValues: visibleParts().map { (ObjectIdentifier($0), $0.position) })
+        applyDepthScale()
+    }
+
+    private func applyDepthScale() {
+        let scale = depthScale
+        for part in visibleParts() {
+            let base = basePositions[ObjectIdentifier(part)] ?? part.position
+            part.position = CGPoint(x: base.x * scale, y: feetLocalY + (base.y - feetLocalY) * scale)
+            // El espejado vive en el signo de la escala del sprite: se conserva.
+            part.xScale = part.xScale < 0 ? -scale : scale
+            part.yScale = scale
+        }
     }
 
     @available(*, unavailable)
@@ -105,6 +144,10 @@ final class CharacterNode: SKNode {
         self.cellIndex = cellIndex
 
         let plateSize = cellSize * 0.92
+        // Las piezas que esta rama no reasigna vuelven a su pose a escala 1 antes de guardarla.
+        for part in visibleParts() { if let base = basePositions[ObjectIdentifier(part)] { part.position = base } }
+        feetLocalY = -plateSize / 2
+        defer { rememberBasePositions() }
         let coinSide = cellSize * 0.22
         coinBadge.size = CGSize(width: coinSide, height: coinSide)
         coinBadge.isHidden = !earnsPassive
@@ -216,6 +259,7 @@ final class CharacterNodePool {
         node.removeAllActions()
         node.alpha = 1
         node.setScale(1)
+        node.setDepthScale(1)
         // `setScale(1)` limpia el NODO y no a sus hijos, y el espejado vive en el
         // sprite justamente para que ningún `scale(to:)` lo pise: sin esta línea
         // sobreviviría al reciclado y un personaje recién contratado podría

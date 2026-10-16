@@ -1,0 +1,14 @@
+{
+  "version": "seed-2026-10-16",
+  "thresholds": {"priceWallMinutes": 8, "backOfflineMinutes": 120},
+  "caps": {"maxPerHour": 3, "minSecondsBetween": 600, "cooldownAfterDeclineSeconds": 1200, "maxPerSession": 6},
+  "arms": [
+    {"id": "pw_small", "moment": "price_wall", "reward": {"kind": "coinsSeconds", "seconds": 300}, "alpha": 1, "beta": 1,
+     "segments": ["low", "mid", "high"]},
+    {"id": "pw_big", "moment": "price_wall", "reward": {"kind": "coinsSeconds", "seconds": 600}, "alpha": 1, "beta": 1,
+     "segments": ["mid", "high"]},
+    {"id": "ff_merge", "moment": "floor_full", "reward": {"kind": "mergeAll"}, "alpha": 1, "beta": 1,
+     "segments": ["low", "mid", "high"]},
+    {"id": "control", "moment": "*", "control": true, "alpha": 1, "beta": 1}
+  ]
+}

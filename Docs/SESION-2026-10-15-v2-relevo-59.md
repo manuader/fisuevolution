@@ -123,7 +123,7 @@ EK 1017 ✅, build ✅, Release 0 warnings ✅, store-unit 18 ✅, unit 2263 + 1
 
 ## Trampas nuevas
 
-- **El clasificador de permisos bloquea instalar en un dispositivo** (`devicectl install` de una Release se lee como
+- **El clasificador de permisos bloquea instalar en un dispositivo** (instalar una Release se lee como
   «Production Deploy»): no se esquiva; lo instala el dueño. Un brief que dependa de eso tiene que prever el paso humano.
 - **El `completo` corre en el worktree de la integración:** mientras corre no se mergea nada ahí (B25 esperó). Las ramas
   nuevas se arman en una integración aparte (integ-r59) y se compilan después.

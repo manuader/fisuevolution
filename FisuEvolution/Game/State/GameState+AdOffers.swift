@@ -38,16 +38,27 @@ extension GameState {
     /// ⚠️ El monto sale del `reward` que la vista tiene en la mano y no de
     /// `offlineReward`, que para cuando el video termina puede haber sido
     /// limpiado por el dismiss de la hoja.
-    func doubleOfflineReward(_ reward: OfflineReward) {
+    ///
+    /// `multiplier` es el ×N del paso 2 (2.1 E15 F2): paga `amount × (multiplier − 1)`. Con ×2 (la base)
+    /// es el mismo monto, bit a bit; nunca menos que eso.
+    func doubleOfflineReward(_ reward: OfflineReward,
+                             multiplier: Double = SegmentLevers.Levers.baseVideoRewardMultiplier) {
         guard !offlineRewardDoubled, var player else { return }
         offlineRewardDoubled = true
-        player.run.coins += reward.amount
-        player.meta.lifetimeEarnings += reward.amount
+        let extra = reward.amount * (Self.atLeastBaseMultiplier(multiplier) - 1)
+        player.run.coins += extra
+        player.meta.lifetimeEarnings += extra
         self.player = player
         audio?.play(.coin)
-        Log.economy.info("offline reward doubled by ad: \(reward.amount)")
+        Log.economy.info("offline reward doubled by ad: \(extra)")
         refreshProjections()
         scheduleSave()
+    }
+
+    /// El ×N de un paso 2 nunca paga menos que el ×2 de la 2.0 (un valor que no es número, tampoco).
+    static func atLeastBaseMultiplier(_ multiplier: Double) -> Double {
+        let base = SegmentLevers.Levers.baseVideoRewardMultiplier
+        return multiplier.isFinite ? max(multiplier, base) : base
     }
 
     // MARK: - Un cofre más

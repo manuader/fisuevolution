@@ -15,6 +15,14 @@ import Foundation
 ///         [--merge-refund r] [--growth g] [--price-relief K] [--staffed x] [--wall] [--inherit]
 ///         [--capacity n] [--bands "8:1.45,13:1.6,25:1.7"] [--growth-step "0.01@luxury"]
 ///         [--blue-divisor d] [--blue-exponent e] [--shop slots,supplier,spins]
+///         [--segment low|mid|high] [--segments-file <segments.json>] [--accept-rate x] [--caps]
+///         [--segment-matrix]
+///
+/// Por segmento (2.1 E15 F2): `--segment` corre al jugador de referencia de ese segmento con las palancas de
+/// `segments.json` (`--segments-file`, o el de `Resources/Config`); `--accept-rate x` pisa cuántas ofertas con
+/// video acepta; `--caps` usa los topes del código (el peor caso remoto) en vez del archivo;
+/// `--segment-matrix` corre `base/low/mid/high × free/ads/max × semillas 0,1/0,5/0,9` e imprime la tabla de R7 y
+/// el semáforo de C3. Sin ninguno de estos flags el camino es el de la 2.0, sin tocar nada.
 ///
 /// Sin `--upgrades` busca el catálogo real al lado de `economy.json` (ver
 /// `resolveUpgradesURL`). Sin catálogo el bot NO compra mejoras permanentes, o
@@ -53,6 +61,8 @@ struct SimArguments {
     /// `--shop lugares,proveedor,giros`: los permanentes de la tienda a mano, para
     /// medir `.max` mientras `blue_shop.json` no esté en el árbol.
     let shop: ShopPermanents?
+    /// El simulador por segmento (2.1 E15 F2-T3).
+    let segmentFlags: SegmentFlags
 }
 
 func parseBands(_ text: String) throws -> [EconomyConfig.HireConfig.EscalationBand] {
@@ -80,6 +90,7 @@ func parseArguments() throws -> SimArguments {
     var prestigeDiscount = true
     var contract = false
     var shop: ShopPermanents?
+    var segmentFlags = SegmentFlags()
     var iterator = CommandLine.arguments.dropFirst().makeIterator()
     while let argument = iterator.next() {
         switch argument {
@@ -121,6 +132,11 @@ func parseArguments() throws -> SimArguments {
         case "--prestige-discount": prestigeDiscount = true
         case "--no-prestige-discount": prestigeDiscount = false
         case "--contract": contract = true
+        case "--segment": segmentFlags.segment = try parseSegmentName(iterator.next())
+        case "--segments-file": segmentFlags.segmentsURL = iterator.next().map { URL(fileURLWithPath: $0) }
+        case "--accept-rate": segmentFlags.acceptRate = try parseAcceptRate(iterator.next())
+        case "--caps": segmentFlags.useCaps = true
+        case "--segment-matrix": segmentFlags.matrix = true
         case "--shop":
             let levels = (iterator.next() ?? "").split(separator: ",").compactMap { Int($0) }
             guard levels.count == 3 else {
@@ -131,7 +147,7 @@ func parseArguments() throws -> SimArguments {
         }
     }
     guard let economyPath, let tiersPath else {
-        throw SimToolError(description: "usage: pacing-sim --economy <economy.json> --tiers <tiers.json> [--upgrades <upgrades.json>] [--max-days N] [--csv <out.csv>] [--prestige-threshold X | --no-reincarnation] [--profile bare|free|ads|max] [--sources <dir>] [perillas…]")
+        throw SimToolError(description: "usage: pacing-sim --economy <economy.json> --tiers <tiers.json> [--upgrades <upgrades.json>] [--max-days N] [--csv <out.csv>] [--prestige-threshold X | --no-reincarnation] [--profile bare|free|ads|max] [--sources <dir>] [--segment low|mid|high | --segment-matrix] [--segments-file <segments.json>] [--accept-rate x] [--caps] [perillas…]")
     }
     let economyURL = URL(fileURLWithPath: economyPath)
     return SimArguments(
@@ -146,8 +162,9 @@ func parseArguments() throws -> SimArguments {
         seedFraction: seedFraction,
         knobs: knobs,
         prestigeDiscount: prestigeDiscount,
-        contract: contract || profile != .bare,
-        shop: shop
+        contract: contract || profile != .bare || segmentFlags.isSegmented,
+        shop: shop,
+        segmentFlags: segmentFlags
     )
 }
 
@@ -249,7 +266,7 @@ do {
 
     // `.bare` no pide fuentes: el default no lee ni avisa nada que no leía.
     var loaded = LoadedSources()
-    if arguments.profile != .bare || arguments.prestigeDiscount {
+    if arguments.profile != .bare || arguments.prestigeDiscount || arguments.segmentFlags.isSegmented || arguments.segmentFlags.matrix {
         guard let sourcesURL = arguments.sourcesURL else {
             throw SimToolError(description: "no encuentro las fuentes (../Config/ al lado de --economy): pasá --sources <dir>")
         }
@@ -264,6 +281,19 @@ do {
     }
 
     let human = PacingSimulator.HumanModel(reincarnation: arguments.reincarnation)
+    let flags = arguments.segmentFlags
+    let segmentFile = try loadSegmentLevers(flags: flags, sourcesURL: arguments.sourcesURL)
+
+    if flags.matrix {
+        try runSegmentMatrix(arguments: arguments, flags: flags, file: segmentFile, inputs: SimulatorInputs(
+            config: config, tiers: tiers, human: human, upgrades: upgradeLines,
+            prestigeUnlocks: arguments.prestigeDiscount ? loaded.prestigeUnlocks : nil,
+            sources: loaded.sources, maxDays: maxDays
+        ))
+        exit(0)
+    }
+
+    let segmentPlayer = singleSegmentPlayer(flags: flags, file: segmentFile)
     let simulator = try PacingSimulator(
         config: config,
         tiers: tiers,
@@ -272,13 +302,15 @@ do {
         prestigeUnlocks: arguments.prestigeDiscount ? loaded.prestigeUnlocks : nil,
         profile: arguments.profile,
         sources: loaded.sources,
-        seedFraction: arguments.seedFraction
+        seedFraction: arguments.seedFraction,
+        segment: segmentPlayer
     )
     let report = simulator.run(maxDays: maxDays)
 
     print("== pacing-sim — horizonte \(maxDays) días ==")
     if arguments.contract {
         printProfileHeader(arguments: arguments, loaded: loaded)
+        if let segmentPlayer { printSegmentHeader(segment: segmentPlayer, flags: flags) }
     }
     if let upgradesURL = arguments.upgradesURL, !upgradeLines.isEmpty {
         print("   mejoras permanentes: \(upgradeLines.count) líneas de blue (\(upgradesURL.lastPathComponent))")
@@ -439,6 +471,7 @@ do {
         }
         if arguments.contract {
             rows += contractCSVRows(report: report, arguments: arguments, config: config)
+            if let segmentPlayer { rows += segmentCSVRows(flags: flags, segment: segmentPlayer) }
         }
         try (rows.joined(separator: "\n") + "\n").write(to: csvURL, atomically: true, encoding: .utf8)
         print("\n  CSV escrito en \(csvURL.path)")

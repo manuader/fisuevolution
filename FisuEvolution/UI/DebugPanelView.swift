@@ -43,6 +43,15 @@ struct DebugPanelView: View {
         )
     }
 
+    /// «Segmento: mid (0,52 · 6000 µ/video)»: el que vive y, si hay, el último cálculo (aunque la
+    /// compuerta lo deje en `base`).
+    private static func segmentLine(_ service: PersonalizationService) -> String {
+        guard let estimate = service.lastEstimate else { return "Segmento: \(service.segment.rawValue) (sin cálculo)" }
+        let score = estimate.score.formatted(.number.precision(.fractionLength(2)))
+        return "Segmento: \(service.segment.rawValue) (\(estimate.segment.rawValue) · \(score) · "
+            + "\(estimate.expectedMicrosPerVideo) µ/video · \(estimate.source.rawValue))"
+    }
+
     var body: some View {
         NavigationStack {
             List {
@@ -245,6 +254,24 @@ struct DebugPanelView: View {
                         gameState.debugWheelNewDay()
                     }
                     .accessibilityIdentifier("debug.prizes.newday")
+                }
+                // La 2.1 (E15 F1): el segmento de valor y forzarlo para mirar las palancas.
+                if let personalization = gameState.personalization {
+                    Section("Personalización (2.1)") {
+                        Text(Self.segmentLine(personalization))
+                            .font(.system(.footnote, design: .monospaced))
+                            .accessibilityIdentifier("debug.segment.line")
+                        Picker("Forzar segmento", selection: Binding(
+                            get: { personalization.debugForcedSegment },
+                            set: { personalization.debugForce($0) }
+                        )) {
+                            Text("Sin forzar").tag(PlayerSegment?.none)
+                            ForEach(PlayerSegment.allCases, id: \.self) { segment in
+                                Text(segment.rawValue).tag(PlayerSegment?.some(segment))
+                            }
+                        }
+                        .accessibilityIdentifier("debug.segment.force")
+                    }
                 }
                 Section("Mediación") {
                     Button("Ad Inspector (mediación)") {

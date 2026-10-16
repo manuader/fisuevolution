@@ -1,5 +1,8 @@
 # HANDOFF — FisuEvolution, estado actual
 
+
+> **Actualización final del relevo 60 (2026-10-16 12:20):** después del build 6 apareció un pedido del dueño sin hacer, **La Marcha a 420 toques en 2 minutos** (ventana 3600 → 120 s, textos es/en, chip mm:ss, ficha al día; pacing igual, Dios 45,40 h; `ec7b8e8a`). Salió en el **build 7** (`50e34c33`): `rapido` VERDE (unit 2292, Release 0), archive 9/9 sin Meta, subido y **VALID en App Store Connect**. Builds 5, 6 y 7 quedan VALID; el bueno es el 7. Nada se mandó a revisión.
+
 > 🟢 **La v1.0.0 (build 4) está publicada en la App Store, y la v2 se trabaja en
 > la rama `version-2`** (2.0.0, build 5). Si llegás para la v2, empezá por
 > `Docs/HANDOFF-v2.md` §0 y por la sesión que preparó la rama,

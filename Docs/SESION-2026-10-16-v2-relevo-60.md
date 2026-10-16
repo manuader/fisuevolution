@@ -212,3 +212,6 @@ La lista completa, en orden hasta el envío, está en «Cierre de E10» del plan
 2. **Los textos de La Marcha y de Novedades** (y el voseo en es-MX/es-ES); `asc listing apply` es del día del envío.
 3. **La pasada G4** en su iPhone (la lista está en «Cierre de E14»); ahora incluye cómo se ven los de atrás con B30.
 4. **O6 (la telemetría de E15) y la revisión legal de la 2.1** cuando decida; la 2.1 no sale hasta entonces.
+
+
+> **Actualización final del relevo 60 (2026-10-16 12:20):** después del build 6 apareció un pedido del dueño sin hacer, **La Marcha a 420 toques en 2 minutos** (ventana 3600 → 120 s, textos es/en, chip mm:ss, ficha al día; pacing igual, Dios 45,40 h; `ec7b8e8a`). Salió en el **build 7** (`50e34c33`): `rapido` VERDE (unit 2292, Release 0), archive 9/9 sin Meta, subido y **VALID en App Store Connect**. Builds 5, 6 y 7 quedan VALID; el bueno es el 7. Nada se mandó a revisión.

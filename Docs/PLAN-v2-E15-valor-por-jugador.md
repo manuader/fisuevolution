@@ -81,7 +81,7 @@ jugador en anuncios y ajustar el juego según ese valor.
   - amañar en secreto un resultado para forzar una «derrota» que sólo se arregla con un video;
   - falsear en secreto lo que el juego le muestra al jugador, como el puntaje +10 %.
 
-  Esto choca con la regla de conducta del App Store (5.6: nada de engañar ni de prácticas manipuladoras), con leyes de
+  Esto choca con el Código de Conducta del App Store (5.6: la conducta engañosa reiterada puede costar la cuenta), con leyes de
   defensa del consumidor, y con un juego 12+ al que entran menores. Es, además, exactamente lo que hizo viral al reel
   (1,2 M de likes, comentarios como «esto debería ser ilegal» o «borro todos los juegos con anuncios»). Para cada una
   de esas piezas hay una versión a la vista que aprovecha el mismo momento.
@@ -227,7 +227,7 @@ Cuatro palancas, todas con un tope y con un interruptor remoto para apagarlas:
 
 | Del reel | Por qué no | La versión que sí |
 |---|---|---|
-| **Boost then kill / algoritmo de la muerte:** amañar en secreto para que pierdas cuando hay un anuncio caro. | Engaña sobre el resultado del juego y fabrica la necesidad que se vende con el video. App Store 5.6 lo prohíbe expresamente (engañar, prácticas manipuladoras) y es una causa de rechazo o de baja de la cuenta de desarrollador. Además, es la conducta que reguladores como la FTC y las autoridades de consumo europeas están persiguiendo como «patrón oscuro», en un juego 12+. | **Momentos de necesidad naturales**, detectados, más una oferta a la vista cuando hay un buen anuncio cargado (palanca 3). |
+| **Boost then kill / algoritmo de la muerte:** amañar en secreto para que pierdas cuando hay un anuncio caro. | Engaña sobre el resultado del juego y fabrica la necesidad que se vende con el video. Cae en el espíritu del Código de Conducta del desarrollador del App Store (5.6: la conducta engañosa o manipuladora reiterada puede costar la cuenta; 5.6 no habla de dificultad de juego) y es engañar al usuario sobre lo que pasa en la partida (ver R1 en `Docs/v21/investigacion-R1-R8.md`; [VERIFICAR el texto vigente de 5.6 en las App Review Guidelines]). Además, es la conducta que reguladores como la FTC y las autoridades de consumo europeas están persiguiendo como «patrón oscuro», en un juego 12+. | **Momentos de necesidad naturales**, detectados, más una oferta a la vista cuando hay un buen anuncio cargado (palanca 3). |
 | **+10 % secreto al récord.** | Es falsear lo que el juego le muestra al jugador. | **Bonus anunciado:** «+10 % por ver el video», que el jugador ve y elige. |
 | **Dificultad peor que la base según el valor**, a escondidas. | El mismo problema, y en un idle es lo primero que se nota al comparar teléfonos (ver el comentario del reel: «258 K en el teléfono de mi novio y yo trabada en 40 K»). | **La base es igual para todos**; lo que cambia es cuánta ayuda opt-in ves (palanca 2). |
 | **Bandido sobre el minuto de matar.** | Optimiza el daño. | **Bandido sobre el momento, el lugar y el tamaño de la oferta**, con la retención como límite (palanca 3). |

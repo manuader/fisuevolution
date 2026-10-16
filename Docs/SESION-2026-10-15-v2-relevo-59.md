@@ -1,6 +1,6 @@
 # Sesión 2026-10-15 — relevo 59: los 5 rojos aislados, B25, E12 aplicado en remoto, la 2.0 sin Meta y los cierres preparados
 
-> **BORRADOR escrito por un agente sin compilar durante el relevo.** Lo marcado con `[COMPLETAR]` lo cierra el
+> **BORRADOR escrito por un agente sin compilar durante el relevo.** Los números los completó el controlador al cierre; lo marcado lo cierra el
 > controlador cuando termine el `completo` de integ-r59 (números, hashes finales, qué entró a `version-2`).
 
 Relevo por el disparo horario de la rutina `fisu-v2-relevo-a` (20:15, LOCK tomado por el 58 con latido de 28 min; a
@@ -15,8 +15,7 @@ Los 5 rojos de UI de integ-r58 quedaron **aislados y arreglados** (2 eran carga,
 B29, el plato de B28 y el fixture de B21). **E14b B25 «La Marcha»** se escribió, se revisó (doble cobro con dos
 dispositivos) y se arregló. **E12 T17 está aplicado en remoto** con el OK del dueño. **La 2.0 sale sin Meta** (decisión
 del dueño en vivo). Los textos de tienda y los cierres de E8d/E8e/E12/E14/E10 quedaron preparados. **integ-r59** (rama
-`v2i/integ-r59`, base `4f0a210e`) junta todo; su `completo` va después del de integ-r58. `[COMPLETAR: version-2 =
-<hash> si el completo de integ-r59 dio VERDE]`.
+`v2i/integ-r59`, base `4f0a210e`) junta todo; su `completo` va después del de integ-r58. `version-2` sigue en `36697cac`: integ-r59 tiene `rapido` con 2 rojos de unit (abajo) y le falta su `completo`; lo hace el relevo 60.
 
 ## Decisiones del dueño (en vivo, en este chat)
 
@@ -118,8 +117,11 @@ perdidas con `player` nil; `admin.sql` `::int` → `::bigint`; `shown` fuera de 
 ### El `completo` de integ-r58 (`20261015-213050`)
 
 EK 1017 ✅, build ✅, Release 0 warnings ✅, store-unit 18 ✅, unit 2263 + 1 rojo (arreglado, arriba).
-`[COMPLETAR: UI, aislamiento y veredicto]`. Después: el `completo` de integ-r59 (B25, E12, E8, sin-meta, claves)
-`[COMPLETAR]`.
+store-ui 3 · iPad 4 · SE 2 · pipeline 99 · pacing Dios 45,40 h / 6 reenc. · UI 190 + 4 rojos + 4 salteados. Aislados (`20261015-234232-aislar2-r59`): el colchón de regalo y la captura del visitante VERDES (carga; la captura además se reescribió); `BoardPackageUITests.testTheSecondPackage…` real → fix-paquete-r59 (`d509db0f`: el marcador apunta a la parte visible de la caja; la caja puede caer detrás de un empleado). Por eso version-2 NO se adelantó: todo va junto con integ-r59.
+
+### integ-r59 (punta del cierre)
+
+B25, B31, B32, B33, E12 cierre, E8 cierres, sin Meta, textos de tienda, capturas E10 T9, borradores de cierre, fix-paquete. `completo --limpio` cortó en el build (`MattressBoardTests` sin `import Foundation`, arreglado). `rapido` `20261016-004558`: EK ✅ · build ✅ · Release 0 warnings ✅ · **unit 2280 + 2 rojos**: `AdPlacementMapTests.everyOfferUsesItsUnit` (lugares nuevos del paso 2 de B25/B31 sin mapear en el mapa de ubicaciones) y `QuickHireTagContentTests.longestNameFits` («CARDBOARD COLLECTOR» mide 74,5 pt contra 59,5 pt en el SE: B33). **Los arregla el relevo 60** (orden del dueño: el 59 no sigue).
 
 ## Trampas nuevas
 

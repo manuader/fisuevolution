@@ -1,6 +1,9 @@
 # HANDOFF — FisuEvolution, estado actual
 
 
+> **Actualización del relevo 61 (2026-10-16 16:00):** la 2.0 no tuvo trabajo de agentes (sigue en el build 7 VALID; lo que queda es del dueño). Se trabajó la **2.1** en su rama `version-2.1` (`e57ef592`): la ola 3 verificada con la 2.0 final adentro y las olas 4 y 5 hechas, integradas y verificadas; **31 de 42**. Queda F2-T5 (calibración; el presupuesto de visitantes y dos pares de C3.3 están en `withKnownIssue`), después la ola 6. El simulador no era determinista (`IncomeTicker` sumaba en orden de `Dictionary`, arreglado en la 2.1 en `af1165d2`): llevarlo a la 2.0 en su próxima versión.
+
+
 > **Actualización final del relevo 60 (2026-10-16 12:20):** después del build 6 apareció un pedido del dueño sin hacer, **La Marcha a 420 toques en 2 minutos** (ventana 3600 → 120 s, textos es/en, chip mm:ss, ficha al día; pacing igual, Dios 45,40 h; `ec7b8e8a`). Salió en el **build 7** (`50e34c33`): `rapido` VERDE (unit 2292, Release 0), archive 9/9 sin Meta, subido y **VALID en App Store Connect**. Builds 5, 6 y 7 quedan VALID; el bueno es el 7. Nada se mandó a revisión.
 
 > 🟢 **La v1.0.0 (build 4) está publicada en la App Store, y la v2 se trabaja en
@@ -23,6 +26,7 @@
 > mockups aprobados (`Docs/correcciones-v2/mockups/`), 30 tareas en `tasks.md` §5 «E14» y §4.0. Va antes que
 > todo lo demás de la cola. Detalle: `Docs/SESION-2026-10-12-v2-e14-correcciones-dueno.md`.
 >
+> 📍 **Estado al cierre del relevo 61 (2026-10-16; manda sobre los párrafos de abajo):** `version-2` no cambió de código (build 7 = `50e34c33`, VALID en ASC, nada en revisión). La 2.1 (`version-2.1` = `e57ef592`, tablero `tasks-v21.md`) está en **31 de 42**: olas 1–5 verificadas (EK 1253 · unit 2456 + 1 known issue · Release 0 · UI 6/6 · matriz C3 verde con y sin `--caps` · SQL 67). Falta F2-T5, la ola 6 y los 🔒 del dueño de la 2.1 (P2, P3, P8, C3.3 redefinido). Detalle en `Docs/SESION-2026-10-16-v2-relevo-61.md`.
 > 📍 **Estado al cierre del relevo 60 (2026-10-16); manda sobre los párrafos de abajo:** la **2.0 está al 100 % y subida**: `version-2` = **`06ca8760`** (build 6 de 2.0.0, pusheada). Llegó por fast-forward `36697cac` → `cc7ffb4e` (el `completo` de `v2i/integ-r60`, `20261016-050819`: EK 1057 · build · Release 0 · store-unit 18 · UI 205 con 0 rojos · store-ui 3 · iPad 4 · SE 2 · pipeline 107 · pacing Dios 45,40 h / 6 reenc.; unit 2286 + 6 rojos que `fix-unit2-r60` resolvió sólo en tests) → `06ca8760` (build 6: el arreglo del splash B34 `c8501c11` + el del difuminado de la caja B32 `bf8cb930`; rapido VERDE, unit 2292). Entraron B30 (con el sí del dueño), B34 y el cierre de E8d T15 / E8e T9 (medidos sólo en el simulador del SE, riesgo aceptado), E10 T9 (43 capturas), T11, T12 y T13, E12 T18, E14 T27. **Build 5 subido y VALID en ASC; build 6 archivado (9/9, sin Meta) y subido** (el 1.er intento falló por timeout de red; el reintento anduvo; el archive se armó en el worktree `version-2`). **Nada se mandó a revisión.** Lo que queda es del dueño (🔒), unos carries y la **2.1** (rama `version-2.1`, olas 1–3, 20 de 42 tareas; punta `v21i/integ-ola3` = `79c1fc1a`; la app de la 2.1 sin compilar desde la ola 2), que sale apagada hasta una revisión legal. Detalle: `Docs/SESION-2026-10-16-v2-relevo-60.md`.
 > 📍 **Estado al cierre del relevo 59 (2026-10-16; manda sobre los párrafos de abajo):** `version-2` = `36697cac` (no se adelantó: va todo junto con integ-r59, que tiene `rapido` con 2 rojos de unit y le falta el `completo`). Lo nuevo está en **`v2i/integ-r59` (pusheada; base `4f0a210e` = integ-r58 con los 3 arreglos de test)**: E14b B25 «La Marcha» (revisada y sin doble cobro), el cierre de E12 (piso y vista aplicados en remoto), **la 2.0 sin Meta**, los textos de tienda de E10 y los cierres preparados de E8d/E8e/E14/E10/E12. Los 5 rojos de UI de integ-r58 quedaron aislados y arreglados (2 eran carga, 3 reales). B30 (el tamaño según la distancia) vive en `v2/e14b-b30-escala`, sin mergear, esperando el sí o no del dueño en su iPhone. `completo` de integ-r58: EK 1017 · Release 0 · unit 2263 + 1 rojo de test arreglado · UI 190 + 4 rojos (2 carga, 1 captura reescrita, 1 real arreglado en fix-paquete-r59). Falta: el `completo` de integ-r59, E15 T8 (clases de telemetría y `--debug-consent-eea`), E10 T9/T12 y los 🔒 del dueño en orden (lista en el plan de E10, «Cierre de E10»). Detalle: `Docs/SESION-2026-10-15-v2-relevo-59.md`.
 >
@@ -401,6 +405,10 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-10-16 (relevo 61) — la 2.0 sin trabajo de agentes y la 2.1 en las olas 3 a 5 (31 de 42)
+
+La 2.0 no necesitó código. El relevo verificó la ola 3 de la 2.1 con la 2.0 final mergeada adentro (`62e50cb0`), hizo las olas 4 (F1-T7, F2-T6, F2-T7, F2-T8, F3-T4, F3-T5, F5-T3) y 5 (F2-T4, F3-T6, F3-T7, F7-T2), las integró (revisión: se restauró el `.disabled(purchasing)` de la Tienda que F5-T3 había sacado) y las verificó (`15451961`). Arregló el determinismo del simulador (`IncomeTicker`, `af1165d2`). Queda F2-T5 y la ola 6. Detalle: `Docs/SESION-2026-10-16-v2-relevo-61.md`.
 
 ### Sesión del 2026-10-16 (relevo 60) — la 2.0 al 100 % y subida (build 6), B30, B34, B32 y la 2.1 en olas 1–3
 
@@ -5771,6 +5779,7 @@ Anotado por si algún día importa, con su medición:
 - **`Docs/SESION-2026-10-12-v2-relevo-38-ola-aj.md`**: el relevo 38 (los eventos de 25 s dicen «En curso»; fuera `tutorial.tip.wheel`).
 - **`Docs/SESION-2026-10-12-v2-relevo-37-ola-ai.md`**: el relevo 37 (el UI test del otro colchón `extraOnly`; el pager asienta con el scroll quieto).
 - **`Docs/SESION-2026-10-13-v2-relevo-50.md`**: el relevo 50 (E14 T4, T6, T28; la carga de la máquina).
+- **`Docs/SESION-2026-10-16-v2-relevo-61.md`**: el relevo 61 (la 2.1 en las olas 3 a 5, 31 de 42; el determinismo del sim; qué queda: F2-T5 y la ola 6).
 - **`Docs/SESION-2026-10-16-v2-relevo-60.md`**: el relevo 60, borrador (los 2 rojos de unit, B34 y su cuelgue de arranque, B30 con el sí del dueño, el `completo` de integ-r60, las decisiones del dueño y la 2.1 en olas 1–3 con sus carries).
 - **`Docs/SESION-2026-10-15-v2-relevo-59.md`**: el relevo 59, borrador (los 5 rojos aislados, B25 y su doble cobro, B30 en rama aparte, E12 en remoto, la 2.0 sin Meta, los textos de tienda y los cierres preparados).
 - **`Docs/SESION-2026-10-15-v2-relevo-58.md`**: el relevo 58 (`version-2` = `36697cac`, E14b B20–B24/B28/B29, E15 F0, el inventario de B29, el build único de integ-r58 y sus 5 rojos de UI).

@@ -6,8 +6,9 @@
 > `Docs/PLAN-v2-E15-valor-por-jugador.md`, la investigación `Docs/v21/investigacion-R1-R8.md` y los 5 planes por tareas
 > `Docs/superpowers/plans/2026-10-16-v21-e15-*.md`.
 >
-> **Foto:** 2026-10-16, relevo 60, planificación cerrada. Rama base **`version-2.1`** (desde `v2i/integ-r59`
-> `5b3d2cce`). **Nada de la 2.1 entra a `version-2`.** Progreso: **0 de 42**.
+> **Foto:** 2026-10-16, cierre del relevo 61. Rama base **`version-2.1`** (desde `v2i/integ-r59` `5b3d2cce`) =
+> `15451961` (ola 5 integrada y verificada). **Nada de la 2.1 entra a `version-2`.** Progreso: **31 de 42**. Queda
+> **F2-T5** (calibración), después la **ola 6** (build único) y los 🔒 del dueño.
 > Si un plan por tareas dice otra cosa que este archivo, manda el plan y este archivo se corrige.
 
 ## 1. Cómo se usa
@@ -28,18 +29,18 @@ Igual que `tasks.md` §1 (la 2.0), con estas diferencias:
 
 ## 2. Progreso
 
-**0 de 42** (ninguna integrada). Por fase:
+**31 de 42** (olas 1–5 menos F2-T5). Por fase:
 
 | Fase | Activas | ✅ | 🟢 | 🔧 🔄 | ⏳ | ⛔ | 🔒 |
 |---|---|---|---|---|---|---|---|
-| F1 | 9 |  |  |  | 2 | 6 | 1 |
-| F2 | 9 |  |  |  | 1 | 8 |  |
-| F3 | 8 |  |  |  | 2 | 6 |  |
-| F4 | 3 |  |  |  | 1 | 2 |  |
-| F5 | 4 |  |  |  |  | 4 |  |
-| F6 | 5 |  |  |  | 2 | 3 |  |
-| F7 | 4 |  |  |  |  | 4 |  |
-| **Total** | **42** |  |  |  | **8** | **33** | **1** |
+| F1 | 9 | 7 |  |  |  | 1 | 1 |
+| F2 | 9 | 7 |  |  | 1 | 1 |  |
+| F3 | 8 | 7 |  |  |  | 1 |  |
+| F4 | 3 | 1 |  |  |  | 2 |  |
+| F5 | 4 | 3 |  |  |  | 1 |  |
+| F6 | 5 | 3 |  |  |  | 2 |  |
+| F7 | 4 | 3 |  |  |  | 1 |  |
+| **Total** | **42** | **31** |  |  | **1** | **9** | **1** |
 
 **Cómo recalcularlo** (las filas de tarea de §5 tienen el ID `V21-F<fase>-T<n>` en la 1ª columna y el estado en la 3ª):
 
@@ -89,6 +90,10 @@ Progreso = integradas / (filas de tarea − salteadas).
 | mapa de ubicaciones de video (`AdPlacementMapTests`) | 5 → F3-T6 |
 
 ## 4. Cola de despacho — por olas
+
+> **Relevo 61 (2026-10-16):** olas 1–5 hechas, integradas y verificadas (ola 3 con la 2.0 final mergeada adentro); `version-2.1` =
+> `15451961`. Verificación de la ola 5: EK 1253 · unit 2456+1 known issue · Release 0 · UI 6/6 · matriz C3 verde con y sin `--caps` ·
+> SQL 67. Falta **F2-T5** (corre `pacing-sim` con habilitación) y la **ola 6**. Carries en las notas de F2-T4/F2-T5/F1-T7.
 
 **BASE de la ola 1:** `version-2.1` (= `5b3d2cce` + los docs de `v21/plan`). Cada ola sale de la punta integrada de la
 anterior. Despachar con `Agent(isolation: "worktree")` o worktree manual con ruta absoluta (ver `tasks.md` §4.2).
@@ -143,13 +148,13 @@ se arreglan en el momento. Revisión opus del diff entero contra `version-2`.
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
-| V21-F1-T1 | `PlayerValue` en EconomyKit: segmento, estimación, tablas con validación e histéresis | ⏳ | — | EK `Personalization/*` (nuevos) | | opus + rev. opus · ola 1 |
-| V21-F1-T2 | La tabla semilla `player_value.json` (tiers públicos de país, dispositivo por año) | ⛔ | F1-T1 | `Resources/Config/player_value.json` (nuevo) | | sonnet + rev. opus · ola 2 · V5 |
-| V21-F1-T3 | La config remota en Supabase, apagada y sin aplicar (`personalization_config()`) | ⏳ | — | migración `…000001`, `06_personalization_test.sql`, `admin.sql`, `README` | | opus + rev. opus · ola 1 |
-| V21-F1-T4 | Consentimiento TCF {1,5,6,8,9,10}, compuerta (con señal de menor) y cargador remoto | ⛔ | F1-T1, F1-T3 | `Managers/Personalization/*` (nuevos) | | opus + rev. opus · ola 2 · V9, V10 |
-| V21-F1-T5 | El servicio, `GameState.segment` y el evento `segment` | ⛔ | F1-T2, F1-T4, F1-T6 | `FisuEvolutionApp` (1 línea), `DebugPanelView`, `GameState+Personalization` (nuevo) | | opus + rev. opus · ola 3 |
-| V21-F1-T6 | Telemetría de la 2.1: `segment`, `exposure`, `progress`, `ctx` en `offer` (una migración nueva) | ⛔ | F1-T3 (`admin.sql`) | `TelemetryEvent`, `GameState+Telemetry`, migración `…000002`, `admin.sql` | | opus + rev. opus · ola 2 · R4 |
-| V21-F1-T7 | Privacidad de la personalización: borrador (6 bloques) y manifiesto | ⛔ | F1-T4, F1-T6 | `privacidad-v21-BORRADOR.md` (nuevo), `PrivacyInfo.xcprivacy` | | opus + rev. opus · ola 4 · 🔒 P3 después |
+| V21-F1-T1 | `PlayerValue` en EconomyKit: segmento, estimación, tablas con validación e histéresis | ✅ | — | EK `Personalization/*` (nuevos) | | opus + rev. opus · ola 1 |
+| V21-F1-T2 | La tabla semilla `player_value.json` (tiers públicos de país, dispositivo por año) | ✅ | F1-T1 | `Resources/Config/player_value.json` (nuevo) | | sonnet + rev. opus · ola 2 · V5 |
+| V21-F1-T3 | La config remota en Supabase, apagada y sin aplicar (`personalization_config()`) | ✅ | — | migración `…000001`, `06_personalization_test.sql`, `admin.sql`, `README` | | opus + rev. opus · ola 1 |
+| V21-F1-T4 | Consentimiento TCF {1,5,6,8,9,10}, compuerta (con señal de menor) y cargador remoto | ✅ | F1-T1, F1-T3 | `Managers/Personalization/*` (nuevos) | | opus + rev. opus · ola 2 · V9, V10 |
+| V21-F1-T5 | El servicio, `GameState.segment` y el evento `segment` | ✅ | F1-T2, F1-T4, F1-T6 | `FisuEvolutionApp` (1 línea), `DebugPanelView`, `GameState+Personalization` (nuevo) | | opus + rev. opus · ola 3 |
+| V21-F1-T6 | Telemetría de la 2.1: `segment`, `exposure`, `progress`, `ctx` en `offer` (una migración nueva) | ✅ | F1-T3 (`admin.sql`) | `TelemetryEvent`, `GameState+Telemetry`, migración `…000002`, `admin.sql` | | opus + rev. opus · ola 2 · R4 |
+| V21-F1-T7 | Privacidad de la personalización: borrador (6 bloques) y manifiesto | ✅ | F1-T4, F1-T6 | `privacidad-v21-BORRADOR.md` (nuevo), `PrivacyInfo.xcprivacy` | 75f46b60 | opus + rev. opus · ola 4 · 🔒 P3 después  · 5 decisiones abiertas del borrador para el dueño (🔒 P3)|
 | V21-F1-T8 | Verificación de F1 (controlador): identidad con la 2.0, compuerta, SQL | ⛔ | F1-T1…T7 | integración | | controlador · ola 6 |
 | V21-F1-T9 | Revisión legal antes de prender (gate G7) | 🔒 | F1-T7 | — | | **del dueño** (V11: hoy sin abogado; la personalización sale apagada) |
 
@@ -157,34 +162,34 @@ se arreglan en el momento. Revisión opus del diff entero contra `version-2`.
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
-| V21-F2-T1 | `SegmentLevers` y sus topes en el código; `segments.json` en identidad | ⏳ | F1-T1 (tipo) | EK `Personalization/SegmentLevers.swift`, `segments.json` (nuevos) | | opus + rev. opus · ola 1 |
-| V21-F2-T2 | El simulador por segmento (`PacingSegment`, `acceptRate`) | ⛔ | F2-T1 | `PacingProfile`, `PacingSimulator*` | | opus + rev. opus · ola 2 · R7 |
-| V21-F2-T3 | `pacing-sim --segment` y `--segment-matrix` | ⛔ | F2-T2 | `Tools/pacing-sim/*` | | sonnet · ola 3 |
-| V21-F2-T4 | El contrato de ritmo por segmento en CI (G1) y el presupuesto de visitantes | ⛔ | F2-T2, F2-T7, F3-T4 | `PacingFixture`, `SegmentPacingContractTests` (nuevo) | | opus + rev. opus · ola 5 · V7 |
-| V21-F2-T5 | Calibración de `segments.json` y de los topes por fuente (30 h con ×2,5 acotado) | ⛔ | F2-T3, F2-T4, F3-T4 | `segments.json`, `SegmentLevers.Caps` | | opus + rev. opus · ola 5 · corre `pacing-sim` con habilitación · 🔒 P2 · tabla a `balance-log.md` |
-| V21-F2-T6 | El premio por video según el segmento, a la vista (paso 2 de B29) | ⛔ | F2-T1, F1-T5 | `GameState+RewardDouble`, `RewardDouble`, `RewardDoubleOffer`, `+AdOffers`, `+AdPlacements` | | opus + rev. opus · ola 4 · 🔒 P8 textos |
-| V21-F2-T7 | Los relojes de las ayudas (colchón, visitantes, costado) por transformación del contenido | ⛔ | F2-T1, F1-T5 | `GameContent+Segment` (nuevo), `GameState+SegmentLevers` (nuevo), `GameState+Personalization` | | opus + rev. opus · ola 4 |
-| V21-F2-T8 | Menos forzados para el segmento que mira videos | ⛔ | F2-T1, F1-T5 | `ForcedAdsPacer`, `GameState+Ads` | | opus + rev. opus · ola 4 |
+| V21-F2-T1 | `SegmentLevers` y sus topes en el código; `segments.json` en identidad | ✅ | F1-T1 (tipo) | EK `Personalization/SegmentLevers.swift`, `segments.json` (nuevos) | | opus + rev. opus · ola 1 |
+| V21-F2-T2 | El simulador por segmento (`PacingSegment`, `acceptRate`) | ✅ | F2-T1 | `PacingProfile`, `PacingSimulator*` | | opus + rev. opus · ola 2 · R7 |
+| V21-F2-T3 | `pacing-sim --segment` y `--segment-matrix` | ✅ | F2-T2 | `Tools/pacing-sim/*` | | sonnet · ola 3 |
+| V21-F2-T4 | El contrato de ritmo por segmento en CI (G1) y el presupuesto de visitantes | ✅ | F2-T2, F2-T7, F3-T4 | `PacingFixture`, `SegmentPacingContractTests` (nuevo) | 65976aa6 | opus + rev. opus · ola 5 · V7  · C3.3 redefinido (high ≤ mid ≤ low): decisión para el dueño|
+| V21-F2-T5 | Calibración de `segments.json` y de los topes por fuente (30 h con ×2,5 acotado) | ⏳ | F2-T3, F2-T4, F3-T4 | `segments.json`, `SegmentLevers.Caps` | | opus + rev. opus · ola 5 · corre `pacing-sim` con habilitación · 🔒 P2 · tabla a `balance-log.md`  · **Relevo 61:** lo único que falta de las olas 1–5; el presupuesto de visitantes y dos pares de C3.3 (low .ads 0,25 y high .ads 1 contra la base) están en `withKnownIssue` apuntando acá: con los topes high cobra ≈79 min/día contra ≈52,8 (multiplicador/escala ≤ ≈2,17), y C3.3 necesita tolerancia o más semillas (caos del sim, ±1 h)|
+| V21-F2-T6 | El premio por video según el segmento, a la vista (paso 2 de B29) | ✅ | F2-T1, F1-T5 | `GameState+RewardDouble`, `RewardDouble`, `RewardDoubleOffer`, `+AdOffers`, `+AdPlacements` | 3a55c198 | opus + rev. opus · ola 4 · 🔒 P8 textos  · textos nuevos 🔒 P8|
+| V21-F2-T7 | Los relojes de las ayudas (colchón, visitantes, costado) por transformación del contenido | ✅ | F2-T1, F1-T5 | `GameContent+Segment` (nuevo), `GameState+SegmentLevers` (nuevo), `GameState+Personalization` | c9c3661d | opus + rev. opus · ola 4 |
+| V21-F2-T8 | Menos forzados para el segmento que mira videos | ✅ | F2-T1, F1-T5 | `ForcedAdsPacer`, `GameState+Ads` | 1bc4b4b3 | opus + rev. opus · ola 4 |
 | V21-F2-T9 | Verificación de F2 (controlador): G1, G2, G4 | ⛔ | F2-T1…T8 | integración | | controlador · ola 6 |
 
 ### F3 — Momento justo (`2026-10-16-v21-e15-f3.md`)
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
-| V21-F3-T1 | Detectores de necesidad natural (EK) | ⏳ | — | EK `Moments/*` (nuevos) | | opus + rev. sonnet · ola 1 |
-| V21-F3-T2 | Bandido Thompson con semilla (EK) | ⏳ | — | EK `Moments/ThompsonBandit.swift` (nuevo) | | opus + rev. opus · ola 1 |
-| V21-F3-T3 | `MomentsConfig` con topes y el planificador | ⛔ | F3-T1, F3-T2, F1-T1 | EK `Moments/*`, `moments.json` (nuevos) | | opus + rev. opus · ola 2 |
-| V21-F3-T4 | Los momentos en el simulador (peor caso) | ⛔ | F3-T3, F2-T2, F2-T3 | `PacingProfile`, `PacingSimulator+Sources`, `SourcesLoader` | | opus + rev. opus · ola 4 |
-| V21-F3-T5 | Los momentos en el juego (`GameState+Moments`, `exposure`, `ctx`) | ⛔ | F3-T3, F1-T5, F1-T6 | `GameState+Moments` (nuevo), `GameState+FrameLoop` (1 llamada) | | opus + rev. opus · ola 4 · bloque `gifts` (V4/§3.7) |
-| V21-F3-T6 | La tarjeta del momento, a la vista | ⛔ | F3-T5 | `MomentOfferCard` (nuevo), `RootView` (1 línea), mapa de ubicaciones | | sonnet + rev. opus · ola 5 · 🔒 P8 textos |
-| V21-F3-T7 | El bandido aprende (`BanditStore`, resultado desde el embudo) | ⛔ | F3-T5 | `BanditStore` (nuevo), `GameState+OfferFunnel` (1 llamada), `GameState+Moments` | | opus + rev. opus · ola 5 |
+| V21-F3-T1 | Detectores de necesidad natural (EK) | ✅ | — | EK `Moments/*` (nuevos) | | opus + rev. sonnet · ola 1 |
+| V21-F3-T2 | Bandido Thompson con semilla (EK) | ✅ | — | EK `Moments/ThompsonBandit.swift` (nuevo) | | opus + rev. opus · ola 1 |
+| V21-F3-T3 | `MomentsConfig` con topes y el planificador | ✅ | F3-T1, F3-T2, F1-T1 | EK `Moments/*`, `moments.json` (nuevos) | | opus + rev. opus · ola 2 |
+| V21-F3-T4 | Los momentos en el simulador (peor caso) | ✅ | F3-T3, F2-T2, F2-T3 | `PacingProfile`, `PacingSimulator+Sources`, `SourcesLoader` | 67ba78ee | opus + rev. opus · ola 4 |
+| V21-F3-T5 | Los momentos en el juego (`GameState+Moments`, `exposure`, `ctx`) | ✅ | F3-T3, F1-T5, F1-T6 | `GameState+Moments` (nuevo), `GameState+FrameLoop` (1 llamada) | 947f4ff2 | opus + rev. opus · ola 4 · bloque `gifts` (V4/§3.7) |
+| V21-F3-T6 | La tarjeta del momento, a la vista | ✅ | F3-T5 | `MomentOfferCard` (nuevo), `RootView` (1 línea), mapa de ubicaciones | b8d85e4b | sonnet + rev. opus · ola 5 · 🔒 P8 textos  · textos nuevos 🔒 P8|
+| V21-F3-T7 | El bandido aprende (`BanditStore`, resultado desde el embudo) | ✅ | F3-T5 | `BanditStore` (nuevo), `GameState+OfferFunnel` (1 llamada), `GameState+Moments` | f3787cda | opus + rev. opus · ola 5 |
 | V21-F3-T8 | Verificación de F3 (controlador) | ⛔ | F3-T1…T7 | integración | | controlador · ola 6 |
 
 ### F4 — Pisos por país (`2026-10-16-v21-e15-f4-f6-f7-andamiaje.md`)
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
-| V21-F4-T1 | `releaseops admob floors-plan` (dry-run, CSV opcional) | ⏳ | — (contrato C2 de F1) | `Tools/releaseops/rocore/admob_floors.py` (nuevo), `releaseops.py` | | sonnet + rev. opus · ola 1 |
+| V21-F4-T1 | `releaseops admob floors-plan` (dry-run, CSV opcional) | ✅ | — (contrato C2 de F1) | `Tools/releaseops/rocore/admob_floors.py` (nuevo), `releaseops.py` | | sonnet + rev. opus · ola 1 |
 | V21-F4-T2 | Aplicar los pisos (receta manual con el CSV exportado a mano) | ⛔ | F4-T1, 2–4 semanas de la 2.0 | AdMob (UI, sesión del dueño) | | post-lanzamiento · V5, V6 |
 | V21-F4-T3 | Medir el efecto de los pisos | ⛔ | F4-T2 + 2 semanas, F7-T1 | — | | post-lanzamiento |
 
@@ -192,18 +197,18 @@ se arreglan en el momento. Revisión opus del diff entero contra `version-2`.
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
-| V21-F5-T1 | Audiencia por oferta (EK), `base` = 2.0 | ⛔ | F1-T1 | `OffersCatalog`, `OffersEngine`, `OfferAudience` (nuevo) | | opus + rev. opus · ola 2 |
-| V21-F5-T2 | El pack de blue destacado (EK) | ⛔ | F1-T1 | `Shop/StoreRecommendation.swift` (nuevo) | | sonnet + rev. opus · ola 2 |
-| V21-F5-T3 | Cableado, destaque y aviso «Oferta elegida para vos» en la UE | ⛔ | F5-T1, F5-T2, F1-T5 | `GameState+Offers`, `offers.json`, `StoreView`, hoja de oferta, `OfferNotice` (nuevo) | | opus + rev. opus · ola 4 · V8 · 🔒 P8 textos |
+| V21-F5-T1 | Audiencia por oferta (EK), `base` = 2.0 | ✅ | F1-T1 | `OffersCatalog`, `OffersEngine`, `OfferAudience` (nuevo) | | opus + rev. opus · ola 2 |
+| V21-F5-T2 | El pack de blue destacado (EK) | ✅ | F1-T1 | `Shop/StoreRecommendation.swift` (nuevo) | | sonnet + rev. opus · ola 2 |
+| V21-F5-T3 | Cableado, destaque y aviso «Oferta elegida para vos» en la UE | ✅ | F5-T1, F5-T2, F1-T5 | `GameState+Offers`, `offers.json`, `StoreView`, hoja de oferta, `OfferNotice` (nuevo) | 88841e75 | opus + rev. opus · ola 4 · V8 · 🔒 P8 textos  · textos nuevos 🔒 P8|
 | V21-F5-T4 | Verificación de F5 (controlador): precios intactos, `asc diff` sin cambios | ⛔ | F5-T1…T3 | integración | | controlador · ola 6 |
 
 ### F6 — VEJ v2 con modelo (`2026-10-16-v21-e15-f4-f6-f7-andamiaje.md`)
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
-| V21-F6-T1 | Evaluador de árboles (EK) con fixture a mano | ⏳ | — | EK `Personalization/TreeEnsemble.swift` (nuevo) | | opus + rev. opus · ola 1 |
-| V21-F6-T2 | Features, camino v2 y reparto A/B (EK) | ⛔ | F1-T1, F6-T1 | EK `Personalization/*` (nuevos) | | opus + rev. opus · ola 2 |
-| V21-F6-T3 | Scripts de entrenamiento (`Tools/player-value-model/`) | ⏳ | — | `Tools/player-value-model/*` (nuevos) | | sonnet + rev. opus · ola 1 |
+| V21-F6-T1 | Evaluador de árboles (EK) con fixture a mano | ✅ | — | EK `Personalization/TreeEnsemble.swift` (nuevo) | | opus + rev. opus · ola 1 |
+| V21-F6-T2 | Features, camino v2 y reparto A/B (EK) | ✅ | F1-T1, F6-T1 | EK `Personalization/*` (nuevos) | | opus + rev. opus · ola 2 |
+| V21-F6-T3 | Scripts de entrenamiento (`Tools/player-value-model/`) | ✅ | — | `Tools/player-value-model/*` (nuevos) | | sonnet + rev. opus · ola 1 |
 | V21-F6-T4 | Entrenar el modelo real | ⛔ | R8 (miles de etiquetados), 🔒 P4, F1-T9 | — | | post-lanzamiento, datos |
 | V21-F6-T5 | A/B 7–14 días y despliegue | ⛔ | F6-T4, F7-T1 | config remota | | post-lanzamiento · 🔒 P11 |
 
@@ -211,9 +216,9 @@ se arreglan en el momento. Revisión opus del diff entero contra `version-2`.
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
-| V21-F7-T1 | Vistas del panel (valor, embudo, retención, ritmo real) | ⛔ | F1-T6 | migración `…000003`, `08_panel_test.sql` | | opus + rev. opus · ola 3 |
-| V21-F7-T2 | Consultas del dueño (`admin.sql`) y `Tools/v21/panel.sh` | ⛔ | F7-T1, F7-T3 | `admin.sql`, `README`, `Tools/v21/panel.sh` (nuevo) | | sonnet + rev. opus · ola 5 |
-| V21-F7-T3 | Priors del bandido y guardián de retención (sólo informan) | ⛔ | F7-T1 (nombres) | migración `…000004`, `09_guards_test.sql` | | opus + rev. opus · ola 3 |
+| V21-F7-T1 | Vistas del panel (valor, embudo, retención, ritmo real) | ✅ | F1-T6 | migración `…000003`, `08_panel_test.sql` | | opus + rev. opus · ola 3 |
+| V21-F7-T2 | Consultas del dueño (`admin.sql`) y `Tools/v21/panel.sh` | ✅ | F7-T1, F7-T3 | `admin.sql`, `README`, `Tools/v21/panel.sh` (nuevo) | 2a475f32 | sonnet + rev. opus · ola 5 |
+| V21-F7-T3 | Priors del bandido y guardián de retención (sólo informan) | ✅ | F7-T1 (nombres) | migración `…000004`, `09_guards_test.sql` | | opus + rev. opus · ola 3 |
 | V21-F7-T4 | Leer el panel y recalibrar (países, umbrales, priors, brazos, ritmo real) | ⛔ | datos (2–4 semanas prendida) | configs | | post-lanzamiento |
 
 ## 6. Gates humanos y 🔒 del dueño

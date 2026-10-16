@@ -5,6 +5,7 @@ import Testing
 
 /// Los textos y la ilustración de la tarjeta del momento (2.1 E15 F3 T6).
 @Suite("La tarjeta del momento")
+@MainActor
 struct MomentOfferCardTests {
     @Test("cada momento tiene su texto, con una clave propia")
     func everyMomentHasItsBody() {

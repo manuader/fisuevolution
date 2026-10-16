@@ -1,8 +1,9 @@
 import XCTest
 
 /// La caja del tablero (E14b B5, D2): la primera vez abre la pantalla del paquete; desde la segunda,
-/// un toque la abre ahí mismo y el empleado llega sin pop-up. Dónde está la caja lo dice el marcador
-/// `board.package` ("x,y" normalizado a la pantalla).
+/// un toque la abre ahí mismo y el empleado llega sin pop-up. Dónde tocar la caja lo dice el marcador
+/// `board.package` ("x,y" normalizado a la pantalla): su centro o, si un empleado de adelante la tapa
+/// (cae en cualquier lugar del piso, B22, y el toque es de lo de adelante, B19), una parte que se ve.
 @MainActor
 final class BoardPackageUITests: XCTestCase {
     override func setUp() {
@@ -16,7 +17,7 @@ final class BoardPackageUITests: XCTestCase {
         add(shot)
     }
 
-    /// Espera a que haya una caja a la vista y la toca donde está.
+    /// Espera a que haya una caja a la vista y la toca donde se ve.
     private func tapTheBoardBox(_ app: XCUIApplication) {
         let marker = app.otherElements["board.package"]
         XCTAssertTrue(marker.waitForExistence(timeout: 10))

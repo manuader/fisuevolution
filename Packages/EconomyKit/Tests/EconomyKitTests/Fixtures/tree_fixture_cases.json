@@ -1,0 +1,9 @@
+[
+  {"features": [1, 2, 5], "expected": 0.750672500296101},
+  {"features": [2, 3, 5], "expected": 1.7456010150169166},
+  {"features": [2, 3, 20], "expected": 2.706173712210199},
+  {"features": [null, null, null], "expected": 1.4843225333848165},
+  {"features": [2, null, null], "expected": 2.706173712210199},
+  {"features": [1.5, 2.5, 10], "expected": 2.706173712210199},
+  {"features": [1], "expected": 1.4843225333848165}
+]

@@ -55,11 +55,13 @@ struct MomentsPacingTests {
         ]
     )
 
-    /// Una config donde casi toda contratación es una pared (medio minuto de ingreso), para que los topes
-    /// sean lo único que frena las ofertas.
+    /// Una config donde casi toda contratación es una pared, para que los topes sean lo único que frena las
+    /// ofertas. El umbral es una fracción de segundo de ingreso: en la fixture chica el ingreso crece mucho
+    /// más rápido que los precios (la contratación sale de 1e-2 a 1e-6 segundos de ingreso) y el piso nunca
+    /// se llena, así que con medio minuto no salía ninguna pared.
     static func eager(_ caps: MomentsConfig.Caps) -> MomentsConfig {
         var config = seed
-        config.thresholds = NeedThresholds(priceWallMinutes: 0.5, backOfflineMinutes: 120)
+        config.thresholds = NeedThresholds(priceWallMinutes: 1e-6, backOfflineMinutes: 120)
         config.caps = caps
         return config
     }

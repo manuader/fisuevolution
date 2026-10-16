@@ -29,6 +29,10 @@ extension GameState {
         if let id = Self.fixtureValue("--uitest-event=", in: arguments) {
             debugPresentEvent(id: id)
         }
+        // Fisuras sueltos para fusionar a mano (B21: un merge en medio de la entrada del visitante).
+        if let count = Self.fixtureValue("--uitest-homeless=", in: arguments).flatMap(Int.init) {
+            debugSeedHomeless(count)
+        }
         if let scriptId = Self.fixtureValue("--uitest-visitor=", in: arguments) {
             stageRuntime.debugScript = scriptId
         }

@@ -255,7 +255,15 @@ extension GameState {
     /// entera, con tres tiers nuevos, sin salir del piso. Devuelve los eslabones.
     @discardableResult
     func debugSeedMergeAll(homeless count: Int) -> Int {
-        guard var player, var tower else { return 0 }
+        guard debugSeedHomeless(count) else { return 0 }
+        return enqueueMergeAll(onFloor: 0, origin: .debug)
+    }
+
+    /// El callejón con `count` Homeless sueltos y nada encolado: pares para fusionar a mano
+    /// (`--uitest-homeless=`), sin la cadena de `debugSeedMergeAll` comiéndoselos.
+    @discardableResult
+    func debugSeedHomeless(_ count: Int) -> Bool {
+        guard var player, var tower else { return false }
         let present = tower.placements(onFloor: 0).filter { $0.typeId == "homeless" }.count
         for _ in present..<max(present, count) {
             guard let slot = tower.floors[0].firstFreeSlot() else { break }
@@ -267,7 +275,7 @@ extension GameState {
         self.tower = tower
         bumpBoard()
         setVisibleFloor(0)
-        return enqueueMergeAll(onFloor: 0, origin: .debug)
+        return true
     }
 
     /// Un par planeado como lo planearía un video, para ver el embudo entero.

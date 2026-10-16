@@ -49,11 +49,15 @@ struct RootView: View {
 struct SplashView: View {
     /// Claves del catálogo y no texto: eran `Text(verbatim:)` en castellano, y el
     /// jugador en inglés los leía en castellano.
-    private let tips: [LocalizedStringKey] = [
+    private static let tips: [LocalizedStringKey] = [
         "splash.tip.merge",
         "splash.tip.tap",
         "splash.tip.upgrades",
     ]
+    /// El consejo se sortea UNA vez: sorteado en el `body`, cada pasada cambiaba el alto del texto,
+    /// el logo se medía en otro lugar (`onGeometryChange`) y la pasada siguiente volvía a sortear;
+    /// el arranque se colgaba en ese bucle de layout.
+    @State private var tip = Self.tips.randomElement() ?? Self.tips[0]
     /// El logo mide lo mismo que en la pantalla de lanzamiento (`UILaunchScreen › UIImageName`,
     /// mismo imageset): iOS lo dibuja centrado a su tamaño natural, y el splash arranca ahí.
     private static let logoWidth: CGFloat = 180
@@ -80,11 +84,19 @@ struct SplashView: View {
                 .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).midY } action: { screenMidY = $0 }
             VStack(spacing: 22) {
                 Spacer()
+                // Se mide un lugar vacío del tamaño del logo y el logo va encima con su `offset`: medido
+                // adentro del `offset`, el marco global se corría con él, cambiaba el `offset` y el
+                // arranque se colgaba en ese bucle de layout.
                 logo
+                    .hidden()
+                    .accessibilityHidden(true)
                     .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).midY } action: { logoMidY = $0 }
-                    .offset(y: risen || reduceMotion ? 0 : offsetToCenter)
-                    // Hasta medir, el logo no se dibuja: así no hace un salto desde arriba.
-                    .opacity(reduceMotion || (logoMidY != nil && screenMidY != nil) ? 1 : 0)
+                    .overlay {
+                        logo
+                            .offset(y: risen || reduceMotion ? 0 : offsetToCenter)
+                            // Hasta medir, el logo no se dibuja: así no hace un salto desde arriba.
+                            .opacity(reduceMotion || (logoMidY != nil && screenMidY != nil) ? 1 : 0)
+                    }
                 Group {
                     if let fisura = UIArt.image("fisura_celebrate") {
                         fisura.resizable().scaledToFit().frame(maxWidth: 200, maxHeight: 240)
@@ -95,7 +107,7 @@ struct SplashView: View {
                 VStack(spacing: 22) {
                     ProgressView()
                         .tint(Color("PaletteOrange"))
-                    Text(tips.randomElement() ?? tips[0])
+                    Text(tip)
                         .font(.system(.subheadline, design: .rounded).weight(.semibold))
                         .foregroundStyle(Color("PaletteInk").opacity(0.7))
                 }

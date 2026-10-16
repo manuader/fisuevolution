@@ -1,3 +1,4 @@
+import Foundation
 import EconomyKit
 import Testing
 @testable import FisuEvolution

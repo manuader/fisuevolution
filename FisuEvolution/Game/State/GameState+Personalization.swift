@@ -24,8 +24,8 @@ private enum PersonalizationAttachments {
     }
 }
 
-/// El segmento del jugador (2.1 E15 F1 T5). **Nada lo consume todavía**: lo van a leer las palancas
-/// (F2), los momentos (F3) y las ofertas (F5). Sin servicio (tests, recuperación), `base`: la 2.0.
+/// El segmento del jugador (2.1 E15 F1 T5). Lo leen las palancas (F2, `GameState+SegmentLevers`), los
+/// momentos (F3) y las ofertas (F5). Sin servicio (tests, recuperación), `base`: la 2.0.
 extension GameState {
     var personalization: PersonalizationService? {
         PersonalizationAttachments.service(for: self)
@@ -42,7 +42,8 @@ extension GameState {
     }
 
     /// Se adjunta una vez, después de la telemetría: los eventos `segment` y `exposure` salen por
-    /// ella. Si la escena ya estaba en primer plano, la sesión arranca ya.
+    /// ella. Si la escena ya estaba en primer plano, la sesión arranca ya. Desde ahí, los relojes de
+    /// las ayudas siguen al segmento.
     func attachPersonalization(_ service: PersonalizationService) {
         PersonalizationAttachments.attach(service, to: self)
         service.attach(
@@ -50,5 +51,6 @@ extension GameState {
             record: { [weak self] event in self?.telemetry?.record(event) }
         )
         service.start(inForeground: sceneActiveSince != nil)
+        trackSegmentClocks()
     }
 }

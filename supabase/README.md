@@ -125,3 +125,24 @@ El linter de seguridad marcaba tres cosas:
   `leaderboard`, nunca la vista;
 - `pg_net` estaba en el esquema `public`: `…000005_pg_net_schema.sql` la baja y la vuelve a crear
   en `extensions` (no admite `SET SCHEMA`).
+
+## Personalización (2.1, E15 F1) — SIN APLICAR (interruptor en false)
+
+`…20261016000001_personalization_config.sql` está probada en local (`06_personalization_test.sql`) y **no está
+aplicada** en el proyecto real. Aplicarla es 🔒 P4: con el OK del dueño, como las de la telemetría (`db push` o el
+conector, registrando la misma versión en `supabase_migrations.schema_migrations`). Aplicada, no cambia nada: el
+interruptor queda en `false`.
+
+Qué agrega:
+- Dos filas en `public.settings`: `personalization_enabled` (`false`) y `personalization_config`
+  (`{"version": 0, "sections": {}}`). La config es la del contrato C3: `version` y una sección por fase
+  (`player_value`, `segments`, `moments`); la app decodifica cada una por separado y una que falta o no valida deja
+  esa fase en la base.
+- La función `public.personalization_config()` (`anon`, `POST /rest/v1/rpc/personalization_config`): devuelve
+  `null` salvo con un `true` explícito en el interruptor, y entonces la config, si es un objeto de hasta 64 KB.
+  `null` = la base para todos.
+- Ningún permiso nuevo sobre la tabla: `anon` sigue sin leer `settings` directo, sólo esta función.
+
+Se prende, se apaga, se carga y se lee con `scripts/admin.sql` (16–18). Una config se valida **antes** de cargarla
+(`pacing-sim` y los tests de las tablas). **Cambios al esquema o a la función = migración nueva; no se edita una
+migración ya escrita** (tampoco esta, una vez aplicada).

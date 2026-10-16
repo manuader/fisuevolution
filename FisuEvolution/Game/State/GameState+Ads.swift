@@ -84,6 +84,8 @@ extension GameState {
             try? await Task.sleep(for: ads.settleDelay)
         }
         guard phase == .ready else { return }
+        // Menos forzados para el segmento que mira videos (2.1 F2 T8); en `base`, 1: la 2.0.
+        pacer.spacingScale = segmentLevers.forcedSpacingScale
         let decision = pacer.decide(kind, context: naturalBreakContext)
         Log.ads.info("corte \(kind.rawValue): \(String(describing: decision))")
         guard case .show(let format) = decision else { return }
@@ -226,6 +228,7 @@ extension GameState {
     func adsDidReturnFromBackground() {
         guard let ads, let pacer = ads.pacer else { return }
         pacer.didReturnFromBackground()
+        pacer.spacingScale = segmentLevers.forcedSpacingScale
         guard ads.naturalBreakTask == nil,
               case .show(.appOpen) = pacer.decide(.returnFromBackground, context: naturalBreakContext)
         else { return }

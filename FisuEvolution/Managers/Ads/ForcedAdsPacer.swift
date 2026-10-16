@@ -48,6 +48,19 @@ final class ForcedAdsPacer {
     private(set) var session: AdsSession
     /// Se puede reemplazar en caliente cuando llega una config remota nueva.
     var policy: NaturalBreakPolicy
+    /// Cuánto más espaciados van los forzados para el segmento del jugador (2.1 E15 F2,
+    /// `forcedSpacingScale`): multiplica la ventana entre forzados, que es también la de la pausa
+    /// (alterna con el común). Sólo espacia más: menos de 1 (o un número roto) se ignora, como
+    /// `AdsRemoteConfig.Floor` con lo remoto. Con 1, la 2.0 exacta.
+    var spacingScale: Double = 1
+
+    /// `policy` con el espaciado del segmento. Todo lo que decide pasa por acá.
+    private var spacedPolicy: NaturalBreakPolicy {
+        guard spacingScale > 1, spacingScale.isFinite else { return policy }
+        var spaced = policy
+        spaced.minSecondsBetweenForced *= spacingScale
+        return spaced
+    }
 
     private let store: AdsPacingStore
     private let now: @Sendable () -> Date
@@ -100,7 +113,7 @@ final class ForcedAdsPacer {
     }
 
     func secondsUntilAlternatingDue() -> TimeInterval {
-        policy.secondsUntilAlternatingDue(pacing: pacing, session: session, now: now())
+        spacedPolicy.secondsUntilAlternatingDue(pacing: pacing, session: session, now: now())
     }
 
     /// El premio de turno de la pausa publicitaria.
@@ -132,7 +145,7 @@ final class ForcedAdsPacer {
     /// Qué mostrar en este corte, si algo. No cambia nada: decidir no es
     /// mostrar, y el anuncio puede no llegar a la pantalla.
     func decide(_ naturalBreak: NaturalBreak, context: NaturalBreakContext) -> NaturalBreakDecision {
-        policy.decide(naturalBreak, context: context, pacing: pacing, session: session, now: now())
+        spacedPolicy.decide(naturalBreak, context: context, pacing: pacing, session: session, now: now())
     }
 
     /// Un formato forzado se mostró: cierra la ventana de 2 min para todos,

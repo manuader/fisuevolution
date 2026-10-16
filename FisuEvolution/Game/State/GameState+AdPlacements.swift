@@ -21,11 +21,15 @@ extension GameState {
     }
 
     /// Terminó el video del ×2: se paga otra vez lo que el popup muestra (el
-    /// diario ya se acreditó al aparecer, con el ×3 de la tienda si lo había).
-    func doubleDailyReward(_ claim: DailyRewardManager.Claim, now: Date = Date()) {
+    /// diario ya se acreditó al aparecer, con el ×3 de la tienda si lo había). `multiplier` es el ×N del
+    /// paso 2 (2.1 E15 F2): paga `coinsGranted × (multiplier − 1)`; con ×2 (la base), lo mismo de siempre.
+    func doubleDailyReward(_ claim: DailyRewardManager.Claim,
+                           multiplier: Double = SegmentLevers.Levers.baseVideoRewardMultiplier,
+                           now: Date = Date()) {
         guard canDoubleDailyReward(claim, now: now), var player else { return }
-        player.run.coins += claim.coinsGranted
-        player.meta.lifetimeEarnings += claim.coinsGranted
+        let extra = claim.coinsGranted * (Self.atLeastBaseMultiplier(multiplier) - 1)
+        player.run.coins += extra
+        player.meta.lifetimeEarnings += extra
         player.meta.rewardedActivations[Self.dailyDoubleKey] = now.timeIntervalSince1970
         player.meta.stats.videosWatchedEver += 1
         self.player = player

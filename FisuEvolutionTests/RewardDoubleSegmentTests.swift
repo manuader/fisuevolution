@@ -146,6 +146,19 @@ struct RewardDoubleSegmentTests {
         }
     }
 
+    @Test("el diario y el offline nunca pagan menos que el ×2, ni con un ×N roto")
+    func neverBelowBase() async throws {
+        let gameState = await world(nil)
+        let day = try #require(gameState.content?.dailyRewards.days.first)
+        let claim = DailyRewardManager.Claim(day: day, coinsGranted: 500, specialGranted: nil, chestGranted: false)
+        let before = coins(gameState)
+        gameState.doubleDailyReward(claim, multiplier: 1, now: Date())
+        #expect(coins(gameState) - before == 500)
+        #expect(GameState.atLeastBaseMultiplier(.nan) == 2)
+        #expect(GameState.atLeastBaseMultiplier(-3) == 2)
+        #expect(GameState.atLeastBaseMultiplier(2.5) == 2.5)
+    }
+
     // MARK: - Lo que paga
 
     @Test("base con la config cargada: el offline paga exactamente lo de la 2.0")

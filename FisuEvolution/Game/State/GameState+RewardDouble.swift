@@ -11,8 +11,11 @@ import Foundation
 ///   un giro de ruleta tiene su propio paso 2 en la Ruleta; vaciar los cooldowns no es una cantidad.
 /// - **Sin video listo, no hay paso 2**: sin anuncio cargado, sin consentimiento o sin conexión, el
 ///   proveedor no tiene inventario (`isRewardedReady`) y la oferta no aparece.
-/// - **Una sola vez.** El video premiado paga exactamente lo del paso 1, y el paso 2 se borra ANTES de
-///   pagar: un segundo premio del mismo video no encuentra nada que cobrar.
+/// - **Una sola vez.** El video premiado paga lo del paso 1, y el paso 2 se borra ANTES de pagar: un
+///   segundo premio del mismo video no encuentra nada que cobrar.
+/// - **El ×N del segmento, a la vista** (2.1 E15 F2): la plata se paga por `RewardDouble.multiplier`
+///   (la palanca de la fuente, dentro de los topes del código; ×2 en la base) y el pop-up muestra eso
+///   mismo. Lo que no es plata se da una vez más: no hay media caja.
 extension GameState {
     /// Lo que el paso 2 vuelve a dar además de la plata (que va cotizada aparte, en `coins`). Un efecto con
     /// duración no pega dos veces: dura el doble, como el `scaled(by: 2)` de siempre.
@@ -61,12 +64,25 @@ extension GameState {
         if host == .board, let current = showing, current != celebration,
            Self.popupCelebrations.contains(current) { return false }
         rewardDouble = RewardDouble(site: site, placement: placement, host: host, payout: payout,
-                                    shownCoins: coins, shownRewards: rewards)
+                                    shownCoins: coins, shownRewards: rewards,
+                                    multiplier: Self.rewardDoubleMultiplier(site: site, levers: segmentLevers))
         // El del tablero retiene la cola en el acto (`heldDuringRewardDouble`): ni lo próximo que se encole
         // le pasa por encima.
         publishCelebration()
         Log.ads.info("reward double offered: \(site)")
         return true
+    }
+
+    /// El ×N del video para un `site`: la palanca de su fuente, acotada por los topes del código (lo remoto
+    /// ya se valida al leerse; esto es el último cerrojo). Un `site` sin fuente conocida, o un valor que no
+    /// es un número, es ×2: la 2.0.
+    static func rewardDoubleMultiplier(site: String, levers: SegmentLevers.Levers) -> Double {
+        let base = SegmentLevers.Levers.baseVideoRewardMultiplier
+        guard let source = SegmentLevers.Source(site: site) else { return base }
+        let wanted = levers.rewardMultiplier(for: source)
+        guard wanted.isFinite else { return base }
+        let caps = SegmentLevers.Caps.videoRewardMultiplierRange(for: source)
+        return min(max(wanted, caps.lowerBound), caps.upperBound)
     }
 
     /// El paso 2 de algo que se entregó por `grant`: la misma plata ya cotizada y los mismos premios.
@@ -174,29 +190,30 @@ extension GameState {
 
     // MARK: - El paso 2
 
-    /// El video se premió: paga lo del paso 1 otra vez. `false` si ya no había nada (otro premio del mismo
-    /// video, o se resolvió por otro lado).
+    /// El video se premió: paga lo del paso 1 otra vez, la plata por el ×N que mostró el pop-up
+    /// (`extraCoins`). `false` si ya no había nada (otro premio del mismo video, o se resolvió por otro lado).
     @discardableResult
     func claimRewardDouble(id: UUID, now: TimeInterval = Date().timeIntervalSince1970) -> Bool {
         guard let double = rewardDouble, double.id == id else { return false }
         rewardDouble = nil
+        let extra = double.extraCoins
         switch double.payout {
-        case let .grant(coins, rewards, source):
-            creditCoins(coins)
+        case let .grant(_, rewards, source):
+            creditCoins(extra)
             let granted = rewards.reduce(0.0) { $0 + grantAgain($1, source: source, now: now) }
-            announceReward(rewards, coins: coins + granted)
+            announceReward(rewards, coins: extra + granted)
             noteRewardDoubleVideo()
         case .offline(let reward):
             guard !offlineRewardDoubled else { break }
-            doubleOfflineReward(reward)
-            announceCoins(reward.amount)
+            doubleOfflineReward(reward, multiplier: double.multiplier)
+            announceCoins(extra)
             noteRewardDoubleVideo()
         case .daily(let claim):
             let day = Date(timeIntervalSince1970: now)
             guard canDoubleDailyReward(claim, now: day) else { break }
             // `doubleDailyReward` ya cuenta el video y evalúa los logros.
-            doubleDailyReward(claim, now: day)
-            announceCoins(claim.coinsGranted)
+            doubleDailyReward(claim, multiplier: double.multiplier, now: day)
+            announceCoins(extra)
         }
         Log.economy.info("reward double claimed: \(double.site)")
         double.followUps.forEach { $0() }

@@ -18,7 +18,8 @@ import Foundation
 /// | `double.achievement` | la plata o el blue de un logro |
 /// | `double.event.<evento>` | la plata de un evento (el Aguinaldo) |
 struct RewardDouble: Identifiable {
-    /// Lo que se paga otra vez si el video se premia: exactamente lo del paso 1, una sola vez.
+    /// Lo que se paga otra vez si el video se premia, una sola vez: lo del paso 1 (la plata, por el ×N de
+    /// `multiplier`).
     enum Payout: Equatable {
         /// La plata ya cotizada y los premios que se cuentan, otra vez por el punto único de premios.
         case grant(coins: Double, rewards: [RewardSpec], source: String)
@@ -39,6 +40,9 @@ struct RewardDouble: Identifiable {
     /// Lo que muestra el pop-up: la misma recompensa del paso 1.
     let shownCoins: Double
     let shownRewards: [RewardSpec]
+    /// El ×N del video (2.1 E15 F2): el de la palanca del segmento para esta fuente, fijado al ofrecer.
+    /// Con la base, ×2: el número de la 2.0.
+    var multiplier = SegmentLevers.Levers.baseVideoRewardMultiplier
     /// Lo que espera a que el paso 2 se resuelva (la cola de celebraciones, un corte natural).
     var followUps: [@MainActor () -> Void] = []
     /// El video del «×2» está cargando o en pantalla: desde el toque hasta que el anuncio vuelve, con premio
@@ -48,4 +52,11 @@ struct RewardDouble: Identifiable {
     /// Un «No, gracias» (o el cierre de la hoja) que llegó con el video en curso: se aplica si el anuncio
     /// vuelve sin premio.
     var declinePending = false
+
+    /// La plata que paga el video y que muestra el pop-up: `shownCoins × (multiplier − 1)`. Con ×2 es,
+    /// bit a bit, la del paso 1. Lo que no es plata se paga una vez más con cualquier ×N.
+    var extraCoins: Double { shownCoins * (multiplier - 1) }
+
+    /// El ×N no es el de la 2.0: el botón y el título lo dicen.
+    var isBoosted: Bool { multiplier != SegmentLevers.Levers.baseVideoRewardMultiplier }
 }

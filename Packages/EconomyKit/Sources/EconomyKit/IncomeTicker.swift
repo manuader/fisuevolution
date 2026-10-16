@@ -18,7 +18,10 @@ public enum IncomeTicker {
         config: EconomyConfig
     ) -> Double {
         var total = 0.0
-        for (typeId, count) in state.run.units where state.run.passiveUnlocked[typeId] == true {
+        // En orden de `id`: sumar en el orden de un `Dictionary`, que cambia por proceso, mueve el último
+        // bit de la suma, y en el simulador eso alcanza para que dos corridas iguales den Dios distinto.
+        for (typeId, count) in state.run.units.sorted(by: { $0.key < $1.key })
+        where state.run.passiveUnlocked[typeId] == true {
             guard count > 0, let type = tiers.type(id: typeId) else { continue }
             total += type.passiveYieldPerInstance
                 * Double(count)

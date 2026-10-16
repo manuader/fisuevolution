@@ -53,16 +53,13 @@ tipos (ranking + telemetría + AdMob; la 2.0 sale sin Meta): `Distribution/relea
 
 ## Avisos para E10
 
-- **BORRADOR de E10 T11 (relevo 59), para que apruebe el dueño:** `release.json → store.reviewNotes` y las Novedades de
-  `en-US`, `es-MX` y `es-ES` ya cubren lo que entró a `v2i/integ-r58` (barra nueva con la Tienda, el Ranking en Menú,
-  recompensas en dos pasos con «×2 con video» / «No, gracias», visitantes, cajas y colchón en el tablero, ruleta de 6
-  giros por día). Quedan por confirmar contra el build de TestFlight y por decidir: **«La Marcha» del Puntero
-  (E14b B25) no está en el build todavía**. Si entra, sumar a las Novedades esta línea (y a las notas, no hace falta:
-  es un evento gratis más con el mismo ×2 de «Dale»):
-  - en-US: `• The Puntero's March: tap 420 times in an hour and win 30 Blue Dollars, once a week.`
-  - es-MX y es-ES: `• La Marcha del Puntero: 420 toques en una hora y ganás 30 dólares blue, una vez por semana.`
-  Las notas están en 3.971 de 4.000 caracteres (sin Meta en el encabezado ADS): una línea nueva de más de 29 exige
-  recortar otra.
+- **E10 T11 cerrado contra `v2i/integ-r59` (relevo 60), para que apruebe el dueño:** `release.json → store.reviewNotes`
+  (3.949 de 4.000 caracteres, ASCII) nombra cada lugar de anuncios del código, incluidos **La Marcha del Puntero
+  (B25, `double.marcha`)**, el **colchón gratis cada 30 minutos (B31, `double.mattress`)** y el Aguinaldo
+  (`double.event.*`), y sólo a Google y Unity Ads (sin Meta). Las Novedades de `en-US`, `es-MX` y `es-ES` suman la línea de
+  La Marcha («420 toques en una hora y ganás 30 dólares blue, una vez por semana») y el colchón gratis cada 30 minutos.
+  La parte del ranking no cambió (se corrigió sólo que el Ranking es una tarjeta de Menú, la última pestaña de la barra).
+  Siguen por confirmar contra el build de TestFlight y por decidir el voseo de es-MX/es-ES.
 - **Resuelto en E10 T5:** la sección LEADERBOARD ya está en `release.json → store.reviewNotes` (resumida
   por el tope de 4000 caracteres, con el atajo a la pestaña Ranking) y las notas nombran sólo a
   Google y Unity Ads (Meta salió: la 2.0 sale sin Meta, dueño, 2026-10-15).

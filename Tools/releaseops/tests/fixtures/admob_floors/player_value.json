@@ -1,0 +1,5 @@
+{
+  "version": "fixture",
+  "countryTier": {"USA": 1, "GBR": 1, "DEU": 1, "ESP": 2, "FRA": 2, "ARG": 3, "MEX": 3, "BRA": 3},
+  "defaultCountryTier": 3
+}

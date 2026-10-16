@@ -1,0 +1,13 @@
+COUNTRY,FORMAT,PLATFORM,earnings,impressions
+US,rewarded,iOS,20.00,1000
+GB,rewarded,iOS,14.00,1000
+DE,rewarded,iOS,10.00,1000
+US,rewarded,Android,90.00,1000
+US,interstitial,iOS,6.00,2000
+GB,interstitial,iOS,4.00,2000
+ES,rewarded,iOS,4.00,1000
+FR,rewarded,iOS,2.00,1000
+ES,interstitial,iOS,0.50,100
+AR,rewarded,iOS,1.00,1000
+MX,rewarded,iOS,1.50,1000
+CO,rewarded,iOS,0.80,2000

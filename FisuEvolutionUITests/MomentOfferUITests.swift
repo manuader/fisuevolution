@@ -12,6 +12,7 @@ final class MomentOfferUITests: XCTestCase {
         continueAfterFailure = false
     }
 
+    @MainActor
     private func launch(segment: String) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = [

@@ -54,9 +54,9 @@ struct MarchRuntimeTests {
     func acceptingStoresTheMarch() async throws {
         let before = Date().timeIntervalSince1970
         let gameState = try await marching()
-        let march = try #require(march(gameState))
-        #expect(march.goal == 420 && march.rewards == [.blue(30)])
-        #expect(march.startedAt >= before && march.endsAt == march.startedAt + 3600)
+        let stored = try #require(march(gameState))
+        #expect(stored.goal == 420 && stored.rewards == [.blue(30)])
+        #expect(stored.startedAt >= before && stored.endsAt == stored.startedAt + 3600)
         #expect(gameState.stageChallenge == nil, "no traba el tablero ni los cortes una hora")
         #expect(gameState.stageVisit?.offer == nil, "el trato se cerró")
         #expect(gameState.visitorPopup == nil)

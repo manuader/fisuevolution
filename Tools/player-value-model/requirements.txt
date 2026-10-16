@@ -1,0 +1,4 @@
+# Sólo para entrenar de verdad (F6-T4). Los tests no los necesitan: sin ellos usan el entrenador de referencia en Python puro.
+numpy==2.1.3
+xgboost==2.1.3
+lightgbm==4.5.0

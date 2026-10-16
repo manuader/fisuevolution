@@ -7,6 +7,11 @@ se vuelve a exportar el clip con el alfa multiplicado por un degrade vertical, d
 arriba a 1 en `--pct` % de la altura (15 % por defecto, la opcion A del mockup aprobado), y SOLO desde
 el cuadro en que los rayos tocan el borde: el salto de las tapas, antes, llega al 6-8 % y queda entero.
 
+Los cuadros vienen PREMULTIPLICADOS (como los exporta `video_assets.keyed_filter` y como los
+composita el juego): el degrade multiplica el color junto con el alfa. Si tocara solo el alfa, el
+color de los rayos quedaria entero sobre un alfa casi nulo y el juego lo SUMARIA al fondo: el corte
+seguiria ahi, ahora como un brillo (el error de la primera horneada, r60).
+
 `ffmpeg` no lee el alfa de estos `.mov`; AVFoundation si. Por eso los cuadros se leen con
 `leer_cuadros_alfa.swift` (se compila solo la primera vez) y se escriben por el mismo camino que el
 resto del pipeline (`hevc_videotoolbox`, `hvc1`, mismas calidades que `chest_video_frames.py`).
@@ -62,7 +67,7 @@ def compilar_lector() -> Path:
 
 
 def leer_cuadros(clip: Path) -> np.ndarray:
-    """(n, alto, ancho, 4) BGRA, alfa recto."""
+    """(n, alto, ancho, 4) BGRA premultiplicado, tal cual lo guarda el clip."""
     r = subprocess.run([str(compilar_lector()), str(clip)], capture_output=True)
     if r.returncode:
         raise BordeError(f"no se pudo leer {clip.name}: {r.stderr.decode()}")
@@ -98,11 +103,12 @@ def degrade(alto: int, pct: float) -> np.ndarray:
 
 
 def difuminar(cuadros: np.ndarray, desde: int, pct: float = PCT_DEFECTO) -> np.ndarray:
-    """Copia con el alfa de los cuadros `desde`.. multiplicado por el degrade."""
+    """Copia con los cuadros `desde`.. multiplicados por el degrade: color y alfa, porque son
+    premultiplicados (el color nunca queda por encima del alfa)."""
     salida = cuadros.copy()
-    g = degrade(cuadros.shape[1], pct)
-    tramo = salida[desde:, :, :, 3].astype(np.float32) * g
-    salida[desde:, :, :, 3] = np.rint(tramo).astype(np.uint8)
+    g = degrade(cuadros.shape[1], pct)[:, :, None]
+    tramo = salida[desde:].astype(np.float32) * g
+    salida[desde:] = np.rint(tramo).astype(np.uint8)
     return salida
 
 
@@ -161,7 +167,8 @@ def tira(clip: Path, salida: Path, fondo: str, cuadros_pedidos: list[int] | None
     for i in idx:
         f = cuadros[min(i, n - 1)].astype(np.float32)
         a = f[..., 3:4] / 255.0
-        rgb = f[..., 2::-1] * a + np.array(color, np.float32) * (1 - a)
+        # premultiplicado, como composita el juego: el color se suma tal cual sobre el fondo
+        rgb = np.clip(f[..., 2::-1] + np.array(color, np.float32) * (1 - a), 0, 255)
         celdas.append(Image.fromarray(rgb.astype(np.uint8)).resize((192, 192)))
     lienzo = Image.new("RGB", (192 * len(celdas), 192))
     for k, c in enumerate(celdas):

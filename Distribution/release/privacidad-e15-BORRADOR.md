@@ -501,39 +501,52 @@ El diff de arriba no lo toca para no mezclar cambios; conviene alinearlo en la m
 
 ## 4. Etiqueta de App Privacy (App Store Connect)
 
-La etiqueta de ASC se declara **por tipo de dato**, como la unión de todo lo que junta la app (nuestro código, AdMob
-y las redes de mediación). Esto es lo que **suma la telemetría**; lo que ya declaran AdMob/Unity/Meta y el ranking
-(E12) no se toca.
+**Una sola tabla, la que se carga el día del envío de la 2.0** (corregida el 2026-10-15 contra la «Etiqueta objetivo»
+de `DUENO.md`, «E15 🔒 O4 — App Privacy»). La etiqueta se declara **por tipo de dato**, como la unión de lo que juntan
+nuestro código (ranking y telemetría), AdMob y las redes de mediación (Unity Ads y Meta Audience Network). Donde un
+SDK vincula o rastrea un tipo, **el tipo entero** se marca vinculado y con tracking, aunque nuestra parte no lo sea
+(ASC muestra un solo estado por tipo).
 
-| Tipo de dato (ASC) | Qué es en la telemetría | Vinculado a la identidad | Tracking | Propósito que suma |
-|---|---|---|---|---|
-| Usage Data · Product Interaction | sesiones (inicio, fin, duración), etapas de cada oferta de video, reencarnaciones | No | No | Analytics |
-| Usage Data · Advertising Data | cada impresión: formato, lugar, red, valor y moneda | No | No | Analytics |
-| Purchases · Purchase History | el id del producto comprado (sin precio ni transacción) | No | No | Analytics (tipo **nuevo** en la etiqueta) |
-| Identifiers · Device ID | el id propio de la telemetría (otro UUID al azar, distinto del `installId` del ranking; el tipo ya está declarado por el ranking con App Functionality) | No | No | Analytics (se suma a App Functionality) |
+| # | Tipo de dato (ASC) | De dónde sale | Vinculado a la identidad | Tracking | Propósitos a marcar |
+|---|---|---|---|---|---|
+| 1 | Location · Coarse Location | la IP que ven AdMob y las redes | **lo que figura hoy**: no se toca | Sí | Third-Party Advertising + Developer's Advertising (como está publicado) |
+| 2 | Identifiers · Device ID | el IDFA (AdMob, Meta); el `installId` del ranking; el id propio de la telemetría | Sí | Sí | Third-Party Advertising + **App Functionality** + **Analytics** |
+| 3 | Usage Data · Advertising Data | lo que ven AdMob y Meta; la impresión de cada anuncio en la telemetría | Sí | Sí | Third-Party Advertising + **Analytics** |
+| 4 | Usage Data · Product Interaction | **NUEVO.** AdMob (toques, vistas de video); sesiones, etapas de ofertas y reencarnaciones de la telemetría | Sí | Sí | **Analytics + Third-Party Advertising** |
+| 5 | User Content · Other User Content | **NUEVO (ranking, E12).** El nombre elegido y los tiempos de partida | No | No | App Functionality |
+| 6 | Purchases · Purchase History | **NUEVO (E15).** El id del producto comprado (sin precio ni transacción) | No | No | Analytics |
+| 7 | Diagnostics · Other Diagnostic Data | **NUEVO.** Meta Audience Network (su SDK **sí** está en el binario: `GoogleMobileAdsMediationMeta` 6.22.0 en `project.yml`) | No | No | Analytics |
+| 8 | Diagnostics · Crash Data | AdMob y las redes | **lo que figura hoy**: no se toca | No | Analytics |
+| 9 | Diagnostics · Performance Data | AdMob | **lo que figura hoy**: no se toca | No | App Functionality |
 
-Cómo leerla en el panel:
+Cómo leerla:
 
-- **Device ID y Advertising Data ya figuran** por AdMob/Meta como «usados para rastrearte» y vinculados (el IDFA y
-  los datos de publicidad de terceros; ver `Distribution/setup-v2-asc-admob-mediacion.md` §1.7). ASC muestra un solo
-  estado por tipo: esos dos **siguen** apareciendo como tracking/vinculados por los SDK de anuncios, y lo nuestro sólo
-  les **suma el propósito Analytics**. No hay que desmarcar nada.
-- **Product Interaction** probablemente ya está por AdMob (toques, vistas de video); si está, se le suma Analytics.
-- **Purchase History** es nuevo: no vinculado, sin tracking, Analytics.
-- **No se declara** Coarse Location por el país de la tienda (es el país de la cuenta de App Store, no una ubicación
-  del dispositivo) ni por la IP de los logs de Supabase (no la usamos ni la guardamos con los eventos). Coarse
-  Location ya figura por AdMob de todos modos. Tampoco se declara «Other Diagnostic Data» por la versión de iOS y el
-  modelo: van como contexto técnico de cada evento, no como diagnóstico. Ese tipo **ya figura** en la etiqueta por
-  Meta Audience Network (Analytics, no vinculado, sin tracking; tabla de los SDK en
-  `Distribution/setup-v2-asc-admob-mediacion.md`), así que sumarle el propósito no cambiaría lo que ve el jugador. Si
-  el dueño prefiere declarar de más en alguno de estos, es su decisión; el manifiesto quedaría igual.
-- Tiene que coincidir con `PrivacyInfo.xcprivacy` (ya actualizado en esta tarea, abajo) y con el texto aprobado del
-  bloque 1.
+- **Qué cambia respecto de la etiqueta publicada con la 1.0** (5 tipos: filas 1, 2, 3, 8 y 9): Device ID suma App
+  Functionality y Analytics; Advertising Data suma Analytics; y entran cuatro tipos nuevos (filas 4 a 7). Coarse
+  Location, Crash Data y Performance Data quedan como están. Se parte de lo publicado hace 24 días, no de lo que el
+  borrador anterior suponía: le faltaban Product Interaction y Other Diagnostic Data, porque suponía que ya estaban.
+- **Resumen de la ficha:** Product Interaction es Usage Data, que ya figura en «Data Used to Track You» y en «Data
+  Linked to You» por Advertising Data: el resumen no cambia. Other User Content, Purchase History y Other Diagnostic
+  Data van en «Data Not Linked to You».
+- **Dónde se cargan las vinculaciones:** el borrador de la telemetría (T5) las declaraba como «No vinculado, sin
+  tracking» para sus partes (filas 2 a 4). La etiqueta final las sube a vinculado y con tracking porque AdMob y Meta ya
+  los vinculan y rastrean: marcarlos de otro modo sería declarar de menos. `PrivacyInfo.xcprivacy` de la app no cambia
+  (describe sólo nuestro código, que no rastrea; `NSPrivacyTracking` sigue en `false`, B22).
+- **No se declara** Coarse Location por el país de la tienda (es el país de la cuenta de App Store, no una ubicación del
+  dispositivo) ni por la IP de los logs de Supabase (no la usamos ni la guardamos con los eventos). La fila 1 ya figura
+  por AdMob de todos modos. Tampoco se declara Other Diagnostic Data por la versión de iOS y el modelo de nuestra
+  telemetría (contexto técnico de cada evento); la fila 7 existe por Meta, no por nosotros.
+- **Antes de cargar:** abrir el panel y comparar cada fila 1, 8 y 9 con lo publicado (son las que no se tocan: si el
+  panel dice otra cosa que esta tabla, manda el panel y se anota). El formulario avisa que las respuestas deben reflejar
+  sólo lo que recolecta **esta versión**: por eso se carga el día del envío y no antes (la 1.0 en la tienda no tiene
+  ranking ni telemetría). Se abrió y se canceló sin cambios el 2026-10-15.
+- Tiene que coincidir con la política publicada (bloque 1) y con la lista de SDK de `Distribution/setup-v2-asc-admob-mediacion.md`
+  §1.7, que trae la misma tabla.
 
 **Cómo se carga:** `release-ops` **no** lo soporta (la CLI no tiene comando de App Privacy, y la API de App Store
-Connect no expone las etiquetas de privacidad). Lo hace **el dueño en el panel** (🔒 O4): App Store Connect →
-la app → **App Privacy** → editar cada tipo de la tabla → **Publish**. Hay que hacerlo antes de mandar la 2.0 a
-revisión, porque el binario ya lleva el manifiesto nuevo.
+Connect no expone las etiquetas de privacidad). Lo hace **el dueño en el panel**, en su Chrome y con su sesión (🔒 O4):
+App Store Connect → la app → **App Privacy** → editar cada tipo de la tabla → **Publish**, el día en que se manda la
+2.0 a revisión.
 
 ## 5. AdMob: ingresos a nivel de impresión
 
@@ -599,8 +612,6 @@ conteo (`set-review-notes … caracteres`) antes de aplicar.
 ## Para T9
 
 - Si la Opción A **no** está integrada cuando se apliquen los textos, copiar la variante B (decisión 1).
-- `Distribution/setup-v2-asc-admob-mediacion.md:292-293` (§1.7) está **desactualizado**: dice que el manifiesto
-  declara `NSPrivacyCollectedDataTypes = []`, y desde E12 declara lo del ranking y ahora lo de la telemetría.
-  Corregirlo junto con los textos.
+- `Distribution/setup-v2-asc-admob-mediacion.md` §1.7: **corregido** (relevo 59, junto con el §4 de este archivo).
 - En el sitio, el título de la sección nueva es «Estadísticas de uso» / «Usage statistics» (ids `estadisticas` /
   `usage-stats`).

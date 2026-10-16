@@ -290,12 +290,38 @@ Lo nuevo de la 2.0 es la sección de **actividades de azar**:
 ### 1.7 App Privacy
 
 `PrivacyInfo.xcprivacy` declara lo que junta **nuestro código**: lo del
-ranking (E12) y lo de las estadísticas de uso (E15: Product Interaction,
-Advertising Data, Purchase History y Device ID, con propósito Analytics, no
-vinculados y sin tracking), y `NSPrivacyTracking = false` (HANDOFF-v2 explica
-por qué `true` sin dominios hizo rechazar el build: ITMS-91064). Además hay
-que declarar **lo que juntan los SDK de anuncios**; el detalle de lo propio
-está en `Distribution/release/privacidad-e15-BORRADOR.md` §4.
+ranking (E12: Device ID con el `installId` y Other User Content con el
+nombre y los tiempos) y lo de las estadísticas de uso (E15: Product
+Interaction, Advertising Data, Purchase History y Device ID, con propósito
+Analytics), todo no vinculado y sin tracking, y `NSPrivacyTracking = false`
+(HANDOFF-v2 explica por qué `true` sin dominios hizo rechazar el build:
+ITMS-91064). Además hay que declarar **lo que juntan los SDK de anuncios**.
+
+⚠️ **Se carga el día que se manda la 2.0 a revisión, no antes**: el formulario
+de ASC pide que las respuestas reflejen sólo lo que recolecta esa versión, y
+la 1.0 en la tienda no tiene ranking ni telemetría. La etiqueta publicada con
+la 1.0 tiene 5 tipos (Coarse Location, Device ID, Advertising Data, Crash
+Data y Performance Data); el borrador anterior de esta sección suponía que
+Product Interaction y Other Diagnostic Data ya estaban, y no.
+
+**La etiqueta final (la que se carga; la fuente es `DUENO.md`, «E15 🔒 O4»):**
+
+| Tipo de dato en App Store Connect | Vinculado | Tracking | Propósitos |
+|---|---|---|---|
+| Location → Coarse Location | como figura hoy | Sí | Third-Party Advertising + Developer's Advertising |
+| Identifiers → Device ID | Sí | Sí | Third-Party Advertising + App Functionality + Analytics |
+| Usage Data → Advertising Data | Sí | Sí | Third-Party Advertising + Analytics |
+| Usage Data → Product Interaction (**nuevo**) | Sí | Sí | Analytics + Third-Party Advertising |
+| User Content → Other User Content (**nuevo**, ranking) | No | No | App Functionality |
+| Purchases → Purchase History (**nuevo**, E15) | No | No | Analytics |
+| Diagnostics → Other Diagnostic Data (**nuevo**, Meta) | No | No | Analytics |
+| Diagnostics → Crash Data | como figura hoy | No | Analytics |
+| Diagnostics → Performance Data | como figura hoy | No | App Functionality |
+
+Donde un SDK vincula o rastrea un tipo, el tipo entero se marca así aunque
+nuestra parte no lo sea. El detalle y el porqué de cada fila, en
+`Distribution/release/privacidad-e15-BORRADOR.md` §4. Lo carga el dueño en su
+Chrome, con su sesión de ASC (no hay API para esto).
 
 **Lo que declara Google** para el SDK de AdMob
 ([data disclosure](https://developers.google.com/admob/ios/privacy/data-disclosure)):
@@ -326,9 +352,10 @@ Consecuencias:
 - Meta declara **tracking** y vincula Device ID y Advertising Data: App Privacy
   tiene que declarar "Data Used to Track You" (identificador de publicidad y
   datos de publicidad), como la v1.
-- El `PrivacyInfo.xcprivacy` de la app describe el código de la app (que no
-  rastrea) y no cambia; App Privacy en App Store Connect declara la unión de
-  esta tabla y de la de Google (E10).
+- El `PrivacyInfo.xcprivacy` de la app describe sólo el código de la app (que
+  no rastrea; `NSPrivacyTracking` sigue en `false`); App Privacy en App Store
+  Connect declara la unión de esta tabla, la de Google y lo propio, que es la
+  tabla final de arriba (E10).
 - Los dominios de tracking de Meta (`ep1.facebook.com`, `ep6.facebook.com`) son
   los que el dueño pasa cuando se decide `NSPrivacyTracking = true` en la app
   (test `trackingNeedsDomains`); hasta entonces sigue `false`.
@@ -346,9 +373,8 @@ Cómo armar la declaración de la 2.0:
    (`checklist-submission.md`, punto 6). Si falta alguno, abrir el
    `PrivacyInfo.xcprivacy` del paquete SPM de esa red.
 3. 🔒 Declarar en App Store Connect **la unión** de lo que dicen Google y las
-   dos redes. Como punto de partida, la v1 declaró **"Data Used to Track You"**
-   (identificador de publicidad) más datos de uso y diagnóstico de
-   publicidad de terceros (`checklist-submission.md`, punto 5).
+   dos redes y lo propio: es la tabla final de arriba (9 tipos). Contrastarla
+   con el reporte de Xcode del paso 1 antes de cargarla.
 4. Tiene que coincidir con la política del sitio (4.2). Declarar de menos es
    rechazo, y declarar de más también es declarar mal.
 

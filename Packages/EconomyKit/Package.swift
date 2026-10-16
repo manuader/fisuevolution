@@ -9,6 +9,6 @@ let package = Package(
     ],
     targets: [
         .target(name: "EconomyKit"),
-        .testTarget(name: "EconomyKitTests", dependencies: ["EconomyKit"]),
+        .testTarget(name: "EconomyKitTests", dependencies: ["EconomyKit"], exclude: ["Fixtures"]),
     ]
 )

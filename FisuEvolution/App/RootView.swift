@@ -300,6 +300,7 @@ struct GameBoardView: View {
         .modifier(RewardFlightLayer())
         .modifier(ShareOfferLayer())
         .modifier(NewCharacterCardPopup())
+        .modifier(MomentOfferLayer())
         .modifier(AdValueProbe())
         // El overlay se monta acá y no dentro del `ZStack` porque necesita los
         // anchors que publican los controles de adentro: `overlayPreferenceValue`

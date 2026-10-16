@@ -16,6 +16,8 @@ struct AdPlacementMapTests {
         "Game/State/GameState+RewardDouble.swift": [.visitor, .offlineX2, .daily, .wheel, .treasure, .gifts],
         "UI/SideRail/SideRailOfferCard.swift": [.boost, .treasure],
         "UI/Wheel/WheelView.swift": [.wheel],
+        // La tarjeta del momento (2.1 F3 T6): el video sale del bloque de Regalos.
+        "UI/Moments/MomentOfferCard.swift": [.gifts],
         "UI/Prizes/MattressPopupView.swift": [.treasure],
         "UI/Visitors/VisitorPopupView.swift": [.visitor],
         "UI/Visitors/VendorCardsView.swift": [.visitor],

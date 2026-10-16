@@ -707,3 +707,9 @@ Release en el SE, vara de G1–G5 de E8d (procedimiento de instrumentos en su se
 clases de E8e); Step 4: `Docs/SESION-<fecha>-v2-e8e.md`, `HANDOFF.md` §4/§5/§7 y `tasks.md` cuando el
 dueño devuelva los números. Esta fila bloquea E10 T9 y T12 sólo por el `completo` y la verificación de
 los gates; el código ya está.
+
+### Actualización del relevo 60 (2026-10-16) `[BORRADOR]`
+
+**Decisión del dueño en vivo:** E8e T9 usa la misma vara que E8d T15 y se cierra **sólo con mediciones en el simulador del SE** (iOS 26.5), sin usar
+su iPhone. fps y memoria con el tope de 3 videos, Reduce Motion, bajo consumo y ODR `[COMPLETAR: números]`; el límite del simulador (HEVC-alfa por
+software, sin memoria de GPU real) queda anotado como riesgo aceptado. T10 sigue ⏭ (E14 C22).

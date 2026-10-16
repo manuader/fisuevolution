@@ -1384,3 +1384,11 @@ Anotá los números en la sesión del cierre. Todos en **Release** en el disposi
   VERDE en `45bc9bf`; se repite al integrar, sin cambios de Swift en este cierre.
 - Step 4 (docs): esta sección, `tasks.md` y la trampa de `HANDOFF.md` §7. `Docs/SESION-<fecha>-v2-e8d.md`
   se escribe cuando el dueño devuelva los números de G1–G5.
+
+### Actualización del relevo 60 (2026-10-16) `[BORRADOR]`
+
+**Decisión del dueño en vivo:** no tiene iPhone SE (sólo un 15 Pro) y pidió «medí sólo en el simulador del SE y cerrá las dos tareas con eso; mi
+iPhone no lo uses». Los gates G1–G5 y la política de Reduce Motion y bajo consumo se cierran **en el simulador del SE (iOS 26.5)**, no en un
+dispositivo: el simulador decodifica HEVC-alfa por software y no ve la memoria de texturas de la GPU, así que **G3 y G4 quedan con ese límite
+anotado como riesgo aceptado**. Brief: `ola-r60/gates-se.md`. Números `[COMPLETAR: G1 fps con 3 vivos, G3 sin cuadrado negro ni halo, G4 pico, G5 ODR,
+Reduce Motion y bajo consumo]`. Cuando estén, E8d T15 pasa a ✅ en `tasks.md`.

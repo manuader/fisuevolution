@@ -195,3 +195,20 @@ Sin números: se mira, no se mide.
 - **Compartir:** la imagen exportada es el personaje con su skin (no un símbolo).
 - **Tutorial y Tour:** un jugador nuevo no ve «las pestañas se mudaron»; un veterano sí.
 - **Lo que B30 cambia**, si el dueño dice que sí: los de atrás hasta un 15 % más chicos, sin saltos al deambular.
+
+### Actualización del relevo 60 (2026-10-16) `[BORRADOR]`
+
+- **B30 tiene el sí del dueño** y entró a la integración: `v2i/integ-r60` (`ab2f41ad`, merge de `b30-merge` con 2 conflictos resueltos en
+  `PickupController` y `BarFlapLayoutTests`, sin Meta). La Marcha (B25) y B31–B33 ya estaban en integ-r59; entró además **B34** (el logo blanco de Ader
+  Games en el splash y la pantalla de lanzamiento, `2ac58b41`, con el arreglo del cuelgue de arranque `ce0a5c99`). La E14b queda con B1–B19, B26 y
+  B27 en `version-2` y B20–B25 y B28–B34 🟢 en integ-r60.
+- **El `completo` de integ-r59** (`20261016-011825`, sobre `5b3d2cce`): EK 1057 · build · unit 2283 · Release 0 warnings · store-ui 3 · iPad 4 ·
+  SE 2 · pipeline 107 · pacing Dios 45,40 h (6 reenc.) · UI 199 + 6 rojos + 4 salteados (los 6, resueltos por `fix-ui-r60`; ver
+  `Docs/SESION-2026-10-16-v2-relevo-60.md`). **El `completo` de integ-r60 `[COMPLETAR: EK · unit · UI · rojos aislados · pacing]`** es el que
+  cierra el punto 1 de «Qué falta».
+- **Las capturas** de B34 (splash y paso a la pantalla principal) en SE y Pro Max, y las de los de atrás con B30 `[COMPLETAR]`.
+- **Lista de la pasada G4, sumas:** (a) el **splash**: el logo blanco de Ader Games aparece centrado, sube en 0,4 s (con Reduce Motion, un fundido),
+  y la pantalla de lanzamiento no salta al pasar al splash; (b) **B30 ya no es opcional:** los de atrás hasta un 15 % más chicos, sin saltos al
+  deambular, de pie sobre su piso y fáciles de tocar (mínimo 44 pt); (c) el **botón de compra** con un nombre largo en castellano («Coleccionista de
+  cartón») no se corta en el SE.
+- **Decisión del dueño:** E8d T15 y E8e T9 se miden en el simulador del SE (no hay SE real); el G4 sigue siendo en su iPhone 15 Pro.

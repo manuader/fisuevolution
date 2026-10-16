@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """La unión de SKAdNetwork de la mediación en el Info.plist (PLAN-v2 E7).
 
-Baja la lista oficial de Unity (Meta son dos IDs fijos), la une con las que ya
-trae el Info.plist (las de Google) y reescribe SÓLO el <array> de
+Baja la lista oficial de Unity, la une con las que ya trae el Info.plist (las de
+Google) y reescribe SÓLO el <array> de
 SKAdNetworkItems: los comentarios del archivo se conservan. Las que estaban
 quedan primero y en su orden; las nuevas, ordenadas.
 
@@ -19,7 +19,6 @@ INFO_PLIST = RAIZ / "FisuEvolution" / "Info.plist"
 LISTAS = {
     "Unity": "https://skan.mz.unity3d.com/v3/partner/skadnetworks.plist.json",
 }
-META = ["v9wttpbfk9.skadnetwork", "n38lu8286q.skadnetwork"]
 ID = re.compile(r"[a-z0-9]{10}\.skadnetwork", re.IGNORECASE)
 BLOQUE = re.compile(r"(<key>SKAdNetworkItems</key>\s*<array>)(.*?)(\n\t</array>)", re.DOTALL)
 
@@ -56,7 +55,7 @@ def bajar(url):
 
 
 def deseados(plist):
-    nuevas = list(META)
+    nuevas = []
     for red, url in LISTAS.items():
         de_la_red = ids_en(bajar(url))
         if not de_la_red:

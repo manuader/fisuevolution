@@ -10,8 +10,8 @@ import Testing
 ///
 /// Describe **sólo nuestro código**: cada SDK de anuncios trae su propio manifiesto,
 /// y la App Privacy de App Store Connect es la unión de todos. Por eso allá Device ID y
-/// Advertising Data figuran como vinculados y con tracking (los declara Meta) aunque
-/// acá no lo estén; lo nuestro sólo les suma propósitos.
+/// Advertising Data figuran como vinculados y con tracking (los declaran los SDK de
+/// anuncios) aunque acá no lo estén; lo nuestro sólo les suma propósitos.
 @Suite("El manifiesto de privacidad")
 struct PrivacyManifestTests {
     private var manifest: [String: Any] {

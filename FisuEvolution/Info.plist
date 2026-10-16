@@ -56,8 +56,9 @@
 	<key>SKIncludeConsumableInAppPurchaseHistory</key>
 	<true/>
 
-	<!-- La unión de Google y las dos redes de mediación (Unity Ads y Meta
-	     Audience Network), escrita por `Tools/v2/skadnetwork.py actualizar`.
+	<!-- La unión de Google y la red de mediación (Unity Ads), escrita por
+	     `Tools/v2/skadnetwork.py actualizar`. La 2.0 sale sin Meta, pero sus dos
+	     IDs (v9wttpbfk9, n38lu8286q) se quedan: están en la lista de Google.
 	     Sin esto, la atribución de instalaciones de SKAdNetwork no funciona y el
 	     inventario que paga por instalación deja de pujar: **no falla nada, sólo
 	     se factura menos**, que es lo que lo hace fácil de no notar.

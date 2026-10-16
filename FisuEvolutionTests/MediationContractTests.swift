@@ -2,8 +2,9 @@ import Foundation
 import Testing
 @testable import FisuEvolution
 
-/// La mediación está en el binario (PLAN-v2 E7b-a): los dos adaptadores
-/// enlazados (Unity Ads y Meta) y la unión de SKAdNetwork en el `Info.plist`.
+/// La mediación está en el binario (PLAN-v2 E7b-a): el adaptador de Unity Ads
+/// enlazado —y el de Meta afuera: la 2.0 sale sin Meta— y la unión de
+/// SKAdNetwork en el `Info.plist`.
 /// Sin los IDs, la atribución no funciona y el inventario que paga por
 /// instalación no puja: no falla nada, sólo se factura menos.
 @Suite("La mediación está en el binario")
@@ -13,7 +14,9 @@ struct MediationContractTests {
         return items.compactMap { $0["SKAdNetworkIdentifier"] }
     }
 
-    @Test("SKAdNetwork: Google, Unity y Meta, en minúscula y sin repetidos")
+    /// `v9wttpbfk9` y `n38lu8286q` son de Meta, pero están en la lista oficial
+    /// de Google (Meta compra en AdMob como un comprador más): se quedan.
+    @Test("SKAdNetwork: Google y Unity, en minúscula y sin repetidos")
     func skadNetworkUnion() {
         let ids = skadIDs
         #expect(ids.count >= 85, "\(ids.count) IDs: la unión de Google y Unity son 89")
@@ -25,11 +28,15 @@ struct MediationContractTests {
     }
 
     /// Los nombres son los de los headers de cada adaptador.
-    @Test("los dos adaptadores están enlazados", arguments: [
-        "GADMediationAdapterUnity",
-        "GADMediationAdapterFacebook",
-    ])
-    func adapterIsLinked(className: String) {
-        #expect(NSClassFromString(className) != nil, "\(className) no está en el binario: falta el paquete o -ObjC")
+    @Test("el adaptador de Unity está enlazado")
+    func unityAdapterIsLinked() {
+        #expect(NSClassFromString("GADMediationAdapterUnity") != nil,
+                "GADMediationAdapterUnity no está en el binario: falta el paquete o -ObjC")
+    }
+
+    @Test("el adaptador de Meta no viaja (la 2.0 sale sin Meta)")
+    func metaAdapterIsGone() {
+        #expect(NSClassFromString("GADMediationAdapterFacebook") == nil)
+        #expect(NSClassFromString("FBAdSettings") == nil)
     }
 }

@@ -134,7 +134,7 @@ struct TelemetryEventTests {
     @Test("ida y vuelta por JSON sin perder nada")
     func roundTrip() throws {
         let event = Self.event(.adImpression(
-            format: .interstitial, site: "adBreak", micros: 7_000, currency: "USD", precision: .estimated, source: "Meta"))
+            format: .interstitial, site: "adBreak", micros: 7_000, currency: "USD", precision: .estimated, source: "Unity"))
         let data = try TelemetryEvent.makeEncoder().encode(event)
         #expect(try TelemetryEvent.makeDecoder().decode(TelemetryEvent.self, from: data) == event)
     }

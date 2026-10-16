@@ -30,15 +30,13 @@ packages:
     from: 13.9.0
   # La mediación (PLAN-v2 E7b-a): un paquete de Google por red, y cada uno fija
   # el SDK de su red con `exact:` — NO se suma el paquete de la red aparte, o
-  # SPM no resuelve. Sólo Unity Ads y Meta (AppLovin y Mintegral quedaron
-  # afuera). Sus tags (4.21.000, 6.22.000) llevan ceros a la izquierda, no son
-  # semver y SPM los ignora: por eso van por `revision:` (SHA del tag).
+  # SPM no resuelve. Sólo Unity Ads (AppLovin y Mintegral quedaron afuera; la
+  # 2.0 sale sin Meta, decisión del dueño 2026-10-15). Su tag (4.21.000) lleva
+  # ceros a la izquierda, no es semver y SPM lo ignora: por eso va por
+  # `revision:` (SHA del tag).
   GoogleMobileAdsMediationUnity:
     url: https://github.com/googleads/googleads-mobile-ios-mediation-unity.git
     revision: 188967a5c062987496cd276b83dc25e84f87d9a6 # 4.21.000 (Unity Ads 4.21.0)
-  GoogleMobileAdsMediationMeta:
-    url: https://github.com/googleads/googleads-mobile-ios-mediation-meta.git
-    revision: 0a3d0597402162334fb5e11816ca612478180095 # 6.22.000 (Audience Network 6.22.0)
 settings:
   base:
     SWIFT_VERSION: "6.0"
@@ -107,8 +105,6 @@ targets:
         product: GoogleMobileAds
       - package: GoogleMobileAdsMediationUnity
         product: UnityAdapterTarget
-      - package: GoogleMobileAdsMediationMeta
-        product: MetaAdapterTarget
     settings:
       base:
         # Los adaptadores de mediación lo piden (sus categorías de Objective-C
@@ -214,7 +210,7 @@ targets:
           # ⚠️ `@executable_path/Frameworks` va escrito A MANO: el preset de
           # XcodeGen lo pone en la config del target, y esta clave lo PISA en el
           # mismo nivel — `$(inherited)` ya no lo trae. Sin él, los frameworks
-          # dinámicos de la mediación (FBAudienceNetwork) se embeben pero el
+          # dinámicos de la mediación (UnityAds) se embeben pero el
           # `.debug.dylib` no los encuentra: dyld aborta al abrir la app desde
           # el ícono o con `simctl launch` (medido 2026-10-12). Xcode lo tapa al
           # correr/testear inyectando `DYLD_FRAMEWORK_PATH`. Lo vigila

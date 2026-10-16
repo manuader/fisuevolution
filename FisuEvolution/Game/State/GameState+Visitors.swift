@@ -12,7 +12,8 @@ extension GameState {
         guard let player else { return nil }
         return VisitContext(maxTier: player.run.maxTierReached,
                             ownedSpecials: Set(player.meta.ownedSpecials),
-                            grantable: Self.grantableRewardKinds)
+                            grantable: Self.grantableRewardKinds,
+                            allowsWeekly: allowsWeeklyVisits)
     }
 
     /// La misma valuación que FisuJobs: el segundo de producción y el descuento
@@ -34,8 +35,10 @@ extension GameState {
 
     /// Lo llama `advanceEngagement` con el delta del tick (juego activo, con tope).
     /// El guion que llamó un evento entra primero; un evento esperando a su
-    /// presentador, antes que cualquier visitante (T4).
+    /// presentador, antes que cualquier visitante (T4). La Marcha corre con la
+    /// fecha de pared, antes que todo (E14b B25).
     func advanceVisitors(delta: TimeInterval, today: String = DailyRewardManager.dayString(for: Date())) {
+        advanceMarch()
         #if DEBUG
         if let scriptId = stageRuntime.debugScript, canPresentOnStage {
             stageRuntime.debugScript = nil
@@ -47,7 +50,13 @@ extension GameState {
             presentCalledScript()
             return
         }
-        guard engagementAutorun, !tutorialPhaseActive, let content, var player else { return }
+        guard engagementAutorun, !tutorialPhaseActive, let content else { return }
+        countVisitorSessionIfNeeded()
+        guard var player else { return }
+        // La semana sólo puede cambiar con el día: no se recalcula en cada tick.
+        if player.meta.engagement.visitors.day != today || player.meta.engagement.visitors.week == nil {
+            VisitorScheduler.rollWeek(&player.meta.engagement.visitors, week: VisitorScheduler.weekKey(for: Date()))
+        }
         VisitorScheduler.rollDay(&player.meta.engagement.visitors, today: today)
         let due = VisitorScheduler.advance(&player.meta.engagement.visitors, delta: delta, config: content.visitors)
         self.player = player
@@ -157,6 +166,8 @@ extension GameState {
         switch checked.kind {
         case .startChallenge:
             guard let terms = checked.challenge else { return false }
+            // La Marcha (E14b B25) va al save con el reloj de pared; los demás retos, al escenario.
+            if terms.realClock { return beginMarch(scriptId: offer.scriptId, terms: terms, now: now) }
             beginChallenge(scriptId: offer.scriptId, terms: terms, now: now)
             return true
         case .listen:

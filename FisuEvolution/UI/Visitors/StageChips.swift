@@ -19,6 +19,10 @@ struct StageChips: View {
                 ChallengeChip(challenge: challenge, visitorId: visit.actorId)
                     .transition(.scale(scale: 0.7, anchor: .topTrailing).combined(with: .opacity))
             }
+            if let march = gameState.march, let visitorId = gameState.content?.visitors.script(id: march.scriptId)?.visitor {
+                MarchChip(march: march, visitorId: visitorId) { gameState.openMarchPopup() }
+                    .transition(.scale(scale: 0.7, anchor: .topTrailing).combined(with: .opacity))
+            }
             // La lista sólo cambia al cambiar de piso, que sube `boardVersion`.
             let _ = gameState.boardVersion
             let waiting = gameState.visitorsWaitingElsewhere
@@ -31,6 +35,7 @@ struct StageChips: View {
         }
         .animation(.spring(duration: 0.3), value: gameState.stageVisit?.offer != nil)
         .animation(.spring(duration: 0.3), value: gameState.visibleFloorOrdinal)
+        .animation(.spring(duration: 0.3), value: gameState.march == nil)
     }
 }
 
@@ -155,5 +160,72 @@ struct ChallengeChip: View {
         .accessibilityLabel(Text("visit.challenge.ax \(challenge.taps) \(challenge.terms.taps)"))
         .accessibilityValue(Text(verbatim: "\(Int(remaining.rounded(.up)))s"))
         .onReceive(timer) { _ in clock = gameState.stageRuntime.challengeClock }
+    }
+}
+
+/// La Marcha del Puntero (E14b B25): su cara con el aro del tiempo que queda (reloj de PARED), la
+/// pastilla «Marcha 137/420» y el reloj. Al tocarlo abre el popup chico con el estado; resuelta,
+/// el final.
+struct MarchChip: View {
+    let march: MarchState
+    let visitorId: String
+    let action: () -> Void
+    @State private var now = Date().timeIntervalSince1970
+
+    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
+    var body: some View {
+        let remaining = march.remaining(at: now)
+        let window = max(march.endsAt - march.startedAt, 1)
+        Button(action: action) {
+            VStack(spacing: -6) {
+                ZStack {
+                    Circle()
+                        .trim(from: 0, to: march.isRunning ? remaining / window : 1)
+                        .stroke(Color("PaletteBlue"), style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                        .rotationEffect(.degrees(-90))
+                    VisitorFace(visitorId: visitorId, side: SpecialCardLayout.face - 10)
+                }
+                .frame(width: SpecialCardLayout.face, height: SpecialCardLayout.face)
+                .shadow(color: .black.opacity(0.25), radius: 3, y: 2)
+                .overlay(alignment: .topLeading) {
+                    if !march.isRunning {
+                        SideRailBadge(text: "!").offset(x: -6, y: -4)
+                    }
+                }
+                VStack(spacing: 0) {
+                    Text("marcha.chip \(String(march.taps)) \(String(march.goal))")
+                        .font(.system(size: 12, design: .rounded).weight(.heavy))
+                    if march.isRunning {
+                        Text(verbatim: MarchClock.text(remaining))
+                            .font(.system(size: 11, design: .rounded).weight(.bold))
+                            .opacity(0.9)
+                    }
+                }
+                .monospacedDigit()
+                .lineLimit(1)
+                .fixedSize()
+                .foregroundStyle(.white)
+                .padding(.horizontal, Tokens.s4)
+                .frame(minWidth: SpecialCardLayout.face, minHeight: SideRailLayout.ribbonHeight)
+                .background(PillBackground(fill: Color("PaletteBlue"), lip: 2))
+            }
+            .frame(minWidth: SpecialCardLayout.touch)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("stage.chip.marcha")
+        .accessibilityLabel(Text("marcha.chip.ax \(String(march.taps)) \(String(march.goal))"))
+        .accessibilityValue(Text(verbatim: MarchClock.text(remaining)))
+        .onReceive(timer) { _ in now = Date().timeIntervalSince1970 }
+    }
+}
+
+/// «42:13», o «1:00:00» con la hora entera: el reloj del chip y del popup de la Marcha.
+enum MarchClock {
+    static func text(_ seconds: TimeInterval) -> String {
+        let total = max(0, Int(seconds.rounded(.up)))
+        let hours = total / 3600, minutes = total % 3600 / 60, secs = total % 60
+        return hours > 0 ? String(format: "%d:%02d:%02d", hours, minutes, secs) : String(format: "%d:%02d", minutes, secs)
     }
 }

@@ -1166,17 +1166,17 @@ final class BoardScene: SKScene {
     /// modo distinto — y así el jugador tampoco pierde monedas por fusionar.
     private func handleTap(on node: CharacterNode, at timestamp: TimeInterval) {
         let slot = node.cellIndex
-        if let result = gameState.registerTap(cellIndex: slot) {
+        let isDoubleTap = slot == lastTapSlot && timestamp - lastTapTime <= Self.doubleTapWindow
+        let partner = isDoubleTap && timestamp - lastAssistedMergeTime > Self.assistedMergeCooldown
+            ? nearestMergePartner(of: node) : nil
+        // El toque que dispara la fusión cobra igual, pero no suma a la Marcha (E14b B25).
+        if let result = gameState.registerTap(cellIndex: slot, countsForMarch: partner == nil) {
             runTapFeedback(on: node, result: result)
         }
 
-        let isDoubleTap = slot == lastTapSlot && timestamp - lastTapTime <= Self.doubleTapWindow
         lastTapSlot = slot
         lastTapTime = timestamp
-        guard isDoubleTap,
-              timestamp - lastAssistedMergeTime > Self.assistedMergeCooldown,
-              let partner = nearestMergePartner(of: node)
-        else { return }
+        guard let partner else { return }
 
         lastAssistedMergeTime = timestamp
         // Sin esto, tres toques seguidos serían dos fusiones: el tercero forma

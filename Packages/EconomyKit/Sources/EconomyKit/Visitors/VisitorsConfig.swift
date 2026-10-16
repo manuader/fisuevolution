@@ -98,10 +98,18 @@ public struct VisitorsConfig: Codable, Sendable, Equatable {
         /// Sólo entra si lo llama un evento (el blue del Arbolito, en el Cepo).
         public let eventOnly: Bool
         public let mechanic: Mechanic
+        /// Cupo por semana calendario (E14b B25: la Marcha, una vez por semana). `nil` = sin cupo
+        /// semanal. Un guion con cupo semanal nunca sale en la primera sesión ni antes del tutorial
+        /// (`VisitContext.allowsWeekly`).
+        public let weeklyCap: Int?
+        /// El reto corre con el reloj de pared y vive en el save (la Marcha, E14b B25): sigue con la
+        /// app cerrada y se resuelve al volver. Sólo vale para `.challenge`.
+        public let realClock: Bool
 
         public init(
             id: String, visitor: String, weight: Int, minTier: Int,
-            dailyCap: Int, eventOnly: Bool, mechanic: Mechanic
+            dailyCap: Int, eventOnly: Bool, mechanic: Mechanic,
+            weeklyCap: Int? = nil, realClock: Bool = false
         ) {
             self.id = id
             self.visitor = visitor
@@ -110,6 +118,8 @@ public struct VisitorsConfig: Codable, Sendable, Equatable {
             self.dailyCap = dailyCap
             self.eventOnly = eventOnly
             self.mechanic = mechanic
+            self.weeklyCap = weeklyCap
+            self.realClock = realClock
         }
 
         public init(from decoder: Decoder) throws {
@@ -121,11 +131,16 @@ public struct VisitorsConfig: Codable, Sendable, Equatable {
             dailyCap = try container.decode(Int.self, forKey: .dailyCap)
             eventOnly = try container.decodeIfPresent(Bool.self, forKey: .eventOnly) ?? false
             mechanic = try container.decode(Mechanic.self, forKey: .mechanic)
+            weeklyCap = try container.decodeIfPresent(Int.self, forKey: .weeklyCap)
+            realClock = try container.decodeIfPresent(Bool.self, forKey: .realClock) ?? false
         }
 
         /// Las claves van por convención (Anexo A): una sola fuente para el globo y el popup.
         public var bubbleKey: String { "visit.\(id).bubble" }
         public var askKey: String { "visit.\(id).ask" }
+        /// Una línea propia del guion (`visit.<id>.<línea>`): los botones y el final de la Marcha. Si
+        /// el catálogo no la tiene, la app usa la genérica.
+        public func lineKey(_ line: String) -> String { "visit.\(id).\(line)" }
     }
 
     public let schemaVersion: Int
@@ -197,6 +212,10 @@ public struct VisitorsConfig: Codable, Sendable, Equatable {
             guard scriptIDs.insert(script.id).inserted else { throw ValidationError.duplicateId(script.id) }
             guard visitorIDs.contains(script.visitor) else { throw fail("visitante desconocido") }
             guard script.weight > 0, script.minTier >= 1, script.dailyCap > 0 else { throw fail("peso, tier o tope") }
+            guard (script.weeklyCap ?? 1) > 0 else { throw fail("cupo semanal") }
+            if script.realClock {
+                guard case .challenge = script.mechanic else { throw fail("sólo un reto corre con el reloj de pared") }
+            }
             for reward in script.mechanic.rewards {
                 do { try reward.validate() } catch { throw fail("premio inválido: \(error)") }
             }

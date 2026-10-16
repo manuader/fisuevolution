@@ -36,6 +36,13 @@ extension GameState {
         if let scriptId = Self.fixtureValue("--uitest-visitor=", in: arguments) {
             stageRuntime.debugScript = scriptId
         }
+        // La Marcha del Puntero (E14b B25): una ventana corta, o ya ganada para la foto del festejo.
+        if arguments.contains("--uitest-marcha-corta") {
+            stageRuntime.debugShortMarch = true
+        }
+        if arguments.contains("--uitest-marcha-ganada") {
+            debugSeedWonMarch()
+        }
         if let count = Self.fixtureValue("--uitest-packages=", in: arguments).flatMap(Int.init) {
             debugAddPackages(count)
         }

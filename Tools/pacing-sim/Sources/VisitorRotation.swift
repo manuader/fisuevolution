@@ -24,6 +24,11 @@ struct VisitorRotation {
     let hours: Double
     /// Minutos de producción que regalan los guiones de regalo, por visita.
     let giftMinutesPerVisit: Double
+    /// Las visitas de guiones con cupo semanal (la Marcha, E14b B25) y el blue que pagan si se ganan
+    /// todas, sin el ×2 de video.
+    let weeklyVisits: Int
+    let weeklyBlue: Int
+    let weeks: Double
 
     /// El tier de la run abierta a los `active` segundos activos.
     static func tier(at active: Double, report: PacingSimulator.Report) -> Int {
@@ -55,6 +60,8 @@ struct VisitorRotation {
         var unlockedSeconds: [String: Double] = [:]
         var giftSeconds = 0.0
         var total = 0
+        var weeklyVisits = 0
+        var weeklyBlue = 0
         // El tick de la app: el reloj de visitas no cuenta más que eso por paso.
         let step = min(1.0, IncomeTicker.deltaClampThreshold)
         var active = 0.0
@@ -63,7 +70,9 @@ struct VisitorRotation {
             for id in VisitorScheduler.unlockedVisitors(config: config, context: context) {
                 unlockedSeconds[id, default: 0] += step
             }
-            VisitorScheduler.rollDay(&state, today: "d\(Int(active / max(activePerDay, 1)))")
+            let day = Int(active / max(activePerDay, 1))
+            VisitorScheduler.rollWeek(&state, week: "w\(day / 7)")
+            VisitorScheduler.rollDay(&state, today: "d\(day)")
             if VisitorScheduler.advance(&state, delta: step, config: config) {
                 if let script = VisitorScheduler.pickNext(config: config, state: &state, context: context,
                                                           isOfferable: { _ in true }, rng: &rng) {
@@ -71,6 +80,13 @@ struct VisitorRotation {
                     visits[script.visitor, default: 0] += 1
                     total += 1
                     giftSeconds += giftCoinsSeconds(script) * config.coinsSecondsScale
+                    if script.weeklyCap != nil {
+                        weeklyVisits += 1
+                        weeklyBlue += script.mechanic.rewards.reduce(0) { total, reward in
+                            if case .blue(let amount) = reward { return total + amount }
+                            return total
+                        }
+                    }
                 } else {
                     VisitorScheduler.retrySoon(state: &state, config: config)
                 }
@@ -81,7 +97,9 @@ struct VisitorRotation {
             Row(visitor: $0.id, visits: visits[$0.id] ?? 0, unlockedHours: (unlockedSeconds[$0.id] ?? 0) / 3600)
         }
         return VisitorRotation(rows: rows, totalVisits: total, hours: horizon / 3600,
-                               giftMinutesPerVisit: total > 0 ? giftSeconds / Double(total) / 60 : 0)
+                               giftMinutesPerVisit: total > 0 ? giftSeconds / Double(total) / 60 : 0,
+                               weeklyVisits: weeklyVisits, weeklyBlue: weeklyBlue,
+                               weeks: horizon / max(activePerDay, 1) / 7)
     }
 
     private static func giftCoinsSeconds(_ script: VisitorsConfig.Script) -> Double {
@@ -109,6 +127,8 @@ struct VisitorRotation {
         Swift.print("  total \(totalVisits) visitas · por hora entre \(String(format: "%.2f", rates.min() ?? 0))"
             + " y \(String(format: "%.2f", rates.max() ?? 0)) · regalo medio \(String(format: "%.2f", giftMinutesPerVisit)) min de producción por visita")
         Swift.print(missing.isEmpty ? "  ✅ vinieron los \(rows.count)" : "  ❌ no vinieron: \(missing.joined(separator: ", "))")
+        Swift.print("  cupo semanal (la Marcha): \(weeklyVisits) visitas en \(String(format: "%.1f", weeks)) semanas"
+            + " · hasta \(weeklyBlue) blue si se ganan todas (×2 con video: \(weeklyBlue * 2)); el bot no las juega")
     }
 }
 

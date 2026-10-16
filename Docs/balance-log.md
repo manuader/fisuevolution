@@ -2543,3 +2543,47 @@ El diario y el offline, una vez por día y por vuelta, como antes.
 EconomyKit: 980 tests en verde. Los nuevos son `freeSpinsRepeat`, `giftedMattressDoubles` y `theGiftIsMarkedUntilOpened`.
 
 Comando: el de «Cómo re-correr» de la calibración 2.0, con `--profile free | ads | max`.
+
+# E14b B25 — «La Marcha» del Puntero: 420 toques en una hora de reloj real, 30 blue, una vez por semana (2026-10-15, D16)
+
+**Qué cambió:** un guion nuevo del Puntero, `puntero_marcha` (`visitors.json`): un reto de toques de 420 en 3.600 s
+que paga 30 blue (`rewards: [blue 30]`, `coins` 0), con dos campos nuevos del guion:
+- `realClock: true`. Corre con el reloj de pared y vive en el save (`VisitorsState.march`). Sigue con la app
+  cerrada y se resuelve al volver.
+- `weeklyCap: 1`. Es el cupo semanal del scheduler (`VisitorsState.week` / `visitsThisWeek`, semana ISO). Entrar
+  gasta el cupo, así que si el jugador la rechaza, no vuelve hasta la semana siguiente. Nunca sale en la primera
+  sesión (`VisitorsState.sessions`) ni antes de terminar el tutorial (`VisitContext.allowsWeekly`).
+
+Sólo cuentan los toques a mano que cobran (`registerTap`). No cuentan el autotoque ni el toque que dispara una
+fusión asistida. Ganada, se cobra una sola vez (`settleMarch` la saca del save) con el vuelo de B13 y después el
+paso 2 de B29 (`double.marcha`). Si vence, no hay premio. Todos los campos son opcionales al leer: un save viejo
+arranca sin Marcha y sin cupo.
+
+**Simulador:** `VisitorRotation` gira la semana (`w<día/7>`) y cuenta las visitas con cupo semanal y su blue. El bot
+no juega a los visitantes, así que la curva no se mueve.
+
+**Pacing (medido, sin cambio):**
+
+| Perfil | Dios (h activas) | de pared | blue a Dios | Reencarnaciones | Marchas hasta Dios | Blue posible (×2 con video) |
+|---|---|---|---|---|---|---|
+| `.free` | 45,40 | 816,07 | 5.996 | 6 | 5 en 4,9 semanas | 150 (300) |
+| `.ads` | 32,19 | 576,19 | 7.073 | 6 | 4 en 3,4 semanas | 120 (240) |
+
+Ganándolas todas, la Marcha suma entre el 2,5 % y el 5 % del blue con que se llega a Dios (de 150 a 300 sobre 5.996
+en `.free`). Queda adentro de la guarda de 5.000–12.000 y no alcanza para comprar antes ninguna mejora que corra la
+curva. Dios sigue en ~45 h en `.free` y no hizo falta tocar ningún dato. Los ❌ del contrato en `.ads` (las bandas
+por piso calibradas para `.free`) y el ❌ 6 en `.free` son los de siempre: B29 midió los mismos números.
+
+EconomyKit: `MarchTests` (17) mata 10 mutantes a mano:
+- la meta con `>` en vez de `>=`;
+- la ventana con `<=`;
+- el reloj que vuelve atrás;
+- `settle` que no borra;
+- el cupo semanal que no frena;
+- el cupo semanal que no cuenta;
+- `allowsWeekly` ignorado;
+- la Marcha en curso que no bloquea;
+- el save que no la lee;
+- el planificador sin `realClock`.
+
+Comando: el de «Cómo re-correr» de la calibración 2.0, con `--profile free | ads`.

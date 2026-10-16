@@ -71,14 +71,15 @@ final class VisitorUITests: XCTestCase {
         XCTAssertTrue(accept.waitForExistence(timeout: 6), "la tarjeta lo reabre")
     }
 
-    /// B21 (D15): un merge en medio de la entrada no la corta. Los ocho Fisuras de `--uitest-merge-all`
+    /// B21 (D15): un merge en medio de la entrada no la corta. Los ocho Fisuras de `--uitest-homeless=8`
     /// deambulan por el piso mientras el turista entra; el doble toque fusiona un par sin saltear la
-    /// caminata. Se barre en X como en `BoardGestureUITests`: sólo un merge baja `board.units`.
+    /// caminata. No sirve `--uitest-merge-all`: ése encola la cadena entera, que se juega antes de que
+    /// el turista entre y deja un solo personaje. Se barre en X como en `BoardGestureUITests`: sólo un merge baja `board.units`.
     /// `--uitest-slow-entrance` estira la entrada a ~11 s, y la tarjeta (que sale al llegar) tiene que
     /// faltar antes y después del merge: si el merge cayó con el visitante ya llegado, el test falla.
     @MainActor
     func testUnMergeEnMedioDeLaEntradaNoLaCortaYTocarloAbreElPopup() throws {
-        let app = launch("turista_propina", extra: ["--uitest-merge-all", "--uitest-slow-entrance"])
+        let app = launch("turista_propina", extra: ["--uitest-homeless=8", "--uitest-slow-entrance"])
         let units = app.otherElements["board.units"]
         let chip = app.buttons["stage.chip.visitor"]
         let accept = app.buttons["visit.option.accept"]
@@ -87,7 +88,9 @@ final class VisitorUITests: XCTestCase {
         for x in [0.30, 0.42, 0.55, 0.68, 0.20, 0.80, 0.36, 0.62] where !merged {
             XCTAssertFalse(chip.exists, "el visitante llegó antes del merge: el test no probó la entrada")
             app.coordinate(withNormalizedOffset: CGVector(dx: x, dy: 0.74)).doubleTap()
-            merged = waitFor(units, value: "7", timeout: 0.6)
+            // La fusión tarda en publicarse en `board.units` (el deslizamiento y el refresco a 8 Hz): con
+            // 0,6 s el merge ya hecho se leía como fallido y el toque siguiente fusionaba otro par.
+            merged = waitFor(units, value: "7", timeout: 2)
         }
         XCTAssertTrue(merged, "el doble toque no fusionó ningún par")
         XCTAssertFalse(chip.exists, "el merge tiene que caer con el visitante todavía entrando")

@@ -433,11 +433,17 @@ final class TutorialUITests: XCTestCase {
                        "la tarjeta repite el aviso para que el rastro no se corte")
 
         card.tap()
+        // Los logros son recompensa gratis (B29): cada cobro abre su «¿Lo duplicás?» encima de la lista, y
+        // hasta decir «No, gracias» la fila siguiente no se puede tocar.
+        let decline = app.buttons["reward.double.decline"]
         for id in ["ach_merges_1", "ach_taps_1000", "ach_videos_1"] {
             let claim = app.buttons["ach.claim.\(id)"]
             XCTAssertTrue(claim.waitForExistence(timeout: 6),
                           "el logro \(id) del fixture tiene que estar cobrable")
             claim.tap()
+            XCTAssertTrue(decline.waitForExistence(timeout: 8), "cobrado \(id), sale su ×2 con video (B29)")
+            decline.tap()
+            XCTAssertTrue(decline.waitForNonExistence(timeout: 4))
         }
 
         // Cobrado el último, el aviso muere en las dos superficies.

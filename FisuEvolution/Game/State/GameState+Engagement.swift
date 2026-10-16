@@ -43,12 +43,6 @@ extension GameState {
         if arguments.contains("--uitest-marcha-ganada") {
             debugSeedWonMarch()
         }
-        if let count = Self.fixtureValue("--uitest-packages=", in: arguments).flatMap(Int.init) {
-            debugAddPackages(count)
-        }
-        if let fixture = Self.fixtureValue("--uitest-package-floor=", in: arguments) {
-            debugDropPackages(fixture: fixture)
-        }
         if let count = Self.fixtureValue("--uitest-wheel-spins=", in: arguments).flatMap(Int.init) {
             debugAddWheelSpins(count)
         }
@@ -72,6 +66,15 @@ extension GameState {
                 self.player = filled
                 reconcileTower()
             }
+        }
+        // Después de los lugares extra: la caja cae en un lugar libre del piso y `--uitest-extra-slots`
+        // lo llena hasta el tope, así que antes de él la caja se quedaría sin sitio (las capturas de
+        // la ficha combinan los dos).
+        if let count = Self.fixtureValue("--uitest-packages=", in: arguments).flatMap(Int.init) {
+            debugAddPackages(count)
+        }
+        if let fixture = Self.fixtureValue("--uitest-package-floor=", in: arguments) {
+            debugDropPackages(fixture: fixture)
         }
         if arguments.contains("--uitest-mattress") {
             debugSpawnMattress()

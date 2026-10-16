@@ -101,6 +101,7 @@ struct FisuEvolutionApp: App {
         // Buy aprobados, y su `purchase` se perdería si llegara antes. Adjuntar no espera a la red y
         // la compuerta decide igual.
         gameState.attachTelemetry(TelemetryService.live(config: RankingConfigLoader().current()?.config))
+        gameState.attachPersonalization(PersonalizationService.live(config: RankingConfigLoader().current()?.config))
         await storeManager.start(gameState: gameState)
         if let content = gameState.content {
             gameState.attachGameCenter(gameCenter)

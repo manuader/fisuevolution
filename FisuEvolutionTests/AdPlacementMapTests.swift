@@ -20,6 +20,8 @@ struct AdPlacementMapTests {
         "UI/Visitors/VisitorPopupView.swift": [.visitor],
         "UI/Visitors/VendorCardsView.swift": [.visitor],
         "UI/Events/EventPopupView.swift": [.visitor],
+        // La Marcha del Puntero es un guion de visitante (E14b B25): su ×2 cuenta como visitante.
+        "Game/State/GameState+March.swift": [.visitor],
     ]
 
     private static let usage = try! NSRegularExpression(

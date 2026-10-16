@@ -146,7 +146,8 @@ extension GameState {
                                 rewards: [outcome.segment.reward], source: "wheel.\(outcome.segment.id)")
     }
 
-    /// El colchón de regalo (D4) se cobra y ofrece su ×2; el pagado con video y el «otro colchón», no.
+    /// El colchón gratis del tablero (B31) se cobra y ofrece su ×2; el pagado con video y el «otro
+    /// colchón», no.
     @discardableResult
     func offerMattressDouble(_ outcome: MattressOutcome) -> Bool {
         guard outcome.isGift else { return false }

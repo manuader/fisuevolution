@@ -157,8 +157,8 @@ struct RewardDoubleTests {
         case .colchonDeRegalo:
             gameState = await makeGameState()
             calm(gameState)
-            gameState.player?.meta.engagement.treasures = TreasuresState(secondsUntilNext: 600, phase: .onBoard,
-                                                                         gifted: true)
+            gameState.player?.meta.engagement.treasures = TreasuresState(
+                secondsUntilNext: 600, freeBoard: FreeBoardMattress(clockStartedAt: 0, waiting: true))
         case .logroPlata, .logroBlue:
             gameState = await makeGameState()
             calm(gameState)
@@ -205,7 +205,7 @@ struct RewardDoubleTests {
             }
             Issue.record("cuarenta cofres seguidos")
         case .colchonDeRegalo:
-            let outcome = try #require(gameState.openMattress(now: now))
+            let outcome = try #require(gameState.openFreeMattress(now: now))
             #expect(outcome.isGift)
             gameState.offerMattressDouble(outcome)
         case .logroPlata:
@@ -291,7 +291,7 @@ struct RewardDoubleTests {
             #expect(!gameState.offerMattressDouble(outcome))
         case .otroColchon:
             gameState.player?.meta.engagement.treasures = TreasuresState(secondsUntilNext: 600, phase: .none,
-                                                                         extraOpensLeft: 1, gifted: true)
+                                                                         extraOpensLeft: 1)
             let outcome = try #require(gameState.openExtraMattress(now: now))
             #expect(!gameState.offerMattressDouble(outcome))
         case .giroPorVideo:

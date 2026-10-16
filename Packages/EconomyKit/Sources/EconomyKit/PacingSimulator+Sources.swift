@@ -38,6 +38,9 @@ extension PacingSimulator {
         var nextAdBreakAt = Double.infinity
         var mergeAllReadyAt = Double.infinity
         var nextRainWall = Double.infinity
+        /// El colchón gratis del tablero (E14b B31) corre en PARED: cuándo cae el próximo. Guarda uno
+        /// solo, así que una ausencia larga deja uno y no más.
+        var nextFreeMattressWall = Double.infinity
         var adBreakIndex = 0
         /// El "próximo offline / diario ×k" que dejó un premio, a cobrar una vez.
         var pendingOfflineMultiplier = 1.0
@@ -51,9 +54,12 @@ extension PacingSimulator {
         /// Entró blue de una fuente y el bot todavía no lo gastó en líneas.
         var hasUnspentBlue = false
 
-        init(nextPackageAt: Double, seedFraction: Double, ads: AdsSources? = nil) {
+        init(nextPackageAt: Double, seedFraction: Double, freeMattress: TreasuresConfig? = nil, ads: AdsSources? = nil) {
             self.nextPackageAt = nextPackageAt
             self.draws = ExpectedDraws(seed: seedFraction)
+            if let interval = freeMattress?.freeBoardIntervalSeconds, interval > 0 {
+                nextFreeMattressWall = interval
+            }
             guard let ads else { return }
             nextMattressAt = ads.treasures.map { $0.firstTreasureAfterSeconds > 0 ? $0.firstTreasureAfterSeconds : .infinity } ?? .infinity
             nextAdBreakAt = ads.adBreakIntervalSeconds > 0 && !ads.adBreakPrizes.isEmpty ? ads.adBreakIntervalSeconds : .infinity
@@ -61,6 +67,9 @@ extension PacingSimulator {
             nextRainWall = ads.packageRain == nil || ads.packageRainCooldownSeconds <= 0 ? .infinity : 0
         }
     }
+
+    /// El colchón gratis del tablero, sólo si el perfil cobra regalos.
+    var activeFreeMattress: TreasuresConfig? { profile.usesFreeGifts ? sources.freeMattress : nil }
 
     /// Las fuentes de video, sólo si el perfil las mira.
     var activeAds: AdsSources? { profile.watchesVideos ? sources.ads : nil }
@@ -253,6 +262,35 @@ extension PacingSimulator {
     }
 }
 
+// MARK: - El colchón gratis del tablero
+
+extension PacingSimulator {
+    /// Abre el colchón gratis si ya cayó (E14b B31): el bot lo abre apenas lo ve, así que el reloj
+    /// arranca de nuevo ahí. Con videos cobra también su ×2 (B29): un video más y el premio otra vez.
+    /// Devuelve los segundos de sesión que se fueron en el video.
+    func tickFreeMattress(
+        state: inout PlayerState, clocks: inout SourceClocks, report: inout Report, wall: Double, active: Double
+    ) -> Double {
+        guard let treasures = activeFreeMattress, wall >= clocks.nextFreeMattressWall else { return 0 }
+        var seconds = 0.0
+        var times = 1.0
+        if let ads = activeAds, ads.giftDoubles {
+            seconds += watchVideo(ads, report: &report)
+            times = 2
+        }
+        report.sourceTotals["freeMattress.opened", default: 0] += 1
+        for (prize, odds) in zip(treasures.freePrizes, treasures.freeOdds) {
+            for reward in prize.rewards {
+                apply(reward, probability: odds.probability * times, source: "freeMattress",
+                      state: &state, clocks: &clocks, report: &report)
+            }
+        }
+        clocks.nextFreeMattressWall = wall + treasures.freeBoardIntervalSeconds
+        settleBlue(state: &state, clocks: &clocks, report: &report, wall: wall, active: active)
+        return seconds
+    }
+}
+
 // MARK: - Lo que se cobra mirando videos
 
 extension PacingSimulator {
@@ -277,18 +315,12 @@ extension PacingSimulator {
         var seconds = 0.0
 
         if let treasures = ads.treasures, active >= clocks.nextMattressAt {
-            // Cada apertura es un video: la primera (salvo la parte que llega de regalo, E14b B6)
-            // y los "otro colchón".
-            // El de regalo, además, ofrece su ×2 con video al cobrarlo (E14b B29): un video más y el
-            // mismo premio otra vez, en la parte que llega de regalo.
-            for open in 0...max(0, treasures.extraOpensPerTreasure) {
-                let paidShare = open == 0 ? 1 - treasures.giftShare : 1
-                let doubledShare = open == 0 && ads.giftDoubles ? treasures.giftShare : 0
-                seconds += ads.videoSeconds * (paidShare + doubledShare)
-                report.sourceTotals["videos", default: 0] += paidShare + doubledShare
+            // Cada apertura es un video: la primera y los "otro colchón".
+            for _ in 0...max(0, treasures.extraOpensPerTreasure) {
+                seconds += watchVideo(ads, report: &report)
                 for (prize, odds) in zip(treasures.prizes, treasures.odds) {
                     for reward in prize.rewards {
-                        apply(reward, probability: odds.probability * (1 + doubledShare), source: "mattress",
+                        apply(reward, probability: odds.probability, source: "mattress",
                               state: &state, clocks: &clocks, report: &report)
                     }
                 }

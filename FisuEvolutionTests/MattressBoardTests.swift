@@ -76,14 +76,52 @@ struct MattressBoardTests {
         #expect(gameState.mattressFloor == highest)
     }
 
-    @Test("el de regalo sigue el mismo camino: lugar en el piso, se abre ahí y su cobro ofrece el ×2 (B29)")
-    func theGiftTakesTheSamePath() async throws {
+    @Test("el gratis (B31) sigue el mismo camino: lugar en el piso, se abre ahí y su cobro ofrece el ×2 (B29)")
+    func theFreeOneTakesTheSamePath() async throws {
         let gameState = await makeGameState()
-        gameState.debugSpawnMattress(onBoard: true, gifted: true)
-        #expect(gameState.mattressSpot != nil)
-        let outcome = try #require(gameState.openMattressOnBoard())
-        #expect(outcome.isGift, "el cobro del regalo dispara el paso 2")
+        gameState.debugDropFreeMattress()
+        #expect(gameState.mattressSpot(.free) != nil)
+        #expect(gameState.mattressFloor(.free) == gameState.visibleFloorOrdinal)
+        #expect(!gameState.mattressOnBoard, "no ocupa el lugar del de la columna")
+        let outcome = try #require(gameState.openMattressOnBoard(.free))
+        #expect(outcome.isGift, "el cobro del gratis dispara el paso 2")
+        #expect(outcome.extraOpensLeft == 0, "el gratis no ofrece «otro colchón»")
         #expect(gameState.mattressPopup?.openedOnBoard == true)
+        #expect(!gameState.freeMattressOnBoard)
+        let restarted = try #require(gameState.player?.meta.engagement.treasures.freeBoard.clockStartedAt)
+        #expect(abs(restarted - Date().timeIntervalSince1970) < 60, "su reloj arranca al abrirlo")
+    }
+
+    @Test("los dos colchones a la vez: cada uno en su lugar, sin pisarse, y se abren por separado")
+    func bothMattressesAtOnce() async throws {
+        let gameState = await makeGameState()
+        gameState.debugSpawnMattress(onBoard: true)
+        gameState.debugDropFreeMattress()
+        let column = try #require(gameState.mattressSpot(.column))
+        let free = try #require(gameState.mattressSpot(.free))
+        #expect(column != free)
+        let area = try #require(gameState.packageAreas(onFloor: gameState.visibleFloorOrdinal).first)
+        #expect(PackagePlacer.crowding(of: free, among: [], in: area) >= 1, "las cajas tampoco caen encima")
+        #expect(PackagePlacer.crowding(of: column, among: [], in: area) >= 1)
+        let opened = try #require(gameState.openMattressOnBoard(.free))
+        #expect(opened.isGift)
+        #expect(gameState.mattressOnBoard, "abrir el gratis deja el de la columna")
+    }
+
+    @Test("es de su piso: mirar otro piso no lo mueve, y en el save queda su piso (pedido del dueño)")
+    func itStaysOnItsFloor() async throws {
+        let gameState = await makeGameState()
+        gameState.debugUnlockFloors(throughTier: 9)
+        gameState.setVisibleFloor(1)
+        gameState.debugSpawnMattress(onBoard: true)
+        gameState.debugDropFreeMattress()
+        #expect(gameState.mattressFloor(.column) == 1 && gameState.mattressFloor(.free) == 1)
+        for floor in [0, 2, 0] {
+            gameState.setVisibleFloor(floor)
+            gameState.advanceTreasures(delta: 0.016)
+            #expect(gameState.mattressFloor(.column) == 1, "mirando el piso \(floor)")
+            #expect(gameState.mattressFloor(.free) == 1, "mirando el piso \(floor)")
+        }
     }
 
     @Test("cada premio del colchón tiene nombre e imagen aprobada en el pop-up")

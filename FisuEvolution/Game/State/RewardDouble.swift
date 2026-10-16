@@ -14,7 +14,7 @@ import Foundation
 /// | `double.daily` | el diario (sólo la plata) |
 /// | `double.career` | el premio de una vez de la carrera |
 /// | `double.wheel` | el giro gratis de la Ruleta (su «repetir premio») |
-/// | `double.mattress` | el colchón de regalo (D4) |
+/// | `double.mattress` | el colchón gratis del tablero (B31) |
 /// | `double.achievement` | la plata o el blue de un logro |
 /// | `double.event.<evento>` | la plata de un evento (el Aguinaldo) |
 struct RewardDouble: Identifiable {

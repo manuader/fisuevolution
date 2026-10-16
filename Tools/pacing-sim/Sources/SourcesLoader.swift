@@ -129,6 +129,7 @@ func loadSources(from directory: URL, requireDiscount: Bool) -> LoadedSources {
 
     let wheel = read("wheel.json", as: WheelConfig.self)
     let treasures = read("treasures.json", as: TreasuresConfig.self)
+    result.sources.freeMattress = treasures
     let rewardedAds = read("rewarded_ads.json", as: RewardedAdsFile.self)
     let cadence = read("ads.json", as: AdsCadenceFile.self)
     let mergeAllCooldown = rewardedAds?.sideRail?.mergeAllCooldownSeconds

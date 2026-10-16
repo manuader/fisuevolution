@@ -84,7 +84,7 @@ struct MattressPopupView: View {
         if !watching { onClose() }
     }
 
-    /// Cobrar (paso 1); el de regalo ofrece después su ×2 con video (paso 2, E14b B29).
+    /// Cobrar (paso 1); el gratis del tablero ofrece después su ×2 con video (paso 2, E14b B29, B31).
     private func collect(_ outcome: MattressOutcome) {
         guard !watching else { return }
         onClose()
@@ -97,7 +97,7 @@ struct MattressPopupView: View {
         let stage = MattressStage(hasOutcome: outcome != nil,
                                   revealed: revealed || gameState.mattressPopup?.openedOnBoard == true)
         PopupContainer("mattress.title", ribbonTint: Color("PaletteOrange"), onClose: {
-            // Con el premio a la vista, la X también cobra (y el de regalo ofrece su ×2).
+            // Con el premio a la vista, la X también cobra (y el gratis ofrece su ×2).
             if let outcome, stage == .revealed { collect(outcome) } else { close() }
         }) {
             if stage == .opening {

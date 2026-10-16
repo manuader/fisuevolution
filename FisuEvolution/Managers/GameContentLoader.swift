@@ -34,7 +34,8 @@ struct GameContent: Sendable {
     let visitors: VisitorsConfig
     /// El Paquete de la Aduana, El Colchón y la Ruleta (PLAN-v2 E5).
     let packages: PackagesConfig
-    let treasures: TreasuresConfig
+    /// `var`: un fixture de DEBUG le acorta el reloj del colchón gratis (E14b B31).
+    var treasures: TreasuresConfig
     let wheel: WheelConfig
     /// Las ofertas de 24 h (PLAN-v2 E6).
     let offers: OffersCatalog

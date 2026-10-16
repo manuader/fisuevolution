@@ -175,14 +175,14 @@ extension GameState {
 
     /// Las reglas de la caída en el piso `ordinal` (E14b B22): las superficies del teléfono de
     /// referencia y del SE con el fondo de ese piso. El lugar se guarda en fracciones y tiene que
-    /// quedar libre en las dos: así vale en cualquier pantalla. El colchón de ese piso (B24) ocupa
-    /// su lugar como una caja más.
+    /// quedar libre en las dos: así vale en cualquier pantalla. Los colchones de ese piso (B24, B31)
+    /// ocupan su lugar como una caja más.
     func packageAreas(onFloor ordinal: Int) -> [PackageFloorArea] {
         guard let floors = content?.floorTable.floors, floors.indices.contains(ordinal) else { return [] }
         let floor = floors[ordinal]
         let areas = PickupLayout.placementAreas(background: floor.background, backgroundOffset: floor.backgroundOffset)
-        guard mattressFloor == ordinal, let mattress = mattressSpot else { return areas }
-        return areas.map { $0.keepingClear(of: mattress) }
+        let mattresses = BoardMattress.allCases.filter { mattressFloor($0) == ordinal }.compactMap { mattressSpot($0) }
+        return areas.map { area in mattresses.reduce(area) { $0.keepingClear(of: $1) } }
     }
 
     /// Sortea las cajas que cayeron sin asignar y las que dejaron de valer (una reencarnación

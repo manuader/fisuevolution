@@ -42,6 +42,9 @@ public struct PacingSources: Sendable, Equatable {
     public var freeBoosts: [FreeBoost]
     /// Las contrataciones gratis del Programador al elegir carrera.
     public var freeHireSeconds: Double
+    /// El colchón gratis del tablero (E14b B31, D20): su reloj de pared (`freeBoardIntervalSeconds`)
+    /// y su tabla de premios. Lo juegan todos los perfiles con regalos; con videos, además su ×2.
+    public var freeMattress: TreasuresConfig?
     /// Lo que da mirar videos. Sólo lo juegan los perfiles que miran (`.ads`, `.max`).
     public var ads: AdsSources?
     /// Los permanentes de la tienda de blue. Sólo los juega el perfil que paga (`.max`).
@@ -49,12 +52,13 @@ public struct PacingSources: Sendable, Equatable {
 
     public init(
         packages: PackagesConfig?, dailyMinutes: [Double], freeBoosts: [FreeBoost], freeHireSeconds: Double,
-        ads: AdsSources? = nil, shop: ShopPermanents? = nil
+        freeMattress: TreasuresConfig? = nil, ads: AdsSources? = nil, shop: ShopPermanents? = nil
     ) {
         self.packages = packages
         self.dailyMinutes = dailyMinutes
         self.freeBoosts = freeBoosts
         self.freeHireSeconds = freeHireSeconds
+        self.freeMattress = freeMattress
         self.ads = ads
         self.shop = shop
     }
@@ -99,8 +103,8 @@ public struct AdsSources: Sendable, Equatable {
     /// Cooldown de pared de la lluvia de paquetes.
     public var packageRainCooldownSeconds: Double
     public var packageRain: RewardSpec?
-    /// El «×2 con video» de las recompensas gratis (E14b B29, D17) que el bot cobra: el colchón de
-    /// regalo. Las de visitantes y logros no mueven la curva del bot (no las juega).
+    /// El «×2 con video» de las recompensas gratis (E14b B29, D17) que el bot cobra: el colchón gratis
+    /// del tablero (B31). Las de visitantes y logros no mueven la curva del bot (no las juega).
     public var giftDoubles: Bool
 
     public init(

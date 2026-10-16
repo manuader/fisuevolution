@@ -304,6 +304,7 @@ public struct PacingSimulator: Sendable {
         var clocks = SourceClocks(
             nextPackageAt: profile.usesFreeGifts ? sources.packages?.firstPackageAfterSeconds ?? .infinity : .infinity,
             seedFraction: seedFraction,
+            freeMattress: activeFreeMattress,
             ads: activeAds
         )
         recordUnlocks(state: &state, report: &report, wall: wall, active: activeTotal)
@@ -430,6 +431,12 @@ public struct PacingSimulator: Sendable {
             )
             elapsed += videos
             tracker.actionSeconds += videos
+            let freeVideo = tickFreeMattress(
+                state: &state, clocks: &clocks, report: &report,
+                wall: wallStart + elapsed, active: activeStart + elapsed
+            )
+            elapsed += freeVideo
+            tracker.actionSeconds += freeVideo
             let opened = tickPackages(state: &state, clocks: &clocks, report: &report, active: activeStart + elapsed)
             elapsed += Double(opened) * human.hireSeconds
             tracker.actionSeconds += Double(opened) * human.hireSeconds
@@ -457,10 +464,11 @@ public struct PacingSimulator: Sendable {
                 break
             }
 
-            // Lo que falta para el próximo evento de las fuentes: el paquete, y con
-            // videos el colchón, la pausa y la lluvia (infinito sin ellos).
+            // Lo que falta para el próximo evento de las fuentes: el paquete, el colchón gratis y, con
+            // videos, el colchón de la columna, la pausa y la lluvia (infinito sin ellos).
             let untilPackage = min(
                 clocks.nextPackageAt - (activeStart + elapsed),
+                max(0, clocks.nextFreeMattressWall - (wallStart + elapsed)),
                 untilNextAdsEvent(clocks: clocks, active: activeStart + elapsed, wall: wallStart + elapsed)
             )
             guard let action = nextAction(state: state, now: wallStart + elapsed) else {

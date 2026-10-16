@@ -184,6 +184,9 @@ final class GameState {
     /// `tutorialLessonsAutorun`).
     @ObservationIgnored var engagementAutorun =
         ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil
+    /// Prende sólo el reloj del colchón gratis (E14b B31) con los demás motores apagados: el UI test
+    /// que lo ve caer (`--uitest-free-mattress-every=<s>`).
+    @ObservationIgnored var freeMattressAutorun = false
 
     // MARK: Popups y premios
 

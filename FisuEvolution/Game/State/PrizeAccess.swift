@@ -11,8 +11,10 @@ struct PrizeAccess: Equatable {
     var wheelSpinsReady = 0
     /// Ya se abrió un colchón y su «otro colchón» sigue sin pedir.
     var mattressExtraReady = false
-    /// Pagado o regalado, en el tablero (E14b B6).
+    /// Pagado, en el tablero (E14b B6).
     var mattressOnBoard = false
+    /// El gratis de cada 30 minutos, en el tablero (E14b B31).
+    var freeMattressOnBoard = false
 
     static let none = PrizeAccess()
 }

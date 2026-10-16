@@ -82,8 +82,12 @@ extension GameState {
         if arguments.contains("--uitest-mattress-extra") {
             debugSpawnMattress(extraSaved: true)
         }
+        // El gratis del tablero ya caído (E14b B31), o su reloj cada tantos segundos para verlo caer.
         if arguments.contains("--uitest-mattress-board") {
-            debugSpawnMattress(onBoard: true, gifted: true)
+            debugDropFreeMattress()
+        }
+        if let seconds = Self.fixtureValue("--uitest-free-mattress-every=", in: arguments).flatMap(TimeInterval.init) {
+            debugFreeMattressEvery(seconds)
         }
     }
 

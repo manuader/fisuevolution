@@ -7,30 +7,29 @@ func fxTreasures(
     spawnIntervalSeconds: Double = 480,
     firstTreasureAfterSeconds: Double = 480,
     extraOpensPerTreasure: Int = 1,
-    giftOneIn: Int = 0,
+    freeBoardIntervalSeconds: Double = 1800,
     prizes: [TreasuresConfig.Prize] = [
         .init(id: "coins", weight: 60, rewards: [.coinsSeconds(1200)]),
         .init(id: "package", weight: 25, rewards: [.package(1)]),
         .init(id: "blue", weight: 15, rewards: [.blue(2)]),
-    ]
+    ],
+    freeBoardPrizes: [TreasuresConfig.Prize]? = nil
 ) -> TreasuresConfig {
     TreasuresConfig(
         schemaVersion: 1,
         spawnIntervalSeconds: spawnIntervalSeconds,
         firstTreasureAfterSeconds: firstTreasureAfterSeconds,
         extraOpensPerTreasure: extraOpensPerTreasure,
-        giftOneIn: giftOneIn,
-        prizes: prizes
+        freeBoardIntervalSeconds: freeBoardIntervalSeconds,
+        prizes: prizes,
+        freeBoardPrizes: freeBoardPrizes
     )
 }
 
-/// El reloj con un sorteo fijo: `fraction` alta nunca cae en el regalo.
+/// El reloj de la columna: `true` si apareció uno.
 @discardableResult
-func advanceTreasure(
-    _ state: inout TreasuresState, delta: Double, config: TreasuresConfig, fraction: Double = 0.99
-) -> TreasureScheduler.Arrival? {
-    var rng = FixedPointRNG(fraction: fraction)
-    return TreasureScheduler.advance(&state, delta: delta, config: config, using: &rng)
+func advanceTreasure(_ state: inout TreasuresState, delta: Double, config: TreasuresConfig) -> Bool {
+    TreasureScheduler.advance(&state, delta: delta, config: config)
 }
 
 @Suite("El Colchón: el reloj")
@@ -40,8 +39,8 @@ struct TreasureSchedulerTests {
     @Test("aparece a los 8 minutos de juego, en la columna")
     func itAppearsAfterEightMinutes() {
         var state = TreasuresState.initial
-        #expect(advanceTreasure(&state, delta: 479, config: config) == nil)
-        #expect(advanceTreasure(&state, delta: 1, config: config) == .column)
+        #expect(!advanceTreasure(&state, delta: 479, config: config))
+        #expect(advanceTreasure(&state, delta: 1, config: config))
         #expect(state.phase == .waiting)
     }
 
@@ -49,7 +48,7 @@ struct TreasureSchedulerTests {
     func oneAtATime() {
         for phase in [TreasuresState.Phase.waiting, .onBoard] {
             var state = TreasuresState(secondsUntilNext: 5, phase: phase, extraOpensLeft: 0)
-            #expect(advanceTreasure(&state, delta: 10_000, config: config) == nil)
+            #expect(!advanceTreasure(&state, delta: 10_000, config: config))
             #expect(state == TreasuresState(secondsUntilNext: 5, phase: phase, extraOpensLeft: 0), "en \(phase)")
         }
     }
@@ -66,7 +65,7 @@ struct TreasureSchedulerTests {
     @Test("uno nuevo se lleva el «otro colchón» que quedó sin usar")
     func aNewOneDropsTheUnusedExtra() {
         var state = TreasuresState(secondsUntilNext: 1, phase: .none, extraOpensLeft: 1)
-        #expect(advanceTreasure(&state, delta: 1, config: config) != nil)
+        #expect(advanceTreasure(&state, delta: 1, config: config))
         #expect(state.extraOpensLeft == 0)
     }
 
@@ -78,7 +77,7 @@ struct TreasureSchedulerTests {
 
 @Suite("El Colchón: el recorrido columna → video → tablero → abierto (E14b B6)")
 struct TreasureJourneyTests {
-    let config = fxTreasures(giftOneIn: 4)
+    let config = fxTreasures()
 
     @Test("el video de la columna lo hace caer al tablero; sólo si esperaba")
     func payingDropsItOnTheBoard() {
@@ -101,66 +100,26 @@ struct TreasureJourneyTests {
         #expect(none.extraOpensLeft == 0, "abrir la nada no regala «otro colchón»")
     }
 
-    @Test("el regalo cae directo al tablero, sin pasar por la columna")
-    func theGiftLandsOnTheBoard() {
-        var state = TreasuresState(secondsUntilNext: 1, phase: .none, extraOpensLeft: 1)
-        #expect(advanceTreasure(&state, delta: 1, config: config, fraction: 0.1) == .gift)
-        #expect(state == TreasuresState(secondsUntilNext: 480, phase: .onBoard, extraOpensLeft: 0, gifted: true))
-    }
-
-    @Test("sólo el de regalo queda marcado (su ×2 con video, E14b B29); abrirlo borra la marca")
-    func theGiftIsMarkedUntilOpened() {
-        var gift = TreasuresState(secondsUntilNext: 1)
-        #expect(advanceTreasure(&gift, delta: 1, config: config, fraction: 0.1) == .gift)
-        #expect(gift.gifted)
-        #expect(TreasureScheduler.markOpened(&gift, config: config))
-        #expect(!gift.gifted)
-        var column = TreasuresState(secondsUntilNext: 1, gifted: true)
-        #expect(advanceTreasure(&column, delta: 1, config: config, fraction: 0.9) == .column)
-        #expect(!column.gifted, "el de la columna cuesta un video: no se marca")
-        #expect(TreasureScheduler.markPaid(&column))
-        #expect(!column.gifted, "pagarlo tampoco lo vuelve regalo")
-    }
-
-    @Test("el borde del sorteo: justo debajo de 1/4 es regalo, en 1/4 ya pide video")
-    func theGiftBoundary() {
-        var below = TreasuresState(secondsUntilNext: 1)
-        #expect(advanceTreasure(&below, delta: 1, config: config, fraction: 0.2499) == .gift)
-        var at = TreasuresState(secondsUntilNext: 1)
-        #expect(advanceTreasure(&at, delta: 1, config: config, fraction: 0.25) == .column)
-        #expect(at.phase == .waiting)
-    }
-
-    @Test("sin regalos en el dato, ninguno llega gratis")
-    func noGiftsWithoutTheKnob() {
-        var state = TreasuresState(secondsUntilNext: 1)
-        #expect(advanceTreasure(&state, delta: 1, config: fxTreasures(giftOneIn: 0), fraction: 0) == .column)
-    }
-
-    @Test("1 de cada 4 llega de regalo, en un sorteo largo")
-    func oneInFourIsAGift() {
-        var rng = SeededRNG(seed: 7)
-        var gifts = 0
-        let draws = 8_000
-        for _ in 0..<draws {
+    @Test("sin el «1 de cada 4» (D4 se fue con B31): todos aparecen en la columna, pidiendo su video")
+    func everyOneAppearsInTheColumn() {
+        for _ in 0..<100 {
             var state = TreasuresState(secondsUntilNext: 1)
-            if TreasureScheduler.advance(&state, delta: 1, config: config, using: &rng) == .gift { gifts += 1 }
+            #expect(advanceTreasure(&state, delta: 1, config: config))
+            #expect(state.phase == .waiting)
         }
-        let share = Double(gifts) / Double(draws)
-        #expect(share > 0.23 && share < 0.27, "regalos: \(share)")
     }
 
     @Test("el recorrido entero: aparece, se paga, cae, se abre y el reloj vuelve a correr")
     func theWholeJourney() {
         var state = TreasuresState.initial
-        #expect(advanceTreasure(&state, delta: 480, config: config) == .column)
-        #expect(advanceTreasure(&state, delta: 10_000, config: config) == nil)
+        #expect(advanceTreasure(&state, delta: 480, config: config))
+        #expect(!advanceTreasure(&state, delta: 10_000, config: config))
         #expect(TreasureScheduler.markPaid(&state))
-        #expect(advanceTreasure(&state, delta: 10_000, config: config) == nil, "en el tablero tampoco corre")
+        #expect(!advanceTreasure(&state, delta: 10_000, config: config), "en el tablero tampoco corre")
         #expect(TreasureScheduler.markOpened(&state, config: config))
         #expect(state == TreasuresState(secondsUntilNext: 480, phase: .none, extraOpensLeft: 1))
-        #expect(advanceTreasure(&state, delta: 479, config: config) == nil)
-        #expect(advanceTreasure(&state, delta: 1, config: config) == .column)
+        #expect(!advanceTreasure(&state, delta: 479, config: config))
+        #expect(advanceTreasure(&state, delta: 1, config: config))
     }
 }
 
@@ -184,13 +143,13 @@ struct TreasureStateMigrationTests {
             let state = TreasuresState(secondsUntilNext: 12.5, phase: phase, extraOpensLeft: 2)
             #expect(try JSONDecoder().decode(TreasuresState.self, from: JSONEncoder().encode(state)) == state)
         }
-        let gift = TreasuresState(secondsUntilNext: 3, phase: .onBoard, gifted: true)
-        #expect(try JSONDecoder().decode(TreasuresState.self, from: JSONEncoder().encode(gift)) == gift)
     }
 
-    @Test("un save anterior a B29 no trae la marca del regalo: no ofrece ×2")
-    func theGiftMarkDefaultsToFalse() throws {
-        #expect(try decode(#"{"phase": "onBoard"}"#).gifted == false)
+    @Test("un save anterior a B29 no trae la marca del regalo: el del tablero es el de la columna")
+    func noGiftMarkStaysInTheColumnJourney() throws {
+        let state = try decode(#"{"phase": "onBoard"}"#)
+        #expect(state.phase == .onBoard)
+        #expect(!state.freeBoard.waiting)
     }
 
     @Test("la fase manda sobre el `waiting` viejo, y uno desconocido no tira el save")
@@ -211,19 +170,14 @@ struct TreasureStateMigrationTests {
         #expect(try written(.onBoard) == true)
     }
 
-    @Test("el dato sin `giftOneIn` carga sin regalos; con un valor negativo no carga")
-    func theGiftKnob() throws {
-        let json = #"{"schemaVersion":1,"spawnIntervalSeconds":720,"firstTreasureAfterSeconds":480,"extraOpensPerTreasure":1,"prizes":[{"id":"x","weight":1,"rewards":[{"kind":"blue","amount":1}]}]}"#
+    @Test("`giftOneIn` ya no existe: un dato viejo que lo trae carga igual y no lo vuelve a escribir")
+    func theGiftKnobIsGone() throws {
+        let json = #"{"schemaVersion":1,"spawnIntervalSeconds":720,"firstTreasureAfterSeconds":480,"extraOpensPerTreasure":1,"giftOneIn":4,"prizes":[{"id":"x","weight":1,"rewards":[{"kind":"blue","amount":1}]}]}"#
         let config = try JSONDecoder().decode(TreasuresConfig.self, from: Data(json.utf8))
-        #expect(config.giftOneIn == 0)
-        #expect(config.giftShare == 0)
-        #expect(fxTreasures(giftOneIn: 4).giftShare == 0.25)
-        let back = try JSONDecoder().decode(TreasuresConfig.self, from: JSONEncoder().encode(fxTreasures(giftOneIn: 4)))
-        #expect(back.giftOneIn == 4)
-        #expect(throws: TreasuresConfig.ValidationError.outOfRange("giftOneIn")) {
-            try fxTreasures(giftOneIn: -1).validate()
-        }
-        try fxTreasures(giftOneIn: 1).validate()
+        try config.validate()
+        let written = try #require(try JSONSerialization.jsonObject(with: JSONEncoder().encode(config)) as? [String: Any])
+        #expect(written["giftOneIn"] == nil)
+        #expect(config.freeBoardIntervalSeconds == 0, "sin el reloj del gratis en el dato, no cae ninguno")
     }
 }
 
@@ -312,25 +266,25 @@ struct TreasureClockEdgesTests {
     @Test("el primero espera su propio plazo, no el intervalo, y el reloj va descontando")
     func theFirstOneUsesItsOwnDelay() {
         var state = TreasuresState.initial
-        #expect(advanceTreasure(&state, delta: 299, config: config) == nil)
+        #expect(!advanceTreasure(&state, delta: 299, config: config))
         #expect(state.secondsUntilNext == 1)
-        #expect(advanceTreasure(&state, delta: 1, config: config) != nil)
+        #expect(advanceTreasure(&state, delta: 1, config: config))
     }
 
     @Test("al aparecer queda en la columna, sin extras y con el reloj rearmado al intervalo")
     func appearingRearmsTheClock() {
         var state = TreasuresState(secondsUntilNext: 10, phase: .none, extraOpensLeft: 2)
-        #expect(advanceTreasure(&state, delta: 4_000, config: config) == .column)
+        #expect(advanceTreasure(&state, delta: 4_000, config: config))
         #expect(state == TreasuresState(secondsUntilNext: 600, phase: .waiting, extraOpensLeft: 0))
     }
 
     @Test("sin tiempo transcurrido, o con tiempo negativo, el reloj no se mueve")
     func nonPositiveDeltaDoesNothing() {
         var fresh = TreasuresState.initial
-        #expect(advanceTreasure(&fresh, delta: 0, config: config) == nil)
+        #expect(!advanceTreasure(&fresh, delta: 0, config: config))
         #expect(fresh == .initial)
         var running = TreasuresState(secondsUntilNext: 100, phase: .none, extraOpensLeft: 0)
-        #expect(advanceTreasure(&running, delta: -500, config: config) == nil)
+        #expect(!advanceTreasure(&running, delta: -500, config: config))
         #expect(running == TreasuresState(secondsUntilNext: 100, phase: .none, extraOpensLeft: 0))
     }
 
@@ -345,8 +299,8 @@ struct TreasureClockEdgesTests {
     func theNextOneTakesAFullInterval() {
         var state = TreasuresState(secondsUntilNext: 5, phase: .onBoard, extraOpensLeft: 0)
         TreasureScheduler.markOpened(&state, config: config)
-        #expect(advanceTreasure(&state, delta: 599, config: config) == nil)
-        #expect(advanceTreasure(&state, delta: 1, config: config) != nil)
+        #expect(!advanceTreasure(&state, delta: 599, config: config))
+        #expect(advanceTreasure(&state, delta: 1, config: config))
     }
 
     @Test("el estado guardado vuelve igual")
@@ -467,7 +421,7 @@ struct TreasurePlacementTests {
         #expect(state.floor == 2 && state.spot == PackageSpot(x: 0.3, y: 0.2))
         let back = try JSONDecoder().decode(TreasuresState.self, from: JSONEncoder().encode(state))
         #expect(back == state)
-        let old = try JSONDecoder().decode(TreasuresState.self, from: Data(#"{"phase":"onBoard","gifted":true}"#.utf8))
+        let old = try JSONDecoder().decode(TreasuresState.self, from: Data(#"{"phase":"onBoard"}"#.utf8))
         #expect(old.needsPlacement, "el de un save anterior a B24 se ubica al cargar")
     }
 
@@ -483,8 +437,8 @@ struct TreasurePlacementTests {
         #expect(opened.floor == nil && opened.spot == nil)
 
         var stale = TreasuresState(secondsUntilNext: 1, phase: .none, floor: 1, spot: PackageSpot(x: 0.5, y: 0.5))
-        #expect(advanceTreasure(&stale, delta: 1, config: fxTreasures(giftOneIn: 1), fraction: 0) == .gift)
-        #expect(stale.floor == nil && stale.spot == nil && stale.needsPlacement, "el regalo nuevo se ubica de cero")
+        #expect(advanceTreasure(&stale, delta: 1, config: config))
+        #expect(stale.floor == nil && stale.spot == nil, "el nuevo, en la columna, no hereda el lugar viejo")
     }
 }
 

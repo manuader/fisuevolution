@@ -37,6 +37,7 @@ struct PacingContractTests {
         #expect(sources.freeHireSeconds > 0)
         #expect(sources.ads?.wheel == content.wheel)
         #expect(sources.ads?.treasures == content.treasures)
+        #expect(sources.freeMattress == content.treasures, "el colchón gratis del tablero (B31)")
         #expect(sources.ads?.packageRain == content.rewardedAds.effectiveSideRail.packageRain)
         #expect(sources.ads?.mergeAllCooldownSeconds == content.rewardedAds.effectiveSideRail.mergeAllCooldownSeconds)
         #expect(sources.ads?.adBreakPrizes == content.rewardedAds.effectiveAdBreak.prizes)

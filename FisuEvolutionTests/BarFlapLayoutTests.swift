@@ -43,7 +43,7 @@ struct BarFlapLayoutTests {
         }
         // Lo que vio el UI test en el 16 Pro (402 pt): el plato en 191,7…269,7.
         let pro = BarFlapLayout.make(barWidth: 402, tabs: Self.fullBar)
-        #expect(abs(pro.plate.minX - 191.66) < 0.1)
+        #expect(abs(pro.plate.minX - 191.66) < 0.5, "el UI test mide en puntos redondeados")
     }
 
     @Test("cada solapa se queda en su mitad, dentro de la barra y con el mismo ancho")

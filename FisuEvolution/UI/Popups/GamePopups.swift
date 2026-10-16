@@ -52,6 +52,8 @@ struct GamePopups: ViewModifier {
             .gamePopup(item: dailyClaimBinding) { wrapped in
                 DailyRewardView(claim: wrapped.claim, onClose: { gameState.dismissDailyClaim() })
             }
+            // La Marcha del Puntero (E14b B25), en su propio modifier.
+            .modifier(MarchPopups())
     }
 
     // La cola de celebraciones es el único árbitro: se muestra **si es su turno**

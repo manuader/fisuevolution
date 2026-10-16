@@ -41,6 +41,13 @@ struct EventPopup: Identifiable, Equatable {
     var id: String { eventId }
 }
 
+/// El popup de la Marcha del Puntero (E14b B25): el estado, al tocar su chip, o el final (ganada o
+/// perdida), que sale solo en el primer momento calmo y no se va hasta cerrarlo.
+enum MarchPopup: String, Identifiable, Equatable {
+    case status, result
+    var id: String { rawValue }
+}
+
 /// Un reto de toques en curso (la Vecina, el Zombie, el Coach).
 struct StageChallenge: Equatable {
     let scriptId: String
@@ -81,6 +88,10 @@ struct StageRuntime {
     /// el resto (la oferta ya cotizada, el id que la escena conoce). Después de
     /// relanzar está vacío y el que vuelve se cotiza de nuevo.
     var parked: [Int: StageVisit] = [:]
+    /// Esta sesión ya se contó en el save (`VisitorsState.sessions`, E14b B25).
+    var sessionCounted = false
+    /// `--uitest-marcha-corta`: la Marcha dura `GameState.debugShortMarchSeconds` (sólo DEBUG).
+    var debugShortMarch = false
 }
 
 extension StageChallenge {

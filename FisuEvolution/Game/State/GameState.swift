@@ -311,6 +311,8 @@ final class GameState {
     var shopRequest: ShopRequest?
     /// El reto de toques en curso (`+Visitors`).
     var stageChallenge: StageChallenge?
+    /// El popup de la Marcha del Puntero (`+March`, E14b B25). La Marcha misma vive en el save.
+    var marchPopup: MarchPopup?
     /// Los accesos a paquetes, colchón y ruleta. Lo escribe `+Prizes`.
     var prizeAccess = PrizeAccess.none
     /// La columna lateral (`+SideRail`): cambia a lo sumo una vez por segundo.

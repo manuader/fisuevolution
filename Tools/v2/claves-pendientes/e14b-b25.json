@@ -1,0 +1,14 @@
+{
+  "visit.puntero_marcha.bubble": {"es": "¡Hay marcha! Necesito gente que aplauda.", "en": "Big rally today. I need people who clap."},
+  "visit.puntero_marcha.ask": {"es": "Mañana se llena la plaza y me faltan aplaudidores. Tocá 420 veces en una hora y te paso 30 blue. No preguntes a quién apoyamos: ni yo sé.", "en": "I promised the candidate a packed rally. Tap 420 times in one hour and 30 blue is yours. Free hot dogs while supplies last."},
+  "visit.puntero_marcha.accept": {"es": "¡Me prendo!", "en": "Count me in"},
+  "visit.puntero_marcha.decline": {"es": "Hoy no marcho", "en": "I'll sit this one out"},
+  "visit.puntero_marcha.won": {"es": "¡Plaza llena! Ahí van tus 30 blue. Y el chori, si quedó alguno.", "en": "Packed house! The candidate thinks he's popular now. Here's your 30 blue."},
+  "visit.puntero_marcha.lost": {"es": "Se desconcentró la marcha. La próxima traé bombo.", "en": "Everybody left early to beat the traffic. Next time, bring a foam finger."},
+  "marcha.chip %@ %@": {"es": "Marcha %1$@/%2$@", "en": "Rally %1$@/%2$@"},
+  "marcha.chip.ax %@ %@": {"es": "Marcha: %1$@ de %2$@ aplausos", "en": "Rally: %1$@ of %2$@ claps"},
+  "marcha.status.remaining %@": {"es": "Quedan %@", "en": "%@ left"},
+  "marcha.status.hint": {"es": "Cada toque a tus empleados es un aplauso, en cualquier piso. El reloj corre aunque cierres la app.", "en": "Every tap on your workers is a clap, on any floor. The clock keeps running even if you close the app."},
+  "marcha.claim": {"es": "Cobrar", "en": "Collect"},
+  "marcha.ok": {"es": "Entendido", "en": "Got it"}
+}

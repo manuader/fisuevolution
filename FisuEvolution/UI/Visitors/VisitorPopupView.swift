@@ -63,8 +63,8 @@ struct VisitorPopupView: View {
                             optionButton(option, script: script, content: content)
                         }
                     }
-                    // E14 C5: a cualquiera se le puede decir que no.
-                    GameButton("visit.option.decline", role: .neutral, medallion: .none,
+                    // E14 C5: a cualquiera se le puede decir que no (con su frase, si el guion la trae).
+                    GameButton(verbatim: VisitCopy.declineTitle(for: script), role: .neutral, medallion: .none,
                                identifier: "visit.option.decline") {
                         if isVendor {
                             offendedLine = Int.random(in: 1...Self.offendedLines)

@@ -61,9 +61,28 @@ enum VisitCopy {
                   let card = cards.first(where: { "card.\($0.id)" == option.id })
             else { return text(optionKey(.card), [""], bundle: bundle) }
             return text(optionKey(.card), [text(card.nameKey, bundle: bundle)], bundle: bundle)
-        case .accept, .forgiveWithVideo, .startChallenge, .listen:
+        case .startChallenge:
+            return line(script, "accept", fallback: optionKey(.startChallenge), bundle: bundle)
+        case .accept, .forgiveWithVideo, .listen:
             return text(optionKey(option.kind), bundle: bundle)
         }
+    }
+
+    /// El «no» del popup: el propio del guion si lo tiene (la Marcha: «Hoy no marcho»), si no el de todos.
+    static func declineTitle(for script: VisitorsConfig.Script, bundle: Bundle = .main) -> String {
+        line(script, "decline", fallback: "visit.option.decline", bundle: bundle)
+    }
+
+    /// Una línea propia del guion (`visit.<id>.<línea>`) o, si el catálogo no la tiene, la genérica.
+    static func line(_ script: VisitorsConfig.Script, _ name: String, fallback: String, bundle: Bundle = .main) -> String {
+        let key = script.lineKey(name)
+        return has(key, bundle: bundle) ? text(key, bundle: bundle) : text(fallback, bundle: bundle)
+    }
+
+    /// El final de la Marcha (E14b B25): el festejo con el blue o la línea de la derrota.
+    static func marchLine(for script: VisitorsConfig.Script, won: Bool, bundle: Bundle = .main) -> String {
+        won ? line(script, "won", fallback: "visit.challenge.won", bundle: bundle)
+            : line(script, "lost", fallback: "visit.challenge.lost", bundle: bundle)
     }
 
     /// Lo que llena el globo y el popup de un guion, en orden: el empleado y su
@@ -135,6 +154,10 @@ enum VisitCopy {
     /// Un valor que ninguna traducción va a tener: `localizedString` devuelve el
     /// `value` cuando no encuentra la clave.
     private static let missing = "<visit.missing>"
+
+    static func has(_ key: String, bundle: Bundle = .main) -> Bool {
+        bundle.localizedString(forKey: key, value: missing, table: nil) != missing
+    }
 
     static func text(_ key: String, _ arguments: [String] = [], bundle: Bundle = .main) -> String {
         let format = bundle.localizedString(forKey: key, value: missing, table: nil)

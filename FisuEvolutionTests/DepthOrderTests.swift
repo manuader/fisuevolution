@@ -90,15 +90,16 @@ struct DepthOrderTests {
         return controller
     }
 
-    /// Dónde apoya una caja del tablero (E14b B22: cada una en su y): medio lado debajo de su centro.
+    /// Dónde apoya una caja del tablero (E14b B22: cada una en su y): medio lado debajo de su centro,
+    /// con el lado achicado por la distancia (B30).
     private func feetY(of box: PickupNode) -> CGFloat {
-        box.position.y - cellSize * PickupLayout.sideRatio / 2
+        box.position.y - cellSize * PickupLayout.sideRatio / 2 * box.depthScale
     }
 
     /// Dónde apoya el colchón del tablero (E14b B24: en su lugar, como una caja): medio alto de su
-    /// arte debajo de su centro (con Reduce Motion no salta).
+    /// arte debajo de su centro (con Reduce Motion no salta), con el alto achicado por la distancia (B30).
     private func feetY(ofMattress mattress: PickupNode) -> CGFloat {
-        mattress.position.y - mattress.boxSize.height / 2
+        mattress.position.y - mattress.boxSize.height / 2 * mattress.depthScale
     }
 
     /// La línea de atrás del piso que se mira: ni el colchón ni una caja apoyan más atrás.

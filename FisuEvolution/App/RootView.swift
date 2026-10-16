@@ -44,46 +44,121 @@ struct RootView: View {
     }
 }
 
-/// Pantalla de carga de marca: fondo crema + logo/mascota + tip, en vez del
+/// Pantalla de carga de marca: fondo crema + logo de Ader Games + mascota + tip, en vez del
 /// spinner blanco del sistema (que era la primera impresión de la app).
 struct SplashView: View {
     /// Claves del catálogo y no texto: eran `Text(verbatim:)` en castellano, y el
     /// jugador en inglés los leía en castellano.
-    private let tips: [LocalizedStringKey] = [
+    private static let tips: [LocalizedStringKey] = [
         "splash.tip.merge",
         "splash.tip.tap",
         "splash.tip.upgrades",
     ]
+    /// El consejo se sortea UNA vez: sorteado en el `body`, cada pasada cambiaba el alto del texto,
+    /// el logo se medía en otro lugar (`onGeometryChange`) y la pasada siguiente volvía a sortear;
+    /// el arranque se colgaba en ese bucle de layout.
+    @State private var tip = Self.tips.randomElement() ?? Self.tips[0]
+    /// El logo mide lo mismo que en la pantalla de lanzamiento (`UILaunchScreen › UIImageName`,
+    /// mismo imageset): iOS lo dibuja centrado a su tamaño natural, y el splash arranca ahí.
+    private static let logoWidth: CGFloat = 180
+    private static let logoAsset = "AderGamesLogo"
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// `false` mientras el logo está en el centro (como en la pantalla de lanzamiento); `true`
+    /// cuando sube a su lugar y aparecen la ruedita y el consejo.
+    @State private var risen = false
+    /// El Fisura aparece recién con el logo ya arriba: el logo sube pasando por el lugar de su
+    /// cabeza, y fundidos a la vez quedaban encimados. El arranque en frío suele terminar a mitad
+    /// de la subida, así que ese cuadro encimado era el último que se veía del splash.
+    @State private var fisuraShown = false
+    @State private var screenMidY: CGFloat?
+    /// El centro del logo en su lugar de arriba: se mide ANTES del `offset`, que no mueve el layout.
+    @State private var logoMidY: CGFloat?
+
+    /// Cuánto hay que bajar el logo para que caiga en el centro de la pantalla.
+    private var offsetToCenter: CGFloat {
+        guard let screenMidY, let logoMidY else { return 0 }
+        return screenMidY - logoMidY
+    }
+
     var body: some View {
         ZStack {
-            Color("PaletteCream").ignoresSafeArea()
+            Color("PaletteCream")
+                .ignoresSafeArea()
+                .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).midY } action: { screenMidY = $0 }
             VStack(spacing: 22) {
                 Spacer()
-                // Logo del atlas si ya está disponible; si no, wordmark tipográfico.
-                if let logo = UIArt.image("logo") {
-                    logo.resizable().scaledToFit().frame(maxWidth: 240, maxHeight: 200)
-                } else {
-                    VStack(spacing: 2) {
-                        Text(verbatim: "FISU")
-                            .font(.system(size: 56, weight: .black, design: .rounded))
-                        Text(verbatim: "EVOLUTION")
-                            .font(.system(size: 26, weight: .heavy, design: .rounded))
-                            .tracking(6)
+                // Se mide un lugar vacío del tamaño del logo y el logo va encima con su `offset`: medido
+                // adentro del `offset`, el marco global se corría con él, cambiaba el `offset` y el
+                // arranque se colgaba en ese bucle de layout.
+                logo
+                    .hidden()
+                    .accessibilityHidden(true)
+                    .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).midY } action: { logoMidY = $0 }
+                    .overlay {
+                        logo
+                            .offset(y: risen || reduceMotion ? 0 : offsetToCenter)
+                            // Hasta medir, el logo no se dibuja: así no hace un salto desde arriba.
+                            .opacity(reduceMotion || (logoMidY != nil && screenMidY != nil) ? 1 : 0)
                     }
-                    .foregroundStyle(Color("PaletteInk"))
+                Group {
+                    if let fisura = UIArt.image("fisura_celebrate") {
+                        fisura.resizable().scaledToFit().frame(maxWidth: 200, maxHeight: 240)
+                    }
                 }
-                if let fisura = UIArt.image("fisura_celebrate") {
-                    fisura.resizable().scaledToFit().frame(maxWidth: 200, maxHeight: 240)
-                }
+                .opacity(fisuraShown ? 1 : 0)
                 Spacer()
-                ProgressView()
-                    .tint(Color("PaletteOrange"))
-                Text(tips.randomElement() ?? tips[0])
-                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
-                    .foregroundStyle(Color("PaletteInk").opacity(0.7))
-                    .padding(.bottom, 40)
+                VStack(spacing: 22) {
+                    ProgressView()
+                        .tint(Color("PaletteOrange"))
+                    Text(tip)
+                        .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                        .foregroundStyle(Color("PaletteInk").opacity(0.7))
+                }
+                .opacity(risen ? 1 : 0)
+                .padding(.bottom, 40)
             }
             .padding(.horizontal, 30)
+        }
+        .task {
+            // Un instante con el logo quieto en el centro (el último cuadro de la pantalla de
+            // lanzamiento) y recién ahí sube. Con Reduce Motion no sube: sólo aparece lo demás.
+            try? await Task.sleep(for: .milliseconds(150))
+            if reduceMotion {
+                withAnimation(.easeIn(duration: 0.3)) {
+                    risen = true
+                    fisuraShown = true
+                }
+            } else {
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    risen = true
+                } completion: {
+                    withAnimation(.easeOut(duration: 0.25)) { fisuraShown = true }
+                }
+            }
+        }
+    }
+
+    /// El logo de Ader Games; si el asset faltara, el wordmark tipográfico.
+    @ViewBuilder private var logo: some View {
+        if let image = UIImage(named: Self.logoAsset) {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFit()
+                .frame(width: Self.logoWidth)
+                .accessibilityLabel(Text(verbatim: "Ader Games"))
+        } else {
+            VStack(spacing: 2) {
+                Text(verbatim: "ADER")
+                    .font(.system(size: 56, weight: .black, design: .rounded))
+                Text(verbatim: "GAMES")
+                    .font(.system(size: 26, weight: .heavy, design: .rounded))
+                    .tracking(6)
+            }
+            .foregroundStyle(Color("PaletteInk"))
+            .frame(width: Self.logoWidth)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(verbatim: "Ader Games"))
         }
     }
 }

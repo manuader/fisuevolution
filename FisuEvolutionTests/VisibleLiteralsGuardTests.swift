@@ -32,8 +32,10 @@ struct VisibleLiteralsGuardTests {
     /// Sólo DEBUG: no llegan a un jugador.
     private static let debugOnlyFiles: Set<String> = ["DebugPanelView.swift", "ComponentGallery.swift"]
 
-    /// Nombres propios de la marca que se dibujan sin traducir.
-    private static let brandWords: Set<String> = ["Fisu", "Jobs", "FisuJobs", "FISU", "EVOLUTION", "FISU EVOLUTION"]
+    /// Nombres propios de la marca que se dibujan sin traducir: el juego y el estudio (el logo del
+    /// splash, E14b B34).
+    private static let brandWords: Set<String> = ["Fisu", "Jobs", "FisuJobs", "FISU", "EVOLUTION", "FISU EVOLUTION",
+                                                  "Ader Games", "ADER", "GAMES"]
 
     /// Ocupa el lugar de cada `\(…)` de un literal y de cada `%@`/`%lld` de una clave.
     private static let marker: Character = "\u{1}"

@@ -44,7 +44,8 @@ final class MarchUITests: XCTestCase {
         chip.tap()
         let close = app.buttons["marcha.status.close"]
         XCTAssertTrue(close.waitForExistence(timeout: 6), "tocar el chip abre el estado")
-        XCTAssertTrue(app.otherElements["marcha.status"].exists || app.staticTexts["marcha.status"].exists)
+        // El estado combina sus textos con la barra de progreso: el tipo del elemento lo decide la barra.
+        XCTAssertTrue(app.descendants(matching: .any)["marcha.status"].exists, "el estado muestra el contador y el reloj")
         capture(app, "marcha: el popup del estado")
         close.tap()
         XCTAssertTrue(close.waitForNonExistence(timeout: 6))

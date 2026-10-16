@@ -73,6 +73,9 @@ final class PickupNode: SKNode {
         case collapsing(left: TimeInterval, from: CGFloat)
     }
     private var empty: Empty?
+    /// La escala por distancia (`DepthScale`, E14b B30): se multiplica a la del resorte y la
+    /// respiración. El área de toque (`hitTest`) nunca baja de `PickupLayout.minTouchSide`.
+    var depthScale: CGFloat = 1
     /// La caja vacía se está yendo (B23): el resorte y la respiración ya no la mueven.
     var isCollapsing: Bool {
         if case .collapsing? = empty { return true }
@@ -411,7 +414,7 @@ final class PickupNode: SKNode {
             return
         }
         if reduceMotion {
-            setScale(1)
+            setScale(depthScale)
             zRotation = 0
             alpha = CGFloat(min(1, age / Self.popSeconds))
             return
@@ -420,7 +423,7 @@ final class PickupNode: SKNode {
         let pop = min(1, age / Self.popSeconds)
         let overshoot = pop < 1 ? 0.2 * sin(pop * .pi) : 0
         let breathe = kind == .package ? 0.025 * sin(age * 3) : 0.015 * sin(age * 2)
-        setScale(CGFloat(pop + overshoot + breathe))
+        setScale(CGFloat(pop + overshoot + breathe) * depthScale)
         guard shakeLeft > 0 else {
             zRotation = 0
             return

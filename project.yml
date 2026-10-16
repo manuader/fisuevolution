@@ -174,7 +174,7 @@ targets:
         INFOPLIST_KEY_NSUserTrackingUsageDescription: Usamos tu identificador de publicidad para mostrarte anuncios más relevantes. Si preferís que no, los anuncios se siguen viendo, sólo que sin personalizar.
         # Apple quema el número de build para siempre: del 1 al 4 se subieron
         # con la 1.0.0 (el 4 es el publicado). Reusarlo hace fallar la subida.
-        CURRENT_PROJECT_VERSION: "5"
+        CURRENT_PROJECT_VERSION: "7"
         MARKETING_VERSION: "2.0.0"
         ENABLE_ON_DEMAND_RESOURCES: YES
       configs:

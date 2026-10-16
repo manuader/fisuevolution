@@ -50,3 +50,19 @@ Colchón (25, 32, 40, 50, 65): `Docs/capturas/b32/tira-colchon-antes-despues.png
 
 Capturas en el SE y el Pro Max de la caja abriéndose en el tablero (comparar con la opción A del
 mockup), y mirar a ojo el cofre (7 %) y el colchón en el tablero.
+
+## Corrección (r60, 2026-10-16): el degradé no se veía en el juego
+
+El dueño, con el build 5: «no lo veo en el juego». **Causa:** los clips con alfa del juego son
+**premultiplicados** (los exporta así `video_assets.keyed_filter` y así los composita `SKVideoNode`), y la
+primera horneada multiplicó **sólo el alfa**. Arriba quedaba el color de los rayos entero sobre un alfa
+casi nulo (cuadro 56, fila 2: alfa 9, rojo 116), y el juego lo **sumaba** al fondo: los rayos seguían
+llegando al borde, ahora como una franja clara cortada en recto. Las tiras de arriba no lo mostraban
+porque `tira` componía con alfa recto.
+
+**Arreglo:** `difuminar` multiplica color y alfa por el degradé; `tira` compone premultiplicado, como el
+juego. Se rehornearon los tres clips desde los originales (mismos parámetros: paquete 15 % desde el 44,
+cofre 7 % desde el 39, colchón 15 % desde el 32) y se rehicieron las tres tiras de `Docs/capturas/b32/`.
+Test nuevo: en el 15 % de arriba de los horneados el color no pasa al alfa (con el error lo pasaba el
+17–68 % de lo semitransparente). Capturas del simulador antes/después en
+`.claude/avo/2026-10-06-fisu-v2/capturas-r60/b32-fix/`.

@@ -38,9 +38,13 @@ struct PackageFloorsTests {
                             background: floor.background, backgroundOffset: floor.backgroundOffset)
     }
 
-    /// Donde se para una caja de un piso con el fondo de ese piso (E14b B22: su x y su y).
+    /// Donde se para una caja de un piso con el fondo de ese piso (E14b B22: su x y su y). El centro
+    /// va medio lado arriba de los pies, con el lado achicado por la distancia (B30).
     private func spot(onFloor ordinal: Int, of box: PackageBox, in gameState: GameState) throws -> CGPoint {
-        try layout(onFloor: ordinal, in: gameState).packagePosition(at: box.spot)
+        let floorLayout = try layout(onFloor: ordinal, in: gameState)
+        let feet = floorLayout.packageFeet(at: box.spot)
+        let scale = DepthScale.scale(forFeetY: feet.y, in: floorLayout.depthSpan)
+        return CGPoint(x: feet.x, y: feet.y + floorLayout.side / 2 * scale)
     }
 
     // MARK: Dónde se dibuja

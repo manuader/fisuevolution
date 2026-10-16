@@ -52,11 +52,14 @@ class DegradeTest(unittest.TestCase):
         self.assertEqual(d[4, 300, 0, 3], 255)
         self.assertEqual(d.shape, c.shape)
 
-    def test_no_toca_el_color_solo_el_alfa(self):
+    def test_funde_el_color_con_el_alfa_porque_es_premultiplicado(self):
+        # si el color quedara entero sobre un alfa casi nulo, el juego lo sumaria al fondo
         c = cuadros_con_rayos(desde=0)
         c[..., :3] = 200
         d = bd.difuminar(c, 0, 15.0)
-        np.testing.assert_array_equal(d[..., :3], c[..., :3])
+        self.assertTrue(np.all(d[..., :3].max(axis=-1) <= d[..., 3]))
+        np.testing.assert_array_equal(d[:, 300:], c[:, 300:])
+        self.assertLess(d[0, 0, 0, 2], 10)
 
 
 @unittest.skipUnless(sys.platform == "darwin" and shutil.which("swiftc") and shutil.which("ffprobe"),
@@ -68,6 +71,16 @@ class ClipsHorneadosTest(unittest.TestCase):
                 c = bd.leer_cuadros(LOOPS / f"{nombre}.mov")
                 self.assertEqual(c.shape[1:3], (512, 512))
                 self.assertFalse(bd.toca_borde(c).any())
+
+    def test_el_degrade_queda_premultiplicado(self):
+        # el 15 % de arriba de los cuadros horneados: el color no supera al alfa (mas el ruido del
+        # codec); con el error de la primera horneada el 68 % de lo semitransparente lo superaba
+        for nombre in HORNEADOS:
+            with self.subTest(nombre):
+                c = bd.leer_cuadros(LOOPS / f"{nombre}.mov")[:, :77].astype(int)
+                semi = (c[..., 3] > 5) & (c[..., 3] < 250)
+                pasados = (c[..., :3].max(axis=-1) > c[..., 3] + 12) & semi
+                self.assertLess(pasados.sum() / max(semi.sum(), 1), 0.02)
 
     def test_mantienen_el_formato(self):
         for nombre in HORNEADOS:

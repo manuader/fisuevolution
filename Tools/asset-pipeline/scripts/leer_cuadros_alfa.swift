@@ -1,5 +1,5 @@
-// Vuelca a stdout los cuadros de un .mov HEVC con alfa como BGRA crudo (alfa recto, sin premultiplicar),
-// uno detrás del otro. `ffmpeg` no lee el alfa de estos .mov y AVFoundation sí (PLAN-v2-E14b B32).
+// Vuelca a stdout los cuadros de un .mov HEVC con alfa como BGRA crudo, premultiplicado tal cual lo
+// guarda el clip (y lo composita el juego), uno detrás del otro. `ffmpeg` no lee el alfa de estos .mov y AVFoundation sí (PLAN-v2-E14b B32).
 // Por stderr escribe una línea "<ancho> <alto>" antes de los datos.
 //
 //     swiftc -O leer_cuadros_alfa.swift -o leer_cuadros_alfa && ./leer_cuadros_alfa clip.mov > cuadros.bgra

@@ -140,10 +140,9 @@ Fuera del relevo, ya en marcha: T1 (batch de Gemini) y T2 (videos generados, esp
 
 ---
 
-## Cierre de E14 (T27) — BORRADOR (relevo 59, 2026-10-15)
+## Cierre de E14 (T27) (relevo 59, 2026-10-15; cerrado en el 60)
 
-> Borrador escrito sin compilar. El controlador completa los `[COMPLETAR]` cuando corra el `completo` de la
-> integración final y tenga las capturas.
+> Borrador del 59, cerrado en el relevo 60: el `completo` de la integración final dio VERDE y `version-2` quedó en `06ca8760` (build 6).
 
 ### Qué está hecho
 
@@ -157,15 +156,13 @@ Fuera del relevo, ya en marcha: T1 (batch de Gemini) y T2 (videos generados, esp
   moneda premium en dólar blue (T7, B14).
 - El pacing no se movió por E14: Dios en 45,40 h (`.free`) y 32,19 h (`.ads`), 6 reencarnaciones.
 
-### Qué falta para cerrar T27 `[COMPLETAR]`
+### Qué faltaba para cerrar T27 (hecho en el 60, salvo el G4)
 
 1. **El `completo` de la integración final** (integ-r59 con `version-2` mergeada): EK, build, Release 0 warnings,
-   unit, UI, store-unit, iPad, SE y pacing. Hoy: integ-r58 tuvo EK 1017 ✅, Release ✅, unit 2263 + 1 rojo (arreglado) y
-   UI `[COMPLETAR]`. Si hay rojos de UI, aislarlos una vez antes de creerlos (carga).
-2. **Las capturas** de las pantallas tocadas en SE, iPhone 15 y Pro Max, e iPad (chequeo de superposición, D14). Las
+   unit, UI, store-unit, iPad, SE y pacing. Del 59: integ-r58 tuvo EK 1017 ✅, Release ✅, unit 2263 + 1 rojo (arreglado). **Hecho en el 60:** el `completo` de integ-r60 (`20261016-050819`) dio VERDE (ver abajo).
+2. **Hecho (relevo 60, `capturas-r60`, 43 capturas):** las capturas de las pantallas tocadas en SE, iPhone 15 y Pro Max, e iPad (chequeo de superposición, D14). Las
    saca el arnés de E10 T9 (`AppStoreScreenshotTests`, rama `v2i/e10-capturas`) más las del plan.
-3. **`Docs/SESION-2026-10-1x-v2-e14-cierre.md`** y las cuatro ediciones del `HANDOFF.md` (banner, §4, §5, §7, §8):
-   `[COMPLETAR]`. El borrador de ese HANDOFF ya está commiteado con el relevo 59.
+3. **Hecho:** `Docs/SESION-2026-10-16-v2-relevo-60.md` y las ediciones del `HANDOFF.md` (banner, §4, §5, §7, §8).
 4. **G4 🔒 (el dueño):** la pasada en iPhone real, **al final** de todo, con la lista de abajo.
 
 ### Lo que queda del dueño (🔒), en orden
@@ -187,7 +184,7 @@ Sin números: se mira, no se mide.
 - **Las cajas y el colchón:** caen en cualquier lugar de su piso, el personaje sale de la caja, el colchón se ve después
   del video (el log `reward after dismiss` dice si el premio llega después de cerrar el video).
 - **Los premios en dos pasos (B29):** «¡Dale!» cobra y después «×2 con video» / «No, gracias»; las monedas vuelan al HUD.
-- **La Marcha del Puntero:** el chip, los 420 toques en una hora, el cobro de 30 blue una vez, el cupo semanal.
+- **La Marcha del Puntero:** el chip, los 420 toques en una hora, el cobro de 30 blue una vez, el cupo semanal (el dueño pidió bajar los 420 toques a 2 minutos: cargado en `DUENO.md`, no implementado).
 - **La Ruleta, el cofre y el Paquete:** antes, durante y después con su imagen; los premios siempre ilustrados.
 - **Los menús:** el pager desliza sin trabas, un solo marco, transparente afuera; cabecera con las flechas a la altura
   del título; Ajustes sin naranja fuera de las cintas.
@@ -195,3 +192,27 @@ Sin números: se mira, no se mide.
 - **Compartir:** la imagen exportada es el personaje con su skin (no un símbolo).
 - **Tutorial y Tour:** un jugador nuevo no ve «las pestañas se mudaron»; un veterano sí.
 - **Lo que B30 cambia**, si el dueño dice que sí: los de atrás hasta un 15 % más chicos, sin saltos al deambular.
+
+### Actualización del relevo 60 (2026-10-16)
+
+- **B30 tiene el sí del dueño** y entró a la integración: `v2i/integ-r60` (`ab2f41ad`, merge de `b30-merge` con 2 conflictos resueltos en
+  `PickupController` y `BarFlapLayoutTests`, sin Meta). La Marcha (B25) y B31–B33 ya estaban en integ-r59; entró además **B34** (el logo blanco de Ader
+  Games en el splash y la pantalla de lanzamiento, `2ac58b41`, con el arreglo del cuelgue de arranque `ce0a5c99`). La E14b queda con **B1–B34 ✅ en
+  `version-2`** (`06ca8760`).
+- **El `completo` de integ-r59** (`20261016-011825`, sobre `5b3d2cce`): EK 1057 · build · unit 2283 · Release 0 warnings · store-ui 3 · iPad 4 ·
+  SE 2 · pipeline 107 · pacing Dios 45,40 h (6 reenc.) · UI 199 + 6 rojos + 4 salteados (los 6, resueltos por `fix-ui-r60`; ver
+  `Docs/SESION-2026-10-16-v2-relevo-60.md`). **El `completo` de integ-r60** (`20261016-050819`, sobre `0c0676b0`): EK 1057 ✅ · build ✅ · Release 0 ✅ · store-unit 18 ✅ · UI 205 con 0 rojos y
+  4 salteados ✅ · store-ui 3 · iPad 4 · SE 2 · pipeline 107 · pacing Dios 45,40 h / 6 reenc. ✅ · unit 2286 + 6 rojos (B30: `PackageFloors` ×2,
+  `DepthOrder`, `StageBubble`; B34: `VisibleLiteralsGuard`; `ElevatorRide` = flake conocido). `fix-unit2-r60` (`cc7ffb4e`) los resolvió **sólo en
+  tests** (la app era coherente: los tests ahora miden con `depthScale`; «Ader Games» a las `brandWords` de la guardia; `ElevatorRide` 15/15 ×3
+  aislado) y `version-2` avanzó por ff a `cc7ffb4e`. Cierra el punto 1 de «Qué falta».
+- **Después del 59, el dueño vio en vivo dos defectos** y entraron al **build 6** (`06ca8760`, rapido VERDE: EK 1057 · build · unit 2292 · Release 0):
+  **B34** (el splash: el arranque en frío cortaba la subida del logo con el Fisura apareciendo a la vez; el layout estaba bien, era de tiempo; ahora el
+  Fisura aparece al terminar la subida, `c8501c11`) y **B32** (el difuminado de la caja no se veía: los clips son premultiplicados y sólo se había
+  multiplicado el alfa; `bf8cb930` multiplica color y alfa y rehorneó 3 clips). Ver la trampa nueva en la sesión del 60.
+- **Las capturas** de B34 (splash y paso a la pantalla principal) y las de los de atrás con B30 están en el set de `capturas-r60` (`b34/`); el logo que tapaba la cabeza del Fisura quedó arreglado en el build 6 (capturas del arreglo en `b34-fix/`).
+- **Lista de la pasada G4, sumas:** (a) el **splash**: el logo blanco de Ader Games aparece centrado, sube en 0,4 s (con Reduce Motion, un fundido),
+  y la pantalla de lanzamiento no salta al pasar al splash; (b) **B30 ya no es opcional:** los de atrás hasta un 15 % más chicos, sin saltos al
+  deambular, de pie sobre su piso y fáciles de tocar (mínimo 44 pt); (c) el **botón de compra** con un nombre largo en castellano («Coleccionista de
+  cartón») no se corta en el SE.
+- **Decisión del dueño:** E8d T15 y E8e T9 se miden en el simulador del SE (no hay SE real); el G4 sigue siendo en su iPhone 15 Pro.

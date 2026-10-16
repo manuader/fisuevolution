@@ -2660,3 +2660,17 @@ Los tests matan 14 mutantes a mano:
 - los dos `land` que mueven un colchón ya ubicado.
 
 Comando: el de «Cómo re-correr» de la calibración 2.0, con `--profile free | ads | max` y `--seed-fraction 0.1 | 0.9`.
+
+# E14b B25 — la Marcha en dos minutos (2026-10-16, cambio del dueño en el relevo 60)
+
+**Qué cambió:** `puntero_marcha` (`visitors.json`) pasa de `windowSeconds` 3600 a **120**: 420 toques en dos minutos
+de reloj real. El premio (30 blue, ×2 con video) y el cupo (una por semana) no cambian.
+
+**Pacing (medido, semilla 0,5, `.free`):** Dios en **45,40 h activas** (816,07 de pared), 6 reencarnaciones, blue a Dios
+5.999, 5 Marchas en 4,9 semanas (hasta 150 blue, 300 con video). Igual que después de B31: el bot no juega visitantes,
+así que la ventana no mueve la curva. Si algo, el cambio baja el blue real de la Marcha (es más difícil ganarla), así
+que la guarda de 5.000–12.000 queda igual de lejos.
+
+EconomyKit: `MarchTests` (19) con la ventana de 120 s; la suite entera, 1.057 tests en verde.
+
+Comando: el de «Cómo re-correr» de la calibración 2.0, con `--profile free`.

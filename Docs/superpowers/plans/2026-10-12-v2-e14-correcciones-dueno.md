@@ -153,7 +153,7 @@ Fuera del relevo, ya en marcha: T1 (batch de Gemini) y T2 (videos generados, esp
   integrados (T3).
 - **La E14b (B1–B30) corrió encima**: B1–B19, B26 y B27 en `version-2`; B20–B24, B28 y B29 en `v2i/integ-r58`; B25 en
   `v2i/integ-r59`; B30 en su rama aparte, sin mergear (espera el OK del dueño). Detalle en `tasks.md` §5 «E14b».
-- **Cero SF Symbols en controles visibles (T25)** y los textos al catálogo (T26). La 2.0 sale **sin Meta** y con el
+- **Cero SF Symbols en controles visibles (T25)** y los textos al catálogo (T26). La 2.0 sale **sin Meta** y con la
   moneda premium en dólar blue (T7, B14).
 - El pacing no se movió por E14: Dios en 45,40 h (`.free`) y 32,19 h (`.ads`), 6 reencarnaciones.
 

@@ -62,6 +62,37 @@ final class QuickHireUITests: XCTestCase {
                       "tocar con el piso lleno avisa")
     }
 
+    /// B33: la etiqueta muestra al personaje que compra. La cara es una imagen y no
+    /// se consulta; el estado del botón dice el `typeId` de la oferta, y de él sale
+    /// la cara. Con «el primero del piso», cambiar de piso cambia al personaje.
+    @MainActor
+    func testCambiarDePisoCambiaElPersonajeDelBoton() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-coins", "--uitest-unlock-tower"]
+        app.launch()
+        let quickHire = app.buttons["hud.quickhire"]
+        XCTAssertTrue(waitUntilHittable(quickHire, timeout: 20))
+
+        quickHire.press(forDuration: 0.9)
+        let floorBase = app.buttons["quickhire.picker.floor"]
+        XCTAssertTrue(floorBase.waitForExistence(timeout: 3), "mantener presionado no abrió el selector")
+        floorBase.tap()
+        XCTAssertTrue(floorBase.waitForNonExistence(timeout: 3), "elegir cierra el selector")
+        XCTAssertTrue(waitForValue(of: quickHire) { $0.hasSuffix(":homeless") || $0.contains(":homeless;") },
+                      "en el Callejón la cara es la del Fisura, el tipo base del piso")
+        attach(app, named: "B33 botón en el Callejón")
+
+        let map = app.buttons["hud.map"]
+        XCTAssertTrue(map.waitForExistence(timeout: 5))
+        map.tap()
+        let urban = app.buttons["map.floor.urban"]
+        XCTAssertTrue(urban.waitForExistence(timeout: 5))
+        urban.tap()
+        XCTAssertTrue(waitForValue(of: quickHire, timeout: 10) { !$0.contains(":homeless") },
+                      "al cambiar de piso el botón pasa al tipo base del piso nuevo")
+        attach(app, named: "B33 botón en el piso urbano")
+    }
+
     // MARK: - Utilidades
 
     @MainActor

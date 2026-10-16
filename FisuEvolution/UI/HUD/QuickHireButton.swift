@@ -10,9 +10,10 @@ import SwiftUI
 /// ⚠️ Un toque compra lo mismo que tres toques en FisuJobs: el atajo dejó de
 /// recortar el 2026-08-28. El porqué está en `computeQuickHireOffer()`.
 ///
-/// Es una etiqueta de precio con el Fisura saludando (`fisura_wave`); sólo si el
-/// arte falta cae a la cara por `faceKey` (las 43 existen — auditoría RF-05; no
-/// lleva fallback vectorial porque `UIArt` ya cae a su placeholder).
+/// Es una etiqueta de precio con la CARA del personaje que el atajo va a comprar
+/// (`offer.faceKey`; las 43 existen — auditoría RF-05; no lleva fallback vectorial
+/// porque `UIArt` ya cae a su placeholder) y su nombre arriba del precio (E14b B33).
+/// Cara y nombre salen de `QuickHireTagContent`, así que siguen a la oferta sola.
 ///
 /// ⚠️ **La oferta NO se recalcula al tocar.** El botón lee la proyección
 /// publicada y le pasa el `typeId` a `hireQuickOffer()`, que hace lo mismo:
@@ -110,18 +111,19 @@ struct QuickHireButton: View {
         }
     }
 
-    /// La etiqueta de precio (E14b B28, diseño B): verde con costura, ojal y
-    /// piolín, colgada de la solapa; el Fisura saludando parado arriba a la
-    /// izquierda, y el precio en una placa crema con la moneda. El nombre no se
-    /// ve —lo dice VoiceOver— y el pin es un puntito en el hombro del Fisura.
+    /// La etiqueta de precio (E14b B28 diseño B, B33 opción B del mockup): verde con
+    /// costura, ojal y piolín, colgada de la solapa; la cara del personaje que
+    /// compra, en un círculo que sobresale arriba a la izquierda, y en la placa
+    /// crema su nombre y el precio con la moneda.
     ///
-    /// Se hamaca y el Fisura da un saltito cada tanto, pero sólo si compra: sin
+    /// Se hamaca y la cara da un saltito cada tanto, pero sólo si compra: sin
     /// plata la etiqueta queda gris y quieta, y Reduce Motion apaga todo.
     private func label(for offer: QuickHireOffer) -> some View {
         let ready = offer.blocker == nil
         let moves = ready && !reduceMotion
+        let content = QuickHireTagContent(offer: offer)
         return PulseClock(interval: 4.2, active: moves) { tick in
-            tagWithPrice(for: offer, ready: ready)
+            tagWithPrice(for: offer, content: content, ready: ready)
                 .keyframeAnimator(initialValue: -3.0, trigger: tick) { view, angle in
                     view.rotationEffect(.degrees(angle), anchor: .leading)
                 } keyframes: { _ in
@@ -132,10 +134,10 @@ struct QuickHireButton: View {
                     }
                 }
         }
-        // El Fisura sobresale de la etiqueta: va en un overlay para no sumar alto.
-        .overlay(alignment: .bottomLeading) {
+        // La cara sobresale de la etiqueta: va en un overlay para no sumar alto.
+        .overlay(alignment: .topLeading) {
             PulseClock(interval: 3.1, active: moves, delay: 1.2) { tick in
-                wavingFisura(for: offer, ready: ready)
+                faceBadge(for: offer, content: content, ready: ready)
                     .keyframeAnimator(initialValue: 0.0, trigger: tick) { view, dy in
                         view.offset(y: dy)
                     } keyframes: { _ in
@@ -146,6 +148,7 @@ struct QuickHireButton: View {
                     }
             }
         }
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: content)
         .foregroundStyle(Color("PaletteInk"))
         .dynamicTypeSize(...DynamicTypeSize.large)
         .frame(maxWidth: .infinity)
@@ -153,67 +156,100 @@ struct QuickHireButton: View {
         .contentShape(Rectangle())
     }
 
-    /// El lugar que se come el Fisura a la izquierda de la placa de precio.
-    static let fisuraSlot: CGFloat = 36
+    /// El lugar que se come la cara a la izquierda de la placa de precio.
+    static let faceSlot: CGFloat = 36
+    /// El diámetro de la cara, con su aro, y cuánto sobresale por arriba de la solapa.
+    static let faceDiameter: CGFloat = 40
+    static let faceRise: CGFloat = 12
+    static let plateHeight: CGFloat = 34
+    /// Tamaño y piso de escala del nombre sobre el precio.
+    static let nameSize: CGFloat = 9
+    static let nameMinScale: CGFloat = 0.6
+    /// Aire a los costados del nombre dentro de la placa.
+    static let namePadding: CGFloat = 4
     /// Cuánto de la placa se come la etiqueta por la izquierda (la punta, el ojal y
-    /// el Fisura, que se le monta encima) y el aire de la derecha.
-    static let plateLeadingInset: CGFloat = PriceTagShape.notch + fisuraSlot - 12
+    /// la cara, que se le monta encima) y el aire de la derecha.
+    static let plateLeadingInset: CGFloat = PriceTagShape.notch + faceSlot - 12
     static let plateTrailingInset: CGFloat = 7
     /// Moneda + aire a la izquierda del monto, y triángulo + aire a la derecha.
     static let plateChromeWidth: CGFloat = 10 + 15 + 2 + 3 + 9
+
+    /// El ancho que tiene el nombre dentro de una solapa de `lane` pt (la placa entera
+    /// menos el triángulo del selector y el aire).
+    static func nameTextWidth(lane: CGFloat) -> CGFloat {
+        max(0, lane - plateLeadingInset - plateTrailingInset - 10 - 9 - 3 - 2 * namePadding)
+    }
 
     /// El ancho que tiene el monto dentro de una solapa de `lane` pt.
     static func priceTextWidth(lane: CGFloat) -> CGFloat {
         max(0, lane - plateLeadingInset - plateTrailingInset - plateChromeWidth)
     }
 
-    private func tagWithPrice(for offer: QuickHireOffer, ready: Bool) -> some View {
+    private func tagWithPrice(for offer: QuickHireOffer, content: QuickHireTagContent, ready: Bool) -> some View {
         ZStack(alignment: .leading) {
             PriceTagBody(tint: ready ? Color("PaletteGreen") : nil)
             HStack(spacing: 0) {
                 Color.clear.frame(width: Self.plateLeadingInset)
-                pricePlate(for: offer)
+                pricePlate(for: offer, content: content)
             }
             .padding(.trailing, Self.plateTrailingInset)
             .padding(.bottom, GameTabBar.flapOverlap)
         }
     }
 
-    /// El Fisura de cuerpo entero saludando (`fisura_wave`, del atlas de UI); si
-    /// el arte no está, cae a su cara.
-    @ViewBuilder private func wavingFisura(for offer: QuickHireOffer, ready: Bool) -> some View {
-        Group {
-            if let wave = UIArt.image("fisura_wave") {
-                wave.resizable().scaledToFit()
-                    .frame(width: 50, height: 54)
-            } else {
-                GameIcon(artKey: offer.faceKey, size: 40) { EmptyView() }
+    /// La cara del personaje que se compra, en un círculo crema con aro ink y
+    /// sombra. Si el arte falta, `GameIcon` cae a su placeholder.
+    private func faceBadge(for offer: QuickHireOffer, content: QuickHireTagContent, ready: Bool) -> some View {
+        Circle()
+            .fill(Color("PaletteCream"))
+            .frame(width: Self.faceDiameter, height: Self.faceDiameter)
+            .overlay {
+                Group {
+                    if let image = UIArt.image(content.faceKey) {
+                        image.resizable().scaledToFill()
+                    } else {
+                        GameIcon(artKey: content.faceKey, size: Self.faceDiameter) { EmptyView() }
+                    }
+                }
+                .clipShape(Circle())
             }
-        }
-        .saturation(ready ? 1 : 0)
-        .overlay(alignment: .topTrailing) {
-            if offer.isPinned {
-                Circle()
-                    .fill(Color("PaletteOrange"))
-                    .overlay(Circle().strokeBorder(Color("PaletteInk"), lineWidth: 1.5))
-                    .frame(width: 10, height: 10)
+            .overlay(Circle().strokeBorder(Color("PaletteInk"), lineWidth: 3))
+            .background(Circle().fill(Color("PaletteInk")).offset(y: 3))
+            .saturation(ready ? 1 : 0)
+            .overlay(alignment: .topTrailing) {
+                if offer.isPinned {
+                    Circle()
+                        .fill(Color("PaletteOrange"))
+                        .overlay(Circle().strokeBorder(Color("PaletteInk"), lineWidth: 1.5))
+                        .frame(width: 10, height: 10)
+                }
             }
-        }
-        .padding(.leading, 2)
-        .padding(.bottom, GameTabBar.flapOverlap + 4)
-        .allowsHitTesting(false)
+            .id(content.faceKey)
+            .transition(.opacity)
+            .padding(.leading, 4)
+            .offset(y: -Self.faceRise)
+            .allowsHitTesting(false)
     }
 
-    /// La placa crema del precio: la moneda, el monto (con el de lista tachado
-    /// encima) y el triángulo del selector. Con el piso lleno, el motivo.
-    private func pricePlate(for offer: QuickHireOffer) -> some View {
+    /// La placa crema: el nombre del personaje en mayúsculas chicas y marrón arriba
+    /// del precio (la moneda, el monto con el de lista tachado encima) y el triángulo
+    /// del selector. Con el piso lleno, el motivo en lugar del precio.
+    private func pricePlate(for offer: QuickHireOffer, content: QuickHireTagContent) -> some View {
         HStack(spacing: 3) {
-            priceLine(for: offer)
+            VStack(spacing: 0) {
+                Text(verbatim: content.name)
+                    .font(.system(size: Self.nameSize, weight: .black, design: .rounded))
+                    .foregroundStyle(Color("PaletteBrown"))
+                    .lineLimit(1)
+                    .minimumScaleFactor(Self.nameMinScale)
+                    .padding(.horizontal, Self.namePadding)
+                priceLine(for: offer)
+            }
             FlapChevron()
         }
         .padding(.horizontal, 5)
         .frame(maxWidth: .infinity)
-        .frame(height: 30)
+        .frame(height: Self.plateHeight)
         .background(Color("PaletteCream"), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous)
             .strokeBorder(Color("PaletteInk"), lineWidth: 2.5))
@@ -224,11 +260,11 @@ struct QuickHireButton: View {
         if offer.blocker == .floorFull {
             Text("quickhire.blocker.floor_full")
                 .font(Tokens.caption)
-                .lineLimit(2)
+                .lineLimit(1)
                 .minimumScaleFactor(0.5)
         } else {
             HStack(spacing: 2) {
-                CoinIcon(size: 15)
+                CoinIcon(size: 13)
                 VStack(spacing: -2) {
                     if let list = offer.listCostText {
                         StrikePrice(text: list)
@@ -265,5 +301,18 @@ struct QuickHireButton: View {
             label = label + Text(verbatim: ", ") + Text("quickhire.ax.floor_base")
         }
         return label
+    }
+}
+
+/// Lo que la etiqueta del atajo muestra del personaje: la cara y el nombre en
+/// mayúsculas. Sale de la oferta y nada más, así que cuando la oferta cambia (de
+/// piso, con «el primero del piso», o al elegir en el selector) cambia con ella.
+struct QuickHireTagContent: Equatable {
+    let faceKey: String
+    let name: String
+
+    init(offer: QuickHireOffer) {
+        faceKey = offer.faceKey
+        name = offer.displayName.uppercased()
     }
 }

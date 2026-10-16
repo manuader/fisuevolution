@@ -881,3 +881,8 @@ el ×2) y corre el pacing-sim: no en paralelo con otra tarea que lo corra (B25).
 - **Hecho (relevo 60):** imageset `AderGamesLogo` (@2x/@3x, 180 pt, generado con `Tools/v2/logo_adergames.py`), `UIImageName` en
   `Info.plist`, `SplashView` con el logo que sube del centro en 0,4 s (fundido con Reduce Motion). El `logo` de `ui.atlas`
   **queda**: lo usa `ShareArt` (la tarjeta de compartir). Capturas y video del paso: del controlador al compilar.
+- **Arreglo (relevo 60, b34-fix-r60):** en el arranque en frío el splash dura menos que la subida, y el último cuadro
+  que se veía era el logo a mitad de camino encima de la cabeza del Fisura, que se fundía a la vez. Ahora el logo sube
+  solo (con la ruedita y el consejo) y el Fisura aparece recién cuando el logo llegó arriba; con Reduce Motion todo
+  aparece junto por fundido. El logo doble del cuadro de paso es el fundido del sistema entre la pantalla de
+  lanzamiento y la app, no dos logos de la app. Capturas en `capturas-r60/b34-fix/`.

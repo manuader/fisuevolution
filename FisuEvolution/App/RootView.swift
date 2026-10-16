@@ -65,8 +65,12 @@ struct SplashView: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// `false` mientras el logo está en el centro (como en la pantalla de lanzamiento); `true`
-    /// cuando ya subió a su lugar y aparecieron el Fisura y el consejo.
+    /// cuando sube a su lugar y aparecen la ruedita y el consejo.
     @State private var risen = false
+    /// El Fisura aparece recién con el logo ya arriba: el logo sube pasando por el lugar de su
+    /// cabeza, y fundidos a la vez quedaban encimados. El arranque en frío suele terminar a mitad
+    /// de la subida, así que ese cuadro encimado era el último que se veía del splash.
+    @State private var fisuraShown = false
     @State private var screenMidY: CGFloat?
     /// El centro del logo en su lugar de arriba: se mide ANTES del `offset`, que no mueve el layout.
     @State private var logoMidY: CGFloat?
@@ -102,7 +106,7 @@ struct SplashView: View {
                         fisura.resizable().scaledToFit().frame(maxWidth: 200, maxHeight: 240)
                     }
                 }
-                .opacity(risen ? 1 : 0)
+                .opacity(fisuraShown ? 1 : 0)
                 Spacer()
                 VStack(spacing: 22) {
                     ProgressView()
@@ -120,7 +124,18 @@ struct SplashView: View {
             // Un instante con el logo quieto en el centro (el último cuadro de la pantalla de
             // lanzamiento) y recién ahí sube. Con Reduce Motion no sube: sólo aparece lo demás.
             try? await Task.sleep(for: .milliseconds(150))
-            withAnimation(reduceMotion ? .easeIn(duration: 0.3) : .easeInOut(duration: 0.4)) { risen = true }
+            if reduceMotion {
+                withAnimation(.easeIn(duration: 0.3)) {
+                    risen = true
+                    fisuraShown = true
+                }
+            } else {
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    risen = true
+                } completion: {
+                    withAnimation(.easeOut(duration: 0.25)) { fisuraShown = true }
+                }
+            }
         }
     }
 

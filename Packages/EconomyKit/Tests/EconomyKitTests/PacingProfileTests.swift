@@ -294,7 +294,8 @@ struct PacingAdsSourcesTests {
                 startTypeId: "t1", startFloorId: "f1", offlineEfficiencyBase: 0.5, critChanceBase: 0, now: 0
             )
             var report = PacingSimulator.Report()
-            let video = simulator.grantFreeHire(state: &state, wall: 100, report: &report)
+            var clocks = PacingSimulator.SourceClocks(nextPackageAt: .infinity, seedFraction: 0.5)
+            let video = simulator.grantFreeHire(state: &state, clocks: &clocks, wall: 100, report: &report)
             let modifier = state.run.activeModifiers.first { $0.effect == .freeHire }
             return (video, (modifier?.expiresAt ?? 100) - 100, report.sourceTotals["videos"] ?? 0)
         }

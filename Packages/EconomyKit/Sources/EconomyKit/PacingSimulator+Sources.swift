@@ -53,6 +53,8 @@ extension PacingSimulator {
         var pendingVideoSeconds = 0.0
         /// Entró blue de una fuente y el bot todavía no lo gastó en líneas.
         var hasUnspentBlue = false
+        /// Cuántas ofertas con video se le hicieron al bot de un segmento: el número de la moneda de cada una.
+        var offerIndex = 0
 
         init(nextPackageAt: Double, seedFraction: Double, freeMattress: TreasuresConfig? = nil, ads: AdsSources? = nil) {
             self.nextPackageAt = nextPackageAt
@@ -71,8 +73,12 @@ extension PacingSimulator {
     /// El colchón gratis del tablero, sólo si el perfil cobra regalos.
     var activeFreeMattress: TreasuresConfig? { profile.usesFreeGifts ? sources.freeMattress : nil }
 
-    /// Las fuentes de video, sólo si el perfil las mira.
-    var activeAds: AdsSources? { profile.watchesVideos ? sources.ads : nil }
+    /// Las fuentes de video, sólo si el perfil las mira. El jugador de un segmento que no acepta ninguna
+    /// oferta (`acceptRate` 0) no las ve: juega exactamente como `.free`.
+    var activeAds: AdsSources? {
+        guard profile.watchesVideos, (segment?.acceptRate ?? 1) > 0 else { return nil }
+        return sources.ads
+    }
 
     /// Los permanentes de la tienda, sólo si el perfil los tiene.
     var activeShop: ShopPermanents? { profile.ownsShopPermanents ? sources.shop : nil }
@@ -97,7 +103,7 @@ extension PacingSimulator {
             var amount = payout(minutes: minutes, state: state)
             amount *= clocks.pendingDailyMultiplier
             clocks.pendingDailyMultiplier = 1
-            if let ads, ads.dailyMultiplier > 1 {
+            if let ads, ads.dailyMultiplier > 1, offers(clocks: &clocks, report: &report) {
                 amount *= ads.dailyMultiplier
                 videoSeconds += watchVideo(ads, report: &report)
             }
@@ -119,6 +125,7 @@ extension PacingSimulator {
             clocks.wheelDay = day
             // El giro por video ya costó uno: no tiene «repetir premio» (E14b B29).
             for _ in 0..<max(0, wheel.videoSpinsPerDay + (activeShop?.bonusDailyWheelSpins ?? 0)) {
+                guard offers(clocks: &clocks, report: &report) else { continue }
                 videoSeconds += watchVideo(ads, report: &report)
                 spin(wheel, state: &state, clocks: &clocks, report: &report)
             }
@@ -157,11 +164,13 @@ extension PacingSimulator {
 
     /// El premio del Programador al elegir carrera: contratar gratis un rato.
     /// Con videos es el ×2 de la carrera. Devuelve los segundos de video.
-    func grantFreeHire(state: inout PlayerState, wall: Double, report: inout Report) -> Double {
+    func grantFreeHire(
+        state: inout PlayerState, clocks: inout SourceClocks, wall: Double, report: inout Report
+    ) -> Double {
         guard profile.usesFreeGifts, sources.freeHireSeconds > 0 else { return 0 }
         var seconds = sources.freeHireSeconds
         var videoSeconds = 0.0
-        if let ads = activeAds, ads.careerMultiplier > 1 {
+        if let ads = activeAds, ads.careerMultiplier > 1, offers(clocks: &clocks, report: &report) {
             seconds *= ads.careerMultiplier
             videoSeconds = watchVideo(ads, report: &report)
         }
@@ -266,21 +275,23 @@ extension PacingSimulator {
 
 extension PacingSimulator {
     /// Abre el colchón gratis si ya cayó (E14b B31): el bot lo abre apenas lo ve, así que el reloj
-    /// arranca de nuevo ahí. Con videos cobra también su ×2 (B29): un video más y el premio otra vez.
+    /// arranca de nuevo ahí. Con videos cobra también su ×2 (B29): un video más y el premio otra vez
+    /// (con el ×N de un segmento, la plata ×N y lo demás una vez más, como en el juego).
     /// Devuelve los segundos de sesión que se fueron en el video.
     func tickFreeMattress(
         state: inout PlayerState, clocks: inout SourceClocks, report: inout Report, wall: Double, active: Double
     ) -> Double {
         guard let treasures = activeFreeMattress, wall >= clocks.nextFreeMattressWall else { return 0 }
         var seconds = 0.0
-        var times = 1.0
-        if let ads = activeAds, ads.giftDoubles {
+        var multiplier: Double?
+        if let ads = activeAds, ads.giftDoubles, offers(clocks: &clocks, report: &report) {
             seconds += watchVideo(ads, report: &report)
-            times = 2
+            multiplier = ads.giftDoubleMultiplier
         }
         report.sourceTotals["freeMattress.opened", default: 0] += 1
         for (prize, odds) in zip(treasures.freePrizes, treasures.freeOdds) {
             for reward in prize.rewards {
+                let times = multiplier.map { Self.videoTimes(reward, multiplier: $0) } ?? 1
                 apply(reward, probability: odds.probability * times, source: "freeMattress",
                       state: &state, clocks: &clocks, report: &report)
             }
@@ -294,6 +305,27 @@ extension PacingSimulator {
 // MARK: - Lo que se cobra mirando videos
 
 extension PacingSimulator {
+    /// Cuántas veces cobra un premio con su «×N con video» (2.1 F2-T6): la plata, ×N; lo que no es plata
+    /// (paquetes, blue, efectos), una vez más, como en la 2.0. Con ×2 todo sale dos veces.
+    static func videoTimes(_ reward: RewardSpec, multiplier: Double) -> Double {
+        if case .coinsSeconds = reward { return multiplier }
+        return min(multiplier, SegmentLevers.Levers.baseVideoRewardMultiplier)
+    }
+
+    /// Si el bot acepta la oferta con video que tiene delante. Sin segmento, siempre (el bot de la 2.0, y
+    /// sin gastar moneda); con uno, la moneda determinista de la oferta según su `acceptRate`. Una oferta
+    /// rechazada no cuesta video ni paga nada, y queda en `videos.declined`.
+    func offers(clocks: inout SourceClocks, report: inout Report) -> Bool {
+        guard let segment else { return true }
+        let index = clocks.offerIndex
+        clocks.offerIndex += 1
+        guard segment.accepts(offer: index, seedFraction: seedFraction) else {
+            report.sourceTotals["videos.declined", default: 0] += 1
+            return false
+        }
+        return true
+    }
+
     /// Un video mirado: cuenta en el reporte y devuelve lo que le saca a la sesión.
     func watchVideo(_ ads: AdsSources, report: inout Report) -> Double {
         report.sourceTotals["videos", default: 0] += 1
@@ -315,8 +347,9 @@ extension PacingSimulator {
         var seconds = 0.0
 
         if let treasures = ads.treasures, active >= clocks.nextMattressAt {
-            // Cada apertura es un video: la primera y los "otro colchón".
+            // Cada apertura es un video: la primera y los "otro colchón". Rechazar una corta las que siguen.
             for _ in 0...max(0, treasures.extraOpensPerTreasure) {
+                guard offers(clocks: &clocks, report: &report) else { break }
                 seconds += watchVideo(ads, report: &report)
                 for (prize, odds) in zip(treasures.prizes, treasures.odds) {
                     for reward in prize.rewards {
@@ -329,16 +362,21 @@ extension PacingSimulator {
         }
 
         if active >= clocks.nextAdBreakAt, !ads.adBreakPrizes.isEmpty {
-            seconds += watchVideo(ads, report: &report)
-            apply(ads.adBreakPrizes[clocks.adBreakIndex % ads.adBreakPrizes.count], probability: 1,
-                  source: "adBreak", state: &state, clocks: &clocks, report: &report)
-            clocks.adBreakIndex += 1
+            // Rechazada, el premio que tocaba espera a la próxima pausa.
+            if offers(clocks: &clocks, report: &report) {
+                seconds += watchVideo(ads, report: &report)
+                apply(ads.adBreakPrizes[clocks.adBreakIndex % ads.adBreakPrizes.count], probability: 1,
+                      source: "adBreak", state: &state, clocks: &clocks, report: &report)
+                clocks.adBreakIndex += 1
+            }
             clocks.nextAdBreakAt = active + ads.adBreakIntervalSeconds
         }
 
         if let rain = ads.packageRain, wall >= clocks.nextRainWall {
-            seconds += watchVideo(ads, report: &report)
-            apply(rain, probability: 1, source: "rain", state: &state, clocks: &clocks, report: &report)
+            if offers(clocks: &clocks, report: &report) {
+                seconds += watchVideo(ads, report: &report)
+                apply(rain, probability: 1, source: "rain", state: &state, clocks: &clocks, report: &report)
+            }
             clocks.nextRainWall = wall + ads.packageRainCooldownSeconds
         }
 
@@ -348,11 +386,16 @@ extension PacingSimulator {
     }
 
     /// Un giro de la ruleta por valor esperado: cada segmento paga con su
-    /// probabilidad. El bot no tiene pintas que el cofre pueda dar.
-    func spin(_ wheel: WheelConfig, state: inout PlayerState, clocks: inout SourceClocks, report: inout Report) {
+    /// probabilidad. El bot no tiene pintas que el cofre pueda dar. `repeatMultiplier` es el «repetir
+    /// premio» con su ×N: paga lo que el ×N agrega sobre el giro (`videoTimes − 1`).
+    func spin(
+        _ wheel: WheelConfig, repeatMultiplier: Double? = nil,
+        state: inout PlayerState, clocks: inout SourceClocks, report: inout Report
+    ) {
         let segments = wheel.effectiveSegments(chestHasSomethingToGive: false)
         for (segment, odds) in zip(segments, wheel.odds(chestHasSomethingToGive: false)) {
-            apply(segment.reward, probability: odds.probability, source: "wheel",
+            let times = repeatMultiplier.map { Self.videoTimes(segment.reward, multiplier: $0) - 1 } ?? 1
+            apply(segment.reward, probability: odds.probability * times, source: "wheel",
                   state: &state, clocks: &clocks, report: &report)
         }
     }
@@ -372,9 +415,9 @@ extension PacingSimulator {
             clocks.pendingSpins -= 1
             guardrail -= 1
             spin(wheel, state: &state, clocks: &clocks, report: &report)
-            if ads.wheelRepeats {
+            if ads.wheelRepeats, offers(clocks: &clocks, report: &report) {
                 seconds += watchVideo(ads, report: &report)
-                spin(wheel, state: &state, clocks: &clocks, report: &report)
+                spin(wheel, repeatMultiplier: ads.wheelRepeatMultiplier, state: &state, clocks: &clocks, report: &report)
             }
         }
         clocks.pendingSpins = 0

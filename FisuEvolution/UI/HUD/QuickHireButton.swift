@@ -165,8 +165,13 @@ struct QuickHireButton: View {
     /// Tamaño y piso de escala del nombre sobre el precio.
     static let nameSize: CGFloat = 9
     static let nameMinScale: CGFloat = 0.6
+    /// El nombre largo baja a un segundo renglón antes de achicarse más: en una
+    /// línea, «COLECCIONISTA DE GALAXIAS» no entra en el SE ni al piso de escala.
+    /// La caja es fija para que el nombre nunca empuje el precio fuera de la placa.
+    static let nameLineLimit = 2
+    static let nameBoxHeight: CGFloat = 13
     /// Aire a los costados del nombre dentro de la placa.
-    static let namePadding: CGFloat = 4
+    static let namePadding: CGFloat = 2
     /// Cuánto de la placa se come la etiqueta por la izquierda (la punta, el ojal y
     /// la cara, que se le monta encima) y el aire de la derecha.
     static let plateLeadingInset: CGFloat = PriceTagShape.notch + faceSlot - 12
@@ -174,10 +179,10 @@ struct QuickHireButton: View {
     /// Moneda + aire a la izquierda del monto, y triángulo + aire a la derecha.
     static let plateChromeWidth: CGFloat = 10 + 15 + 2 + 3 + 9
 
-    /// El ancho que tiene el nombre dentro de una solapa de `lane` pt (la placa entera
-    /// menos el triángulo del selector y el aire).
+    /// El ancho que tiene el nombre dentro de una solapa de `lane` pt: la placa entera
+    /// menos el aire, porque va arriba del precio y del triángulo del selector.
     static func nameTextWidth(lane: CGFloat) -> CGFloat {
-        max(0, lane - plateLeadingInset - plateTrailingInset - 10 - 9 - 3 - 2 * namePadding)
+        max(0, lane - plateLeadingInset - plateTrailingInset - 10 - 2 * namePadding)
     }
 
     /// El ancho que tiene el monto dentro de una solapa de `lane` pt.
@@ -232,20 +237,24 @@ struct QuickHireButton: View {
     }
 
     /// La placa crema: el nombre del personaje en mayúsculas chicas y marrón arriba
-    /// del precio (la moneda, el monto con el de lista tachado encima) y el triángulo
-    /// del selector. Con el piso lleno, el motivo en lugar del precio.
+    /// de todo, a lo ancho de la placa (uno o dos renglones), y abajo el precio (la
+    /// moneda, el monto con el de lista tachado encima) con el triángulo del
+    /// selector. Con el piso lleno, el motivo en lugar del precio.
     private func pricePlate(for offer: QuickHireOffer, content: QuickHireTagContent) -> some View {
-        HStack(spacing: 3) {
-            VStack(spacing: 0) {
-                Text(verbatim: content.name)
-                    .font(.system(size: Self.nameSize, weight: .black, design: .rounded))
-                    .foregroundStyle(Color("PaletteBrown"))
-                    .lineLimit(1)
-                    .minimumScaleFactor(Self.nameMinScale)
-                    .padding(.horizontal, Self.namePadding)
+        VStack(spacing: 0) {
+            Text(verbatim: content.name)
+                .font(.system(size: Self.nameSize, weight: .black, design: .rounded))
+                .foregroundStyle(Color("PaletteBrown"))
+                .multilineTextAlignment(.center)
+                .lineLimit(Self.nameLineLimit)
+                .minimumScaleFactor(Self.nameMinScale)
+                .padding(.horizontal, Self.namePadding)
+                .frame(maxWidth: .infinity)
+                .frame(height: Self.nameBoxHeight)
+            HStack(spacing: 3) {
                 priceLine(for: offer)
+                FlapChevron()
             }
-            FlapChevron()
         }
         .padding(.horizontal, 5)
         .frame(maxWidth: .infinity)

@@ -86,4 +86,41 @@ struct QuickHireTagContentTests {
             }
         }
     }
+
+    @Test("en los dos idiomas, todo nombre entra al piso de escala en una o dos líneas de la placa del SE")
+    func everyNameFitsInBothLanguages() async throws {
+        let gameState = await makeGameState()
+        let content = try #require(gameState.content)
+        let base = UIFont.systemFont(ofSize: QuickHireButton.nameSize, weight: .black)
+        let font = base.fontDescriptor.withDesign(.rounded).map { UIFont(descriptor: $0, size: QuickHireButton.nameSize) } ?? base
+        let scale = QuickHireButton.nameMinScale
+        func width(_ text: String) -> CGFloat { (text as NSString).size(withAttributes: [.font: font]).width }
+        /// El renglón más ancho del mejor corte en dos (el corte por palabras de SwiftUI
+        /// usa la menor cantidad de renglones, así que si este entra, el suyo también).
+        func widestOfTwoLines(_ name: String) -> CGFloat {
+            let words = name.split(separator: " ").map(String.init)
+            return (1..<max(1, words.count)).map { cut in
+                max(width(words[..<cut].joined(separator: " ")), width(words[cut...].joined(separator: " ")))
+            }.min() ?? width(name)
+        }
+        for language in ["es", "en"] {
+            let path = try #require(Bundle.main.path(forResource: language, ofType: "lproj"))
+            let bundle = try #require(Bundle(path: path))
+            let names = content.tiers.concreteTypes.map {
+                bundle.localizedString(forKey: "tier.name.\($0.id)", value: $0.displayName, table: nil).uppercased()
+            }
+            for screen: CGFloat in [375, 393, 430] {
+                let lane = BarFlapLayout.make(barWidth: screen, tabs: GameScreen.barOrder.map { $0 == GameScreen.centerTab }).left.width
+                let available = QuickHireButton.nameTextWidth(lane: lane)
+                let box = QuickHireButton.nameBoxHeight
+                for name in names {
+                    let oneLine = width(name) * scale <= available && font.lineHeight * scale <= box
+                    let twoLines = QuickHireButton.nameLineLimit >= 2
+                        && widestOfTwoLines(name) * scale <= available
+                        && 2 * font.lineHeight * scale <= box
+                    #expect(oneLine || twoLines, "«\(name)» (\(language)) a \(screen) pt")
+                }
+            }
+        }
+    }
 }

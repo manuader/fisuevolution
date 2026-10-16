@@ -35,7 +35,14 @@ extension GameState {
     /// `chanceAllowed` lo resuelve quien llama; sin él rige la última respuesta de
     /// StoreKit (`LootBoxGate.lastKnown`), que arranca cerrada y se renueva cuando
     /// cambia la tienda del jugador. Se consulta por oferta, al momento de abrirla.
-    func advanceOffers(now: TimeInterval = Date().timeIntervalSince1970, chanceAllowed: Bool? = nil) {
+    ///
+    /// `segment` es para los tests; sin él rige el del jugador (`base` con la personalización
+    /// apagada: las ofertas de la 2.0).
+    func advanceOffers(
+        now: TimeInterval = Date().timeIntervalSince1970,
+        chanceAllowed: Bool? = nil,
+        segment: PlayerSegment? = nil
+    ) {
         guard let content, var player else { return }
         let before = player.meta.engagement
         let today = Self.offersDay(now)
@@ -43,12 +50,7 @@ extension GameState {
             player.meta.engagement.firstLaunchDay = today
         }
         if engagementAutorun, !tutorialPhaseActive {
-            let signals = OfferSignals(
-                today: today,
-                firstLaunchDay: player.meta.engagement.firstLaunchDay,
-                prestigeLevel: player.meta.prestigeLevel,
-                unlockedFloorCount: player.run.unlockedFloors.count
-            )
+            let signals = Self.offerSignals(player: player, today: today, segment: segment ?? self.segment)
             OffersEngine.evaluate(&player.meta.engagement.offers, catalog: content.offers, signals: signals, now: now) {
                 self.isOfferOfferable($0, chanceAllowed: chanceAllowed ?? LootBoxGate.lastKnown)
             }
@@ -62,6 +64,75 @@ extension GameState {
         effectsVersion += 1
         syncCelebrations()
         scheduleSave()
+    }
+
+    /// Lo que el motor mira para abrir una oferta. Desde la 2.1 lleva el segmento y si el jugador
+    /// ya compró algo con plata: la audiencia de una oferta (`offers.json`) elige **qué** oferta ve
+    /// cada uno, nunca el precio. Con `base` la audiencia se ignora.
+    func offerSignals(today: String, segment: PlayerSegment? = nil) -> OfferSignals {
+        guard let player else {
+            return OfferSignals(today: today, firstLaunchDay: nil, prestigeLevel: 0, unlockedFloorCount: 0,
+                                segment: segment ?? self.segment)
+        }
+        return Self.offerSignals(player: player, today: today, segment: segment ?? self.segment)
+    }
+
+    private static func offerSignals(player: PlayerState, today: String, segment: PlayerSegment) -> OfferSignals {
+        OfferSignals(
+            today: today,
+            firstLaunchDay: player.meta.engagement.firstLaunchDay,
+            prestigeLevel: player.meta.prestigeLevel,
+            unlockedFloorCount: player.run.unlockedFloors.count,
+            segment: segment,
+            hasPurchased: !player.meta.creditedPurchases.isEmpty
+        )
+    }
+
+    /// Si el jugador ya compró algo con plata (cualquier transacción acreditada, también las
+    /// restauradas): lo que separa `buyer` de `nonBuyer`.
+    var hasPaidPurchase: Bool {
+        !(player?.meta.creditedPurchases.isEmpty ?? true)
+    }
+
+    /// La oferta se le abrió por ser quien es: tiene audiencia y el segmento no es `base` (con
+    /// `base` la audiencia no cuenta y la oferta es la de todos).
+    func isOfferChosenForPlayer(_ offerId: String, segment: PlayerSegment? = nil) -> Bool {
+        guard let offer = content?.offers.offer(id: offerId) else { return false }
+        return OfferNotice.isChosen(audience: offer.audience, segment: segment ?? self.segment)
+    }
+
+    /// El aviso «Oferta elegida para vos» de la hoja: una oferta elegida, en una tienda de la UE (V8).
+    func showsChosenNotice(offerId: String, storefront: String?, segment: PlayerSegment? = nil) -> Bool {
+        isOfferChosenForPlayer(offerId, segment: segment) && OfferNotice.isEU(storefront: storefront)
+    }
+
+    /// El pack que la Tienda destaca con «Elegido para vos» (2.1 F5, `StoreRecommendation`), o
+    /// `nil`. Sólo entre `entries` —los productos que la Tienda muestra—: nunca destaca algo que no
+    /// está a la venta, ni oculta, reordena o cambia el precio de nada. Con `base`, `nil`: la 2.0.
+    ///
+    /// «El último comprado» es el pack de blue más grande cuyo monto figura entre las compras de
+    /// blue del jugador (la partida anota montos por transacción, no productos ni fechas).
+    func storeHighlight(entries: [ProductCatalog.Entry], segment: PlayerSegment? = nil) -> String? {
+        let packs = entries.compactMap { entry -> StoreRecommendation.Pack? in
+            switch entry.entitlement {
+            case .starterPack:
+                return StoreRecommendation.Pack(id: entry.id, kind: .starter, blueAmount: 0)
+            case .blue:
+                return entry.blueAmount.map { StoreRecommendation.Pack(id: entry.id, kind: .blue, blueAmount: $0) }
+            case .coins, .removeAds, .skin, .offer:
+                return nil
+            }
+        }
+        let boughtAmounts = Set(player.map { Array($0.meta.bluePurchases.values) } ?? [])
+        let lastPurchased = packs
+            .filter { $0.kind == .blue && boughtAmounts.contains($0.blueAmount) }
+            .max { $0.blueAmount < $1.blueAmount }
+        return StoreRecommendation.highlight(
+            segment: segment ?? self.segment,
+            hasPurchased: hasPaidPurchase,
+            lastPurchasedID: lastPurchased?.id,
+            packs: packs
+        )
     }
 
     /// El día de las ofertas, en calendario gregoriano: el primer día y "hoy" se

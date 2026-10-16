@@ -51,6 +51,8 @@ struct OfferSheet: View {
     /// renueva al abrir y cada vez que cambia la tienda del jugador.
     @State private var chanceAllowed = LootBoxGate.lastKnown
     @State private var latch = PurchaseLatch()
+    /// La tienda del jugador (alfa-3), para el aviso de la UE; `nil` hasta que StoreKit conteste.
+    @State private var storefront: String?
 
     private var offer: OffersCatalog.Offer? { gameState.content?.offers.offer(id: offerId) }
     private var product: Product? { offer.flatMap { definition in store.products.first { $0.id == definition.productId } } }
@@ -82,8 +84,10 @@ struct OfferSheet: View {
         }
         .task {
             chanceAllowed = await LootBoxGate.current()
-            for await _ in Storefront.updates {
+            storefront = await Storefront.current?.countryCode
+            for await update in Storefront.updates {
                 chanceAllowed = await LootBoxGate.current()
+                storefront = update.countryCode
             }
         }
         .onChange(of: isAvailable) {
@@ -95,6 +99,10 @@ struct OfferSheet: View {
     /// su dibujo y los números del dato.
     @ViewBuilder private func contents(_ offer: OffersCatalog.Offer) -> some View {
         PopupHero(artKey: OfferHeroArt.key(forOfferId: offer.id, iconKey: offer.iconKey), fallback: .blue)
+        // 2.1 F5 (V8): la oferta que se abrió por el segmento lo dice, en la UE, antes del precio.
+        if gameState.showsChosenNotice(offerId: offer.id, storefront: storefront) {
+            ChosenForYouRibbon(titleKey: "offer.chosenForYou", identifier: "offer.chosen")
+        }
         VStack(alignment: .leading, spacing: Tokens.s8) {
             ForEach(Array(offer.rewards.enumerated()), id: \.offset) { _, reward in
                 HStack(spacing: Tokens.s8) {

@@ -5,6 +5,7 @@
   "offers": [
     {"id": "bienvenida", "productId": "com.fisuevolution.iap.offer_bienvenida", "trigger": "secondDay",
      "oncePerAccount": true, "isChance": true, "iconKey": "ui_offer_bienvenida", "symbol": "hand.wave.fill",
+     "audience": {"buyer": "nonBuyer"},
      "rewards": [{"kind": "blue", "amount": 120}, {"kind": "coinsSeconds", "seconds": 7200}, {"kind": "skinChest", "count": 1}]},
     {"id": "renacer", "productId": "com.fisuevolution.iap.offer_renacer", "trigger": "reincarnation",
      "iconKey": "ui_offer_renacer", "symbol": "arrow.counterclockwise.circle.fill",

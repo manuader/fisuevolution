@@ -63,7 +63,7 @@ struct MarchPopupView: View {
             } actions: {
                 if resolved {
                     if march.outcome == .won {
-                        GameButton("marcha.claim", role: .blue, identifier: "marcha.result.claim") {
+                        GameButton("marcha.claim", role: .free, identifier: "marcha.result.claim") {
                             _ = gameState.settleMarch()
                         }
                     } else {

@@ -1,0 +1,29 @@
+{
+  "version": "seed-2026-10-16",
+  "countryTier": {
+    "USA": 1, "CAN": 1, "GBR": 1, "AUS": 1, "NZL": 1, "DEU": 1, "CHE": 1, "NOR": 1,
+    "SWE": 1, "DNK": 1, "NLD": 1, "JPN": 1, "KOR": 1,
+    "AUT": 2, "BEL": 2, "FIN": 2, "FRA": 2, "IRL": 2, "ISL": 2, "ITA": 2, "LUX": 2,
+    "MCO": 2, "LIE": 2, "MLT": 2, "PRT": 2, "ESP": 2, "AND": 2, "SMR": 2, "GRC": 2,
+    "CYP": 2, "ISR": 2, "SGP": 2, "ARE": 2, "SAU": 2, "HKG": 2, "TWN": 2,
+    "ARG": 3, "BRA": 3, "MEX": 3, "CHL": 3, "COL": 3, "PER": 3, "URY": 3, "ECU": 3,
+    "VEN": 3, "BOL": 3, "PRY": 3, "CRI": 3, "PAN": 3, "DOM": 3, "GTM": 3,
+    "POL": 3, "CZE": 3, "HUN": 3, "ROU": 3, "BGR": 3, "TUR": 3, "UKR": 3,
+    "IND": 3, "IDN": 3, "PHL": 3, "VNM": 3, "THA": 3, "MYS": 3, "PAK": 3, "BGD": 3,
+    "EGY": 3, "ZAF": 3, "NGA": 3, "KEN": 3, "MAR": 3
+  },
+  "defaultCountryTier": 3,
+  "tierMicros": {"1": 18000, "2": 6000, "3": 1500},
+  "deviceTier": {
+    "iPhone19,": 1, "iPhone18,": 1, "iPhone17,": 1,
+    "iPhone16,": 2, "iPhone15,": 2,
+    "iPad": 2, "iPad17,": 1, "iPad16,": 1
+  },
+  "defaultDeviceTier": 3,
+  "minOwnImpressions": 5,
+  "ownWeight": 0.7,
+  "engagement": {"sessionsFor1": 14, "secondsFor1": 900},
+  "weights": {"value": 0.6, "engagement": 0.25, "purchase": 0.15},
+  "thresholds": {"mid": 0.35, "high": 0.7},
+  "hysteresis": 0.05
+}

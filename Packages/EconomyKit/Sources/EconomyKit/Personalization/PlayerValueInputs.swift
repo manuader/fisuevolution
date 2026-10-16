@@ -19,6 +19,10 @@ public struct PlayerValueInputs: Sendable, Equatable {
     public var meanSessionSeconds: Double
     /// `meta.stats.videosWatchedEver`.
     public var videosWatchedEver: Int
+    /// Ofertas mostradas en los últimos 7 días (sólo las usa el modelo v2, F6).
+    public var offersSeenLast7Days: Int
+    /// Prestigios en los últimos 7 días (sólo las usa el modelo v2, F6).
+    public var prestigesLast7Days: Int
 
     public init(
         storefront: String? = nil,
@@ -29,7 +33,9 @@ public struct PlayerValueInputs: Sendable, Equatable {
         hasPurchased: Bool = false,
         sessionsLast7Days: Int = 0,
         meanSessionSeconds: Double = 0,
-        videosWatchedEver: Int = 0
+        videosWatchedEver: Int = 0,
+        offersSeenLast7Days: Int = 0,
+        prestigesLast7Days: Int = 0
     ) {
         self.storefront = storefront
         self.deviceModel = deviceModel
@@ -40,11 +46,19 @@ public struct PlayerValueInputs: Sendable, Equatable {
         self.sessionsLast7Days = sessionsLast7Days
         self.meanSessionSeconds = meanSessionSeconds
         self.videosWatchedEver = videosWatchedEver
+        self.offersSeenLast7Days = offersSeenLast7Days
+        self.prestigesLast7Days = prestigesLast7Days
     }
 }
 
 /// El resultado de `PlayerValue.evaluate` (2.1 E15 F1, contrato C1).
 public struct PlayerValueEstimate: Sendable, Equatable {
+    /// De dónde salió el score: las reglas de F1 o el modelo de árboles de F6.
+    public enum Source: String, Sendable, Equatable {
+        case rules
+        case model
+    }
+
     /// Nunca `.base`: `.base` lo decide la compuerta, no las reglas.
     public let segment: PlayerSegment
     /// Lo que se espera que pague un video con premio de este jugador, en micros.
@@ -53,11 +67,20 @@ public struct PlayerValueEstimate: Sendable, Equatable {
     public let score: Double
     /// `PlayerValueTables.version` de las tablas con que se calculó.
     public let tablesVersion: String
+    /// `.model` sólo si el modelo se pudo usar; cualquier falla cae a `.rules`.
+    public let source: Source
 
-    public init(segment: PlayerSegment, expectedMicrosPerVideo: Int64, score: Double, tablesVersion: String) {
+    public init(
+        segment: PlayerSegment,
+        expectedMicrosPerVideo: Int64,
+        score: Double,
+        tablesVersion: String,
+        source: Source = .rules
+    ) {
         self.segment = segment
         self.expectedMicrosPerVideo = expectedMicrosPerVideo
         self.score = score
         self.tablesVersion = tablesVersion
+        self.source = source
     }
 }

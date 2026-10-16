@@ -60,6 +60,10 @@ public struct PlayerValueTables: Codable, Sendable, Equatable {
     public var thresholds: Thresholds
     /// Cuánto tiene que pasar el score un umbral para cambiar de escalón.
     public var hysteresis: Double
+    /// Opcional (F6): cuantiles crecientes de la predicción del modelo en la población, en el orden en
+    /// que se publicaron (p. ej. p1…p99). El score con modelo es el percentil contra esta lista. Sin
+    /// ella el modelo no se usa.
+    public var modelThresholds: [Double]?
 
     public static let maxVersionLength = 32
     public static let maxHysteresis = 0.2
@@ -79,7 +83,8 @@ public struct PlayerValueTables: Codable, Sendable, Equatable {
         engagement: Engagement,
         weights: Weights,
         thresholds: Thresholds,
-        hysteresis: Double
+        hysteresis: Double,
+        modelThresholds: [Double]? = nil
     ) {
         self.version = version
         self.countryTier = countryTier
@@ -93,6 +98,7 @@ public struct PlayerValueTables: Codable, Sendable, Equatable {
         self.weights = weights
         self.thresholds = thresholds
         self.hysteresis = hysteresis
+        self.modelThresholds = modelThresholds
     }
 
     // MARK: - Consultas

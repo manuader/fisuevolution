@@ -9,16 +9,23 @@ import SwiftUI
 /// alto de la pila lo manda `GameTabBar.barHeight`, que ya cuenta lo que sobresalen.
 ///
 /// Cada uno ocupa SU mitad: el ancho máximo (`BarFlapLayout`) es la mitad de la
-/// barra menos el hueco del plato de Contratar y un margen, así que nunca entran
-/// al plato, que va arriba de todo. En el SE se achican antes que pisarlo.
+/// barra menos el hueco del plato de Contratar y un margen, y se achica si el plato
+/// —que no siempre cae al medio— le come lugar. Nunca entran al plato, que va
+/// arriba de todo. En el SE se achican antes que pisarlo.
 struct BarFlaps: View {
     /// Abre el selector del atajo (mantener presionado, o la acción de VoiceOver).
     let onChooseHire: () -> Void
     let onPrestige: () -> Void
 
+    /// Las pestañas abiertas mandan dónde cae el plato (ver `BarFlapLayout`).
+    @Environment(GameState.self) private var gameState
+
     var body: some View {
         GeometryReader { proxy in
-            let layout = BarFlapLayout.make(barWidth: proxy.size.width)
+            let layout = BarFlapLayout.make(
+                barWidth: proxy.size.width,
+                tabs: gameState.unlockedTabsInBarOrder.map { $0 == GameScreen.centerTab }
+            )
             HStack(alignment: .bottom, spacing: 0) {
                 QuickHireButton(onChoose: onChooseHire)
                     .frame(width: layout.left.width, alignment: .leading)
@@ -50,19 +57,30 @@ struct BarFlapLayout: Equatable {
     /// Aire que cada solapa le deja al plato.
     static let plateGap: CGFloat = 6
 
-    /// - Parameter barWidth: el ancho de la pantalla; la columna de juego lo topa.
-    ///   El hueco es el del botón de Contratar (`GameTabBar.centerButtonWidth`),
-    ///   así que sirve para cualquier cantidad de pestañas.
-    static func make(barWidth: CGFloat) -> BarFlapLayout {
+    /// - Parameters:
+    ///   - barWidth: el ancho de la pantalla; la columna de juego lo topa.
+    ///   - tabs: las pestañas de la barra en orden, `true` en Contratar. El plato
+    ///     cae donde lo pone `GameTabBar` y no siempre al medio: con las seis de
+    ///     `barOrder` hay tres pestañas a la izquierda y dos a la derecha, y el
+    ///     plato queda corrido a la derecha. Cada solapa tiene, como mucho, su
+    ///     mitad de una barra simétrica, y se achica si el plato le come lugar.
+    ///     Vacío (o sin Contratar): el plato al medio.
+    static func make(barWidth: CGFloat, tabs: [Bool] = []) -> BarFlapLayout {
         let plateSide = GameTabBar.centerButtonWidth
         let usable = min(barWidth, PlayColumn.maxWidth)
         let origin = (barWidth - usable) / 2
-        let lane = max(0, (usable - plateSide) / 2 - plateGap - sideMargin)
+        let plateX = (GameTabBar.prominentCenterX(prominent: tabs, barWidth: barWidth) ?? barWidth / 2)
+            - plateSide / 2
+        let leftEdge = origin + sideMargin
+        let rightEdge = origin + usable - sideMargin
+        let half = max(0, (usable - plateSide) / 2 - plateGap - sideMargin)
+        let leftLane = min(half, max(0, plateX - plateGap - leftEdge))
+        let rightLane = min(half, max(0, rightEdge - (plateX + plateSide + plateGap)))
         let height = GameTabBar.flapHeight
         return BarFlapLayout(
-            left: CGRect(x: origin + sideMargin, y: 0, width: lane, height: height),
-            right: CGRect(x: origin + usable - sideMargin - lane, y: 0, width: lane, height: height),
-            plate: CGRect(x: origin + (usable - plateSide) / 2, y: 0, width: plateSide, height: height)
+            left: CGRect(x: leftEdge, y: 0, width: leftLane, height: height),
+            right: CGRect(x: rightEdge - rightLane, y: 0, width: rightLane, height: height),
+            plate: CGRect(x: plateX, y: 0, width: plateSide, height: height)
         )
     }
 }

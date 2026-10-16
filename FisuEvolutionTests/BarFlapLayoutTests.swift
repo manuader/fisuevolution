@@ -26,6 +26,26 @@ struct BarFlapLayoutTests {
         }
     }
 
+    /// La barra entera: tres pestañas a la izquierda de Contratar y dos a la derecha.
+    private static let fullBar = GameScreen.barOrder.map { $0 == GameScreen.centerTab }
+
+    @Test("con la barra entera el plato queda corrido y las solapas lo esquivan donde está")
+    func flapsFollowTheRealPlate() {
+        for width in Self.widths {
+            let layout = BarFlapLayout.make(barWidth: width, tabs: Self.fullBar)
+            let center = GameTabBar.prominentCenterX(prominent: Self.fullBar, barWidth: width) ?? 0
+            #expect(abs(layout.plate.midX - center) < 0.001, "el plato es el que dibuja la barra a \(width) pt")
+            #expect(layout.plate.midX > width / 2, "tres a la izquierda: el plato se corre a la derecha")
+            #expect(!layout.left.intersects(layout.plate), "izquierda vs plato a \(width) pt")
+            #expect(!layout.right.intersects(layout.plate), "derecha vs plato a \(width) pt")
+            #expect(layout.right.minX >= layout.plate.maxX + BarFlapLayout.plateGap - 0.001)
+            #expect(layout.right.width < layout.left.width, "el billete se achica antes que pisarlo")
+        }
+        // Lo que vio el UI test en el 16 Pro (402 pt): el plato en 191,7…269,7.
+        let pro = BarFlapLayout.make(barWidth: 402, tabs: Self.fullBar)
+        #expect(abs(pro.plate.minX - 191.66) < 0.1)
+    }
+
     @Test("cada solapa se queda en su mitad, dentro de la barra y con el mismo ancho")
     func eachFlapKeepsItsHalf() {
         for width in Self.widths {
@@ -80,7 +100,7 @@ struct BarFlapLayoutTests {
         let titles = ["Reencarnar", "Reincarnate"]
         let metas = ["Meta: Multimillonario", "Goal: Multimillionaire", "Meta: tier 12", "+1.23M", "100%"]
         for width in Self.widths {
-            let lane = BarFlapLayout.make(barWidth: width).left.width
+            let lane = BarFlapLayout.make(barWidth: width, tabs: Self.fullBar).right.width
             for title in titles {
                 let natural = self.width(of: title, font: rounded(PrestigeButton.titleSize, .black))
                 #expect(natural * PrestigeButton.titleMinScale <= PrestigeButton.titleWidth(lane: lane),
@@ -99,7 +119,7 @@ struct BarFlapLayoutTests {
         let prices = ["999", "1.23M", "999.99Qa", CoinFormatter.string(from: 1e300),
                       CoinFormatter.string(from: .greatestFiniteMagnitude)]
         for width in Self.widths {
-            let lane = BarFlapLayout.make(barWidth: width).left.width
+            let lane = BarFlapLayout.make(barWidth: width, tabs: Self.fullBar).left.width
             let available = QuickHireButton.priceTextWidth(lane: lane)
             #expect(available >= 40, "la placa tiene lugar a \(width) pt")
             for price in prices {

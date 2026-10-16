@@ -1166,6 +1166,18 @@ struct GameTabBar: View {
         return weights.map { max(0, available) * $0 / total }
     }
 
+    /// Dónde cae el centro de Contratar en una barra de `barWidth` pt (x desde el borde
+    /// izquierdo de la pantalla), con el mismo reparto que dibuja `row`. Sólo está al medio
+    /// cuando hay tantas pestañas de un lado como del otro: con las seis de `barOrder` hay
+    /// tres a la izquierda y dos a la derecha, y el plato queda corrido. `nil` sin destacada.
+    static func prominentCenterX(prominent: [Bool], barWidth: CGFloat) -> CGFloat? {
+        guard let index = prominent.firstIndex(of: true) else { return nil }
+        let available = min(barWidth, PlayColumn.maxWidth) - sideMargin * 2
+        let widths = cellWidths(prominent: prominent, available: available)
+        let rowOrigin = (barWidth - max(0, available)) / 2
+        return rowOrigin + widths[..<index].reduce(0, +) + widths[index] / 2
+    }
+
     /// El lado del plato de una celda de ese ancho.
     static func plateSide(cellWidth: CGFloat, prominent: Bool) -> CGFloat {
         min(cellWidth * plateFill, prominent ? centerPlateSide : tabPlateSide)

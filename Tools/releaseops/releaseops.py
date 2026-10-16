@@ -13,6 +13,7 @@
     python3 Tools/releaseops/releaseops.py admob plan         # unidades por crear
     python3 Tools/releaseops/releaseops.py admob set-id <clave> <ad-unit-id>
     python3 Tools/releaseops/releaseops.py admob sync-code [--dry-run]
+    python3 Tools/releaseops/releaseops.py admob floors-plan [--report <csv>] [--tiers <player_value.json>]   # sólo receta, no escribe
     python3 Tools/releaseops/releaseops.py version bump [--build | --patch | --minor]
     python3 Tools/releaseops/releaseops.py app verify <.app|.xcarchive> [--json]   # el .app antes de exportar
 
@@ -33,7 +34,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-from rocore import admob, appcheck, config as cfg  # noqa: E402
+from rocore import admob, admob_floors, appcheck, config as cfg  # noqa: E402
 
 REPO = HERE.parents[1]
 CONFIG = REPO / "Distribution" / "release" / "release.json"
@@ -238,6 +239,27 @@ def cmd_admob_sync(args) -> int:
     return 0
 
 
+def cmd_admob_floors_plan(args) -> int:
+    """La receta de pisos por país para cargar a mano en AdMob; no escribe nada."""
+    config = cfg.load(args.config)
+    floors = config["admob"].get("floors", {})
+    factor = args.factor if args.factor is not None else floors.get("factor", admob_floors.DEFAULT_FACTOR)
+    min_impressions = floors.get("minImpressions", admob_floors.DEFAULT_MIN_IMPRESSIONS)
+    formats = sorted({admob_floors.normalize_format(u["format"]) for u in config["admob"]["units"]})
+    try:
+        tiers, default_tier = admob_floors.load_tiers(args.tiers)
+        report = admob_floors.read_report(args.report) if args.report else None
+        plan = admob_floors.build(tiers, default_tier, formats, report, factor, min_impressions)
+    except (admob_floors.FloorsError, OSError, ValueError) as error:
+        print(f"✗ {error}")
+        return 1
+    print(admob_floors.render_table(plan))
+    if not args.report:
+        print("Sin informe: los pisos quedan «a medir» (exportá el informe de AdMob y pasalo con --report).")
+    print(json.dumps(plan, ensure_ascii=False, indent=2))
+    return 0
+
+
 def cmd_version_bump(args) -> int:
     path = args.repo / cfg.load(args.config)["codeBindings"]["projectYml"]
     text = path.read_text(encoding="utf-8")
@@ -314,6 +336,12 @@ def main() -> int:
     sync = ad.add_parser("sync-code")
     sync.add_argument("--dry-run", action="store_true")
     sync.set_defaults(run=cmd_admob_sync)
+
+    floors = ad.add_parser("floors-plan", help="plan de pisos por país (dry-run: no escribe nada)")
+    floors.add_argument("--report", type=Path, help="CSV exportado a mano del informe de AdMob")
+    floors.add_argument("--tiers", type=Path, default=REPO / "FisuEvolution" / "Resources" / "Config" / "player_value.json")
+    floors.add_argument("--factor", type=float, help="piso = factor × eCPM p25 del tier (default 0,5)")
+    floors.set_defaults(run=cmd_admob_floors_plan)
 
     ver = sub.add_parser("version").add_subparsers(dest="cmd", required=True)
     bump = ver.add_parser("bump")

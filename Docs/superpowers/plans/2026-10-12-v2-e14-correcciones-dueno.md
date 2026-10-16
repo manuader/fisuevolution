@@ -137,3 +137,61 @@ Fuera del relevo, ya en marcha: T1 (batch de Gemini) y T2 (videos generados, esp
   botonera del ascensor abierta.
 - Capturas de cada pantalla tocada en SE y Pro Max. La revisión mira que respete la **idea** de su mockup
   (qué hay, en qué orden, qué se destaca), no que se le parezca al píxel (D13).
+
+---
+
+## Cierre de E14 (T27) — BORRADOR (relevo 59, 2026-10-15)
+
+> Borrador escrito sin compilar. El controlador completa los `[COMPLETAR]` cuando corra el `completo` de la
+> integración final y tenga las capturas.
+
+### Qué está hecho
+
+- **T0–T26 y T28–T29 ✅.** Las 30 tareas de código están en `version-2`: T13–T26 entraron con `36697cac` (el `completo`
+  `20261015-154752` más el aislamiento del relevo 58); T1–T12, T28 y T29 venían de los relevos 49–54.
+- **G1, G2 y G3 cerradas** (mockups, 27 imágenes y 11 videos aprobados por el dueño). Las 27 imágenes y los 11 clips están
+  integrados (T3).
+- **La E14b (B1–B30) corrió encima**: B1–B19, B26 y B27 en `version-2`; B20–B24, B28 y B29 en `v2i/integ-r58`; B25 en
+  `v2i/integ-r59`; B30 en su rama aparte, sin mergear (espera el OK del dueño). Detalle en `tasks.md` §5 «E14b».
+- **Cero SF Symbols en controles visibles (T25)** y los textos al catálogo (T26). La 2.0 sale **sin Meta** y con la
+  moneda premium en dólar blue (T7, B14).
+- El pacing no se movió por E14: Dios en 45,40 h (`.free`) y 32,19 h (`.ads`), 6 reencarnaciones.
+
+### Qué falta para cerrar T27 `[COMPLETAR]`
+
+1. **El `completo` de la integración final** (integ-r59 con `version-2` mergeada): EK, build, Release 0 warnings,
+   unit, UI, store-unit, iPad, SE y pacing. Hoy: integ-r58 tuvo EK 1017 ✅, Release ✅, unit 2263 + 1 rojo (arreglado) y
+   UI `[COMPLETAR]`. Si hay rojos de UI, aislarlos una vez antes de creerlos (carga).
+2. **Las capturas** de las pantallas tocadas en SE, iPhone 15 y Pro Max, e iPad (chequeo de superposición, D14). Las
+   saca el arnés de E10 T9 (`AppStoreScreenshotTests`, rama `v2i/e10-capturas`) más las del plan.
+3. **`Docs/SESION-2026-10-1x-v2-e14-cierre.md`** y las cuatro ediciones del `HANDOFF.md` (banner, §4, §5, §7, §8):
+   `[COMPLETAR]`. El borrador de ese HANDOFF ya está commiteado con el relevo 59.
+4. **G4 🔒 (el dueño):** la pasada en iPhone real, **al final** de todo, con la lista de abajo.
+
+### Lo que queda del dueño (🔒), en orden
+
+La lista completa hasta el envío vive en el plan de E10 («Cierre de E10 → Lo que queda del dueño»). Para E14 son los
+puntos 1, 4, 5 y 6 de esa lista: **B30 sí/no**, los **textos de La Marcha y Novedades**, los **gates de E8d/E8e en el
+SE** y la **pasada final G4**.
+
+### Lista de la pasada G4 (iPhone SE y Pro Max)
+
+Sin números: se mira, no se mide.
+
+- **Superposición (D14):** nada tapa a nada ni al tablero; la única excepción es la botonera del ascensor abierta sobre los
+  boosts. Peor caso en el SE: tablero lleno, visitante esperando, caja y colchón, 4+ boosts y un aviso.
+- **La barra de abajo:** las leyendas se leen, los botones «Etiqueta y billete» no pisan el plato, Contratar y
+  Reencarnar son solapas; la Tienda está en la barra y el Ranking dentro del Menú › Oficina.
+- **Los visitantes:** llegan sin cortes, se paran a mitad de piso, el popup abre solo al tocar, «No, gracias» los manda
+  ofendidos; hay uno por piso y varios a la vez.
+- **Las cajas y el colchón:** caen en cualquier lugar de su piso, el personaje sale de la caja, el colchón se ve después
+  del video (el log `reward after dismiss` dice si el premio llega después de cerrar el video).
+- **Los premios en dos pasos (B29):** «¡Dale!» cobra y después «×2 con video» / «No, gracias»; las monedas vuelan al HUD.
+- **La Marcha del Puntero:** el chip, los 420 toques en una hora, el cobro de 30 blue una vez, el cupo semanal.
+- **La Ruleta, el cofre y el Paquete:** antes, durante y después con su imagen; los premios siempre ilustrados.
+- **Los menús:** el pager desliza sin trabas, un solo marco, transparente afuera; cabecera con las flechas a la altura
+  del título; Ajustes sin naranja fuera de las cintas.
+- **Cero «ORO»:** ni en textos, ni en imágenes, ni en el ícono de la moneda; sólo «dólar blue».
+- **Compartir:** la imagen exportada es el personaje con su skin (no un símbolo).
+- **Tutorial y Tour:** un jugador nuevo no ve «las pestañas se mudaron»; un veterano sí.
+- **Lo que B30 cambia**, si el dueño dice que sí: los de atrás hasta un 15 % más chicos, sin saltos al deambular.

@@ -59,7 +59,7 @@
     {"id": "puntero_bolson", "visitor": "npc_puntero", "weight": 8, "minTier": 2, "dailyCap": 2,
      "mechanic": {"kind": "gift", "videoDoubles": true, "rewards": [{"kind": "package", "count": 1}]}},
     {"id": "puntero_marcha", "visitor": "npc_puntero", "weight": 20, "minTier": 3, "dailyCap": 1, "weeklyCap": 1, "realClock": true,
-     "mechanic": {"kind": "challenge", "taps": 420, "windowSeconds": 3600, "videoDoubles": true,
+     "mechanic": {"kind": "challenge", "taps": 420, "windowSeconds": 120, "videoDoubles": true,
                   "rewards": [{"kind": "blue", "amount": 30}]}},
     {"id": "ministro_subsidio", "visitor": "npc_ministro", "weight": 8, "minTier": 2, "dailyCap": 2,
      "mechanic": {"kind": "gift", "videoDoubles": true, "rewards": [{"kind": "coinsSeconds", "seconds": 1200}]}},

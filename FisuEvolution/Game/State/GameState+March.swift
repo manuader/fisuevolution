@@ -1,7 +1,7 @@
 import EconomyKit
 import Foundation
 
-/// La Marcha del Puntero (E14b B25, D16): 420 toques a mano en una hora de reloj real por 30 blue,
+/// La Marcha del Puntero (E14b B25, D16): 420 toques a mano en dos minutos de reloj real por 30 blue,
 /// una vez por semana. Es el reto de toques de siempre (`ChallengeTerms`) con `realClock`: en vez de
 /// vivir en el escenario (`stageChallenge`, reloj de juego activo) vive en el save
 /// (`VisitorsState.march`), así que sigue con la app cerrada y se resuelve al volver. Cuenta en

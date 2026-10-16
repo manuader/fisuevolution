@@ -221,11 +221,10 @@ struct MarchChip: View {
     }
 }
 
-/// «42:13», o «1:00:00» con la hora entera: el reloj del chip y del popup de la Marcha.
+/// «02:00» … «00:07», en mm:ss: el reloj del chip y del popup de la Marcha (dura dos minutos).
 enum MarchClock {
     static func text(_ seconds: TimeInterval) -> String {
         let total = max(0, Int(seconds.rounded(.up)))
-        let hours = total / 3600, minutes = total % 3600 / 60, secs = total % 60
-        return hours > 0 ? String(format: "%d:%02d:%02d", hours, minutes, secs) : String(format: "%d:%02d", minutes, secs)
+        return String(format: "%02d:%02d", total / 60, total % 60)
     }
 }

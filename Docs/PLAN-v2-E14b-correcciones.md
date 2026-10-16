@@ -575,6 +575,12 @@ decir, con B17 y B18 hechos. **B22 amplía B18:** se integra B18 primero.
 - **Revisión:** opus (blue, save y pacing).
 - **Archivos:** `visitors.json`, EK `VisitorsConfig`, `VisitorScheduler` y `VisitPlanner`, `GameState+Visitors`,
   `GameState+Actions`, `StageChips` y el catálogo.
+- **Cambio del dueño (relevo 60): ventana de 2 min.** El 2026-10-16 el dueño pidió achicar la ventana a dos
+  minutos («si no, es muy fácil»). `puntero_marcha` pasa de `windowSeconds` 3600 a **120**; los 420 toques, los 30
+  blue y el cupo de una por semana quedan iguales. El pop-up del pedido dice «en dos minutos» / «in two minutes», el
+  chip y el estado muestran lo que queda en mm:ss («02:00» … «00:07», `MarchClock`) y la tienda (whatsNew y
+  reviewNotes de `release.json`) también habla de dos minutos. El UI test sigue con su ventana corta de 20 s. El bot
+  no juega visitantes: Dios sigue en 45,40 h (`balance-log.md`).
 
 ### B26 — La Tienda va a la barra y el Ranking, adentro del Menú (D19)
 - **Hoy:**

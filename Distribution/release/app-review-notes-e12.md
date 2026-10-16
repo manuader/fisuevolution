@@ -57,7 +57,7 @@ tipos (ranking + telemetría + AdMob; la 2.0 sale sin Meta): `Distribution/relea
   (3.949 de 4.000 caracteres, ASCII) nombra cada lugar de anuncios del código, incluidos **La Marcha del Puntero
   (B25, `double.marcha`)**, el **colchón gratis cada 30 minutos (B31, `double.mattress`)** y el Aguinaldo
   (`double.event.*`), y sólo a Google y Unity Ads (sin Meta). Las Novedades de `en-US`, `es-MX` y `es-ES` suman la línea de
-  La Marcha («420 toques en una hora y ganás 30 dólares blue, una vez por semana») y el colchón gratis cada 30 minutos.
+  La Marcha («420 toques en dos minutos y ganás 30 dólares blue, una vez por semana») y el colchón gratis cada 30 minutos.
   La parte del ranking no cambió (se corrigió sólo que el Ranking es una tarjeta de Menú, la última pestaña de la barra).
   Siguen por confirmar contra el build de TestFlight y por decidir el voseo de es-MX/es-ES.
 - **Resuelto en E10 T5:** la sección LEADERBOARD ya está en `release.json → store.reviewNotes` (resumida

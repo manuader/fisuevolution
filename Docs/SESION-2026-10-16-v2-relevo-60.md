@@ -1,7 +1,4 @@
-# Sesión 2026-10-16 — relevo 60: los dos rojos de unit, B34 y su cuelgue, B30 con el sí del dueño, el `completo` de integ-r60 y la 2.1 (olas 1–3)
-
-> **BORRADOR escrito por un agente sin compilar durante el relevo.** Los números los completa el controlador al cierre. Lo marcado con
-> `[COMPLETAR]` espera el `completo` de `v2i/integ-r60`, el archive y la subida del build.
+# Sesión 2026-10-16 — relevo 60: la 2.0 al 100 % y subida (build 6): rojos de unit, B34, B30, B32, gates del SE, capturas, archive y la 2.1 (olas 1–3)
 
 Relevo por la orden del dueño al cierre del 59: **agent teams hasta el 100 %**, después instalar y **subir el build a App Store
 Connect** (autorizado sólo para subir; mandar a revisión no). Regla vigente: **los agentes no compilan por tarea**; se integra y se
@@ -12,9 +9,11 @@ compila la ola entera. Excepciones de hoy, con permiso explícito en su brief: `
 
 `integ-r59` quedó en **`5b3d2cce`** con los 2 rojos de unit arreglados y los textos finales de tienda (E10 T11); su `completo` dio **EK 1057 ·
 unit 2283 · Release 0 · pacing igual** y 6 rojos de UI, que `fix-ui-r60` resolvió. Entró **B34** (el logo de Ader Games) y, con el **sí del
-dueño**, **B30** (el tamaño según la distancia) en una integración nueva, **`v2i/integ-r60`** (punta `0c0676b0`), cuyo `completo --limpio` corre
-al escribir esto `[COMPLETAR: resultado]`. En paralelo, la **2.1** avanzó tres olas (20 de 42 tareas) en la rama `version-2.1`. `version-2`
-sigue en `36697cac` hasta que ese `completo` dé VERDE.
+dueño**, **B30** (el tamaño según la distancia) en una integración nueva, **`v2i/integ-r60`** (punta `0c0676b0`), cuyo `completo --limpio` dio
+**VERDE** tras 6 rojos de unit que eran de tests (`fix-unit2-r60`, `cc7ffb4e`). **`version-2` avanzó por fast-forward `36697cac` → `cc7ffb4e` →
+`06ca8760`**: el build 5 se archivó y se **subió a ASC (VALID)**; el dueño vio en vivo dos defectos (el splash y el difuminado de la caja) y entraron al
+**build 6**, también archivado y **subido**. Nada se mandó a revisión. En paralelo, la **2.1** avanzó tres olas (20 de 42 tareas) en la rama
+`version-2.1`.
 
 ## Decisiones del dueño (en vivo, en este chat)
 
@@ -62,8 +61,8 @@ EK 1057 ✅ · build ✅ · unit 2283 ✅ (0 rojos, 822 s) · Release 0 warnings
 45,40 h / 6 reencarnaciones ✅ · store-unit 17 + 1 rojo (`StoreManagerTests.loadsTheCatalogProducts`: el timeout de StoreKit conocido, a 122 s con carga
 85–93) · UI 199 + 6 rojos + 4 salteados: `AppStoreScreenshotTests` ×3 (el colchón no cae, B31; el Ministro no llega), `MarchUITests` ×2 (el chip no abre
 el estado; la cobrada deja algo) y `QuickHireUITests.testCambiarDePiso…`. Se mandaron a `fix-ui-r60`. El aislamiento de StoreKit colgó 16 min con
-carga 600–680 (3 simuladores, uno de otra sesión: `auditoria-17pro`); se cortó el proceso propio, se borró su simulador y se repite con menos
-carga `[COMPLETAR: resultado]`.
+carga 600–680 (3 simuladores, uno de otra sesión: `auditoria-17pro`); se cortó el proceso propio, se borró su simulador y se repitió con la máquina
+sola (el `completo` de integ-r60, abajo).
 
 ### Los 6 rojos de UI (`fix-ui-r60`, opus, `5f813688` → `0c0676b0`)
 
@@ -91,19 +90,46 @@ en 0,85 y es ajustable.
 
 ### El `completo --limpio` de integ-r60 (B30 + B34 + los arreglos, sobre `0c0676b0`)
 
-Se lanzó con la máquina sola (el primer intento cayó al instante: el worktree nuevo no tenía `build/` para el log) `[COMPLETAR: EK · build · unit · Release ·
-store · iPad · SE · pipeline · pacing · UI y rojos aislados; qué entró a version-2]`.
+Se lanzó con la máquina sola (el primer intento cayó al instante: el worktree nuevo no tenía `build/` para el log). Corrida `20261016-050819`:
+**EK 1057 ✅ · build ✅ · Release 0 warnings ✅ · store-unit 18 ✅ · UI 205 con 0 rojos y 4 salteados ✅ · store-ui 3 · iPad 4 · SE 2 · pipeline 107 ·
+pacing Dios 45,40 h / 6 reencarnaciones ✅ · unit 2286 + 6 rojos:** `PackageFloors` ×2, `DepthOrder` y `StageBubble` (B30), `VisibleLiteralsGuard` (B34) y
+`ElevatorRide` (flake conocido). **`fix-unit2-r60` (opus, `cc7ffb4e`) los resolvió sólo en tests:** la app era coherente, los tests de B30 ahora miden con
+`depthScale`, «Ader Games» entra a las `brandWords` de la guardia, y `ElevatorRide` pasó 15/15 ×3 aislado; 8 clases, 111/111. Con eso el `completo`
+quedó **VERDE** y `version-2` avanzó por ff `36697cac` → `cc7ffb4e`.
 
 ### E8d T15 y E8e T9 — las mediciones del SE
 
-Se cierran sólo con el simulador del SE (decisión del dueño). Brief `ola-r60/gates-se.md`; se despacha con nombre cuando la máquina esté libre
-`[COMPLETAR: números de fps, memoria con el tope de 3 videos, Reduce Motion, Bajo consumo y ODR]`.
+Se cerraron sólo con el simulador del SE (decisión del dueño; `gates-se-r60`, opus, `3d3a3b89`). iPhone SE 3.ª gen., iOS 26.5 (`iPhone14,6` → tope de
+2 vivos), con carga de la Mac 470–890. **G1:** 59,8 fps, 0,23 % de cuadros > 25 ms (10 min: 59,7). **G4:** con video +3 a +8 MB sobre el póster, pico
+127 MB (es el arranque). **G5 ODR:** los 4 packs en el `.app`, el especial reproduce su video. **Reduce Motion:** 0 % de cambio en 1 s, póster sin
+hueco. **Bajo consumo:** por código (`VideoPlayerPoolTests`). 103 tests de 9 clases verdes. G2 (iPad), TestFlight/modo avión/purga y el fps de un SE
+real quedan como **riesgo aceptado por el dueño**. E8d T15 y E8e T9 ✅.
+
+### Las capturas (E10 T9)
+
+`capturas-r60` (sonnet, `c8f6cef0`): **43 capturas** de ficha (6,9" y 13", en/es, 10 por combinación, más 3 de las ofertas) con su `INDICE.md`.
+Menores para el dueño: el ranking muestra «Jugador N» (servidor simulado del arnés), el globo «¡Tocame!» queda tapado en parte, el aro azul del
+toque, «Welcome Pack» contra «Starter Pack». **Encontró el defecto de B34:** en el splash final el logo tapaba la cabeza del Fisura.
 
 ### La subida del build a ASC
 
-Preparada: `asc builds` (sólo GET) dice que el próximo build libre para 2.0.0 es **5**, igual a `CURRENT_PROJECT_VERSION`; `ExportOptions`
-con `destination=upload` y la clave de la API en `~/.appstoreconnect`. **Falta el `completo` verde, el archive (E10 T12) y la subida**
-`[COMPLETAR: archive, `app verify`, build subido sí/no]`. Mandar a revisión no está autorizado.
+`asc builds` (sólo GET) dijo que el próximo build libre para 2.0.0 era **5**, igual a `CURRENT_PROJECT_VERSION`; `ExportOptions` con
+`destination=upload` y la clave de la API en `~/.appstoreconnect`.
+
+- **Build 5** (`archive-r60`, opus, `e0ca4741`, desde `cc7ffb4e`): ARCHIVE SUCCEEDED, `app verify` 9/9, sin Meta, `.app` 223 MB. **Subido**
+  (`xcodebuild -exportArchive` con la clave de la API: «Upload succeeded / EXPORT SUCCEEDED») y **VALID** en ASC (procesado 03:59:46 -07:00). Sin dSYM de
+  4 frameworks de terceros (GoogleMobileAds, UnityAdapter, UnityAds, UMP): normal en binarios precompilados. Carry: 3 argumentos `--uitest` fuera de
+  `#if DEBUG` (`ForcedAdsSetup`, `StubAdsProvider`, ranking simulado; inofensivos).
+- **Dos defectos que el dueño vio en vivo con el build 5:** (a) **el splash (B34):** el logo tapaba la cabeza del Fisura. `b34-fix-r60` (opus,
+  `c8501c11`): el layout final estaba bien; **era de tiempo**: el arranque en frío cortaba la subida del logo mientras el Fisura aparecía a la vez;
+  ahora el Fisura aparece en el `completion` de la subida (el logo doble de una captura era el fundido del sistema). (b) **el difuminado de la caja
+  (B32):** no se veía en el juego. `b32-check-r60` (opus, `bf8cb930`): los clips son **premultiplicados** y B32 sólo había multiplicado el alfa, así que
+  los rayos se sumaban enteros y dejaban una franja con corte recto; la herramienta ahora multiplica **color y alfa**, se rehorneó el cofre, la caja y
+  el colchón desde los originales y hay un test nuevo de premultiplicado (pipeline 108, 62 de Swift, `BoardPackageUITests` ×3).
+- **Build 6** (`06ca8760` = merge de los dos arreglos + `chore(release)`): rapido VERDE (EK 1057 · build · unit 2292 · Release 0), `version-2` ff
+  `cc7ffb4e` → `06ca8760`. El archive se armó **en el worktree `version-2`** (mismo commit): ARCHIVE SUCCEEDED, `app verify` 9/9, sin Meta, clip nuevo
+  de la caja (154.694 B), `CFBundleVersion` 6. **Subida:** el 1.er intento falló con «request timed out» (la red) y el **reintento** dio «Upload
+  succeeded / EXPORT SUCCEEDED» (11:28). El procesamiento en ASC lo mira el controlador. **Nada se mandó a revisión.**
 
 ## La 2.1 (rama `version-2.1`, aparte de la 2.0)
 
@@ -148,6 +174,13 @@ el bucket/exposure lo cablea F1-T5 (hecho) y el pago de `mergeAll` lo cablea F3-
   timeouts de ~190 s y el aislamiento de StoreKit colgado 16 min. Antes de creer un rojo de UI o de StoreKit, mirar `uptime` y los simuladores
   booteados; no tocar los ajenos.
 - **Un worktree nuevo no tiene `build/`:** el primer lanzamiento del `completo` falló al instante sin log. Crear `build/` antes de lanzar.
+- **Un clip con alfa premultiplicado se difumina multiplicando color Y alfa (B32).** Si el difuminado sólo baja el alfa, el color queda entero y el
+  juego, que compone premultiplicado, suma los rayos completos: una franja blanca con corte recto en vez de un degradé. Una herramienta que toca
+  esos clips multiplica los dos canales y se mira con una captura del **juego**, no del video suelto.
+- **El defecto del splash era de tiempo, no de layout (B34):** el arranque en frío corta una animación que en caliente se ve entera. Una captura en
+  caliente no lo ve: hay que mirar el arranque en frío, y el aparecer del Fisura va en el `completion` de la subida del logo.
+- **`xcodebuild -exportArchive` con `destination=upload` puede morir por la red («request timed out»):** se reintenta; no hay que rehacer el archive.
+- **El archive se puede armar en el worktree `version-2`** (el commit es el mismo que el de la integración tras el ff): no hace falta otro checkout.
 - **No se mergea a la integración mientras corre su `completo`:** B34 y B30 esperaron y se armaron en `v2i/integ-r60` aparte.
 - **Un merge con conflictos de B30 conviene delegarlo con nombre** (`b30-merge`): `PickupController` y `BarFlapLayoutTests` los resolvió un agente
   que conocía los dos lados; sus asserts escalados son parte del riesgo de los UI que miden tamaños.
@@ -158,7 +191,8 @@ el bucket/exposure lo cablea F1-T5 (hecho) y el pago de `mergeAll` lo cablea F3-
   abierta, el billete que sigue al plato).
 - Con B30: `backScale` 0,85 ajustable; los UI que miden posiciones de los de atrás; el botón de compra con nombre largo en castellano (capturas SE y
   Pro Max).
-- Las capturas de B34 en SE y Pro Max y la tira del paso del splash a la pantalla principal: `[COMPLETAR]`.
+- Las capturas de B34 (SE y Pro Max, antes y después del arreglo del build 6) están en `capturas-r60/` (`b34/`, `b34-fix/`); detalles menores de las 43 capturas: arriba.
+- Los 3 argumentos `--uitest` fuera de `#if DEBUG` del Release (tarea aparte).
 
 ## Descartados
 

@@ -19,7 +19,7 @@ struct StageChips: View {
                 ChallengeChip(challenge: challenge, visitorId: visit.actorId)
                     .transition(.scale(scale: 0.7, anchor: .topTrailing).combined(with: .opacity))
             }
-            if let march = gameState.march, let visitorId = gameState.content?.visitors.script(id: march.scriptId)?.visitor {
+            if let march = gameState.shownMarch, let visitorId = gameState.content?.visitors.script(id: march.scriptId)?.visitor {
                 MarchChip(march: march, visitorId: visitorId) { gameState.openMarchPopup() }
                     .transition(.scale(scale: 0.7, anchor: .topTrailing).combined(with: .opacity))
             }
@@ -35,7 +35,7 @@ struct StageChips: View {
         }
         .animation(.spring(duration: 0.3), value: gameState.stageVisit?.offer != nil)
         .animation(.spring(duration: 0.3), value: gameState.visibleFloorOrdinal)
-        .animation(.spring(duration: 0.3), value: gameState.march == nil)
+        .animation(.spring(duration: 0.3), value: gameState.shownMarch == nil)
     }
 }
 

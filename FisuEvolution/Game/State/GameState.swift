@@ -316,6 +316,9 @@ final class GameState {
     var stageChallenge: StageChallenge?
     /// El popup de la Marcha del Puntero (`+March`, E14b B25). La Marcha misma vive en el save.
     var marchPopup: MarchPopup?
+    /// La Marcha del save publicada para la UI: `player` es `@ObservationIgnored` y el chip, su
+    /// contador y los popups la leen de acá. La escribe `+March` (`refreshMarch`).
+    var shownMarch: MarchState?
     /// Los accesos a paquetes, colchón y ruleta. Lo escribe `+Prizes`.
     var prizeAccess = PrizeAccess.none
     /// La columna lateral (`+SideRail`): cambia a lo sumo una vez por segundo.

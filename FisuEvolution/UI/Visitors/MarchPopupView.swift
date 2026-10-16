@@ -17,7 +17,7 @@ struct MarchPopups: ViewModifier {
     /// lo limpia en el próximo tick).
     private var binding: Binding<MarchPopup?> {
         Binding(
-            get: { gameState.march == nil ? nil : gameState.marchPopup },
+            get: { gameState.shownMarch == nil ? nil : gameState.marchPopup },
             set: { if $0 == nil { gameState.closeMarchStatus() } }
         )
     }
@@ -34,7 +34,7 @@ struct MarchPopupView: View {
     private static let portraitSide: CGFloat = 96
 
     var body: some View {
-        if let march = gameState.march, let content = gameState.content,
+        if let march = gameState.shownMarch, let content = gameState.content,
            let script = content.visitors.script(id: march.scriptId),
            let visitor = content.visitors.visitor(id: script.visitor) {
             let resolved = kind == .result && march.outcome != nil

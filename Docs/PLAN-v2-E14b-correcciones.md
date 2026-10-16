@@ -838,3 +838,5 @@ B32 y B33 son chicas y no se pisan: entran en cualquier hueco. B31 va después d
 el ×2) y corre el pacing-sim: no en paralelo con otra tarea que lo corra (B25).
 
 > **Regla del dueño (2026-10-16, en vivo):** el colchón sigue la misma dinámica que la caja (B18/B22): pertenece a un piso, se persiste por piso con su lugar y se queda ahí; no navega con el usuario por los pisos. Vale para el colchón de la columna y el de B31.
+
+> **Cambio del dueño a B25 (2026-10-16, en vivo):** La Marcha es **420 toques en 2 minutos** (120 s), no en una hora: «si no, es muy fácil». Textos «en una hora» → «en dos minutos» / «in two minutes»; el chip con mm:ss. Lo hace el relevo 60.

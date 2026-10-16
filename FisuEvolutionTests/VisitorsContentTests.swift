@@ -21,7 +21,7 @@ struct VisitorsContentTests {
         #expect(content.visitors.visitors.filter { $0.kind == .special }.count == 10)
     }
 
-    @Test("los 26 guiones del Anexo A, cada uno con su visitante")
+    @Test("los 26 guiones del Anexo A y la Marcha (E14b B25), cada uno con su visitante")
     func theScripts() {
         let expected: [String: String] = [
             "comisario_arresto": "npc_comisario", "comisario_multa": "npc_comisario",
@@ -29,7 +29,7 @@ struct VisitorsContentTests {
             "influencer_novio": "sp_influencer", "influencer_codigo": "sp_influencer",
             "sindicalista_aumento": "npc_sindicalista", "sindicalista_asado": "npc_sindicalista",
             "turista_compra": "npc_turista", "turista_propina": "npc_turista",
-            "puntero_acto": "npc_puntero", "puntero_bolson": "npc_puntero",
+            "puntero_acto": "npc_puntero", "puntero_bolson": "npc_puntero", "puntero_marcha": "npc_puntero",
             "ministro_subsidio": "npc_ministro",
             "vecina_chisme": "npc_vecina", "vecina_favor": "npc_vecina",
             "vendedor_ofertas": "npc_vendedor",
@@ -68,6 +68,11 @@ struct VisitorsContentTests {
         #expect(try mechanic("coach_reto") == .challenge(
             taps: 67, windowSeconds: 30, rewards: [.modifier(effect: .incomeMultiplier, magnitude: 2, seconds: 120)], videoDoubles: false
         ))
+        // La Marcha (E14b B25, D16): 420 toques en una hora de reloj real, 30 blue, una vez por semana.
+        #expect(try mechanic("puntero_marcha") == .challenge(taps: 420, windowSeconds: 3600, rewards: [.blue(30)], videoDoubles: true))
+        #expect(content.visitors.script(id: "puntero_marcha")?.realClock == true)
+        #expect(content.visitors.script(id: "puntero_marcha")?.weeklyCap == 1)
+        #expect(content.visitors.scripts.filter(\.realClock).map(\.id) == ["puntero_marcha"], "el único de reloj de pared")
         guard case .vendor(let cards) = try mechanic("vendedor_ofertas") else {
             Issue.record("el Vendedor no vende")
             return

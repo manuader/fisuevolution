@@ -14,8 +14,10 @@ extension GameState {
 
     /// Tap con rolls de crítico (× critMultiplier) y golden touch (×10).
     /// `cellIndex` = slot del piso visible. Nil si el slot está vacío.
+    /// `countsForMarch` en `false`: el segundo toque de una fusión asistida cobra
+    /// pero no suma a la Marcha (E14b B25).
     @discardableResult
-    func registerTap(cellIndex: Int) -> TapResult? {
+    func registerTap(cellIndex: Int, countsForMarch: Bool = true) -> TapResult? {
         guard let economy, let content, var player = player,
               let typeId = tower?.typeId(floorOrdinal: visibleFloorOrdinal, slot: cellIndex),
               let type = content.tiers.type(id: typeId)
@@ -42,6 +44,7 @@ extension GameState {
         player.meta.stats.totalTapsEver += 1
         self.player = player
         noteStageTap()
+        if countsForMarch { noteMarchTap() }
         lightCandleIfBlackout()
         if !ftueTapped {
             ftueTapped = true

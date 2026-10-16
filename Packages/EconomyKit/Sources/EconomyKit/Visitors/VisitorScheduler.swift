@@ -8,11 +8,15 @@ public struct VisitContext: Sendable, Equatable {
     public let ownedSpecials: Set<String>
     /// Lo que la app ya sabe entregar (`GameState.grantableRewardKinds`).
     public let grantable: Set<RewardSpec.Kind>
+    /// Pueden salir los guiones con cupo semanal: no es la primera sesión y el tutorial terminó
+    /// (E14b B25).
+    public let allowsWeekly: Bool
 
-    public init(maxTier: Int, ownedSpecials: Set<String>, grantable: Set<RewardSpec.Kind>) {
+    public init(maxTier: Int, ownedSpecials: Set<String>, grantable: Set<RewardSpec.Kind>, allowsWeekly: Bool = true) {
         self.maxTier = maxTier
         self.ownedSpecials = ownedSpecials
         self.grantable = grantable
+        self.allowsWeekly = allowsWeekly
     }
 }
 
@@ -38,7 +42,28 @@ public enum VisitorScheduler {
         state.blueExchangedToday = 0
     }
 
-    /// Puede venir ahora, sea por la bolsa o porque lo llama un evento.
+    /// Una semana calendario nueva vacía el cupo semanal (E14b B25).
+    public static func rollWeek(_ state: inout VisitorsState, week: String) {
+        guard state.week != week else { return }
+        state.week = week
+        state.visitsThisWeek = [:]
+    }
+
+    /// La semana ISO de una fecha ("2026-W42"): empieza el lunes, en la zona del dispositivo.
+    public static func weekKey(for date: Date, timeZone: TimeZone = .current) -> String {
+        var calendar = Calendar(identifier: .iso8601)
+        calendar.timeZone = timeZone
+        let parts = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: date)
+        return String(format: "%04d-W%02d", parts.yearForWeekOfYear ?? 0, parts.weekOfYear ?? 0)
+    }
+
+    /// Una sesión nueva (un arranque de la app): la primera no trae guiones con cupo semanal.
+    public static func noteSessionStarted(_ state: inout VisitorsState) {
+        state.sessions += 1
+    }
+
+    /// Puede venir ahora, sea por la bolsa o porque lo llama un evento. Un guion de reloj de pared no
+    /// vuelve mientras su Marcha sigue en el save.
     public static func isAvailable(
         _ script: VisitorsConfig.Script,
         config: VisitorsConfig,
@@ -49,6 +74,8 @@ public enum VisitorScheduler {
         isUnlocked(script, config: config, context: context)
             && !isWaiting(script.visitor, state: state)
             && (state.visitsToday[script.id] ?? 0) < script.dailyCap
+            && script.weeklyCap.map { (state.visitsThisWeek[script.id] ?? 0) < $0 } ?? true
+            && !(script.realClock && state.march != nil)
             && isOfferable(script)
     }
 
@@ -141,6 +168,8 @@ public enum VisitorScheduler {
         state.lastVisitor = script.visitor
         state.lastScriptByVisitor[script.visitor] = script.id
         state.visitsToday[script.id, default: 0] += 1
+        // Entrar gasta el cupo de la semana: si la rechaza, no vuelve hasta la semana siguiente.
+        if script.weeklyCap != nil { state.visitsThisWeek[script.id, default: 0] += 1 }
         state.secondsUntilVisit = Double.random(in: config.intervalMinSeconds...config.intervalMaxSeconds, using: &rng)
     }
 
@@ -177,6 +206,7 @@ public enum VisitorScheduler {
     private static func isUnlocked(_ script: VisitorsConfig.Script, config: VisitorsConfig, context: VisitContext) -> Bool {
         guard let visitor = config.visitor(id: script.visitor) else { return false }
         return context.maxTier >= script.minTier
+            && (script.weeklyCap == nil || context.allowsWeekly)
             && (visitor.kind == .npc || context.ownedSpecials.contains(visitor.id))
             && script.mechanic.rewards.allSatisfy { context.grantable.contains($0.kind) }
     }

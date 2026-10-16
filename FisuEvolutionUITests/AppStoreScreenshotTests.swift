@@ -11,20 +11,56 @@ import XCTest
 ///
 /// ## Cómo se corre
 ///
+/// Un solo comando, con los simuladores propios que crea y borra el script
+/// (no hay que armar destinos a mano):
+///
 /// ```bash
-/// Tools/v2/capturas.sh [--device "iPhone 17 Pro Max"] [--lang en|es]
+/// Tools/v2/capturas.sh                                   # todo: matriz completa + las 3 de revisión
+/// Tools/v2/capturas.sh --device "iPhone 17 Pro Max" --lang en
+/// Tools/v2/capturas.sh --sin-review                      # sólo la ficha
 /// ```
 ///
-/// `capturas.sh` crea el simulador, corre este generador por idioma, saca los
-/// adjuntos del `.xcresult` a `build/capturas/2.0/<device>/<lang>/NN-nombre.png`
-/// y valida el tamaño de cada PNG contra el slot de App Store Connect
-/// (1320 × 2868, 1206 × 2622 y 2064 × 2752).
+/// Por dentro, cada idioma es este `xcodebuild` (el simulador lo pone el script por UDID):
 ///
-/// El guion de la 2.0 son ocho capturas, repartidas en cuatro corridas por
-/// idioma porque cada una pide fixtures que las otras taparían:
-/// `01-tablero`, `02-tienda-blue`, `03-ruleta`, `05-ascensor`, `06-ranking`
-/// (una sola partida, navegando el menú deslizable), `04-visitante`,
-/// `07-personajes` y `08-cofre`.
+/// ```bash
+/// xcodebuild test-without-building -scheme FisuEvolution -sdk iphonesimulator -configuration Debug \
+///   -destination "id=<UDID>" -derivedDataPath build/DD-capturas.noindex -parallel-testing-enabled NO \
+///   -resultBundlePath <x>.xcresult \
+///   -only-testing:FisuEvolutionUITests/AppStoreScreenshotTests/testCapturaElRecorridoEnIngles \
+///   -only-testing:FisuEvolutionUITests/AppStoreScreenshotTests/testCapturaElVisitanteEnIngles \
+///   -only-testing:FisuEvolutionUITests/AppStoreScreenshotTests/testCapturaLaRecompensaEnIngles \
+///   -only-testing:FisuEvolutionUITests/AppStoreScreenshotTests/testCapturaLaMarchaEnIngles \
+///   -only-testing:FisuEvolutionUITests/AppStoreScreenshotTests/testCapturaLosPersonajesEnIngles \
+///   -only-testing:FisuEvolutionUITests/AppStoreScreenshotTests/testCapturaElCofreEnIngles
+/// # (…EnCastellano para es) y, una vez, en el iPhone 17 Pro Max:
+/// #   -only-testing:FisuEvolutionUITests/AppStoreScreenshotTests/testCapturaLaOfertaBienvenida (y …Renacer, …Mudanza)
+/// ```
+///
+/// Dónde quedan los PNG (`build/` no se versiona):
+///
+/// - la ficha: `build/capturas/2.0/<dispositivo>/<en|es>/NN-nombre.png`
+/// - las de revisión de las ofertas: `build/capturas/2.0/review/offer_<id>.png`
+///   (`offer_bienvenida`, `offer_renacer`, `offer_mudanza`, los `productId` de `release.json`;
+///   se suben con `releaseops asc screenshot offer_<id> <png>`, 🔒 del dueño)
+///
+/// ## La matriz
+///
+/// | Destino | Slot de App Store Connect | Por qué |
+/// |---|---|---|
+/// | iPhone 17 Pro Max (6,9") | 1320 × 2868 | el slot que ASC pide para iPhone; los de 6,5", 6,3" y menores se escalan de él (el 6,5" sólo se exige si no hay de 6,9") |
+/// | iPad Pro 13-inch (M5) | 2064 × 2752 | la 2.0 es universal: el iPad de 13" es el slot obligatorio de iPad |
+/// | iPhone 17 Pro (6,3") | 1206 × 2622 | opcional: `--device "iPhone 17 Pro"` |
+///
+/// Cada uno en **es-MX** (`es`) y **en-US** (`en`), los dos locales de la ficha.
+///
+/// ## El guion (diez capturas por dispositivo e idioma)
+///
+/// `01-tablero` (la torre con 15 lugares, una caja de aduana y el colchón sobre el tablero),
+/// `02-tienda` (la Tienda de la barra, con sus precios de StoreKit), `03-ruleta`, `04-visitante`
+/// (en el medio del piso, con su globo), `05-ascensor`, `06-ranking` (Menú › Oficina central),
+/// `07-personajes`, `08-cofre`, `09-recompensa` (el paso 2, «¿Lo duplicás?») y `10-marcha`
+/// (La Marcha ganada: el Puntero festeja). Repartidas en una corrida por idioma porque cada una
+/// pide fixtures que las otras taparían. `01`, `02`, `03`, `05` y `06` son una sola partida.
 ///
 /// ⚠️ **`--screenshot-mode` es obligatorio.** Apaga el contador de FPS del
 /// `SpriteView` y el botón de herramientas, que son `#if DEBUG` y saldrían en
@@ -66,19 +102,21 @@ final class AppStoreScreenshotTests: XCTestCase {
     @MainActor
     func testCapturaElRecorridoEnCastellano() throws { try capturaElRecorrido(idioma: "es") }
 
-    /// 01 tablero · 02 tienda de blue · 03 ruleta · 06 ranking · 05 ascensor.
+    /// 01 tablero · 02 tienda · 03 ruleta · 06 ranking · 05 ascensor.
     ///
     /// Una sola partida: la torre entera abierta, los tipos vistos y las pintas
     /// (las pantallas listan lo VISTO), los dos niveles de lugares extra con el
-    /// piso lleno (15 lugares), blue para la tienda, un giro regalado y el
-    /// servidor simulado del ranking. Todo se alcanza por la barra y el menú
-    /// deslizable, y se espera un marcador de ADENTRO de cada pantalla.
+    /// piso lleno (15 lugares), una caja de aduana y el colchón sobre el tablero,
+    /// un giro regalado y el servidor simulado del ranking. Todo se alcanza por la
+    /// barra (Tienda, Regalos) y el Menú, y se espera un marcador de ADENTRO de
+    /// cada pantalla.
     @MainActor
     private func capturaElRecorrido(idioma: String) throws {
         let app = XCUIApplication()
         app.launchArguments = Self.languageArguments(idioma) + Self.baseArguments + [
             "--uitest-unlock-tower", "--uitest-seen-types", "--uitest-skins",
-            "--uitest-merge-all", "--uitest-extra-slots", "--uitest-blue=500", "--uitest-wheel-spins=1",
+            "--uitest-merge-all", "--uitest-extra-slots", "--uitest-wheel-spins=1",
+            "--uitest-mattress-board", "--uitest-package-floor=alley",
             "--uitest-ranking-outside-top",
         ]
         app.launch()
@@ -89,18 +127,20 @@ final class AppStoreScreenshotTests: XCTestCase {
         // 01. El tablero es la primera impresión del juego. Los personajes entran de a
         // uno (spawn progresivo): se espera a que el piso termine de llenarse.
         settle(seconds: 8)
+        // La caja y el colchón se anuncian por marcadores: vacíos, no hay lugar libre y la foto
+        // saldría sin ellos.
+        XCTAssertFalse(markerValue(app, "board.package").isEmpty, "la caja de aduana no cayó sobre el tablero")
+        XCTAssertFalse(markerValue(app, "board.mattress").isEmpty, "el colchón no cayó sobre el tablero")
         shoot(app, "01-tablero")
 
-        // 02. Mejoras, del lado del blue (la Tienda muestra el precio de StoreKit, que
-        // en el simulador sin catálogo dice "no disponible").
-        if open(app, tab: "hud.upgrades", marker: "upgrades.tab.boosts") {
-            app.buttons["upgrades.tab.boosts"].tap()
-            if app.descendants(matching: .any)["blueShop.balance"].waitForExistence(timeout: 15) {
-                settle()
-                shoot(app, "02-tienda-blue")
-            } else {
-                XCTFail("Mejoras no mostró el saldo de blue")
-            }
+        // 02. La Tienda, tercera de la izquierda en la barra. Los precios son los del catálogo
+        // local de StoreKit (el scheme lo carga); si aparece el cartel de «no disponible» la
+        // foto saldría con precios rotos.
+        if open(app, tab: "hud.store", marker: "store.buy.com.fisuevolution.iap.starter_pack") {
+            XCTAssertFalse(app.descendants(matching: .any)["store.unavailable"].exists,
+                           "la Tienda dice «no disponible»: sin precios de StoreKit no hay captura")
+            settle()
+            shoot(app, "02-tienda")
         }
         closeSheet(app)
 
@@ -162,24 +202,69 @@ final class AppStoreScreenshotTests: XCTestCase {
             "--uitest-visitor=turista_propina",
         ]
         app.launch()
-        let onStage = app.buttons["stage.chip.visitor"]
-        let elsewhere = app.buttons["stage.chip.waiting"]
-        // Desde B7 el visitante se queda en el piso donde entró: si la cámara todavía bajaba al
-        // callejón cuando llegó, espera en otro piso y el aviso lleva hasta él (abre su trato).
-        let deadline = Date().addingTimeInterval(40)
-        while !onStage.exists, !elsewhere.exists, Date() < deadline {
-            _ = onStage.waitForExistence(timeout: 2)
-        }
-        if !onStage.exists, elsewhere.exists {
-            elsewhere.tap()
-            let close = app.buttons["sheet.close"]
-            if close.waitForExistence(timeout: 8) { close.tap() }
-        }
-        guard onStage.waitForExistence(timeout: 10) else {
-            return XCTFail("el visitante nunca llegó al escenario")
-        }
+        guard visitorOnStage(app) else { return XCTFail("el visitante nunca llegó al escenario") }
         settle(seconds: 8)
         shoot(app, "04-visitante")
+    }
+
+    // MARK: - La recompensa en dos pasos
+
+    @MainActor
+    func testCapturaLaRecompensaEnIngles() throws { try capturaLaRecompensa(idioma: "en") }
+
+    @MainActor
+    func testCapturaLaRecompensaEnCastellano() throws { try capturaLaRecompensa(idioma: "es") }
+
+    /// 09. El paso 2 de toda recompensa gratis (E14b B29, D17): el Ministro de Economía paga
+    /// con un solo botón y enseguida sale «¿Lo duplicás?», con «×2 con video» y «No, gracias».
+    /// El anuncio es el del stub (`--uitest*` nunca usa AdMob), siempre listo: sin él el paso 2
+    /// no aparece.
+    @MainActor
+    private func capturaLaRecompensa(idioma: String) throws {
+        let app = XCUIApplication()
+        app.launchArguments = Self.languageArguments(idioma) + Self.baseArguments + [
+            "--uitest-unlock-tower", "--uitest-seen-types", "--uitest-merge-all", "--uitest-extra-slots",
+            "--uitest-visitor=ministro_subsidio",
+        ]
+        app.launch()
+        guard visitorOnStage(app) else { return XCTFail("el Ministro nunca llegó al escenario") }
+        // Desde B21 su popup no sale solo: se abre tocando su tarjeta.
+        app.buttons["stage.chip.visitor"].tap()
+        let accept = app.buttons["visit.option.accept"]
+        guard accept.waitForExistence(timeout: 10) else { return XCTFail("su tarjeta no abrió el popup") }
+        accept.tap()
+        guard app.buttons["reward.double.decline"].waitForExistence(timeout: 15) else {
+            return XCTFail("cobrada la plata, el paso 2 «¿Lo duplicás?» nunca salió")
+        }
+        settle()
+        shoot(app, "09-recompensa")
+    }
+
+    // MARK: - La Marcha
+
+    @MainActor
+    func testCapturaLaMarchaEnIngles() throws { try capturaLaMarcha(idioma: "en") }
+
+    @MainActor
+    func testCapturaLaMarchaEnCastellano() throws { try capturaLaMarcha(idioma: "es") }
+
+    /// 10. La Marcha del Puntero (E14b B25) ya ganada: sale a festejar con la plaza llena y el
+    /// botón de cobrar. `--uitest-marcha-ganada` la deja sellada en el save; los 420 toques
+    /// no se automatizan (son toques al tablero por coordenada). El chip de la partida en
+    /// juego (`stage.chip.marcha`, con `--uitest-marcha-corta`) lo cubre `MarchUITests`.
+    @MainActor
+    private func capturaLaMarcha(idioma: String) throws {
+        let app = XCUIApplication()
+        app.launchArguments = Self.languageArguments(idioma) + Self.baseArguments + [
+            "--uitest-unlock-tower", "--uitest-seen-types", "--uitest-merge-all", "--uitest-extra-slots",
+            "--uitest-marcha-ganada",
+        ]
+        app.launch()
+        guard app.buttons["marcha.result.claim"].waitForExistence(timeout: 40) else {
+            return XCTFail("ganada, el Puntero nunca salió a festejar")
+        }
+        settle(seconds: 3)
+        shoot(app, "10-marcha")
     }
 
     // MARK: - Los personajes
@@ -223,10 +308,12 @@ final class AppStoreScreenshotTests: XCTestCase {
         app.launch()
 
         // Los tres toques que abren el cofre (el mismo escenario que ejerce `ChestOpeningUITests`).
-        let stage = app.otherElements["chest.stage"]
-        if stage.waitForExistence(timeout: 30) {
-            for _ in 0..<3 where stage.isHittable {
-                stage.tap()
+        // Sin `--uitest-chest-manual` cada latido también se dispara solo a los 1,2 s: los
+        // toques sólo adelantan lo que igual llega.
+        let area = app.buttons["chest.tap"]
+        if area.waitForExistence(timeout: 30) {
+            for _ in 0..<3 where area.exists && area.isHittable {
+                area.tap()
                 usleep(900_000)
             }
         }
@@ -269,7 +356,62 @@ final class AppStoreScreenshotTests: XCTestCase {
         XCTAssertTrue(waitUntilHittable(app.buttons["hud.hire"]), "la barra no volvió después de cerrar la hoja")
     }
 
+    // MARK: - Las ofertas de revisión
+
+    @MainActor
+    func testCapturaLaOfertaBienvenida() throws { try capturaLaOferta("bienvenida") }
+
+    @MainActor
+    func testCapturaLaOfertaRenacer() throws { try capturaLaOferta("renacer") }
+
+    @MainActor
+    func testCapturaLaOfertaMudanza() throws { try capturaLaOferta("mudanza") }
+
+    /// La captura de revisión de una oferta (`com.fisuevolution.iap.offer_<id>`): la hoja con lo que
+    /// contiene el paquete, que es lo que App Review pide ver para un consumible. En inglés,
+    /// el idioma del revisor. `--uitest-offer=` la abre sola; se guarda como
+    /// `oferta-offer_<id>` y `capturas.sh` la lleva a `review/offer_<id>.png`.
+    @MainActor
+    private func capturaLaOferta(_ id: String) throws {
+        let app = XCUIApplication()
+        app.launchArguments = Self.languageArguments("en") + Self.baseArguments + ["--uitest-offer=\(id)"]
+        app.launch()
+        guard app.descendants(matching: .any)["offer.sheet"].waitForExistence(timeout: 30) else {
+            return XCTFail("la oferta \(id) no se presentó")
+        }
+        settle(seconds: 3)
+        shoot(app, "oferta-offer_\(id)", prefix: "")
+    }
+
     // MARK: - Utilidades
+
+    /// El visitante en el escenario. Desde B7 se queda en el piso donde entró: si la cámara
+    /// todavía bajaba al callejón cuando llegó, espera en otro piso y el aviso lleva hasta él
+    /// (abre su trato, que se cierra para dejarlo en escena).
+    @MainActor
+    private func visitorOnStage(_ app: XCUIApplication) -> Bool {
+        let onStage = app.buttons["stage.chip.visitor"]
+        let elsewhere = app.buttons["stage.chip.waiting"]
+        let deadline = Date().addingTimeInterval(40)
+        while !onStage.exists, !elsewhere.exists, Date() < deadline {
+            _ = onStage.waitForExistence(timeout: 2)
+        }
+        if !onStage.exists, elsewhere.exists {
+            elsewhere.tap()
+            let close = app.buttons["sheet.close"]
+            if close.waitForExistence(timeout: 8) { close.tap() }
+        }
+        return onStage.waitForExistence(timeout: 10)
+    }
+
+    /// El valor de un marcador de accesibilidad del tablero (`board.package`, `board.mattress`):
+    /// "x,y" si hay algo y vacío si no. Se espera a que el marcador exista.
+    @MainActor
+    private func markerValue(_ app: XCUIApplication, _ identifier: String) -> String {
+        let marker = app.otherElements[identifier]
+        _ = marker.waitForExistence(timeout: 10)
+        return marker.value as? String ?? ""
+    }
 
     /// Deja que terminen las animaciones de entrada antes de disparar. Sin
     /// esto, las hojas salen a mitad de su transición y las tarjetas con
@@ -286,9 +428,9 @@ final class AppStoreScreenshotTests: XCTestCase {
     /// valida. El segundo recorta al frame de la app y, con hojas presentadas,
     /// puede devolver un tamaño que no es el del simulador.
     @MainActor
-    private func shoot(_ app: XCUIApplication, _ name: String) {
+    private func shoot(_ app: XCUIApplication, _ name: String, prefix: String = "captura-") {
         let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
-        attachment.name = "captura-\(name)"
+        attachment.name = "\(prefix)\(name)"
         attachment.lifetime = .keepAlways
         add(attachment)
     }

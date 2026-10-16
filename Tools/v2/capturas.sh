@@ -1,15 +1,20 @@
 #!/bin/bash
-# Las capturas de la ficha de App Store, en los tres tamaños y los dos idiomas.
+# Las capturas de la ficha de App Store, en los slots de iPhone y iPad y los dos idiomas.
 #
-#     Tools/v2/capturas.sh [--device "<nombre>"] [--lang en|es]
+#     Tools/v2/capturas.sh [--device "<nombre>"] [--lang en|es] [--sin-review]
 #
-# Sin argumentos saca todo: iPhone 17 Pro Max (6,9"), iPhone 17 Pro (6,3") y
-# iPad Pro 13-inch (M5), en inglés y en castellano. Crea un simulador propio
-# (iOS 26.5) por dispositivo, corre `AppStoreScreenshotTests` por idioma, saca
-# los adjuntos del .xcresult y valida el tamaño de cada PNG. Los simuladores se
-# borran al salir. Nada se sube a ningún lado.
+# Sin argumentos saca todo: iPhone 17 Pro Max (6,9") y iPad Pro 13-inch (M5), en
+# inglés y en castellano (los slots que App Store Connect exige hoy; los demás
+# tamaños de iPhone se escalan del de 6,9"), más las tres capturas de revisión
+# de las ofertas. `--device "iPhone 17 Pro"` agrega el slot opcional de 6,3".
+# Crea un simulador propio (iOS 26.5) por dispositivo, corre
+# `AppStoreScreenshotTests` por idioma, saca los adjuntos del .xcresult y valida
+# el tamaño de cada PNG. Los simuladores se borran al salir. Nada se sube a
+# ningún lado.
 #
-# Salida: build/capturas/2.0/<dispositivo>/<idioma>/NN-nombre.png
+# Salida: build/capturas/2.0/<dispositivo>/<idioma>/NN-nombre.png  (diez por corrida)
+#         build/capturas/2.0/review/offer_<id>.png  (iPhone 17 Pro Max, en inglés;
+#         las sube el dueño con `releaseops asc screenshot offer_<id> <png>`)
 #
 # En Debug `--uitest-video` queda forzado a quieto: las capturas son pósteres.
 
@@ -27,15 +32,20 @@ size_for() {
     *) echo "" ;;
   esac
 }
-ALL_DEVICES=("iPhone 17 Pro Max" "iPhone 17 Pro" "iPad Pro 13-inch (M5)")
+ALL_DEVICES=("iPhone 17 Pro Max" "iPad Pro 13-inch (M5)")
+REVIEW_DEVICE="iPhone 17 Pro Max"
+OFFERS=(bienvenida renacer mudanza)   # los productId com.fisuevolution.iap.offer_<id> de release.json
+EXPECTED=10                           # capturas del guion por dispositivo e idioma
 
 DEVICES=("${ALL_DEVICES[@]}")
 LANGS=(en es)
+REVIEW=1
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --device) DEVICES=("$2"); shift 2 ;;
     --lang) LANGS=("$2"); shift 2 ;;
-    *) sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
+    --sin-review) REVIEW=0; shift ;;
+    *) sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
   esac
 done
 for device in "${DEVICES[@]}"; do
@@ -72,6 +82,21 @@ PKG_FLAGS=()
 echo "▶ xcodegen + build-for-testing" >&2
 /opt/homebrew/bin/xcodegen generate >"$WORK/xcodegen.log" 2>&1 || { cat "$WORK/xcodegen.log"; exit 1; }
 
+# extract_attachments <carpeta exportada> <destino> <regex con un grupo>: copia cada adjunto
+# cuyo nombre coincide a <destino>/<grupo>.png (una repetición del test reemplaza a la anterior).
+extract_attachments() {
+  python3 - "$1" "$2" "$3" <<'PY'
+import json, os, re, shutil, sys
+raw, dest, pattern = sys.argv[1:4]
+manifest = json.load(open(os.path.join(raw, "manifest.json")))
+for test in manifest:
+    for att in test.get("attachments", []):
+        m = re.match(pattern, att.get("suggestedHumanReadableName", ""))
+        if m:
+            shutil.copy(os.path.join(raw, att["exportedFileName"]), os.path.join(dest, m.group(1) + ".png"))
+PY
+}
+
 # Un simulador por dispositivo: se crea, se usa y se borra antes del siguiente.
 slug() { echo "$1" | tr 'A-Z ()' 'a-z--' | tr -s '-' | sed 's/-$//'; }
 
@@ -95,7 +120,7 @@ for device in "${DEVICES[@]}"; do
     rm -rf "$dest" "$bundle"; mkdir -p "$dest"
     echo "▶ $device · $lang" >&2
     only=()
-    for t in ElRecorrido ElVisitante LosPersonajes ElCofre; do
+    for t in ElRecorrido ElVisitante LaRecompensa LaMarcha LosPersonajes ElCofre; do
       only+=(-only-testing:"FisuEvolutionUITests/AppStoreScreenshotTests/testCaptura${t}${suffix}")
     done
     xcodebuild test-without-building -scheme FisuEvolution -sdk iphonesimulator -configuration Debug \
@@ -108,18 +133,7 @@ for device in "${DEVICES[@]}"; do
     raw="$WORK/raw-$(slug "$device")-$lang"
     rm -rf "$raw"; mkdir -p "$raw"
     xcrun xcresulttool export attachments --path "$bundle" --output-path "$raw" >/dev/null 2>&1
-    python3 - "$raw" "$dest" <<'PY'
-import json, os, re, shutil, sys
-raw, dest = sys.argv[1:3]
-manifest = json.load(open(os.path.join(raw, "manifest.json")))
-for test in manifest:
-    for att in test.get("attachments", []):
-        name = att.get("suggestedHumanReadableName", "")
-        m = re.match(r"captura-(\d\d-[a-z-]+)", name)
-        if m:
-            # una repetición del test reemplaza a la anterior
-            shutil.copy(os.path.join(raw, att["exportedFileName"]), os.path.join(dest, m.group(1) + ".png"))
-PY
+    extract_attachments "$raw" "$dest" 'captura-(\d\d-[a-z-]+)'
 
     count=$(ls "$dest"/*.png 2>/dev/null | wc -l | tr -d ' ')
     for png in "$dest"/*.png; do
@@ -131,9 +145,39 @@ PY
         FAILED+=("$device/$lang/$(basename "$png")")
       fi
     done
-    echo "   $device · $lang: $count/8 capturas en $dest" >&2
-    [[ "$count" -eq 8 ]] || FAILED+=("$device/$lang: $count de 8")
+    echo "   $device · $lang: $count/$EXPECTED capturas en $dest" >&2
+    [[ "$count" -eq "$EXPECTED" ]] || FAILED+=("$device/$lang: $count de $EXPECTED")
   done
+
+  # Las capturas de revisión de las ofertas: una vez, en el slot de 6,9", en inglés.
+  if (( REVIEW )) && [[ "$device" == "$REVIEW_DEVICE" ]]; then
+    bundle="$WORK/review.xcresult"
+    dest="$OUT/review"
+    rm -rf "$dest" "$bundle"; mkdir -p "$dest"
+    echo "▶ $device · revisión de las ofertas" >&2
+    only=()
+    for id in "${OFFERS[@]}"; do
+      only+=(-only-testing:"FisuEvolutionUITests/AppStoreScreenshotTests/testCapturaLaOferta$(tr 'a-z' 'A-Z' <<<"${id:0:1}")${id:1}")
+    done
+    xcodebuild test-without-building -scheme FisuEvolution -sdk iphonesimulator -configuration Debug \
+      -destination "id=$udid" -derivedDataPath "$DD" -parallel-testing-enabled NO \
+      "${PKG_FLAGS[@]}" -resultBundlePath "$bundle" "${only[@]}" >"$WORK/test-review.log" 2>&1
+    status=$?
+    cp "$WORK/test-review.log" "$OUT/test-review.log"
+    [[ $status -eq 0 ]] || { echo "⚠️  revisión: xcodebuild salió con $status (log: $OUT/test-review.log)" >&2; FAILED+=("review"); }
+    raw="$WORK/raw-review"
+    rm -rf "$raw"; mkdir -p "$raw"
+    xcrun xcresulttool export attachments --path "$bundle" --output-path "$raw" >/dev/null 2>&1
+    extract_attachments "$raw" "$dest" 'oferta-(offer_[a-z]+)'
+    for id in "${OFFERS[@]}"; do
+      png="$dest/offer_$id.png"
+      if [[ ! -e "$png" ]]; then FAILED+=("review/offer_$id: falta"); continue; fi
+      w=$(sips -g pixelWidth "$png" | awk '/pixelWidth/ {print $2}')
+      h=$(sips -g pixelHeight "$png" | awk '/pixelHeight/ {print $2}')
+      echo "   offer_$id.png: ${w}x${h}" >&2
+      [[ "${w}x${h}" == "$expected" ]] || { echo "❌ offer_$id.png: ${w}x${h}, se esperaba $expected" >&2; FAILED+=("review/offer_$id"); }
+    done
+  fi
 done
 
 if (( ${#FAILED[@]} )); then

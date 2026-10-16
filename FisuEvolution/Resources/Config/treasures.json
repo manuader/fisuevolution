@@ -3,10 +3,14 @@
   "spawnIntervalSeconds": 720,
   "firstTreasureAfterSeconds": 480,
   "extraOpensPerTreasure": 1,
-  "giftOneIn": 4,
+  "freeBoardIntervalSeconds": 1800,
   "prizes": [
     {"id": "coins", "weight": 60, "rewards": [{"kind": "coinsSeconds", "seconds": 1200}]},
     {"id": "package", "weight": 25, "rewards": [{"kind": "package", "count": 1}]},
+    {"id": "blue", "weight": 5, "rewards": [{"kind": "blue", "amount": 2}]}
+  ],
+  "freeBoardPrizes": [
+    {"id": "coins", "weight": 60, "rewards": [{"kind": "coinsSeconds", "seconds": 1200}]},
     {"id": "blue", "weight": 5, "rewards": [{"kind": "blue", "amount": 2}]}
   ]
 }

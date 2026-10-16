@@ -17,7 +17,8 @@ enum PacingFixture {
             packages: content.packages,
             dailyMinutes: content.dailyRewards.days.sorted { $0.day < $1.day }.compactMap(\.minutes),
             freeBoosts: content.boosts.boosts.compactMap(freeBoost),
-            freeHireSeconds: content.careers.careers.first { $0.id == "junior_programmer" }?.durationSeconds ?? 0
+            freeHireSeconds: content.careers.careers.first { $0.id == "junior_programmer" }?.durationSeconds ?? 0,
+            freeMattress: content.treasures
         )
         let rail = content.rewardedAds.effectiveSideRail
         sources.ads = AdsSources(

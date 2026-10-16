@@ -57,6 +57,36 @@ struct PacingProfileTests {
         #expect(fast >= 1.6 * slow, "120 s: \(fast) · 240 s: \(slow)")
     }
 
+    @Test("el colchón gratis (B31): .free lo cobra sin video y .bare no")
+    func freeCollectsTheFreeMattress() throws {
+        var sources = PacingSources.none
+        sources.freeMattress = fxTreasures(freeBoardIntervalSeconds: 1800)
+        let free = try run(.free, sources)
+        #expect((free.sourceTotals["freeMattress.opened"] ?? 0) > 0)
+        #expect((free.sourceTotals["coins.freeMattress"] ?? 0) > 0)
+        #expect(free.sourceTotals["videos"] == nil)
+        #expect(try run(.bare, sources).sourceTotals["freeMattress.opened"] == nil)
+    }
+
+    @Test("el colchón gratis corre en reloj de pared y guarda uno solo: una ausencia larga deja uno")
+    func theFreeMattressKeepsOne() throws {
+        func opened(_ interval: Double, prizes: [TreasuresConfig.Prize]? = nil) throws -> PacingSimulator.Report {
+            var sources = PacingSources.none
+            sources.freeMattress = fxTreasures(freeBoardIntervalSeconds: interval, freeBoardPrizes: prizes)
+            return try run(.free, sources)
+        }
+        // Sesiones de 20 min separadas por horas: con 30 min cae uno por sesión (el que esperaba);
+        // con 10 min, el que esperaba más uno a los 10 min de jugar. Si se acumularan, 10 min daría
+        // decenas por ausencia.
+        let slow = try #require(try opened(1800).sourceTotals["freeMattress.opened"])
+        let fast = try #require(try opened(600).sourceTotals["freeMattress.opened"])
+        #expect(slow > 0)
+        #expect(fast > slow && fast <= 2 * slow + 2, "600 s: \(fast) · 1800 s: \(slow)")
+        let blue = try opened(1800, prizes: [.init(id: "blue", weight: 1, rewards: [.blue(1)])])
+        #expect(blue.sourceTotals["coins.freeMattress"] == nil, "sortea con su tabla propia")
+        #expect((blue.sourceTotals["blue.fromSources"] ?? 0) > 0)
+    }
+
     @Test("es determinístico, y la semilla sólo mueve el orden de los sorteos")
     func deterministic() throws {
         #expect(fingerprint(try run(.free, sources())) == fingerprint(try run(.free, sources())))
@@ -171,11 +201,12 @@ struct PacingAdsSourcesTests {
 
     private func run(
         _ ads: AdsSources?, profile: PacingProfile = .ads, days: Int = 1, freeHireSeconds: Double = 0,
-        withPackages: Bool = false
+        withPackages: Bool = false, freeMattress: TreasuresConfig? = nil
     ) throws -> PacingSimulator.Report {
         var sources = PacingSources.none
         sources.freeHireSeconds = freeHireSeconds
         sources.packages = withPackages ? packages() : nil
+        sources.freeMattress = freeMattress
         sources.ads = ads
         return try PacingSimulator(config: upConfig(), tiers: upTiers(), upgrades: upCheapLines(),
                                    profile: profile, sources: sources).run(maxDays: days)
@@ -325,41 +356,32 @@ struct PacingAdsSourcesTests {
         #expect(more.sourceTotals["videos"] == 2 * (single.sourceTotals["videos"] ?? 0))
     }
 
-    @Test("el colchón de regalo (1 de cada 4) no cuesta video pero paga lo mismo; el «otro colchón» sí cuesta")
-    func giftedMattressSkipsTheVideo() throws {
-        func treasures(extra: Int, giftOneIn: Int) -> TreasuresConfig {
-            TreasuresConfig(
-                schemaVersion: 1, spawnIntervalSeconds: 300, firstTreasureAfterSeconds: 300,
-                extraOpensPerTreasure: extra, giftOneIn: giftOneIn,
-                prizes: [.init(id: "plata", weight: 1, rewards: [.coinsSeconds(600)])]
-            )
-        }
-        let paid = try run(quiet { $0.treasures = treasures(extra: 0, giftOneIn: 0) })
-        let gifted = try run(quiet { $0.treasures = treasures(extra: 0, giftOneIn: 4) })
-        let giftedExtra = try run(quiet { $0.treasures = treasures(extra: 1, giftOneIn: 4) })
-        let paidVideos = try #require(paid.sourceTotals["videos"])
-        #expect(paidVideos > 0)
-        #expect(abs((gifted.sourceTotals["videos"] ?? 0) - 0.75 * paidVideos) < 1e-9)
-        #expect(abs((giftedExtra.sourceTotals["videos"] ?? 0) - 1.75 * paidVideos) < 1e-9)
-        #expect((gifted.sourceTotals["coins.mattress"] ?? 0) > 0)
-    }
-
-    @Test("el colchón de regalo ofrece su ×2 con video al cobrarlo (E14b B29): un video y el premio otra vez")
-    func giftedMattressDoubles() throws {
+    @Test("el colchón de la columna pide su video siempre: no queda ninguno de regalo (B31 sacó el D4)")
+    func everyColumnMattressCostsAVideo() throws {
         let treasures = TreasuresConfig(
-            schemaVersion: 1, spawnIntervalSeconds: 300, firstTreasureAfterSeconds: 300,
-            extraOpensPerTreasure: 0, giftOneIn: 4,
+            schemaVersion: 1, spawnIntervalSeconds: 300, firstTreasureAfterSeconds: 300, extraOpensPerTreasure: 0,
             prizes: [.init(id: "plata", weight: 1, rewards: [.coinsSeconds(600)])]
         )
-        let paid = try run(quiet { $0.treasures = TreasuresConfig(
-            schemaVersion: 1, spawnIntervalSeconds: 300, firstTreasureAfterSeconds: 300,
-            extraOpensPerTreasure: 0, prizes: treasures.prizes
-        ) })
-        let plain = try run(quiet { $0.treasures = treasures })
-        let doubled = try run(quiet { $0.treasures = treasures; $0.giftDoubles = true })
-        let paidVideos = try #require(paid.sourceTotals["videos"])
-        #expect(abs((doubled.sourceTotals["videos"] ?? 0) - paidVideos) < 1e-9, "0,75 pagados + 0,25 del ×2")
-        #expect((doubled.sourceTotals["coins.mattress"] ?? 0) > (plain.sourceTotals["coins.mattress"] ?? 0))
+        let report = try run(quiet { $0.treasures = treasures; $0.giftDoubles = true })
+        let videos = try #require(report.sourceTotals["videos"])
+        #expect(videos > 0)
+        #expect(videos == videos.rounded(), "un video entero por colchón, sin fracciones de regalo")
+        #expect(report.sourceTotals["freeMattress.opened"] == nil, "sin el gratis en las fuentes no hay gratis")
+    }
+
+    @Test("el colchón gratis (B31) ofrece su ×2 con video al cobrarlo: un video por colchón y el premio otra vez")
+    func theFreeMattressDoubles() throws {
+        // Un blue por colchón: lo cobrado no depende de cuánto produce la partida en ese momento.
+        let free = fxTreasures(freeBoardIntervalSeconds: 600,
+                               prizes: [.init(id: "blue", weight: 1, rewards: [.blue(1)])])
+        let plain = try run(quiet(), freeMattress: free)
+        let doubled = try run(quiet { $0.giftDoubles = true }, freeMattress: free)
+        let plainOpened = try #require(plain.sourceTotals["freeMattress.opened"])
+        let opened = try #require(doubled.sourceTotals["freeMattress.opened"])
+        #expect(plain.sourceTotals["videos"] == nil, "sin el ×2, gratis de verdad")
+        #expect(doubled.sourceTotals["videos"] == opened, "un video por cada ×2")
+        #expect(plain.sourceTotals["blue.fromSources"] == plainOpened)
+        #expect(doubled.sourceTotals["blue.fromSources"] == 2 * opened, "el premio otra vez")
     }
 
     @Test("Fusionar todo: sólo con ficha, y sólo cuando la tanda hace dos fusiones o más")

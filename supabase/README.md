@@ -118,7 +118,10 @@ La prueba de humo, contra el proyecto real:
 
 Para la prueba se bajó `min_real_seconds_to_god` a 0 y después se restauró a 36000. Los datos de prueba se borraron.
 
-El linter de seguridad marca tres cosas, todas a propósito o menores:
-- las 6 tablas tienen RLS y ninguna política: nadie las lee directo;
-- la vista `leaderboard` es `security definer`: es el top público, sin `player_id`;
-- `pg_net` está en el esquema `public`.
+El linter de seguridad marcaba tres cosas:
+- las 6 tablas tienen RLS y ninguna política: nadie las lee directo (a propósito, queda);
+- la vista `leaderboard` era `security definer`: `…000004_leaderboard_invoker.sql` la pasa a
+  `security_invoker` y le saca el `select` a anon. El top público lo sirve la función
+  `leaderboard`, nunca la vista;
+- `pg_net` estaba en el esquema `public`: `…000005_pg_net_schema.sql` la baja y la vuelve a crear
+  en `extensions` (no admite `SET SCHEMA`).

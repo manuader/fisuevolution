@@ -33,8 +33,8 @@ select hide_run('<run_id>');
 -- 6) Perdonar los reportes de una partida.
 select clear_reports('<run_id>');
 
--- 7) Cambiar el piso de tiempo real para llegar a Dios (segundos; 36000 = 10 h).
-update settings set value = to_jsonb(36000) where key = 'min_real_seconds_to_god';
+-- 7) Cambiar el piso de tiempo real para llegar a Dios (segundos; 54675 = 15,2 h, la mitad del .max).
+update settings set value = to_jsonb(54675) where key = 'min_real_seconds_to_god';
 
 -- 8) El interruptor del ranking: false apaga las cuatro funciones de la app (responden 503).
 update settings set value = 'false'::jsonb where key = 'ranking_enabled';

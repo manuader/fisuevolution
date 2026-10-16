@@ -21,9 +21,8 @@ begin
          and not (who = 'anon' and r.relname = 'telemetry_events') then
         raise exception '% puede insertar en %', who, r.relname;
       end if;
-      if r.relname <> 'leaderboard' and (
-           has_table_privilege(who, r.oid, 'SELECT')
-           or has_any_column_privilege(who, r.oid, 'SELECT')) then
+      if has_table_privilege(who, r.oid, 'SELECT')
+         or has_any_column_privilege(who, r.oid, 'SELECT') then
         raise exception '% puede leer %', who, r.relname;
       end if;
     end loop;
@@ -37,7 +36,7 @@ begin
       end if;
     end loop;
   end loop;
-  raise notice 'OK anon y authenticated no escriben nada (salvo el insert de telemetría de anon), no leen tablas ni ejecutan funciones (salvo telemetry_enabled para anon)';
+  raise notice 'OK anon y authenticated no escriben nada (salvo el insert de telemetría de anon), no leen tablas ni vistas ni ejecutan funciones (salvo telemetry_enabled para anon)';
 end $$;
 
 do $$
@@ -92,7 +91,12 @@ do $$
 declare
   n integer;
 begin
-  select count(*) into n from public.leaderboard;
+  begin
+    select count(*) into n from public.leaderboard;
+    raise exception 'anon pudo leer la vista leaderboard';
+  exception when insufficient_privilege then
+    null;
+  end;
   begin
     perform public.start_run(repeat('a', 64), '2.0.0', now());
     raise exception 'anon pudo ejecutar start_run';
@@ -105,7 +109,7 @@ begin
   exception when insufficient_privilege or feature_not_supported or object_not_in_prerequisite_state then
     null;
   end;
-  raise notice 'OK anon lee la vista leaderboard y no ejecuta start_run';
+  raise notice 'OK anon no lee la vista leaderboard (el top sale de la Edge Function) ni ejecuta start_run';
 end $$;
 
 reset role;
@@ -115,7 +119,12 @@ do $$
 declare
   n integer;
 begin
-  select count(*) into n from public.leaderboard;
+  begin
+    select count(*) into n from public.leaderboard;
+    raise exception 'authenticated pudo leer la vista leaderboard';
+  exception when insufficient_privilege then
+    null;
+  end;
   begin
     perform count(*) from public.runs;
     raise exception 'authenticated pudo leer runs';

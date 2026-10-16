@@ -1,0 +1,22 @@
+{
+  "moment.card.title": {"es": "Un empujón", "en": "A little push"},
+  "moment.card.body.floor_full": {
+    "es": "Te quedaste sin lugar: fusioná todo con un video.",
+    "en": "You ran out of room: merge everything with a video."
+  },
+  "moment.card.body.price_wall": {
+    "es": "Este contrato está caro: te adelanto unos minutos de sueldo con un video.",
+    "en": "This hire is pricey: I'll advance you a few minutes of pay for a video."
+  },
+  "moment.card.body.mattress_ready": {
+    "es": "El colchón ya está listo: mirá un video y sumá un extra.",
+    "en": "The mattress is ready: watch a video and get a bonus."
+  },
+  "moment.card.body.back_offline": {
+    "es": "Volviste: con un video, el sueldo de este rato rinde más.",
+    "en": "Welcome back: a video makes the pay you earned while away go further."
+  },
+  "moment.card.reward.merge_all": {"es": "Fusionar todo", "en": "Merge all"},
+  "moment.card.video": {"es": "Mirar video", "en": "Watch video"},
+  "moment.card.decline": {"es": "No, gracias", "en": "No, thanks"}
+}

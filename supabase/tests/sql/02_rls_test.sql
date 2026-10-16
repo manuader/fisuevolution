@@ -31,12 +31,12 @@ begin
       where n.nspname = 'public'
     loop
       if has_function_privilege(who, r.oid, 'EXECUTE')
-         and not (who = 'anon' and r.proname = 'telemetry_enabled') then
+         and not (who = 'anon' and r.proname in ('telemetry_enabled', 'personalization_config')) then
         raise exception '% puede ejecutar %', who, r.proname;
       end if;
     end loop;
   end loop;
-  raise notice 'OK anon y authenticated no escriben nada (salvo el insert de telemetría de anon), no leen tablas ni vistas ni ejecutan funciones (salvo telemetry_enabled para anon)';
+  raise notice 'OK anon y authenticated no escriben nada (salvo el insert de telemetría de anon), no leen tablas ni vistas ni ejecutan funciones (salvo telemetry_enabled y personalization_config para anon)';
 end $$;
 
 do $$

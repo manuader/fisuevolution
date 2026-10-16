@@ -55,6 +55,10 @@ extension PacingSimulator {
         var hasUnspentBlue = false
         /// Cuántas ofertas con video se le hicieron al bot de un segmento: el número de la moneda de cada una.
         var offerIndex = 0
+        /// Lo mismo para las ofertas del momento, con su propia moneda: si compartieran la de las otras, sumar
+        /// momentos cambiaría cuáles de las otras ofertas acepta el bot, y el segmento no se podría comparar
+        /// con la base que acepta la misma fracción (C3.3).
+        var momentOfferIndex = 0
         /// Los turnos y los rechazos de las ofertas del momento, para sus topes (en el reloj de pared del sim).
         var moments = MomentHistory()
 
@@ -345,7 +349,7 @@ extension PacingSimulator {
             guard case .offer(_, let moment, let paid) = decision else { continue }
             clocks.moments.record(decision, at: now)
             report.momentTurnWalls.append(wall)
-            guard offers(clocks: &clocks, report: &report) else {
+            guard offers(clocks: &clocks, report: &report, moment: true) else {
                 clocks.moments.recordDeclined(moment, at: now)
                 return (0, false)
             }
@@ -420,11 +424,17 @@ extension PacingSimulator {
     /// Si el bot acepta la oferta con video que tiene delante. Sin segmento, siempre (el bot de la 2.0, y
     /// sin gastar moneda); con uno, la moneda determinista de la oferta según su `acceptRate`. Una oferta
     /// rechazada no cuesta video ni paga nada, y queda en `videos.declined`.
-    func offers(clocks: inout SourceClocks, report: inout Report) -> Bool {
+    func offers(clocks: inout SourceClocks, report: inout Report, moment: Bool = false) -> Bool {
         guard let segment else { return true }
-        let index = clocks.offerIndex
-        clocks.offerIndex += 1
-        guard segment.accepts(offer: index, seedFraction: seedFraction) else {
+        let accepted: Bool
+        if moment {
+            accepted = segment.accepts(momentOffer: clocks.momentOfferIndex, seedFraction: seedFraction)
+            clocks.momentOfferIndex += 1
+        } else {
+            accepted = segment.accepts(offer: clocks.offerIndex, seedFraction: seedFraction)
+            clocks.offerIndex += 1
+        }
+        guard accepted else {
             report.sourceTotals["videos.declined", default: 0] += 1
             return false
         }

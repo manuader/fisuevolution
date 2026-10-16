@@ -55,9 +55,18 @@ public struct PacingSegment: Sendable, Equatable {
     /// La moneda de la oferta número `index`: `true` si el bot la acepta. Con `acceptRate` 1 siempre, con 0
     /// nunca; en el medio, la misma respuesta para la misma semilla y el mismo número de oferta.
     func accepts(offer index: Int, seedFraction: Double) -> Bool {
+        accepts(index, seed: seedFraction.bitPattern)
+    }
+
+    /// La moneda de la oferta del momento número `index`: otra tirada, independiente de la de las otras ofertas.
+    func accepts(momentOffer index: Int, seedFraction: Double) -> Bool {
+        accepts(index, seed: ~seedFraction.bitPattern)
+    }
+
+    private func accepts(_ index: Int, seed: UInt64) -> Bool {
         if acceptRate >= 1 { return true }
         if acceptRate <= 0 { return false }
-        var generator = SplitMix64(seed: seedFraction.bitPattern ^ (UInt64(truncatingIfNeeded: index) &* 0x9E37_79B9_7F4A_7C15))
+        var generator = SplitMix64(seed: seed ^ (UInt64(truncatingIfNeeded: index) &* 0x9E37_79B9_7F4A_7C15))
         let unit = Double(generator.next() >> 11) * 0x1p-53
         return unit < acceptRate
     }

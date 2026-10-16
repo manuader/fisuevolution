@@ -96,8 +96,9 @@ Va **idéntico, byte a byte**, en `Distribution/site/privacy.md` y `FisuEvolutio
 - **La nota de mantenimiento** (no se le muestra al jugador): punto 3 sobre el manifiesto y la etiqueta.
 - **La mitad inglesa sigue siendo UN párrafo** (lo exige `SettingsPersistenceTests`): cambia la primera oración
   («We don't collect your data» ya no es verdad), suma lo mismo que la sección nueva y corrige «our only server is
-  the leaderboard's». Sigue nombrando a Google AdMob, Unity Ads, Meta Audience Network, Supabase y Anthropic con sus
-  links (`privacyNamesTheNetworksAndTheRanking`).
+  the leaderboard's». Sigue nombrando a Google AdMob, Unity Ads, Supabase y Anthropic con sus links
+  (`privacyNamesTheNetworksAndTheRanking`). Meta Audience Network ya no: la 2.0 sale sin Meta (dueño, 2026-10-15),
+  y el test exige que no aparezca.
 
 El archivo completo propuesto:
 
@@ -140,13 +141,12 @@ identificador de publicidad (IDFA), la dirección IP y datos técnicos y de uso�
 según su propia política de privacidad:
 <https://policies.google.com/privacy>.
 
-AdMob también hace competir por cada anuncio a otras redes publicitarias
-(mediación, por puja o *bidding*). En esta versión son dos, y cada una procesa
-datos de tu dispositivo —el identificador de publicidad, la IP y datos técnicos
-y de uso— según su propia política:
+AdMob también hace competir por cada anuncio a otra red publicitaria
+(mediación, por puja o *bidding*). En esta versión es una sola, y procesa datos
+de tu dispositivo —el identificador de publicidad, la IP y datos técnicos y de
+uso— según su propia política:
 
 - **Unity Ads** (Unity Technologies): <https://unity.com/legal/privacy-policy>.
-- **Meta Audience Network** (Meta Platforms): <https://www.facebook.com/privacy/policy/>.
 
 No trabajamos con otras redes. Ninguna de estas empresas recibe de nosotros tu
 nombre del ranking, el identificador de tu instalación ni tus tiempos de
@@ -322,7 +322,7 @@ Cualquier consulta sobre privacidad: **adermanu@gmail.com**
 
 # Privacy Policy — HoboEvolution (English)
 
-We ask for no personal data, but the ads process some, and the game sends us usage statistics under a random identifier of their own. HoboEvolution shows ads through Google AdMob: opt-in rewarded videos you choose to watch for in-game prizes, and ads that appear on their own (full-screen ads between parts of the game, an ad break you can always decline, and one when you return to the app), all removed by the "No Ads" purchase except rewarded videos, which stay since they're optional and pay out. To serve them, Google AdMob processes device data including your advertising identifier (IDFA), IP address and technical/usage data, under its own policy at https://policies.google.com/privacy. AdMob also has other ad networks bid for each ad (mediation); in this version they are Unity Ads (https://unity.com/legal/privacy-policy) and Meta Audience Network (https://www.facebook.com/privacy/policy/), and each processes the same kind of device data under its own policy. We work with no other networks, and none of them receives your leaderboard name, install identifier or run times from us. The app downloads an ads configuration file from our website; it sends none of your data, but like any web request the site's host (Vercel) sees the IP address. On first launch iOS asks for App Tracking Transparency: accept and ads are personalized, decline and **you still get ads, just non-personalized** — you lose nothing in the game, and you can change it any time in Settings → Privacy & Security → Tracking. In the EU, UK and Switzerland we also show Google's consent form (UMP) before serving any ad, and you can review your choice in Settings → Privacy options. Your game progress stays on your device. Purchases are handled by Apple; we never see your payment details. The game also sends our server small usage statistics so we can see how it is played and what each ad earns: session start and end (its length and how many sessions you've played); each ad shown (format, place in the game, the network that served it and what it paid for that view, in its currency); what happened to each rewarded-video offer (shown, tapped, rewarded, no video, or passed); which product you bought (never the price or payment details); and how many times you reincarnated. Each one carries the app and iOS version, your device model (e.g. "iPhone16,2"), your App Store country, a random identifier of their own (not the leaderboard's, not shared with it and not tied to your name; it survives reinstalling on the same device and never moves to your other devices, whether through iCloud or a backup restored to another phone), a new session identifier each time you open the game, and your phone's time. They never carry your advertising identifier (IDFA), the iOS vendor identifier (IDFV), your leaderboard name, anything you typed or your Apple account or payment data; we don't combine them with your leaderboard name or anything that identifies you, don't use them for advertising or to track you across apps or websites, don't share them with ad networks and never sell them. Like any web request, the server's host (Supabase) sees the IP address each request (leaderboard or statistics) comes from and keeps it in its technical logs for a few days; we don't store it with the statistics, don't use it to identify you and don't combine it with them. The statistics are stored on Supabase on our behalf and deleted automatically after 400 days; while you are offline they wait on your device (at most the latest 1,000, for up to a month). In the EU, UK and Switzerland they are sent only if, in Google's consent form, you agreed to storing information on your device and to using it for measurement, statistics and improving the service; you can change that any time in Settings → Privacy options: withdraw it and they stop, and whatever was waiting on your device is deleted without leaving it. Outside the EU, UK and Switzerland the game has no switch for this; Privacy options, where they appear, control the ads. They don't depend on iOS App Tracking Transparency because they are not tracking: they are never combined with other companies' data. If you reach God you may choose to enter the leaderboard with a name; it is optional, and without it your run is not published. For that we store on our server a random anonymous install identifier (not tied to your identity, your Apple account or your advertising identifier) and the name you chose plus your run times, which other players can see. We don't use them to track you, don't link them to your identity and don't share them with advertisers. The leaderboard lives on our own server, hosted on Supabase. Names go through rules, a word list and an automated AI check by Anthropic (Claude) before being shown: we send Anthropic only the name you chose (up to 15 characters), never your install identifier, run times, advertising identifier or any device data, and it processes the name under its own policy at https://www.anthropic.com/legal/privacy. So don't put personal data in your name; anyone can report a name and a reported name is hidden. If you block a name ("Hide this name"), that choice is stored only on your device and never leaves it. To have your name or runs removed, email us. We have no accounts and no third-party analytics, our only server (on Supabase) holds the leaderboard and the usage statistics, and we never sell data. The game is rated 12+ and is not directed at children under 13. Questions: adermanu@gmail.com
+We ask for no personal data, but the ads process some, and the game sends us usage statistics under a random identifier of their own. HoboEvolution shows ads through Google AdMob: opt-in rewarded videos you choose to watch for in-game prizes, and ads that appear on their own (full-screen ads between parts of the game, an ad break you can always decline, and one when you return to the app), all removed by the "No Ads" purchase except rewarded videos, which stay since they're optional and pay out. To serve them, Google AdMob processes device data including your advertising identifier (IDFA), IP address and technical/usage data, under its own policy at https://policies.google.com/privacy. AdMob also has another ad network bid for each ad (mediation); in this version it is only Unity Ads (https://unity.com/legal/privacy-policy), which processes the same kind of device data under its own policy. We work with no other networks, and none of them receives your leaderboard name, install identifier or run times from us. The app downloads an ads configuration file from our website; it sends none of your data, but like any web request the site's host (Vercel) sees the IP address. On first launch iOS asks for App Tracking Transparency: accept and ads are personalized, decline and **you still get ads, just non-personalized** — you lose nothing in the game, and you can change it any time in Settings → Privacy & Security → Tracking. In the EU, UK and Switzerland we also show Google's consent form (UMP) before serving any ad, and you can review your choice in Settings → Privacy options. Your game progress stays on your device. Purchases are handled by Apple; we never see your payment details. The game also sends our server small usage statistics so we can see how it is played and what each ad earns: session start and end (its length and how many sessions you've played); each ad shown (format, place in the game, the network that served it and what it paid for that view, in its currency); what happened to each rewarded-video offer (shown, tapped, rewarded, no video, or passed); which product you bought (never the price or payment details); and how many times you reincarnated. Each one carries the app and iOS version, your device model (e.g. "iPhone16,2"), your App Store country, a random identifier of their own (not the leaderboard's, not shared with it and not tied to your name; it survives reinstalling on the same device and never moves to your other devices, whether through iCloud or a backup restored to another phone), a new session identifier each time you open the game, and your phone's time. They never carry your advertising identifier (IDFA), the iOS vendor identifier (IDFV), your leaderboard name, anything you typed or your Apple account or payment data; we don't combine them with your leaderboard name or anything that identifies you, don't use them for advertising or to track you across apps or websites, don't share them with ad networks and never sell them. Like any web request, the server's host (Supabase) sees the IP address each request (leaderboard or statistics) comes from and keeps it in its technical logs for a few days; we don't store it with the statistics, don't use it to identify you and don't combine it with them. The statistics are stored on Supabase on our behalf and deleted automatically after 400 days; while you are offline they wait on your device (at most the latest 1,000, for up to a month). In the EU, UK and Switzerland they are sent only if, in Google's consent form, you agreed to storing information on your device and to using it for measurement, statistics and improving the service; you can change that any time in Settings → Privacy options: withdraw it and they stop, and whatever was waiting on your device is deleted without leaving it. Outside the EU, UK and Switzerland the game has no switch for this; Privacy options, where they appear, control the ads. They don't depend on iOS App Tracking Transparency because they are not tracking: they are never combined with other companies' data. If you reach God you may choose to enter the leaderboard with a name; it is optional, and without it your run is not published. For that we store on our server a random anonymous install identifier (not tied to your identity, your Apple account or your advertising identifier) and the name you chose plus your run times, which other players can see. We don't use them to track you, don't link them to your identity and don't share them with advertisers. The leaderboard lives on our own server, hosted on Supabase. Names go through rules, a word list and an automated AI check by Anthropic (Claude) before being shown: we send Anthropic only the name you chose (up to 15 characters), never your install identifier, run times, advertising identifier or any device data, and it processes the name under its own policy at https://www.anthropic.com/legal/privacy. So don't put personal data in your name; anyone can report a name and a reported name is hidden. If you block a name ("Hide this name"), that choice is stored only on your device and never leaves it. To have your name or runs removed, email us. We have no accounts and no third-party analytics, our only server (on Supabase) holds the leaderboard and the usage statistics, and we never sell data. The game is rated 12+ and is not directed at children under 13. Questions: adermanu@gmail.com
 ````
 
 ## 2. `terms.md`
@@ -502,41 +502,45 @@ El diff de arriba no lo toca para no mezclar cambios; conviene alinearlo en la m
 ## 4. Etiqueta de App Privacy (App Store Connect)
 
 **Una sola tabla, la que se carga el día del envío de la 2.0** (corregida el 2026-10-15 contra la «Etiqueta objetivo»
-de `DUENO.md`, «E15 🔒 O4 — App Privacy»). La etiqueta se declara **por tipo de dato**, como la unión de lo que juntan
-nuestro código (ranking y telemetría), AdMob y las redes de mediación (Unity Ads y Meta Audience Network). Donde un
+de `DUENO.md`, «E15 🔒 O4 — App Privacy», y ese mismo día sin Meta: **la 2.0 sale sin Meta**, decisión del dueño, así
+que Other Diagnostic Data sale y quedan **8 tipos**). La etiqueta se declara **por tipo de dato**, como la unión de lo
+que juntan nuestro código (ranking y telemetría), AdMob y la red de mediación (Unity Ads, que no declara datos). Donde un
 SDK vincula o rastrea un tipo, **el tipo entero** se marca vinculado y con tracking, aunque nuestra parte no lo sea
 (ASC muestra un solo estado por tipo).
 
 | # | Tipo de dato (ASC) | De dónde sale | Vinculado a la identidad | Tracking | Propósitos a marcar |
 |---|---|---|---|---|---|
 | 1 | Location · Coarse Location | la IP que ven AdMob y las redes | **lo que figura hoy**: no se toca | Sí | Third-Party Advertising + Developer's Advertising (como está publicado) |
-| 2 | Identifiers · Device ID | el IDFA (AdMob, Meta); el `installId` del ranking; el id propio de la telemetría | Sí | Sí | Third-Party Advertising + **App Functionality** + **Analytics** |
-| 3 | Usage Data · Advertising Data | lo que ven AdMob y Meta; la impresión de cada anuncio en la telemetría | Sí | Sí | Third-Party Advertising + **Analytics** |
+| 2 | Identifiers · Device ID | el IDFA (AdMob); el `installId` del ranking; el id propio de la telemetría | Sí | Sí | Third-Party Advertising + **App Functionality** + **Analytics** |
+| 3 | Usage Data · Advertising Data | lo que ve AdMob; la impresión de cada anuncio en la telemetría | Sí | Sí | Third-Party Advertising + **Analytics** |
 | 4 | Usage Data · Product Interaction | **NUEVO.** AdMob (toques, vistas de video); sesiones, etapas de ofertas y reencarnaciones de la telemetría | Sí | Sí | **Analytics + Third-Party Advertising** |
 | 5 | User Content · Other User Content | **NUEVO (ranking, E12).** El nombre elegido y los tiempos de partida | No | No | App Functionality |
 | 6 | Purchases · Purchase History | **NUEVO (E15).** El id del producto comprado (sin precio ni transacción) | No | No | Analytics |
-| 7 | Diagnostics · Other Diagnostic Data | **NUEVO.** Meta Audience Network (su SDK **sí** está en el binario: `GoogleMobileAdsMediationMeta` 6.22.0 en `project.yml`) | No | No | Analytics |
-| 8 | Diagnostics · Crash Data | AdMob y las redes | **lo que figura hoy**: no se toca | No | Analytics |
-| 9 | Diagnostics · Performance Data | AdMob | **lo que figura hoy**: no se toca | No | App Functionality |
+| 7 | Diagnostics · Crash Data | AdMob | **lo que figura hoy**: no se toca | No | Analytics |
+| 8 | Diagnostics · Performance Data | AdMob | **lo que figura hoy**: no se toca | No | App Functionality |
 
 Cómo leerla:
 
-- **Qué cambia respecto de la etiqueta publicada con la 1.0** (5 tipos: filas 1, 2, 3, 8 y 9): Device ID suma App
-  Functionality y Analytics; Advertising Data suma Analytics; y entran cuatro tipos nuevos (filas 4 a 7). Coarse
+- **Qué cambia respecto de la etiqueta publicada con la 1.0** (5 tipos: filas 1, 2, 3, 7 y 8): Device ID suma App
+  Functionality y Analytics; Advertising Data suma Analytics; y entran tres tipos nuevos (filas 4 a 6). Coarse
   Location, Crash Data y Performance Data quedan como están. Se parte de lo publicado hace 24 días, no de lo que el
-  borrador anterior suponía: le faltaban Product Interaction y Other Diagnostic Data, porque suponía que ya estaban.
+  borrador anterior suponía: le faltaba Product Interaction, porque suponía que ya estaba.
+- **Sin Meta (2026-10-15):** Other Diagnostic Data estaba sólo por Meta Audience Network (su manifiesto lo declaraba)
+  y sale con ella. Unity Ads 4.21.0 no declara ningún tipo (`setup-v2-asc-admob-mediacion.md` §1.7), así que la unión
+  es Google más lo nuestro.
 - **Resumen de la ficha:** Product Interaction es Usage Data, que ya figura en «Data Used to Track You» y en «Data
-  Linked to You» por Advertising Data: el resumen no cambia. Other User Content, Purchase History y Other Diagnostic
-  Data van en «Data Not Linked to You».
+  Linked to You» por Advertising Data: el resumen no cambia. Other User Content y Purchase History van en «Data Not
+  Linked to You».
 - **Dónde se cargan las vinculaciones:** el borrador de la telemetría (T5) las declaraba como «No vinculado, sin
-  tracking» para sus partes (filas 2 a 4). La etiqueta final las sube a vinculado y con tracking porque AdMob y Meta ya
-  los vinculan y rastrean: marcarlos de otro modo sería declarar de menos. `PrivacyInfo.xcprivacy` de la app no cambia
+  tracking» para sus partes (filas 2 a 4). La etiqueta final las sube a vinculado y con tracking porque AdMob ya los
+  vincula y rastrea (la etiqueta de la 1.0, sin mediación, ya los tenía así): marcarlos de otro modo sería declarar de
+  menos. `PrivacyInfo.xcprivacy` de la app no cambia
   (describe sólo nuestro código, que no rastrea; `NSPrivacyTracking` sigue en `false`, B22).
 - **No se declara** Coarse Location por el país de la tienda (es el país de la cuenta de App Store, no una ubicación del
   dispositivo) ni por la IP de los logs de Supabase (no la usamos ni la guardamos con los eventos). La fila 1 ya figura
   por AdMob de todos modos. Tampoco se declara Other Diagnostic Data por la versión de iOS y el modelo de nuestra
-  telemetría (contexto técnico de cada evento); la fila 7 existe por Meta, no por nosotros.
-- **Antes de cargar:** abrir el panel y comparar cada fila 1, 8 y 9 con lo publicado (son las que no se tocan: si el
+  telemetría (contexto técnico de cada evento); el tipo estaba sólo por Meta y salió con ella.
+- **Antes de cargar:** abrir el panel y comparar cada fila 1, 7 y 8 con lo publicado (son las que no se tocan: si el
   panel dice otra cosa que esta tabla, manda el panel y se anota). El formulario avisa que las respuestas deben reflejar
   sólo lo que recolecta **esta versión**: por eso se carga el día del envío y no antes (la 1.0 en la tienda no tiene
   ranking ni telemetría). Se abrió y se canceló sin cambios el 2026-10-15.
@@ -562,7 +566,7 @@ Queda como **verificación**, no como pasos pendientes:
 2. **En un build de TestFlight con anuncios reales** (no los de prueba, que pueden venir en cero): después de ver un
    par de anuncios, la sonda de T2 (`AdValueProbe`) o el save muestran `meta.adRevenue` con `count > 0` y
    `totalMicros > 0` en el formato visto, con `precision` distinta de `unknown`. Con mediación es normal ver
-   `estimated` para Unity/Meta y `precise`/`publisherProvided` para Google.
+   `estimated` para Unity y `precise`/`publisherProvided` para Google.
 3. **Con el interruptor ya prendido (después de O6):** las consultas de `supabase/scripts/admin.sql` (impresiones y
    eCPM por país × formato) devuelven filas con `micros > 0`.
 
@@ -606,7 +610,7 @@ conteo (`set-review-notes … caracteres`) antes de aplicar.
   de razón requerida nueva (la cola usa archivos en Application Support; `uname` y `ProcessInfo` no están en la lista).
 - `FisuEvolutionTests/PrivacyManifestTests.swift`: el conjunto esperado nuevo (cinco tipos, sin repetir) y los
   propósitos exactos por tipo. El manifiesto describe **sólo nuestro código**: los SDK de anuncios traen el suyo, y
-  ASC muestra la unión (por eso Device ID y Advertising Data aparecen allá como vinculados, por Meta).
+  ASC muestra la unión (por eso Device ID y Advertising Data aparecen allá como vinculados, por AdMob).
 - El id propio de la telemetría (decisión 2) no cambia el manifiesto: el tipo sigue siendo Device ID, no vinculado.
 
 ## Para T9

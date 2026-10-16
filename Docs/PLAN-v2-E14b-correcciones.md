@@ -836,3 +836,5 @@ Las pidió el dueño en el chat «Fisu Evolution v2 roadmap», con el iPhone en 
 ### Orden de la cuarta tanda
 B32 y B33 son chicas y no se pisan: entran en cualquier hueco. B31 va después de B24 y B29 (usa la caída del colchón y
 el ×2) y corre el pacing-sim: no en paralelo con otra tarea que lo corra (B25).
+
+> **Regla del dueño (2026-10-16, en vivo):** el colchón sigue la misma dinámica que la caja (B18/B22): pertenece a un piso, se persiste por piso con su lugar y se queda ahí; no navega con el usuario por los pisos. Vale para el colchón de la columna y el de B31.

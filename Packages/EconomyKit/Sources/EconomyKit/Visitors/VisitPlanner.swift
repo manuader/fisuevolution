@@ -19,12 +19,16 @@ public struct ChallengeTerms: Sendable, Equatable {
     public let windowSeconds: Double
     public let coins: Double
     public let rewards: [RewardSpec]
+    /// Corre con el reloj de pared y vive en el save (la Marcha, E14b B25): no es un reto del
+    /// escenario sino una `MarchState`.
+    public let realClock: Bool
 
-    public init(taps: Int, windowSeconds: Double, coins: Double, rewards: [RewardSpec]) {
+    public init(taps: Int, windowSeconds: Double, coins: Double, rewards: [RewardSpec], realClock: Bool = false) {
         self.taps = taps
         self.windowSeconds = windowSeconds
         self.coins = coins
         self.rewards = rewards
+        self.realClock = realClock
     }
 }
 
@@ -177,7 +181,8 @@ public enum VisitPlanner {
 
         case let .challenge(taps, windowSeconds, rewards, _):
             let base = priced(rewards)
-            let terms = ChallengeTerms(taps: taps, windowSeconds: windowSeconds, coins: base.coins, rewards: base.others)
+            let terms = ChallengeTerms(taps: taps, windowSeconds: windowSeconds, coins: base.coins, rewards: base.others,
+                                       realClock: script.realClock)
             return make([option("challenge", .startChallenge, challenge: terms)])
 
         case .vendor(let cards):

@@ -9,10 +9,13 @@ func fxScript(
     minTier: Int = 1,
     dailyCap: Int = 3,
     eventOnly: Bool = false,
-    mechanic: VisitorsConfig.Mechanic
+    mechanic: VisitorsConfig.Mechanic,
+    weeklyCap: Int? = nil,
+    realClock: Bool = false
 ) -> VisitorsConfig.Script {
     VisitorsConfig.Script(id: id, visitor: visitor, weight: weight, minTier: minTier,
-                          dailyCap: dailyCap, eventOnly: eventOnly, mechanic: mechanic)
+                          dailyCap: dailyCap, eventOnly: eventOnly, mechanic: mechanic,
+                          weeklyCap: weeklyCap, realClock: realClock)
 }
 
 /// Visitantes sintéticos: dos de la calle, un especial y el vendedor.

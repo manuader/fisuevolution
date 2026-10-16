@@ -42,6 +42,14 @@ public struct VisitorsState: Codable, Sendable, Equatable {
     /// Los que esperan en los pisos que no se miran, uno por piso (E14b B7).
     /// Ningún reloj los toca: sólo `VisitorScheduler.park`/`resume`.
     public var waiting: [FloorVisitor]
+    /// La semana calendario ISO ("2026-W42") del cupo semanal (E14b B25).
+    public var week: String?
+    public var visitsThisWeek: [String: Int]
+    /// Cuántas sesiones (arranques de la app) vio la partida: un guion con cupo semanal no sale en
+    /// la primera (E14b B25).
+    public var sessions: Int
+    /// La Marcha en curso o resuelta y sin cobrar (E14b B25). Vive en el save con su reloj de pared.
+    public var march: MarchState?
 
     public static let initial = VisitorsState()
 
@@ -53,7 +61,11 @@ public struct VisitorsState: Codable, Sendable, Equatable {
         day: String? = nil,
         visitsToday: [String: Int] = [:],
         blueExchangedToday: Int = 0,
-        waiting: [FloorVisitor] = []
+        waiting: [FloorVisitor] = [],
+        week: String? = nil,
+        visitsThisWeek: [String: Int] = [:],
+        sessions: Int = 0,
+        march: MarchState? = nil
     ) {
         self.secondsUntilVisit = secondsUntilVisit
         self.visitorBag = visitorBag
@@ -63,6 +75,10 @@ public struct VisitorsState: Codable, Sendable, Equatable {
         self.visitsToday = visitsToday
         self.blueExchangedToday = blueExchangedToday
         self.waiting = waiting
+        self.week = week
+        self.visitsThisWeek = visitsThisWeek
+        self.sessions = sessions
+        self.march = march
     }
 
     public init(from decoder: Decoder) throws {
@@ -76,14 +92,22 @@ public struct VisitorsState: Codable, Sendable, Equatable {
         blueExchangedToday = try container.decodeIfPresent(Int.self, forKey: .blueExchangedToday)
             ?? decoder.container(keyedBy: LegacyKeys.self).decodeIfPresent(Int.self, forKey: .blueExchangedToday) ?? 0
         waiting = try container.decodeIfPresent([FloorVisitor].self, forKey: .waiting) ?? []
+        week = try container.decodeIfPresent(String.self, forKey: .week)
+        visitsThisWeek = try container.decodeIfPresent([String: Int].self, forKey: .visitsThisWeek) ?? [:]
+        sessions = try container.decodeIfPresent(Int.self, forKey: .sessions) ?? 0
+        march = try container.decodeIfPresent(MarchState.self, forKey: .march)
     }
 
-    /// El reloj, la bolsa y los que esperan en cada piso viajan con el ganador. Los topes del día, si los dos
-    /// saves hablan del mismo día, se quedan con lo más alto: dos dispositivos no
-    /// duplican el cupo.
+    /// El reloj, la bolsa, los que esperan en cada piso y la Marcha viajan con el ganador. Los topes del
+    /// día y de la semana, si los dos saves hablan del mismo día o de la misma semana, se quedan con lo
+    /// más alto: dos dispositivos no duplican el cupo. Las sesiones, también lo más alto.
     public static func resolve(winner: VisitorsState, loser: VisitorsState) -> VisitorsState {
-        guard winner.day != nil, winner.day == loser.day else { return winner }
         var resolved = winner
+        resolved.sessions = max(winner.sessions, loser.sessions)
+        if winner.week != nil, winner.week == loser.week {
+            resolved.visitsThisWeek = winner.visitsThisWeek.merging(loser.visitsThisWeek, uniquingKeysWith: max)
+        }
+        guard winner.day != nil, winner.day == loser.day else { return resolved }
         resolved.visitsToday = winner.visitsToday.merging(loser.visitsToday, uniquingKeysWith: max)
         resolved.blueExchangedToday = max(winner.blueExchangedToday, loser.blueExchangedToday)
         return resolved

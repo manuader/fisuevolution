@@ -66,6 +66,7 @@ struct DepthScaleTests {
     }
 
     @Test("el tramo de un piso va del horizonte al frente de la pantalla")
+    @MainActor
     func spanFromTheStageLayout() {
         let layout = StageLayout(sceneSize: CGSize(width: 393, height: 852), bottomInset: BoardScene.bottomInset,
                                  cellSize: 72, floorBottom: BoardScene.floorBottom)

@@ -41,9 +41,10 @@ struct BarFlapLayoutTests {
             #expect(layout.right.minX >= layout.plate.maxX + BarFlapLayout.plateGap - 0.001)
             #expect(layout.right.width < layout.left.width, "el billete se achica antes que pisarlo")
         }
-        // Lo que vio el UI test en el 16 Pro (402 pt): el plato en 191,7…269,7.
+        // Lo que vio el UI test en el 16 Pro (402 pt): el plato en 191,7…269,7. Ese frame ya viene
+        // redondeado al píxel de 3x; la cuenta pura cae a menos de un píxel (1/3 pt) de ahí.
         let pro = BarFlapLayout.make(barWidth: 402, tabs: Self.fullBar)
-        #expect(abs(pro.plate.minX - 191.66) < 0.1)
+        #expect(abs(pro.plate.minX - 191.66) < 1.0 / 3)
     }
 
     @Test("cada solapa se queda en su mitad, dentro de la barra y con el mismo ancho")

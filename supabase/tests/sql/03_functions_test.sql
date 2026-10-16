@@ -4,6 +4,10 @@ begin;
 create function pg_temp.h(seed text) returns text language sql immutable
   as $$ select encode(sha256(convert_to(seed, 'UTF8')), 'hex') $$;
 
+-- Los casos están escritos con el piso de 10 h (como handlers_test.ts); el valor migrado lo
+-- mira 01_schema_test. El rollback del final lo deshace.
+update public.settings set value = '36000' where key = 'min_real_seconds_to_god';
+
 set local role service_role;
 
 do $$

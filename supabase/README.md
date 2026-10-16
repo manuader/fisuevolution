@@ -146,3 +146,25 @@ Qué agrega:
 Se prende, se apaga, se carga y se lee con `scripts/admin.sql` (16–18). Una config se valida **antes** de cargarla
 (`pacing-sim` y los tests de las tablas). **Cambios al esquema o a la función = migración nueva; no se edita una
 migración ya escrita** (tampoco esta, una vez aplicada).
+
+## Telemetría de la 2.1 (E15 F1 T6) — SIN APLICAR
+
+`…20261016000002_telemetry_v21.sql` está escrita contra la tabla de F0 y **no está aplicada** (🔒 P4, con el OK del
+dueño, como las otras). No edita la migración de F0: reemplaza sus dos `check` (el de `name` y
+`telemetry_props_by_name`) por los ampliados; la política, los permisos y el interruptor quedan igual. La prueba es
+`07_telemetry_v21_test.sql`.
+
+| Evento | `props` (claves cerradas) | Cuándo |
+|---|---|---|
+| `segment` | `id` (`base`/`low`/`mid`/`high`), `ver` (versión de las tablas, ≤ 32), `src` (`rules` o `tree-<v>`, ≤ 32) | en la primera sesión y sólo cuando cambia (F1 T5) |
+| `exposure` | `exp`, `arm`, `ver` (≤ 32 cada uno) | al ver un brazo de un experimento, una vez por sesión y brazo (F3, F6) |
+| `progress` | `max_tier`, `active_minutes`, `prestige` (números ≥ 0) | junto con cada `session_end` |
+| `offer` | suma `ctx` **opcional**: `floor_full`, `price_wall`, `mattress_ready` o `back_offline` | cuando la oferta sale por un momento (F3) |
+
+**Orden al publicar:** la app 2.1 manda `progress` con cada `session_end` aunque la personalización esté apagada. Con
+la telemetría prendida, esta migración se aplica **antes** de que salga el binario 2.1: si no, el `check` rechaza el
+lote entero (400) y la app lo descarta, con los eventos de F0 adentro.
+
+`segment` queda `[VERIFICAR CON ABOGADO]` (App Store 5.1.2(iii): un dato por instalación; E15 F1 T9), y la
+personalización sale apagada hasta esa revisión. Si el abogado lo objeta, la app deja de emitirlo (F1 T5) y el `check`
+puede quedar como está. Las consultas por segmento están en `scripts/admin.sql` (19–20).

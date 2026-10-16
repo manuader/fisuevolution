@@ -21,6 +21,11 @@ private final class SpyTelemetry: TelemetryRecording {
     func events(named name: TelemetryEventName) -> [TelemetryPayload] {
         events.filter { $0.name == name }
     }
+
+    /// Lo de la sesión sin el `progress` que acompaña a cada `session_end` (2.1): ése tiene sus tests.
+    var withoutProgress: [TelemetryPayload] {
+        events.filter { $0.name != .progress }
+    }
 }
 
 /// Anota qué tareas de background se piden y se devuelven.
@@ -64,7 +69,11 @@ struct TelemetryWiringTests {
         return (gameState, spy)
     }
 
-    /// Las seis fuentes, una vez cada una, por sus caminos reales.
+    /// Los nombres que el juego emite hoy por sí solo: los seis de la 2.0 y el `progress` de la 2.1.
+    /// `segment` lo emite el servicio de personalización (F1 T5) y `exposure`, quien expone (F3, F6).
+    private static let wiredNames = Set(TelemetryEventName.allCases).subtracting([.segment, .exposure])
+
+    /// Las seis fuentes, una vez cada una, por sus caminos reales (el cierre trae su `progress`).
     private func playAllSources(_ gameState: GameState, now: TimeInterval = 1_000) {
         gameState.telemetrySceneChanged(to: .active, now: now)
         gameState.recordImpression(Self.impression)
@@ -87,7 +96,7 @@ struct TelemetryWiringTests {
         gameState.telemetrySceneChanged(to: .background, now: 1_090)
 
         #expect(spy.starts == 1)
-        #expect(spy.events == [.sessionStart(number: 1), .sessionEnd(seconds: 90)],
+        #expect(spy.withoutProgress == [.sessionStart(number: 1), .sessionEnd(seconds: 90)],
                 "la sesión cuenta desde el arranque, con el bootstrap adentro")
     }
 
@@ -128,7 +137,7 @@ struct TelemetryWiringTests {
         gameState.telemetrySceneChanged(to: .active, now: 1_000)
         gameState.telemetrySceneChanged(to: .background, now: 1_090)
 
-        #expect(spy.events == [.sessionStart(number: 1), .sessionEnd(seconds: 90)])
+        #expect(spy.withoutProgress == [.sessionStart(number: 1), .sessionEnd(seconds: 90)])
         #expect(spy.flushes == 1, "irse a background manda lo juntado")
         #expect(spy.activations == 1)
     }
@@ -144,7 +153,8 @@ struct TelemetryWiringTests {
         gameState.telemetrySceneChanged(to: .background, now: 70)
         gameState.telemetrySceneChanged(to: .active, now: 500)
 
-        #expect(spy.events == [.sessionStart(number: 1), .sessionEnd(seconds: 60), .sessionStart(number: 2)])
+        #expect(spy.withoutProgress == [.sessionStart(number: 1), .sessionEnd(seconds: 60), .sessionStart(number: 2)])
+        #expect(spy.events(named: .progress).count == 1, "un progress por session_end, no por background")
         #expect(spy.flushes == 1)
     }
 
@@ -161,6 +171,68 @@ struct TelemetryWiringTests {
         #expect(spy.events(named: .sessionEnd).count == 1)
         #expect(spy.events(named: .sessionStart).count == 2)
         #expect(spy.flushes == 1)
+    }
+
+    // MARK: - El progreso de la partida (2.1, C6)
+
+    @Test("session_end sale con su progress: tier de esta vida, minutos activos con la sesión abierta y reencarnaciones")
+    func sessionEndCarriesProgress() async throws {
+        let (gameState, spy) = await rig()
+        gameState.updateRanking {
+            $0.playedSeconds = 3_600
+            $0.activeSince = 1_000
+        }
+        let player = try #require(gameState.player)
+
+        gameState.telemetrySceneChanged(to: .active, now: 1_000)
+        gameState.telemetrySceneChanged(to: .background, now: 1_090)
+
+        #expect(spy.events == [
+            .sessionStart(number: 1),
+            .sessionEnd(seconds: 90),
+            .progress(maxTier: player.run.maxTierReached, activeMinutes: 61, prestige: player.meta.prestigeLevel),
+        ], "3.600 s guardados + 90 s de la sesión que cierra = 61 minutos enteros")
+        #expect(spy.flushes == 1, "el progress sale en el mismo envío que el session_end")
+    }
+
+    @Test("con la sesión del ranking ya cerrada, los minutos son los guardados")
+    func progressUsesStoredMinutesWhenRankingClosed() async throws {
+        let (gameState, spy) = await rig()
+        gameState.updateRanking {
+            $0.playedSeconds = 7_259
+            $0.activeSince = nil
+        }
+
+        gameState.telemetrySceneChanged(to: .active, now: 0)
+        gameState.telemetrySceneChanged(to: .background, now: 600)
+
+        let progress = try #require(spy.events(named: .progress).first)
+        #expect(progress.props["active_minutes"] == .int(120))
+        #expect(Set(progress.props.keys) == ["max_tier", "active_minutes", "prestige"])
+    }
+
+    @Test("sin sesión abierta no sale ni session_end ni progress")
+    func noSessionNoProgress() async {
+        let (gameState, spy) = await rig()
+
+        gameState.telemetrySceneChanged(to: .background, now: 100)
+
+        #expect(spy.events.isEmpty)
+    }
+
+    @Test("reencarnar se ve en el progress siguiente")
+    func progressFollowsPrestige() async throws {
+        let (gameState, spy) = await rig()
+        gameState.giveEarningsForPrestigeTesting(blue: 3)
+        gameState.confirmPrestige()
+        let level = try #require(gameState.player?.meta.prestigeLevel)
+
+        gameState.telemetrySceneChanged(to: .active, now: 0)
+        gameState.telemetrySceneChanged(to: .background, now: 60)
+
+        let progress = try #require(spy.events(named: .progress).first)
+        #expect(progress.props["prestige"] == .int(Int64(level)))
+        #expect(progress.props["max_tier"] == .int(Int64(gameState.player?.run.maxTierReached ?? -1)))
     }
 
     // MARK: - Cada fuente, un evento
@@ -190,6 +262,21 @@ struct TelemetryWiringTests {
             .offer(site: "double.offline", stage: .accepted),
         ])
         #expect(spy.events.first?.props == ["site": .string("double.offline"), "stage": .string("shown")])
+    }
+
+    @Test("2.1: una oferta que sale por un momento lleva su ctx; sin momento, la clave no viaja")
+    func offerCarriesItsMoment() async {
+        let (gameState, spy) = await rig()
+
+        gameState.telemetryOffer(.shown, site: "moment.ff_merge", ctx: .floorFull)
+        gameState.telemetryOffer(.shown, site: "double.offline")
+
+        #expect(spy.events == [
+            .offer(site: "moment.ff_merge", stage: .shown, ctx: .floorFull),
+            .offer(site: "double.offline", stage: .shown),
+        ])
+        #expect(spy.events.first?.props["ctx"] == .string("floor_full"))
+        #expect(spy.events.last?.props["ctx"] == nil)
     }
 
     @Test("una compra acreditada emite un purchase con el producto y nada más")
@@ -296,14 +383,14 @@ struct TelemetryWiringTests {
         #expect(spy.events(named: .prestige) == [.prestige(count: level)])
     }
 
-    @Test("las seis fuentes, una vez cada una: un evento por nombre")
+    @Test("las seis fuentes, una vez cada una: un evento por nombre (y un progress con el cierre)")
     func everySourceEmitsExactlyOnce() async {
         let (gameState, spy) = await rig()
 
         playAllSources(gameState)
 
         for name in TelemetryEventName.allCases {
-            #expect(spy.events(named: name).count == 1, "\(name.rawValue)")
+            #expect(spy.events(named: name).count == (Self.wiredNames.contains(name) ? 1 : 0), "\(name.rawValue)")
         }
     }
 
@@ -338,7 +425,7 @@ struct TelemetryWiringTests {
 
     // MARK: - La compuerta manda
 
-    @Test("con el interruptor apagado, las seis fuentes no sacan ni un insert y la cola queda vacía")
+    @Test("con el interruptor apagado, las seis fuentes (y el progress) no sacan ni un insert y la cola queda vacía")
     func closedGateSendsNothing() async {
         let network = TelemetryFakeNetwork(switchBody: "false")
         let queue = TelemetryFakeNetwork.temporaryQueue()
@@ -387,7 +474,7 @@ struct TelemetryWiringTests {
     }
 
     /// El control positivo: sin él, «no salió nada» podría ser un cableado roto.
-    @Test("con la compuerta abierta, los seis eventos llegan a la tabla")
+    @Test("con la compuerta abierta, los seis eventos y el progress llegan a la tabla")
     func openGateDeliversEverySource() async throws {
         let network = TelemetryFakeNetwork(switchBody: "true")
         let queue = TelemetryFakeNetwork.temporaryQueue()
@@ -405,7 +492,7 @@ struct TelemetryWiringTests {
             let rows = try #require(try JSONSerialization.jsonObject(with: body) as? [[String: Any]])
             names += rows.compactMap { $0["name"] as? String }
         }
-        #expect(names.sorted() == TelemetryEventName.allCases.map(\.rawValue).sorted())
+        #expect(names.sorted() == Self.wiredNames.map(\.rawValue).sorted())
         #expect(await queue.count == 0)
     }
 }

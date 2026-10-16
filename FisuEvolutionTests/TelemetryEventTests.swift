@@ -59,9 +59,28 @@ struct TelemetryEventTests {
         (.adImpression(format: .appOpen, site: "appOpen", micros: 1, currency: "USD", precision: .estimated, source: nil),
          ["format", "site", "micros", "currency", "precision"]),
         (.offer(site: "ads.watch.double_earnings", stage: .accepted), ["site", "stage"]),
+        (.offer(site: "moment.ff_merge", stage: .shown, ctx: .floorFull), ["site", "stage", "ctx"]),
         (.purchase(product: "com.adergames.fisu.blue.small"), ["product"]),
         (.prestige(count: 1), ["count"]),
+        (.segment(id: .mid, ver: "seed-2026-10-16", src: "rules"), ["id", "ver", "src"]),
+        (.exposure(exp: "moments", arm: "ff_merge", ver: "3"), ["exp", "arm", "ver"]),
+        (.progress(maxTier: 12, activeMinutes: 340, prestige: 2), ["max_tier", "active_minutes", "prestige"]),
     ]
+
+    /// La lista blanca de nombres (C4 + C6 de la 2.1): uno nuevo rompe acá y obliga a migrar el `check`.
+    @Test("los nombres son exactamente los seis de la 2.0 y los tres de la 2.1")
+    func eventNamesAreTheWhitelist() {
+        #expect(Set(TelemetryEventName.allCases.map(\.rawValue)) == [
+            "session_start", "session_end", "ad_impression", "offer", "purchase", "prestige",
+            "segment", "exposure", "progress",
+        ])
+    }
+
+    /// Todos los casos de C6 con sus claves: si un caso nuevo no aparece en `closedKeys`, falta su fila.
+    @Test("cada nombre tiene al menos un caso en la lista de claves cerradas")
+    func everyNameHasClosedKeys() {
+        #expect(Set(Self.closedKeys.map { $0.0.name }) == Set(TelemetryEventName.allCases))
+    }
 
     @Test("props de cada evento, con sus claves cerradas", arguments: TelemetryEventTests.closedKeys)
     func propsKeys(payload: TelemetryPayload, keys: Set<String>) throws {
@@ -79,6 +98,45 @@ struct TelemetryEventTests {
         ])
         #expect(TelemetryPayload.sessionEnd(seconds: -5).props == ["seconds": .int(0)])
         #expect(TelemetryPayload.offer(site: "offline.x2", stage: .shown).name == .offer)
+    }
+
+    @Test("2.1: el segmento y el contexto viajan como su rawValue; el progreso, como números no negativos")
+    func v21PropsValues() {
+        #expect(TelemetryPayload.segment(id: .high, ver: "seed-2026-10-16", src: "tree-1").props == [
+            "id": .string("high"), "ver": .string("seed-2026-10-16"), "src": .string("tree-1"),
+        ])
+        #expect(TelemetryPayload.offer(site: "moment.ff_merge", stage: .shown, ctx: .backOffline).props == [
+            "site": .string("moment.ff_merge"), "stage": .string("shown"), "ctx": .string("back_offline"),
+        ])
+        #expect(TelemetryPayload.offer(site: "offline.x2", stage: .shown, ctx: nil)
+                == TelemetryPayload.offer(site: "offline.x2", stage: .shown))
+        #expect(TelemetryPayload.exposure(exp: "moments", arm: "ff_merge", ver: "3").props == [
+            "exp": .string("moments"), "arm": .string("ff_merge"), "ver": .string("3"),
+        ])
+        #expect(TelemetryPayload.progress(maxTier: 12, activeMinutes: 340, prestige: 2).props == [
+            "max_tier": .int(12), "active_minutes": .int(340), "prestige": .int(2),
+        ])
+        #expect(TelemetryPayload.progress(maxTier: -1, activeMinutes: -5, prestige: -2).props == [
+            "max_tier": .int(0), "active_minutes": .int(0), "prestige": .int(0),
+        ])
+        for moment in NeedMoment.allCases {
+            #expect(TelemetryPayload.offer(site: "x", stage: .shown, ctx: moment).props["ctx"] == .string(moment.rawValue))
+        }
+        for segment in PlayerSegment.allCases {
+            #expect(TelemetryPayload.segment(id: segment, ver: "v", src: "rules").props["id"] == .string(segment.rawValue))
+        }
+    }
+
+    @Test("2.1: los textos de segment y exposure son identificadores recortados a 32, nunca texto libre")
+    func v21NoFreeText() {
+        let segment = TelemetryPayload.segment(id: .low, ver: "versión 2 <x>", src: String(repeating: "r", count: 50))
+        #expect(segment.props["ver"] == .string("versin2x"))
+        #expect(segment.props["src"] == .string(String(repeating: "r", count: 32)))
+        let exposure = TelemetryPayload.exposure(
+            exp: String(repeating: "e", count: 40), arm: "brazo uno", ver: "manu@mail.com")
+        #expect(exposure.props["exp"] == .string(String(repeating: "e", count: 32)))
+        #expect(exposure.props["arm"] == .string("brazouno"))
+        #expect(exposure.props["ver"] == .string("manumail.com"))
     }
 
     @Test("ningún texto libre: lo que no es un identificador se cae y todo queda recortado")

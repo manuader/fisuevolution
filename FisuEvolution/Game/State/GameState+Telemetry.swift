@@ -61,14 +61,16 @@ final class TelemetryHookup {
         recorder.record(.sessionStart(number: number))
     }
 
-    /// Cierra la sesión con su duración y manda lo juntado: es lo último antes de que iOS suspenda,
-    /// así que pide unos segundos de vida (`fisu.telemetry`, como `seal` con `fisu.save`) y los
-    /// devuelve cuando el servicio terminó.
-    func endSession(at now: TimeInterval, backgroundTasks: (any BackgroundTaskRunning)? = nil) {
+    /// Cierra la sesión con su duración (y el `progress` de la partida, si lo hay: 2.1 C6) y manda
+    /// lo juntado: es lo último antes de que iOS suspenda, así que pide unos segundos de vida
+    /// (`fisu.telemetry`, como `seal` con `fisu.save`) y los devuelve cuando el servicio terminó.
+    func endSession(at now: TimeInterval, progress: TelemetryPayload? = nil,
+                    backgroundTasks: (any BackgroundTaskRunning)? = nil) {
         guard let startedAt = sessionStartedAt else { return }
         sessionStartedAt = nil
         let token = backgroundTasks?.begin("fisu.telemetry")
         recorder.record(.sessionEnd(seconds: Int((now - startedAt).rounded())))
+        if let progress { recorder.record(progress) }
         recorder.flush()
         let recorder = recorder
         let previous = flushTask
@@ -126,10 +128,25 @@ extension GameState {
             telemetry?.beginSession(at: now)
         case .background:
             sceneActiveSince = nil
-            telemetry?.endSession(at: now, backgroundTasks: backgroundTasks)
+            telemetry?.endSession(at: now, progress: telemetryProgress(now: now), backgroundTasks: backgroundTasks)
         default:
             break
         }
+    }
+
+    /// El `progress` que acompaña al `session_end` (2.1 C6), para comparar el ritmo real con el
+    /// simulado: el tier de esta vida (`run.maxTierReached`, vuelve a 1 al reencarnar), las
+    /// reencarnaciones y los minutos activos de la partida. Los minutos son los del ranking
+    /// (`meta.ranking.playedSeconds`: la app en `.active`, sin el tutorial, congelados en Dios) más
+    /// la sesión que todavía no cerró: la telemetría se entera del `.background` antes que el ranking.
+    /// Sin jugador (recuperación), nada.
+    func telemetryProgress(now: TimeInterval) -> TelemetryPayload? {
+        guard let player else { return nil }
+        let ranking = player.meta.ranking
+        let open = ranking.activeSince.map { max(0, now - $0) } ?? 0
+        let minutes = Int(((ranking.playedSeconds + open) / 60).rounded(.down))
+        return .progress(maxTier: player.run.maxTierReached, activeMinutes: minutes,
+                         prestige: player.meta.prestigeLevel)
     }
 
     func telemetryImpression(_ impression: AdImpression) {
@@ -139,8 +156,9 @@ extension GameState {
     /// Un evento por etapa. Regalos es el pico: abrirlo con los videos listos dispara un `shown` por
     /// tarjeta (~13, todas a la vez) y cerrarlo sin tocar, un `dismissed` cada una: ~26 eventos por
     /// visita. Es el volumen esperado, no un bucle (la cola los manda en lotes de 50).
-    func telemetryOffer(_ stage: OfferStage, site: String) {
-        telemetry?.record(.offer(site: site, stage: stage))
+    /// `ctx` (2.1 C6): el momento de necesidad que la sacó, cuando sale por uno (F3).
+    func telemetryOffer(_ stage: OfferStage, site: String, ctx: NeedMoment? = nil) {
+        telemetry?.record(.offer(site: site, stage: stage, ctx: ctx))
     }
 
     /// Sólo lo que se acreditó de verdad y una vez por transacción: ni una ya acreditada (restaurar,

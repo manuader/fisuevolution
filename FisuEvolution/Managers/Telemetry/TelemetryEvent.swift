@@ -1,8 +1,8 @@
 import EconomyKit
 import Foundation
 
-/// Los seis eventos que existen (C4). Un nombre nuevo es un cambio de contrato: también lo es en
-/// el `check` de la tabla.
+/// Los eventos que existen: los seis de la 2.0 (C4) y los tres de la 2.1 (C6). Un nombre nuevo es
+/// un cambio de contrato: también lo es en el `check` de la tabla.
 enum TelemetryEventName: String, Codable, Sendable, CaseIterable {
     case sessionStart = "session_start"
     case sessionEnd = "session_end"
@@ -10,6 +10,9 @@ enum TelemetryEventName: String, Codable, Sendable, CaseIterable {
     case offer
     case purchase
     case prestige
+    case segment
+    case exposure
+    case progress
 }
 
 /// Un valor de `props`: sólo texto acotado o números. Nunca un objeto ni un texto libre.
@@ -67,12 +70,22 @@ enum TelemetryPayload: Sendable, Equatable {
     /// C1: el formato y la precisión llegan tipados; viajan como su `rawValue`.
     case adImpression(
         format: AdFormat, site: String, micros: Int64, currency: String, precision: AdValuePrecision, source: String?)
-    /// C3: la etapa llega tipada; viaja como su `rawValue`.
-    case offer(site: String, stage: OfferStage)
+    /// C3: la etapa llega tipada; viaja como su `rawValue`. `ctx` (2.1, C6) es el momento de
+    /// necesidad que la sacó (F3); sin momento, la clave no viaja.
+    case offer(site: String, stage: OfferStage, ctx: NeedMoment? = nil)
     /// Sólo el producto: ni precio ni transacción.
     case purchase(product: String)
     /// Las reencarnaciones de la cuenta.
     case prestige(count: Int)
+    /// 2.1 (C6): el segmento de valor, la versión de las tablas que lo decidió y de dónde salió
+    /// (`rules` o `tree-<v>`). Sólo al cambiar; lo emite el servicio de personalización (F1 T5).
+    case segment(id: PlayerSegment, ver: String, src: String)
+    /// 2.1 (C6): el jugador vio un brazo de un experimento (el bandido de F3, un A/B de F6). Una vez
+    /// por sesión y brazo; lo emite quien expone.
+    case exposure(exp: String, arm: String, ver: String)
+    /// 2.1 (C6): dónde va la partida, junto con cada `session_end`: el tier de esta vida, los minutos
+    /// activos de la partida y las reencarnaciones. Es el ritmo real contra el simulado (F7).
+    case progress(maxTier: Int, activeMinutes: Int, prestige: Int)
 
     var name: TelemetryEventName {
         switch self {
@@ -82,6 +95,9 @@ enum TelemetryPayload: Sendable, Equatable {
         case .offer: .offer
         case .purchase: .purchase
         case .prestige: .prestige
+        case .segment: .segment
+        case .exposure: .exposure
+        case .progress: .progress
         }
     }
 
@@ -101,12 +117,23 @@ enum TelemetryPayload: Sendable, Equatable {
             ]
             if let source { values["source"] = .token(source, maxLength: 32) }
             return values
-        case .offer(let site, let stage):
-            return ["site": .token(site), "stage": .token(stage.rawValue, maxLength: 32)]
+        case .offer(let site, let stage, let ctx):
+            var values: [String: TelemetryValue] = ["site": .token(site), "stage": .token(stage.rawValue, maxLength: 32)]
+            if let ctx { values["ctx"] = .token(ctx.rawValue, maxLength: 32) }
+            return values
         case .purchase(let product):
             return ["product": .token(product, maxLength: 128)]
         case .prestige(let count):
             return ["count": .int(Int64(count))]
+        case .segment(let id, let ver, let src):
+            return ["id": .token(id.rawValue, maxLength: 32), "ver": .token(ver, maxLength: 32),
+                    "src": .token(src, maxLength: 32)]
+        case .exposure(let exp, let arm, let ver):
+            return ["exp": .token(exp, maxLength: 32), "arm": .token(arm, maxLength: 32),
+                    "ver": .token(ver, maxLength: 32)]
+        case .progress(let maxTier, let activeMinutes, let prestige):
+            return ["max_tier": .int(Int64(max(0, maxTier))), "active_minutes": .int(Int64(max(0, activeMinutes))),
+                    "prestige": .int(Int64(max(0, prestige)))]
         }
     }
 

@@ -20,6 +20,8 @@
 > mockups aprobados (`Docs/correcciones-v2/mockups/`), 30 tareas en `tasks.md` §5 «E14» y §4.0. Va antes que
 > todo lo demás de la cola. Detalle: `Docs/SESION-2026-10-12-v2-e14-correcciones-dueno.md`.
 >
+> 📍 **Estado al cierre del relevo 59 (2026-10-15; BORRADOR, manda sobre los párrafos de abajo; el controlador ajusta los números):** `version-2` = `36697cac` `[COMPLETAR: hash nuevo si el completo de integ-r59 dio VERDE]`. Lo nuevo está en **`v2i/integ-r59` (pusheada; base `4f0a210e` = integ-r58 con los 3 arreglos de test)**: E14b B25 «La Marcha» (revisada y sin doble cobro), el cierre de E12 (piso y vista aplicados en remoto), **la 2.0 sin Meta**, los textos de tienda de E10 y los cierres preparados de E8d/E8e/E14/E10/E12. Los 5 rojos de UI de integ-r58 quedaron aislados y arreglados (2 eran carga, 3 reales). B30 (el tamaño según la distancia) vive en `v2/e14b-b30-escala`, sin mergear, esperando el sí o no del dueño en su iPhone. `completo` de integ-r58: EK 1017 · Release 0 · unit 2263 + 1 rojo de test arreglado · UI `[COMPLETAR]`. Falta: el `completo` de integ-r59, E15 T8 (clases de telemetría y `--debug-consent-eea`), E10 T9/T12 y los 🔒 del dueño en orden (lista en el plan de E10, «Cierre de E10»). Detalle: `Docs/SESION-2026-10-15-v2-relevo-59.md`.
+>
 > 📍 **Estado al cierre del relevo 58 (2026-10-15; manda sobre los párrafos de abajo):** **`version-2` = `36697cac`** (integ-r54 VERDE con el `completo` `20261015-154752` + aislamiento: E14 T13–T26, E14b B1–B19, B26, B27 y el cofre rehecho). Lo nuevo está en **`v2i/integ-r58` (pusheada, sin `completo`)**: E14b B20–B24, B28 y B29 (visitante que pasea y llegada sin cortes, cajas con x/y y el personaje saliendo de la caja, el colchón visible tras el video, la barra con diseño B, recompensas en dos pasos), E15 F0 T1–T7 y T9 (ledger de impresiones, embudo de ofertas, telemetría a Supabase con interruptor apagado, privacidad publicada; O1/O2/O3/O5 hechos por el dueño), `tabsMoved` sólo veteranos y el ícono del Ranking. Build único ✅ (EK 1017 · Release 0 · unit 2259 verde tras 4 tests viejos); **UI de las tareas nuevas: 60 verdes · 5 rojos** (B28, B24/B29, B29, B21 ×2) que el 59 aísla primero; después el `completo` de integ-r58, B25, B30 aparte, E15 T8 y los cierres. Detalle: `Docs/SESION-2026-10-15-v2-relevo-58.md` y `handoffs/HANDOFF-2026-10-15-v2-relevo-58.md`.
 >
 > 📍 **Estado al cierre del relevo 57 (2026-10-15; manda sobre los párrafos de abajo):** `version-2` sigue en `d53a4098`; lo nuevo está en **`v2i/integ-r54` (pusheada)**: E14b B17–B19, B26 y B27 (cajas por piso, capas por profundidad con el globo del visitante arriba, la Tienda a la barra y el Ranking dentro del Menú, el crema de FisuJobs) y sus arreglos de revisión. El `completo` de `4e6dcecc` dio 20 de 21 rojos de UI por carga (~150 por Spotlight) y no se repitió sobre la punta: **el 58 lo corre con la máquina sola, aísla y recién ahí fast-forward de `version-2`.** Después E14b B20–B25, B28–B30, E15 «Valor por jugador» sólo F0 (`Docs/PLAN-v2-E15-valor-por-jugador.md`) y los cierres. El cofre rehecho ya está en el iPhone del dueño. Detalle: `Docs/SESION-2026-10-15-v2-relevo-57.md` y `handoffs/HANDOFF-2026-10-15-v2-relevo-57.md`.
@@ -395,6 +397,10 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-10-15 (relevo 59) — los 5 rojos aislados, B25, E12 en remoto, la 2.0 sin Meta y los cierres preparados `[BORRADOR]`
+
+El relevo aisló los 5 rojos de UI de integ-r58 (simulador propio): 2 eran carga y 3 reales, arreglados por `fix-ui-r59` (`2e244682`: el test viejo de Logros frente al paso 2 de B29, el billete de la barra que pisaba el plato, el fixture del visitante). El `completo` de integ-r58 dejó un rojo de unit, un test nuevo con tolerancia inventada (`4f0a210e`). E14b B25 «La Marcha» salió con un doble cobro entre dos dispositivos, arreglado en `f413eb48`; B30 corrió en rama aparte y la Release la instaló el dueño porque el clasificador de permisos bloquea instalar en un dispositivo. En vivo, el dueño decidió **la 2.0 sin Meta** y dio el OK para aplicar en remoto el piso del Ranking (54.675 s) y la vista `leaderboard` con `security_invoker`; `pg_net` queda como WARN justificado. Se prepararon los textos de tienda (E10 T11), los cierres de E8d/E8e, E14 T27, E10 T13 y E12 T18. Detalle: `Docs/SESION-2026-10-15-v2-relevo-59.md`.
 
 ### Sesión del 2026-10-15 (relevo 58) — version-2 a 36697cac, E14b olas 7–8, E15 F0 y el build único de integ-r58
 
@@ -2860,6 +2866,8 @@ paréntesis; el porqué completo está en la sesión de cada uno):
 
 35. **La 2.0 sale sin Meta** (dueño, 2026-10-15, relevo 59; confirma la del relevo 54; reemplaza a Meta en la 32). La mediación es **sólo Unity Ads**: sin `GoogleMobileAdsMediationMeta` en `project.yml`, Meta con `status` en `release.json → mediation` (sin grupos; el de rewarded interstitial era sólo suyo), la política y las notas a App Review nombran sólo a Unity, y la App Privacy queda en **8 tipos** (sale Other Diagnostic Data, que era sólo de Meta). Los SKAdNetwork `v9wttpbfk9`/`n38lu8286q` se quedan: están en la lista de Google. 🔒 Fuera del repo: sacar Meta de los grupos de mediación de AdMob; la línea de `facebook.com` en `app-ads.txt` puede quedar.
 
+36. **Relevo 59: E12 en remoto, B30 en rama aparte y el orden del envío** (dueño, 2026-10-15; `Docs/SESION-2026-10-15-v2-relevo-59.md`) `[BORRADOR]`. **Lo que quedó fijo y no se reabre sin el dueño:** (1) el piso del Ranking `min_real_seconds_to_god` = **54.675 s**, la mitad del reloj activo del perfil `.max` (30,38 h), no de la pared; (2) `leaderboard` y `leaderboard_internal` son `security_invoker` y sin `select` para anon: el top se lee sólo por la Edge Function (`leaderboard_top`, definer); (3) **`pg_net` queda en `public`** como WARN justificado: no se mueve; cualquier cambio al SQL aplicado va en una migración **nueva**; (4) **B30 no se mergea sin el sí del dueño**, que lo prueba en su iPhone; (5) el Apple Developer Program License Agreement ya está aceptado y **O4 (App Privacy de 8 tipos) se carga el día del envío**; (6) La Marcha cobra con el paso 2 de B29 (`double.marcha`) y una marcha liquidada por un dispositivo no se vuelve a cobrar desde otro.
+
 ---
 
 ## 6. Cómo verificar
@@ -5065,6 +5073,17 @@ Siguen vigentes y no estaban en ningún otro lado:
 - **El repaso se retira si el núcleo volvió a vivir** y no arranca con el núcleo sin hacer: no hay que "arreglarlo" para que arranque igual, pisaría la fase.
 - **El reset del ORO es `min(saldo, comprado)`:** devolver el comprado entero regala ORO gastado; devolver el saldo entero regala el ORO ganado jugando. Cualquier cambio a `ResetPlan` o a `resolveAcrossReset` se prueba con `ResetEpochTests`.
 
+### Del relevo 59 (2026-10-15) `[BORRADOR]`
+
+- **El clasificador de permisos bloquea instalar una Release en un dispositivo** («Production Deploy»): no se esquiva. Los briefs que dependan de eso prevén el paso humano; lo instala el dueño.
+- **El `completo` corre en el worktree de la integración:** no se mergea ahí mientras corre. Lo nuevo se arma en una integración aparte y se compila después.
+- **Un test escrito sin correr puede traer una vara inventada:** `flapsFollowTheRealPlate` fijó 0,1 contra 0,129 medido. Medir primero.
+- **El helper de test de una rama sombrea al de otra:** `march()` de `MarchRuntimeTests` tapaba al de B25; el cherry-pick `8bc9cb04` va con B25.
+- **Las migraciones aplicadas por el MCP de Supabase se registran con la hora, no con la versión del archivo:** corregir `supabase_migrations.schema_migrations` o un `db push` las repite.
+- **`ALTER EXTENSION … SET SCHEMA` no existe para `pg_net`:** el drop/create es riesgoso con el cron vivo.
+- **Sacar un SDK de mediación toca cuatro lugares:** el binario, la política, la etiqueta de App Privacy y, fuera del repo, los grupos de AdMob y el mensaje GDPR de UMP.
+- **Un cierre de épica de sólo docs puede tocar `tasks.md`:** lo hizo el agente de E8 y se revisó al integrar. Los briefs de docs lo prohíben.
+
 ### Del relevo 58 (2026-10-15)
 
 - **El stash de git es compartido entre todos los worktrees:** un agente lo usó. `git stash list` antes de mergear; nunca `git stash` a secas en los briefs.
@@ -5161,6 +5180,12 @@ Siguen vigentes y no estaban en ningún otro lado:
 - **Un `.max` de la app y el del CLI deben coincidir.** El brief de T15 anotó 30,36 h (CLI) contra 30,05 h (app); la corrida del CLI sobre `2e70dd83` dio 30,05 h y la diferencia no se reprodujo. Si el `completo` la trae de vuelta, es la trampa de arriba.
 
 ## 8. Qué queda
+
+### Lo que queda de la 2.0 (cierre del relevo 59) `[BORRADOR]`
+
+- **Al llegar:** confirmar `version-2` (`36697cac` o el hash nuevo si el `completo` de integ-r59 dio VERDE) y `tasks.md` §2. Leer `DUENO.md` por la respuesta de B30.
+- **Para el controlador, en orden:** (1) el `completo` de integ-r59 y el aislamiento de sus rojos; (2) E15 T8: clases de telemetría y `--debug-consent-eea`; (3) E10 T9 (capturas con el arnés de `v2i/e10-capturas`) y T12 (archive + `app verify`, sin exportar); (4) los cierres de E14 (T27), E10 (T13), E12 (T18) y E8d/E8e al volver los números del dueño; (5) si el dueño dice sí a B30, mergear `v2/e14b-b30-escala` y repetir `completo`.
+- **Para el dueño, en orden hasta el envío:** B30 sí/no · sacar Meta de AdMob · aprobar el sitio `sin-meta` · textos de La Marcha y Novedades · gates de E8d/E8e en el SE · pasada final G4 de E14 · `releaseops asc builds` real · firmar/subir el build · TestFlight · el día del envío: App Privacy de 8 tipos, preguntas de edad, `asc listing apply` y capturas · mandar a revisión · O6 (prender la telemetría). Detalle en `Docs/superpowers/plans/2026-10-11-v2-e10-release.md`, «Cierre de E10».
 
 ### Lo que queda de la 2.0 (cierre del relevo 38)
 
@@ -5714,6 +5739,7 @@ Anotado por si algún día importa, con su medición:
 - **`Docs/SESION-2026-10-12-v2-relevo-38-ola-aj.md`**: el relevo 38 (los eventos de 25 s dicen «En curso»; fuera `tutorial.tip.wheel`).
 - **`Docs/SESION-2026-10-12-v2-relevo-37-ola-ai.md`**: el relevo 37 (el UI test del otro colchón `extraOnly`; el pager asienta con el scroll quieto).
 - **`Docs/SESION-2026-10-13-v2-relevo-50.md`**: el relevo 50 (E14 T4, T6, T28; la carga de la máquina).
+- **`Docs/SESION-2026-10-15-v2-relevo-59.md`**: el relevo 59, borrador (los 5 rojos aislados, B25 y su doble cobro, B30 en rama aparte, E12 en remoto, la 2.0 sin Meta, los textos de tienda y los cierres preparados).
 - **`Docs/SESION-2026-10-15-v2-relevo-58.md`**: el relevo 58 (`version-2` = `36697cac`, E14b B20–B24/B28/B29, E15 F0, el inventario de B29, el build único de integ-r58 y sus 5 rojos de UI).
 - **`Docs/SESION-2026-10-15-v2-e14b-b24-colchon.md`**: B24, el colchón después del video (causas H1/H2/H5, H4 con log para el iPhone).
 - **`Docs/SESION-2026-10-15-v2-relevo-57.md`**: el relevo 57 (E14b B17–B19, B26, B27, el completo cargado por Spotlight, los carries y E15).

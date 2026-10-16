@@ -168,3 +168,20 @@ lote entero (400) y la app lo descarta, con los eventos de F0 adentro.
 `segment` queda `[VERIFICAR CON ABOGADO]` (App Store 5.1.2(iii): un dato por instalación; E15 F1 T9), y la
 personalización sale apagada hasta esa revisión. Si el abogado lo objeta, la app deja de emitirlo (F1 T5) y el `check`
 puede quedar como está. Las consultas por segmento están en `scripts/admin.sql` (19–20).
+
+## El panel del valor por jugador (2.1, E15 F7)
+
+Las vistas (`…20261016000003_panel_views.sql`) y los guardianes (`…20261016000004_panel_guards.sql`) leen la telemetría
+y **sólo informan**: nada se apaga ni se carga solo. Hasta aplicarlas (🔒 P4) las consultas no andan. Las consultas son
+`scripts/admin.sql` (21–28, sección «Panel (2.1)») y el envoltorio `Tools/v21/panel.sh` las corre con `psql`:
+
+```
+PANEL_DB_URL='postgresql://…' Tools/v21/panel.sh todo      # o: semana | segmentos | brazos | retencion | ritmo | guardian | priors
+```
+
+La URL la pasa el dueño en el momento; no se guarda en el repo. Rutina de la semana: `semana` (ingreso por
+instalación-día por segmento), `brazos` y `retencion` (embudo y D1/D7 por brazo), `ritmo` (horas reales contra
+`pacing-sim --segment-matrix`) y `guardian`. Un brazo en `apagar` (peor que el control por más de 1 punto en D1 o D7,
+con significancia) se saca editando la config (admin.sql 17, subiendo la versión): decisión del dueño (P4/P5). Con
+`pocos_datos` no se concluye nada. `priors` devuelve `alpha`/`beta` por brazo (con tope de 200 pseudo-cuentas) para pegar
+en `sections.moments.arms[]` de la config; con menos de 100 mostradas por brazo se dejan planos.

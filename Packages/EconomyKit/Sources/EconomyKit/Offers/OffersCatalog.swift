@@ -23,6 +23,8 @@ public struct OffersCatalog: Codable, Sendable, Equatable {
         public let iconKey: String
         public let symbol: String
         public let rewards: [RewardSpec]
+        /// A quién se le abre (2.1 F5); `nil` = a todos, como en la 2.0.
+        public let audience: OfferAudience?
 
         /// El blue que trae: es blue **comprado** (`bluePurchasedLifetime`).
         public var blueAmount: Int {
@@ -42,6 +44,7 @@ public struct OffersCatalog: Codable, Sendable, Equatable {
             iconKey = try container.decode(String.self, forKey: .iconKey)
             symbol = try container.decode(String.self, forKey: .symbol)
             rewards = try container.decode([RewardSpec].self, forKey: .rewards)
+            audience = try container.decodeIfPresent(OfferAudience.self, forKey: .audience)
         }
     }
 
@@ -52,6 +55,8 @@ public struct OffersCatalog: Codable, Sendable, Equatable {
         case badReward(String)
         /// Trae un cofre y no lo declara: se vendería azar sin probabilidades.
         case chanceNotDeclared(String)
+        /// La audiencia no le abriría a nadie (`segments` vacía) o apunta a `base`.
+        case badAudience(String)
         case nonPositiveWindow
         case negativeCooldown
     }
@@ -83,6 +88,9 @@ public struct OffersCatalog: Codable, Sendable, Equatable {
             }
             if offer.rewards.contains(where: { $0.kind == .skinChest }), !offer.isChance {
                 throw ValidationError.chanceNotDeclared(offer.id)
+            }
+            if let audience = offer.audience, !audience.isValid {
+                throw ValidationError.badAudience(offer.id)
             }
         }
     }

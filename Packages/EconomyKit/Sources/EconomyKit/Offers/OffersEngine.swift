@@ -8,12 +8,25 @@ public struct OfferSignals: Sendable, Equatable {
     public let prestigeLevel: Int
     /// Pisos abiertos en la run (`run.unlockedFloors.count`).
     public let unlockedFloorCount: Int
+    /// El segmento del jugador (2.1 F5); `base` = las ofertas de la 2.0.
+    public let segment: PlayerSegment
+    /// Si ya compró algo con plata (para la audiencia `buyer`/`nonBuyer`).
+    public let hasPurchased: Bool
 
-    public init(today: String, firstLaunchDay: String?, prestigeLevel: Int, unlockedFloorCount: Int) {
+    public init(
+        today: String,
+        firstLaunchDay: String?,
+        prestigeLevel: Int,
+        unlockedFloorCount: Int,
+        segment: PlayerSegment = .base,
+        hasPurchased: Bool = false
+    ) {
         self.today = today
         self.firstLaunchDay = firstLaunchDay
         self.prestigeLevel = prestigeLevel
         self.unlockedFloorCount = unlockedFloorCount
+        self.segment = segment
+        self.hasPurchased = hasPurchased
     }
 }
 
@@ -41,11 +54,18 @@ public enum OffersEngine {
         if let seen = state.seenUnlockedFloors, signals.unlockedFloorCount > seen { fired.insert(.newFloor) }
         state.seenUnlockedFloors = signals.unlockedFloorCount
 
+        // Una oferta fuera de la audiencia no se abre: no gasta su vez única ni su enfriamiento.
         var opened: [String] = []
-        for offer in catalog.offers where fired.contains(offer.trigger) && isOfferable(offer) {
+        for offer in catalog.offers
+        where fired.contains(offer.trigger) && admits(offer, signals: signals) && isOfferable(offer) {
             if open(offer.id, in: &state, catalog: catalog, now: now) { opened.append(offer.id) }
         }
         return opened
+    }
+
+    /// La audiencia de la oferta (2.1 F5): sin audiencia, o con `base`, se abre para todos.
+    public static func admits(_ offer: OffersCatalog.Offer, signals: OfferSignals) -> Bool {
+        offer.audience?.admits(segment: signals.segment, hasPurchased: signals.hasPurchased) ?? true
     }
 
     /// Abre una oferta si se puede. Lo usa `evaluate` y la puerta de test.

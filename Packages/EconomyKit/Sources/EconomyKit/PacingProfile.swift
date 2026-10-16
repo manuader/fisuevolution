@@ -106,13 +106,17 @@ public struct AdsSources: Sendable, Equatable {
     /// El «×2 con video» de las recompensas gratis (E14b B29, D17) que el bot cobra: el colchón gratis
     /// del tablero (B31). Las de visitantes y logros no mueven la curva del bot (no las juega).
     public var giftDoubles: Bool
+    /// El ×N de ese regalo con video (2.1 F2, fuente `mattress`): 2 = el ×2 de la 2.0, el premio otra vez.
+    public var giftDoubleMultiplier: Double
+    /// El ×N del «repetir premio» de la ruleta (2.1 F2, fuente `wheel`): 2 = el mismo sorteo otra vez.
+    public var wheelRepeatMultiplier: Double
 
     public init(
         videoSeconds: Double, offlineMultiplier: Double, dailyMultiplier: Double, careerMultiplier: Double,
         wheel: WheelConfig?, wheelRepeats: Bool, treasures: TreasuresConfig?,
         adBreakIntervalSeconds: Double, adBreakPrizes: [RewardSpec],
         mergeAllCooldownSeconds: Double, packageRainCooldownSeconds: Double, packageRain: RewardSpec?,
-        giftDoubles: Bool = false
+        giftDoubles: Bool = false, giftDoubleMultiplier: Double = 2, wheelRepeatMultiplier: Double = 2
     ) {
         self.videoSeconds = videoSeconds
         self.offlineMultiplier = offlineMultiplier
@@ -127,5 +131,7 @@ public struct AdsSources: Sendable, Equatable {
         self.packageRainCooldownSeconds = packageRainCooldownSeconds
         self.packageRain = packageRain
         self.giftDoubles = giftDoubles
+        self.giftDoubleMultiplier = giftDoubleMultiplier
+        self.wheelRepeatMultiplier = wheelRepeatMultiplier
     }
 }

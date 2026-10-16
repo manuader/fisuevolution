@@ -95,7 +95,7 @@ public struct PacingSimulator: Sendable {
         case never
     }
 
-    public struct Report: Sendable {
+    public struct Report: Sendable, Equatable {
         /// Tiempo ACTIVO acumulado (solo sesiones) al desbloquear cada piso.
         public var floorUnlockActiveSeconds: [String: Double] = [:]
         /// Tiempo de PARED (wall clock) al desbloquear cada piso.
@@ -258,6 +258,9 @@ public struct PacingSimulator: Sendable {
     let sources: PacingSources
     /// Dónde arrancan los acumuladores de los sorteos por valor esperado.
     let seedFraction: Double
+    /// El jugador de un segmento (2.1 F2, C2): sus palancas ya están aplicadas en `sources` y su
+    /// `acceptRate` decide cada oferta con video. `nil` = el bot de la 2.0, que acepta todas.
+    let segment: PacingSegment?
 
     public init(
         config: EconomyConfig,
@@ -269,7 +272,8 @@ public struct PacingSimulator: Sendable {
         prestigeUnlocks: PrestigeUnlocks? = nil,
         profile: PacingProfile = .bare,
         sources: PacingSources = .none,
-        seedFraction: Double = 0.5
+        seedFraction: Double = 0.5,
+        segment: PacingSegment? = nil
     ) throws {
         self.config = config
         self.tiers = tiers
@@ -283,8 +287,9 @@ public struct PacingSimulator: Sendable {
         self.permanentUpgrades = upgrades
         self.prestigeUnlocks = prestigeUnlocks
         self.profile = profile
-        self.sources = sources
+        self.sources = segment.map { sources.applying($0.levers) } ?? sources
         self.seedFraction = seedFraction
+        self.segment = segment
     }
 
     // MARK: - Run
@@ -824,7 +829,9 @@ public struct PacingSimulator: Sendable {
                 )
                 if case .requiresCareerChoice = outcome {
                     state.run.chosenCareerPath = careerPath
-                    let careerVideo = grantFreeHire(state: &state, wall: wallStart + elapsed, report: &report)
+                    let careerVideo = grantFreeHire(
+                        state: &state, clocks: &clocks, wall: wallStart + elapsed, report: &report
+                    )
                     elapsed += careerVideo
                     tracker.actionSeconds += careerVideo
                     outcome = MergeRules.evaluate(
@@ -842,11 +849,16 @@ public struct PacingSimulator: Sendable {
                 }
                 if locked.contains(srcOrdinal), newType.tier <= state.run.maxTierReached { continue }
                 batchMerges += 1
-                if batchMerges == 2, ads != nil, activeStart + elapsed >= clocks.mergeAllReadyAt {
-                    mergeAllActive = true
-                    // La primera ya se cobró: con "Fusionar todo" se hizo gratis.
-                    elapsed -= human.mergeSeconds
-                    tracker.actionSeconds -= human.mergeSeconds
+                if batchMerges == 2, let ads, activeStart + elapsed >= clocks.mergeAllReadyAt {
+                    if offers(clocks: &clocks, report: &report) {
+                        mergeAllActive = true
+                        // La primera ya se cobró: con "Fusionar todo" se hizo gratis.
+                        elapsed -= human.mergeSeconds
+                        tracker.actionSeconds -= human.mergeSeconds
+                    } else {
+                        // Rechazada: la ficha vuelve a ofrecerse recién en el próximo cooldown.
+                        clocks.mergeAllReadyAt = activeStart + elapsed + ads.mergeAllCooldownSeconds
+                    }
                 }
                 let mergeCost = mergeAllActive ? 0 : human.mergeSeconds
                 state.run.units[type.id, default: 0] -= 2
@@ -1116,7 +1128,7 @@ public struct PacingSimulator: Sendable {
         guard credit > 0 else { return }
         credit *= clocks.pendingOfflineMultiplier
         clocks.pendingOfflineMultiplier = 1
-        if let ads = activeAds, ads.offlineMultiplier > 1 {
+        if let ads = activeAds, ads.offlineMultiplier > 1, offers(clocks: &clocks, report: &report) {
             credit *= ads.offlineMultiplier
             clocks.pendingVideoSeconds += watchVideo(ads, report: &report)
         }

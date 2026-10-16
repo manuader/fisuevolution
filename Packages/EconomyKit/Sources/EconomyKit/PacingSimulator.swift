@@ -229,6 +229,9 @@ public struct PacingSimulator: Sendable {
         /// Monedas por fuente (`coins.daily`, `coins.boosts`) y paquetes
         /// abiertos (`packages.opened`): lo que el perfil cobró sin comprar.
         public var sourceTotals: [String: Double] = [:]
+        /// La hora de pared de cada turno de las ofertas del momento (2.1 F3-T4): una oferta mostrada,
+        /// aceptada o no. Vacío con los momentos apagados.
+        public var momentTurnWalls: [Double] = []
 
         /// Tiempo ACTIVO de la primera reencarnación (la de pared es
         /// `firstReincarnationWall`). El dueño mide en horas de dedo, no de
@@ -261,6 +264,9 @@ public struct PacingSimulator: Sendable {
     /// El jugador de un segmento (2.1 F2, C2): sus palancas ya están aplicadas en `sources` y su
     /// `acceptRate` decide cada oferta con video. `nil` = el bot de la 2.0, que acepta todas.
     let segment: PacingSegment?
+    /// El segmento del jugador para las ofertas del momento (2.1 F3-T4): qué brazos de `moments` ve. `nil` o
+    /// `base` = no las ve (la 2.0). Va aparte de `segment`, que lleva las palancas y la tasa de aceptación.
+    let playerSegment: PlayerSegment?
 
     public init(
         config: EconomyConfig,
@@ -273,7 +279,8 @@ public struct PacingSimulator: Sendable {
         profile: PacingProfile = .bare,
         sources: PacingSources = .none,
         seedFraction: Double = 0.5,
-        segment: PacingSegment? = nil
+        segment: PacingSegment? = nil,
+        playerSegment: PlayerSegment? = nil
     ) throws {
         self.config = config
         self.tiers = tiers
@@ -290,6 +297,7 @@ public struct PacingSimulator: Sendable {
         self.sources = segment.map { sources.applying($0.levers) } ?? sources
         self.seedFraction = seedFraction
         self.segment = segment
+        self.playerSegment = playerSegment
     }
 
     // MARK: - Run
@@ -425,6 +433,7 @@ public struct PacingSimulator: Sendable {
         wallStart: Double,
         activeStart: Double
     ) -> (wall: Double, active: Double) {
+        clocks.moments.startSession()
         var elapsed = startSession(
             state: &state, clocks: &clocks, report: &report, wall: wallStart, active: activeStart
         )
@@ -445,9 +454,13 @@ public struct PacingSimulator: Sendable {
             let opened = tickPackages(state: &state, clocks: &clocks, report: &report, active: activeStart + elapsed)
             elapsed += Double(opened) * human.hireSeconds
             tracker.actionSeconds += Double(opened) * human.hireSeconds
+            let moment = tickMoments(state: &state, clocks: &clocks, report: &report,
+                                     wall: wallStart + elapsed, active: activeStart + elapsed)
+            elapsed += moment.videoSeconds
+            tracker.actionSeconds += moment.videoSeconds
             doAllMerges(
                 state: &state, report: &report, tracker: &tracker, clocks: &clocks,
-                wallStart: wallStart, activeStart: activeStart, elapsed: &elapsed
+                wallStart: wallStart, activeStart: activeStart, elapsed: &elapsed, free: moment.freeMerges
             )
             if state.run.maxTierReached >= tiers.maxTier, report.godWall == nil {
                 report.godWall = wallStart + elapsed
@@ -772,14 +785,14 @@ public struct PacingSimulator: Sendable {
     /// llenando. Sin el segundo, cada compra para el llenado se fusiona en la
     /// vuelta siguiente y el piso no se completa nunca: con cuatro tiers por
     /// piso y diez lugares, las fusiones dejan a lo sumo una unidad por tier.
-    private func mergeLockedFloors(state: PlayerState, now: Double) -> Set<Int> {
+    func mergeLockedFloors(state: PlayerState, now: Double) -> Set<Int> {
         var locked = frozenFloors(state: state)
         if let target = staffingTarget(state: state, now: now) { locked.insert(target) }
         return locked
     }
 
     /// El piso del tier más alto que la compuerta deja contratar.
-    private func buyingFloor(state: PlayerState) -> Int {
+    func buyingFloor(state: PlayerState) -> Int {
         floorTable.ordinal(forTier: max(1, state.run.maxTierReached - config.hire.gateTierDistance))
     }
 
@@ -800,6 +813,9 @@ public struct PacingSimulator: Sendable {
     /// se registran con el `elapsed` que corresponde, que es lo que hace que una
     /// cadena larga de merges no aparezca como instantánea en la tabla de pisos.
     /// Por eso `elapsed` entra `inout` y los tiempos base llegan por separado.
+    ///
+    /// `free`: la tanda la paga un «Fusionar todo» del momento (2.1 F3-T4), ya mirado: ninguna fusión cuesta
+    /// tiempo y la ficha del costado no se ofrece.
     private func doAllMerges(
         state: inout PlayerState,
         report: inout Report,
@@ -807,7 +823,8 @@ public struct PacingSimulator: Sendable {
         clocks: inout SourceClocks,
         wallStart: Double,
         activeStart: Double,
-        elapsed: inout Double
+        elapsed: inout Double,
+        free: Bool = false
     ) {
         // "Fusionar todo" por video: si hay ficha y la tanda llega a dos fusiones,
         // se hacen de una (sin `mergeSeconds`) a cambio de un video.
@@ -849,7 +866,7 @@ public struct PacingSimulator: Sendable {
                 }
                 if locked.contains(srcOrdinal), newType.tier <= state.run.maxTierReached { continue }
                 batchMerges += 1
-                if batchMerges == 2, let ads, activeStart + elapsed >= clocks.mergeAllReadyAt {
+                if batchMerges == 2, !free, let ads, activeStart + elapsed >= clocks.mergeAllReadyAt {
                     if offers(clocks: &clocks, report: &report) {
                         mergeAllActive = true
                         // La primera ya se cobró: con "Fusionar todo" se hizo gratis.
@@ -860,7 +877,7 @@ public struct PacingSimulator: Sendable {
                         clocks.mergeAllReadyAt = activeStart + elapsed + ads.mergeAllCooldownSeconds
                     }
                 }
-                let mergeCost = mergeAllActive ? 0 : human.mergeSeconds
+                let mergeCost = mergeAllActive || free ? 0 : human.mergeSeconds
                 state.run.units[type.id, default: 0] -= 2
                 if state.run.units[type.id] == 0 { state.run.units[type.id] = nil }
                 // El reintegro de la fusión (PLAN-v2 E2a). Con la perilla en 0 no

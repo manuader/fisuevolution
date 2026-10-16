@@ -110,13 +110,17 @@ public struct AdsSources: Sendable, Equatable {
     public var giftDoubleMultiplier: Double
     /// El ×N del «repetir premio» de la ruleta (2.1 F2, fuente `wheel`): 2 = el mismo sorteo otra vez.
     public var wheelRepeatMultiplier: Double
+    /// Las ofertas del momento (2.1 F3, `moments.json`). Las juega sólo el bot de un segmento que no es `base`
+    /// (`PacingSimulator.playerSegment`), en el peor caso. `nil` = la 2.0.
+    public var moments: MomentsConfig?
 
     public init(
         videoSeconds: Double, offlineMultiplier: Double, dailyMultiplier: Double, careerMultiplier: Double,
         wheel: WheelConfig?, wheelRepeats: Bool, treasures: TreasuresConfig?,
         adBreakIntervalSeconds: Double, adBreakPrizes: [RewardSpec],
         mergeAllCooldownSeconds: Double, packageRainCooldownSeconds: Double, packageRain: RewardSpec?,
-        giftDoubles: Bool = false, giftDoubleMultiplier: Double = 2, wheelRepeatMultiplier: Double = 2
+        giftDoubles: Bool = false, giftDoubleMultiplier: Double = 2, wheelRepeatMultiplier: Double = 2,
+        moments: MomentsConfig? = nil
     ) {
         self.videoSeconds = videoSeconds
         self.offlineMultiplier = offlineMultiplier
@@ -133,5 +137,6 @@ public struct AdsSources: Sendable, Equatable {
         self.giftDoubles = giftDoubles
         self.giftDoubleMultiplier = giftDoubleMultiplier
         self.wheelRepeatMultiplier = wheelRepeatMultiplier
+        self.moments = moments
     }
 }

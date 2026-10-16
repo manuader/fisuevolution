@@ -55,6 +55,8 @@ extension PacingSimulator {
         var hasUnspentBlue = false
         /// Cuántas ofertas con video se le hicieron al bot de un segmento: el número de la moneda de cada una.
         var offerIndex = 0
+        /// Los turnos y los rechazos de las ofertas del momento, para sus topes (en el reloj de pared del sim).
+        var moments = MomentHistory()
 
         init(nextPackageAt: Double, seedFraction: Double, freeMattress: TreasuresConfig? = nil, ads: AdsSources? = nil) {
             self.nextPackageAt = nextPackageAt
@@ -302,6 +304,109 @@ extension PacingSimulator {
     }
 }
 
+// MARK: - Las ofertas del momento
+
+extension PacingSimulator {
+    /// La config de los momentos y el segmento que los ve, sólo si el bot mira videos y su segmento no es
+    /// `base` (2.1 F3-T4). Si no, `nil`: el simulador de la 2.0.
+    var activeMoments: (config: MomentsConfig, segment: PlayerSegment)? {
+        guard let config = activeAds?.moments, let playerSegment, playerSegment != .base else { return nil }
+        return (config, playerSegment)
+    }
+
+    /// Las ofertas del momento en el **peor caso** (el jugador que más saca de ellas): cada vez que el estado
+    /// del bot da una pared de precio o el piso lleno y los topes lo dejan, se le ofrece el brazo de mayor
+    /// recompensa elegible para su segmento, y lo acepta con su `acceptRate`. Los topes, el segmento y las
+    /// esperas los decide `MomentOfferPlanner`, el mismo del juego; el control nunca sale (no paga nada).
+    ///
+    /// Devuelve los segundos del video y si la tanda de fusiones que sigue la paga un «Fusionar todo».
+    func tickMoments(
+        state: inout PlayerState, clocks: inout SourceClocks, report: inout Report, wall: Double, active: Double
+    ) -> (videoSeconds: Double, freeMerges: Bool) {
+        guard let moments = activeMoments, let ads = activeAds else { return (0, false) }
+        let (config, viewer) = moments
+        let detected = NeedDetector.moments(needSnapshot(state: state, wall: wall), thresholds: config.thresholds)
+            .filter { $0 == .priceWall || $0 == .floorFull }
+        guard !detected.isEmpty else { return (0, false) }
+        let now = Date(timeIntervalSinceReferenceDate: wall)
+        // «Fusionar todo» sólo le sirve si le ahorra más de lo que cuesta el video: el peor caso no acepta
+        // una oferta que lo atrasa.
+        let mergeAllPays = Double(pendingMerges(state: state, now: wall)) * human.mergeSeconds > ads.videoSeconds
+        for arm in Self.armsByReward(config) {
+            guard let reward = arm.reward else { continue }
+            // Un bandido con un solo brazo y sin control: el planificador sólo decide si los topes y el
+            // segmento lo dejan salir. La semilla no importa (un brazo solo sale siempre).
+            var rng = SplitMix64(seed: 0)
+            let decision = MomentOfferPlanner.next(
+                moments: detected, segment: viewer, adReady: true, history: clocks.moments, now: now,
+                config: config, bandit: ThompsonBandit(arms: [BanditArm(id: arm.id)]), rng: &rng,
+                canPay: { $0 == reward && ($0 != .mergeAll || mergeAllPays) }
+            )
+            guard case .offer(_, let moment, let paid) = decision else { continue }
+            clocks.moments.record(decision, at: now)
+            report.momentTurnWalls.append(wall)
+            guard offers(clocks: &clocks, report: &report) else {
+                clocks.moments.recordDeclined(moment, at: now)
+                return (0, false)
+            }
+            clocks.moments.recordAccepted()
+            report.sourceTotals["moments.accepted", default: 0] += 1
+            let seconds = watchVideo(ads, report: &report)
+            switch paid {
+            case .grant(let spec):
+                apply(spec, probability: 1, source: "moment", state: &state, clocks: &clocks, report: &report)
+                settleBlue(state: &state, clocks: &clocks, report: &report, wall: wall, active: active)
+                return (seconds, false)
+            case .mergeAll:
+                return (seconds, true)
+            }
+        }
+        return (0, false)
+    }
+
+    /// La foto del estado del bot para los detectores: los lugares del piso donde compra, la contratación
+    /// que elegiría y su ingreso activo. Sin pop-ups ni tutorial: el bot nunca los tiene encima.
+    func needSnapshot(state: PlayerState, wall: Double) -> NeedSnapshot {
+        let floor = buyingFloor(state: state)
+        return NeedSnapshot(
+            freeSlots: floorTable[floor].capacity - floorCount(floor, state: state),
+            nextHireCost: bestHire(state: state, now: wall)?.action.cost ?? 0,
+            incomePerSecond: activeIncomeRate(state: state)
+        )
+    }
+
+    /// Las fusiones que el bot haría ahora (por lo bajo: los pares de cada tipo, sin las cadenas que abren).
+    func pendingMerges(state: PlayerState, now: Double) -> Int {
+        let locked = mergeLockedFloors(state: state, now: now)
+        return state.run.units.reduce(0) { total, entry in
+            guard entry.value >= 2, let type = tiers.type(id: entry.key),
+                  !locked.contains(floorTable.ordinal(forTier: type.tier)),
+                  case .merged(_) = MergeRules.evaluate(
+                      sourceTypeId: type.id, targetTypeId: type.id,
+                      chosenCareerPath: state.run.chosenCareerPath, tiers: tiers
+                  ) else { return total }
+            return total + entry.value / 2
+        }
+    }
+
+    /// Los brazos que pagan, del que más paga al que menos: la plata por sus segundos y «Fusionar todo»
+    /// después de cualquier plata (su valor para el bot son segundos de fusión, no producción). Con empate,
+    /// el orden del archivo.
+    static func armsByReward(_ config: MomentsConfig) -> [MomentsConfig.Arm] {
+        func value(_ arm: MomentsConfig.Arm) -> Double {
+            switch arm.reward {
+            case .grant(.coinsSeconds(let seconds))?: seconds
+            case .mergeAll?: 0
+            default: -1
+            }
+        }
+        return config.arms.enumerated()
+            .filter { !$0.element.control && $0.element.reward != nil }
+            .sorted { value($0.element) == value($1.element) ? $0.offset < $1.offset : value($0.element) > value($1.element) }
+            .map(\.element)
+    }
+}
+
 // MARK: - Lo que se cobra mirando videos
 
 extension PacingSimulator {
@@ -425,7 +530,7 @@ extension PacingSimulator {
     }
 
     /// El blue que entró de una fuente se gasta en líneas en el acto.
-    private func settleBlue(
+    func settleBlue(
         state: inout PlayerState, clocks: inout SourceClocks, report: inout Report, wall: Double, active: Double
     ) {
         guard clocks.hasUnspentBlue else { return }

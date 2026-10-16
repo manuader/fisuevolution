@@ -135,6 +135,18 @@ func loadSources(from directory: URL, requireDiscount: Bool) -> LoadedSources {
     let mergeAllCooldown = rewardedAds?.sideRail?.mergeAllCooldownSeconds
         ?? rewardedAds?.rewards?.first { $0.id == "merge_all" }?.cooldownSeconds
         ?? 0
+    // Las ofertas del momento (2.1 F3): sólo las juega el bot de un segmento que no es `base`. Un archivo
+    // fuera de los topes del código no entra (todo o nada, como en la app).
+    var moments = read("moments.json", as: MomentsConfig.self)
+    if let config = moments {
+        do {
+            try config.validate()
+        } catch {
+            result.loaded.removeAll { $0 == "moments.json" }
+            result.warnings.append("⚠️ moments.json fuera de los topes (\(error))")
+            moments = nil
+        }
+    }
     result.sources.ads = AdsSources(
         videoSeconds: videoSeconds, offlineMultiplier: 2, dailyMultiplier: 2, careerMultiplier: 2,
         wheel: wheel, wheelRepeats: true, treasures: treasures,
@@ -143,7 +155,8 @@ func loadSources(from directory: URL, requireDiscount: Bool) -> LoadedSources {
         mergeAllCooldownSeconds: mergeAllCooldown,
         packageRainCooldownSeconds: rewardedAds?.sideRail?.packageRainCooldownSeconds ?? 0,
         packageRain: rewardedAds?.sideRail?.packageRain,
-        giftDoubles: true
+        giftDoubles: true,
+        moments: moments
     )
 
     if let catalog = read("blue_shop.json", as: BlueShopCatalog.self) {

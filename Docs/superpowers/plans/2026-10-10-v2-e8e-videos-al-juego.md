@@ -708,8 +708,25 @@ clases de E8e); Step 4: `Docs/SESION-<fecha>-v2-e8e.md`, `HANDOFF.md` §4/§5/§
 dueño devuelva los números. Esta fila bloquea E10 T9 y T12 sólo por el `completo` y la verificación de
 los gates; el código ya está.
 
-### Actualización del relevo 60 (2026-10-16) `[BORRADOR]`
+---
 
-**Decisión del dueño en vivo:** E8e T9 usa la misma vara que E8d T15 y se cierra **sólo con mediciones en el simulador del SE** (iOS 26.5), sin usar
-su iPhone. fps y memoria con el tope de 3 videos, Reduce Motion, bajo consumo y ODR `[COMPLETAR: números]`; el límite del simulador (HEVC-alfa por
-software, sin memoria de GPU real) queda anotado como riesgo aceptado. T10 sigue ⏭ (E14 C22).
+## Cierre (relevo 60, simulador del SE)
+
+**Decisión del dueño (2026-10-16, en vivo):** medir sólo en el simulador del SE y cerrar con eso; los límites
+del simulador quedan como **riesgo aceptado por el dueño**. Ningún gate dio MAL: **E8e T9 cerrada.** El
+procedimiento, los comandos y la carga de la Mac (load 470–890) están en el «Cierre (relevo 60, simulador
+del SE)» de E8d; acá, lo de E8e.
+
+| Gate de T9 | Medición (simulador iPhone SE 3.ª gen., iOS 26.5, Debug) | Veredicto |
+|---|---|---|
+| **fps con el tope** | En el SE el tope es **2** vivos (`conservativeMaxLive`, `iPhone14,6`). Estrés (popup del especial + ícono de tienda vivos): **59,8 fps**, **0,23 %** de cuadros > 25 ms, peor 171 ms; 10 min: 59,7 fps, 0,20 %. Las escenas sueltas de piso + visitante hablando y piso + popup del evento no se armaron por separado: `--uitest-event` y `--uitest-visitor` no muestran el popup en los primeros 20 s sin tocar. | **Pasa** (estrés = peor caso) |
+| **Memoria (G4)** | Con video 88–94 MB estable contra 85–86 MB en póster (**+3 a +8 MB**, vara + 40 MB); 10 min sin caerse, termina en 88 MB. | **Pasa** |
+| **Reduce Motion** | Con `ReduceMotionEnabled` y `--uitest-video`: retrato quieto (0 % de cambio en 1 s), póster en su lugar, sin hueco. «El colchón y la caja muestran el resultado en el acto»: cubierto por `MattressStageTests` y `PackagePopupTests` (verde), no mirado en pantalla. | **Pasa** |
+| **Bajo consumo** | Sin Modo de bajo consumo en el simulador; por código, `VideoPlayerPoolTests` con `.lowPower` verde. | **Pasa** por código |
+| **ODR (G5)** | El especial abre con póster y reproduce su video del pack `anim-especiales` (`char_sp_cryptobro.mov`); los 4 packs están en el `.app`; `ArtPacksTests` verde. Modo avión y primera apertura con el pack sin bajar desde TestFlight: no existen en el simulador. | **Pasa** en simulador; resto, riesgo aceptado |
+| **Alfa y salto póster → video (G3)** | Retrato con alfa sobre amarillo sin cuadrado negro ni halo; el póster ocupa el mismo lugar. Decodificación por software. | **Pasa** en simulador; HW, riesgo aceptado |
+
+Unit de la zona sobre el mismo build: **103 tests en 9 suites, verde** (lista en el cierre de E8d).
+**Riesgo aceptado por el dueño:** los mismos límites del simulador que E8d (fps de Mac, sin «Animation
+Hitches», Debug, sin jetsam real, sin TestFlight/modo avión/purga, sin bajo consumo real, sin escenas de
+evento y visitante armadas aparte).

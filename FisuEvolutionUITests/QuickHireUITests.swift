@@ -68,9 +68,10 @@ final class QuickHireUITests: XCTestCase {
     @MainActor
     func testCambiarDePisoCambiaElPersonajeDelBoton() throws {
         let app = XCUIApplication()
-        // Los tipos vistos: el atajo sólo ofrece a quien ya se vio (`jobState`), y abrir la torre no
-        // marca a nadie; sin ellos el tipo base del piso urbano no es candidato y queda el Fisura.
-        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-coins", "--uitest-unlock-tower",
+        // El atajo sólo ofrece a quien ya se vio y pasa la compuerta de tier (`jobState`): la torre
+        // entera sube la frontera al tope y los tipos vistos los marcan. Con `--uitest-unlock-tower`
+        // (tier 5) el tipo base del piso urbano queda trabado y el botón se queda con el Fisura.
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-coins", "--uitest-unlock-tower-all",
                                "--uitest-seen-types"]
         app.launch()
         let quickHire = app.buttons["hud.quickhire"]

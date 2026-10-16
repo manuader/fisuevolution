@@ -838,3 +838,46 @@ B32 y B33 son chicas y no se pisan: entran en cualquier hueco. B31 va después d
 el ×2) y corre el pacing-sim: no en paralelo con otra tarea que lo corra (B25).
 
 > **Regla del dueño (2026-10-16, en vivo):** el colchón sigue la misma dinámica que la caja (B18/B22): pertenece a un piso, se persiste por piso con su lugar y se queda ahí; no navega con el usuario por los pisos. Vale para el colchón de la columna y el de B31.
+
+### B34 — El logo de Ader Games en la pantalla del principio y en la de lanzamiento (D23, 2026-10-16)
+
+| # | Decisión |
+|---|---|
+| D23 | **El logo de Ader Games reemplaza a la cara con corona** del splash. Es la opción A del mockup `capturas-e14b/mockup-splash-adergames.html`: el Fisura festejando, la ruedita y el consejo quedan. **También va en la pantalla de lanzamiento de iOS**, el primer cuadro. |
+
+- **Hoy:**
+  - `SplashView` (`App/RootView.swift`, ~:49) dibuja arriba `UIArt.image("logo")`, que es la cara del Fisura con
+    corona de `ui.atlas`. Si falta, dibuja el wordmark «FISU EVOLUTION».
+  - Abajo van `fisura_celebrate`, la ruedita naranja y un consejo.
+  - La pantalla de lanzamiento (`Info.plist › UILaunchScreen`) es crema lisa (`UIColorName: PaletteCream`).
+- **El asset:** el logo del sitio `adergames-site/public/brand/logo.png` (1254×1254) tiene **fondo negro sin alfa**.
+  La sesión del dueño ya lo recortó: le sacó el fondo con un relleno por inundación desde los bordes (umbral 18).
+  Quedan las letras blancas 3D con su contorno oscuro y el resto transparente. Está en
+  `capturas-e14b/adergames-logo-recortado.png`. Para integrarlo:
+  - recortar al rectángulo del contenido;
+  - revisar el borde: el alfa del recorte es binario; si se ve serruchado, suavizarlo 1 px;
+  - exportar a @2x/@3x.
+- **Qué cambia:**
+  1. **Splash:** donde estaba la cara con corona va el logo de Ader Games, de ~180 pt de ancho, igual que en el
+     mockup. Lo demás no cambia. El label de accesibilidad es «Ader Games». El respaldo tipográfico queda para el
+     caso en que falte el asset.
+  2. **El asset `logo` de `ui.atlas` (la cara con corona) no se borra** si se usa en otro lado (compartir, Tienda,
+     etc.); sólo deja de usarse en el splash. Si no lo usa nadie más, se borra del atlas y del manifest.
+  3. **Pantalla de lanzamiento:**
+     - `UILaunchScreen` suma `UIImageName` con el logo, como imageset en `Assets.xcassets`; tiene que ir en el
+       catálogo, no en el atlas.
+     - Se mantiene `UIColorName: PaletteCream`.
+     - iOS lo dibuja centrado y a su tamaño natural: se exporta al tamaño en puntos que se quiere ver (~180 pt).
+  4. **Que no salte:** la pantalla de lanzamiento centra el logo y el splash lo dibuja arriba. Para que el paso de una
+     a otra no se vea como un salto, el splash arranca con el logo centrado, en el mismo lugar y del mismo tamaño que
+     en la pantalla de lanzamiento, y en ~0,4 s sube a su lugar mientras aparecen el Fisura y el consejo. Con Reduce
+     Motion, sin movimiento: fundido. Si el relevo ve una forma más simple de que no salte, va esa.
+- **Listo cuando:**
+  - Hay capturas del splash en el SE y el Pro Max, comparadas con la opción A del mockup.
+  - Hay un video corto o una tira de cuadros del paso de la pantalla de lanzamiento al splash, sin salto.
+  - Los tests que miran el splash o el asset `logo` están al día.
+  - Se verifica en el iPhone, porque la pantalla de lanzamiento queda en caché: reinstalar o reiniciar.
+- **Revisión:** sonnet.
+- **Hecho (relevo 60):** imageset `AderGamesLogo` (@2x/@3x, 180 pt, generado con `Tools/v2/logo_adergames.py`), `UIImageName` en
+  `Info.plist`, `SplashView` con el logo que sube del centro en 0,4 s (fundido con Reduce Motion). El `logo` de `ui.atlas`
+  **queda**: lo usa `ShareArt` (la tarjeta de compartir). Capturas y video del paso: del controlador al compilar.

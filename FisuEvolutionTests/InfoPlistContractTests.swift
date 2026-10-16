@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import UIKit
 @testable import FisuEvolution
 
 /// El contrato del Info.plist COMPILADO (PLAN-v2 E3, iPad): universal, vertical,
@@ -51,6 +52,18 @@ struct InfoPlistContractTests {
     func creamLaunchScreen() {
         let launch = info["UILaunchScreen"] as? [String: Any]
         #expect(launch?["UIColorName"] as? String == "PaletteCream")
+    }
+
+    /// PLAN-v2 E14b B34 (D23): el primer cuadro lleva el logo de Ader Games. `UIImageName` apunta a un
+    /// imageset del catálogo (no del atlas: iOS lo lee antes de que arranque la app) y ese imageset existe.
+    @Test("la pantalla de lanzamiento nombra el logo de Ader Games y el imageset existe")
+    func launchScreenLogo() throws {
+        let launch = info["UILaunchScreen"] as? [String: Any]
+        let name = try #require(launch?["UIImageName"] as? String)
+        #expect(name == "AderGamesLogo")
+        let image = try #require(UIImage(named: name, in: .main, compatibleWith: nil))
+        // ~180 pt de ancho: el tamaño en que iOS lo dibuja y con el que el splash arranca sin saltar.
+        #expect(image.size.width == 180)
     }
 
     /// ⚠️ **Rojo a propósito el día que se compile con el SDK de iOS 27.** Ese SDK

@@ -53,6 +53,10 @@ struct StoreView: View {
     /// El producto que un evento de compra destaca al abrir (C25).
     @State private var focusItem: String?
 
+    /// El cerrojo de las compras de esta hoja: corta el segundo toque mientras StoreKit contesta,
+    /// sin apagar el botón (regla del `PricePill`).
+    @State private var latch = PurchaseLatch()
+
     var body: some View {
         NavigationStack {
             ScrollViewReader { proxy in
@@ -155,6 +159,7 @@ struct StoreView: View {
     /// —y no con un contador mutable— porque un `ViewBuilder` no puede mutar
     /// estado mientras arma la lista.
     @ViewBuilder private var shelves: some View {
+        let highlight = chosenProductID
         let featured = products(.starterPack)
         let removeAds = products(.removeAds)
         let coins = products(.coins)
@@ -169,7 +174,7 @@ struct StoreView: View {
             // los ads, y las dos son mejoras de la partida entera.
             shelfHeader("store.section.general")
             ForEach(Array(featured.enumerated()), id: \.element.id) { offset, product in
-                card(product, format: .featured, glyph: .bundle)
+                card(product, format: .featured, glyph: .bundle, chosen: product.id == highlight)
                     .staggeredAppearance(index: offset)
             }
             ForEach(Array(removeAds.enumerated()), id: \.element.id) { offset, product in
@@ -178,7 +183,7 @@ struct StoreView: View {
             }
         }
         shelf("store.section.coins", coins, glyph: { _ in .coins }, base: coinsBase)
-        shelf("store.section.blue", blue, glyph: { bluePackGlyph($0, among: blue) }, base: blueBase)
+        shelf("store.section.blue", blue, glyph: { bluePackGlyph($0, among: blue) }, base: blueBase, chosen: highlight)
         if !skins.isEmpty {
             shelfHeader("store.section.skins")
             ForEach(Array(skins.enumerated()), id: \.element.id) { offset, product in
@@ -193,12 +198,13 @@ struct StoreView: View {
         _ titleKey: LocalizedStringKey,
         _ products: [Product],
         glyph: @escaping (Product) -> StoreProductCard.Glyph,
-        base: Int
+        base: Int,
+        chosen: String? = nil
     ) -> some View {
         if !products.isEmpty {
             shelfHeader(titleKey)
             ForEach(Array(products.enumerated()), id: \.element.id) { offset, product in
-                card(product, format: .row, glyph: glyph(product))
+                card(product, format: .row, glyph: glyph(product), chosen: product.id == chosen)
                     .staggeredAppearance(index: base + offset)
             }
         }
@@ -216,9 +222,11 @@ struct StoreView: View {
     private func card(
         _ product: Product,
         format: StoreProductCard.Format,
-        glyph: StoreProductCard.Glyph
+        glyph: StoreProductCard.Glyph,
+        chosen: Bool = false
     ) -> some View {
         let entry = store.entry(for: product.id)
+        let purchased = store.isPurchased(product.id)
         return StoreProductCard(
             product: product,
             // El nombre y la descripción salen del catálogo del juego (ítem 19
@@ -239,14 +247,22 @@ struct StoreView: View {
             // Sólo el combo lleva la escarapela: es la única oferta de la
             // pantalla y destacar dos cosas es no destacar ninguna.
             tagline: format == .featured ? String(localized: "store.featured") : nil,
+            // 2.1 F5: lo que se recomienda a este jugador. Sólo agrega la cinta; lo comprado no se
+            // recomienda.
+            chosen: chosen && !purchased,
             // Un consumible nunca queda "comprado", así que siempre cae en el
             // botón: se vuelve a vender.
-            purchased: store.isPurchased(product.id),
+            purchased: purchased,
             // Una skin comprada no se equipa acá (§3.10): la fila lo dice.
-            hint: entry?.entitlement == .skin ? String(localized: "store.skin.equip-hint") : nil,
-            purchasing: store.isPurchasing
+            hint: entry?.entitlement == .skin ? String(localized: "store.skin.equip-hint") : nil
         ) {
-            Task { await store.purchase(product) }
+            // El cerrojo corta el segundo toque (y el que llega con otra compra en vuelo) sin
+            // apagar el botón: la hoja de pago del sistema ya tapa todo mientras tanto.
+            guard !store.isPurchasing, latch.claim() else { return }
+            Task {
+                await store.purchase(product)
+                latch.release()
+            }
         }
         .shopFocus(id: product.id)
     }
@@ -390,6 +406,12 @@ struct StoreView: View {
 
     // MARK: Datos
 
+    /// El pack que se le destaca a este jugador (2.1 F5), entre los que StoreKit devolvió. Con la
+    /// personalización apagada (`base`), ninguno: la Tienda de la 2.0.
+    private var chosenProductID: String? {
+        gameState.storeHighlight(entries: store.products.compactMap { store.entry(for: $0.id) })
+    }
+
     /// Los productos de un entitlement, en el orden del catálogo (que es el que
     /// `StoreManager` ya dejó puesto).
     private func products(_ entitlement: ProductCatalog.Entry.Entitlement) -> [Product] {
@@ -467,12 +489,12 @@ private struct StoreProductCard: View {
     let reward: String?
     /// La escarapela de la oferta ("Oferta de bienvenida"), o `nil`.
     let tagline: String?
+    /// La recomendación de la 2.1 (F5): la cinta «Elegido para vos».
+    let chosen: Bool
     let purchased: Bool
     /// Aclaración de la fila cuando ya está comprada (dónde se usa lo que
     /// compraste). Sólo las skins la llevan.
     let hint: String?
-    /// Hay una compra en vuelo.
-    let purchasing: Bool
     let buy: () -> Void
 
     /// Lado del plato. **Medido contra FisuJobs sobre la captura**: con 56 pt los
@@ -614,6 +636,10 @@ private struct StoreProductCard: View {
 
     private var info: some View {
         VStack(alignment: .leading, spacing: 3) {
+            if chosen {
+                // La cinta es su propia parada de VoiceOver y la que pinea `StoreSegmentUITests`.
+                ChosenForYouRibbon(titleKey: "store.chosenForYou", identifier: "store.chosen.\(product.id)")
+            }
             if let tagline {
                 StateBadge(text: tagline, glyph: .sparkle, muted: false)
                     // Ya viaja en el valor de la tarjeta.
@@ -736,14 +762,10 @@ private struct StoreProductCard: View {
                 // argumento. Mismo trato que la cápsula gemela de Pintas, que
                 // comparte con esta el namespace `store.buy.<id>`.
                 accessibilityPurpose: Text("store.buy.ax \(name)"),
+                // Sin `.disabled` (regla del `PricePill`): el segundo toque lo
+                // corta el cerrojo de `StoreView`, no un botón apagado.
                 action: buy
             )
-            // Una compra en vuelo levanta la hoja de pago del sistema por
-            // encima de todo, así que el dimming del `.disabled` no lo ve nadie:
-            // acá sólo evita que un segundo toque encole otra compra. (Es el
-            // único `.disabled` que la gramática admite sobre un `PricePill`: la
-            // regla prohíbe usarlo para "no te alcanza", que es otra cosa.)
-            .disabled(purchasing)
         }
     }
 

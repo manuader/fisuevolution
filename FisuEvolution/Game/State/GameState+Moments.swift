@@ -19,9 +19,13 @@ final class MomentsRuntime {
     var offer: MomentOffer?
 
     @ObservationIgnored var history = MomentHistory()
-    @ObservationIgnored var bandit: ThompsonBandit?
-    /// La `version` de la config con que se armó `bandit`: si cambia, vuelven los priors.
-    @ObservationIgnored var banditVersion: String?
+    /// Dónde se guarda lo que aprende el bandido (T7).
+    @ObservationIgnored var banditStore = BanditStore.standard()
+    /// Lo aprendido para la `version` de la config en curso; si cambia, se relee (y vuelven los priors).
+    @ObservationIgnored var banditRecord: BanditRecord?
+    /// Las ofertas a la vista que todavía no le dijeron al bandido cómo les fue: `site` → la `version` de
+    /// la config que las eligió. Una observación por oferta.
+    @ObservationIgnored var awaitingOutcome: [String: String] = [:]
     @ObservationIgnored var rng = SplitMix64(seed: UInt64.random(in: .min ... .max))
     @ObservationIgnored var forcedMoment: NeedMoment?
     @ObservationIgnored var forcedArmId: String?
@@ -156,6 +160,7 @@ extension GameState {
             let offer = MomentOffer(armId: armId, moment: moment, reward: reward, configVersion: config.version)
             runtime.offer = offer
             runtime.contexts[offer.site] = moment
+            runtime.awaitingOutcome[offer.site] = config.version
             exposeMomentArm(armId, config: config, runtime: runtime)
             Log.ads.info("moment offer: \(armId) at \(moment.rawValue)")
         }
@@ -211,11 +216,13 @@ extension GameState {
     }
 
     /// El anuncio volvió. Con premio, `claimMomentOffer` ya pagó y no queda nada; sin premio, la oferta
-    /// sigue a la vista, salvo que la hayan rechazado mientras se miraba.
+    /// sigue a la vista, salvo que la hayan rechazado mientras se miraba. Volver sin premio es un fallo
+    /// para el bandido (el abandono a mitad de video no deja etapa en el embudo).
     func endMomentWatch(id: UUID, now: Date = Date()) {
         let runtime = momentsRuntime
         guard let offer = runtime.offer, offer.id == id else { return }
         runtime.offer?.isWatching = false
+        learnMomentOutcome(site: offer.site, success: false)
         if offer.declinePending { declineMomentOffer(id: id, now: now) }
     }
 
@@ -230,6 +237,24 @@ extension GameState {
         player?.meta.offerFunnel.record(stage, site: site)
         scheduleSave()
         telemetryOffer(stage, site: site, ctx: momentsRuntime.contexts[site])
+        switch stage {
+        case .completed: learnMomentOutcome(site: site, success: true)
+        case .unfilled, .dismissed: learnMomentOutcome(site: site, success: false)
+        case .shown, .accepted: break
+        }
+    }
+
+    /// El resultado de una oferta, al bandido y al disco: la primera etapa que la cierra manda, y después
+    /// esa oferta ya no enseña nada. Si la config cambió de versión en el medio (o ya no hay momentos), no
+    /// se anota: lo de una versión no se mezcla con la otra.
+    func learnMomentOutcome(site: String, success: Bool) {
+        let runtime = momentsRuntime
+        guard let version = runtime.awaitingOutcome.removeValue(forKey: site), version == momentsConfig?.version,
+              site.hasPrefix(MomentOffer.sitePrefix) else { return }
+        var record = momentBanditRecord(version: version, runtime: runtime)
+        record.observe(arm: String(site.dropFirst(MomentOffer.sitePrefix.count)), success: success)
+        runtime.banditRecord = record
+        runtime.banditStore.save(record)
     }
 
     // MARK: - Por dentro
@@ -271,9 +296,18 @@ extension GameState {
         runtime.history.recordDeclined(offer.moment, at: now)
     }
 
-    /// El planificador con el bandido de la config (sus priors se reponen si cambia la versión). Con el
-    /// brazo fijado por `--uitest-moment-arm`, un bandido de ese brazo solo: los topes y la elegibilidad
-    /// siguen siendo los del planificador.
+    /// Lo aprendido para `version`: lo que ya está en memoria o, si no, lo del disco (de otra versión o
+    /// roto, los priors).
+    private func momentBanditRecord(version: String, runtime: MomentsRuntime) -> BanditRecord {
+        if let record = runtime.banditRecord, record.version == version { return record }
+        let record = runtime.banditStore.load(version: version)
+        runtime.banditRecord = record
+        return record
+    }
+
+    /// El planificador con el bandido de la config más lo aprendido en este teléfono (`BanditStore`; si
+    /// cambia la versión, vuelven los priors). Con el brazo fijado por `--uitest-moment-arm`, un bandido
+    /// de ese brazo solo: los topes y la elegibilidad siguen siendo los del planificador.
     private func decideMoment(
         moments: [NeedMoment],
         segment: PlayerSegment,
@@ -282,11 +316,7 @@ extension GameState {
         now: Date,
         runtime: MomentsRuntime
     ) -> MomentDecision {
-        if runtime.bandit == nil || runtime.banditVersion != config.version {
-            runtime.bandit = config.bandit()
-            runtime.banditVersion = config.version
-        }
-        var bandit = runtime.bandit ?? config.bandit()
+        var bandit = momentBanditRecord(version: config.version, runtime: runtime).bandit(over: config)
         if let forced = runtime.forcedArmId {
             guard let arm = config.arm(forced) else { return .none }
             bandit = ThompsonBandit(arms: [BanditArm(id: arm.id, alpha: arm.alpha, beta: arm.beta, isControl: arm.control)])

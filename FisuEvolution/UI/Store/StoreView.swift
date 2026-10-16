@@ -53,10 +53,6 @@ struct StoreView: View {
     /// El producto que un evento de compra destaca al abrir (C25).
     @State private var focusItem: String?
 
-    /// El cerrojo de las compras de esta hoja: corta el segundo toque mientras StoreKit contesta,
-    /// sin apagar el botón (regla del `PricePill`).
-    @State private var latch = PurchaseLatch()
-
     var body: some View {
         NavigationStack {
             ScrollViewReader { proxy in
@@ -254,15 +250,10 @@ struct StoreView: View {
             // botón: se vuelve a vender.
             purchased: purchased,
             // Una skin comprada no se equipa acá (§3.10): la fila lo dice.
-            hint: entry?.entitlement == .skin ? String(localized: "store.skin.equip-hint") : nil
+            hint: entry?.entitlement == .skin ? String(localized: "store.skin.equip-hint") : nil,
+            purchasing: store.isPurchasing
         ) {
-            // El cerrojo corta el segundo toque (y el que llega con otra compra en vuelo) sin
-            // apagar el botón: la hoja de pago del sistema ya tapa todo mientras tanto.
-            guard !store.isPurchasing, latch.claim() else { return }
-            Task {
-                await store.purchase(product)
-                latch.release()
-            }
+            Task { await store.purchase(product) }
         }
         .shopFocus(id: product.id)
     }
@@ -495,6 +486,8 @@ private struct StoreProductCard: View {
     /// Aclaración de la fila cuando ya está comprada (dónde se usa lo que
     /// compraste). Sólo las skins la llevan.
     let hint: String?
+    /// Hay una compra en vuelo.
+    let purchasing: Bool
     let buy: () -> Void
 
     /// Lado del plato. **Medido contra FisuJobs sobre la captura**: con 56 pt los
@@ -762,10 +755,14 @@ private struct StoreProductCard: View {
                 // argumento. Mismo trato que la cápsula gemela de Pintas, que
                 // comparte con esta el namespace `store.buy.<id>`.
                 accessibilityPurpose: Text("store.buy.ax \(name)"),
-                // Sin `.disabled` (regla del `PricePill`): el segundo toque lo
-                // corta el cerrojo de `StoreView`, no un botón apagado.
                 action: buy
             )
+            // Una compra en vuelo levanta la hoja de pago del sistema por
+            // encima de todo, así que el dimming del `.disabled` no lo ve nadie:
+            // acá sólo evita que un segundo toque encole otra compra. (Es el
+            // único `.disabled` que la gramática admite sobre un `PricePill`: la
+            // regla prohíbe usarlo para "no te alcanza", que es otra cosa.)
+            .disabled(purchasing)
         }
     }
 

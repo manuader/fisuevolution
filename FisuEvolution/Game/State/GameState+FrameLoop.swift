@@ -24,6 +24,7 @@ extension GameState {
         // mismo tope que la plata: el primer frame tras volver del background trae
         // todo el salto, y el watchdog no debe darlo todo por vencido.
         advanceCelebrations(delta: min(delta, IncomeTicker.deltaClampThreshold))
+        advanceMoments(delta: min(delta, IncomeTicker.deltaClampThreshold))
     }
 
     /// 8 Hz projection flush driven by the scene's frame counter. Also prunes

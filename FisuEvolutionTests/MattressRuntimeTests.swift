@@ -24,7 +24,43 @@ struct MattressRuntimeTests {
         #expect(!gameState.mattressInPlay)
         gameState.finishTutorialCore()
         gameState.advanceEngagement(delta: 1)
-        #expect(gameState.mattressInPlay, "en la columna o, de regalo, en el tablero")
+        #expect(gameState.mattressWaiting, "en la columna, pidiendo su video: ya no hay «1 de cada 4» de regalo")
+    }
+
+    @Test("el gratis (B31): reloj real, cae a los 30 min, en el tablero y en el piso que se mira; uno solo")
+    func theFreeOneDropsOnTheRealClock() async throws {
+        let gameState = await makeGameState()
+        gameState.engagementAutorun = true
+        gameState.finishTutorialCore()
+        let now = Date().timeIntervalSince1970
+        gameState.player?.meta.engagement.treasures.freeBoard = FreeBoardMattress(clockStartedAt: now - 1799)
+        gameState.advanceEngagement(delta: 0.016)
+        #expect(!gameState.freeMattressOnBoard, "todavía no")
+        // Con el juego cerrado horas: al volver espera uno solo.
+        gameState.player?.meta.engagement.treasures.freeBoard = FreeBoardMattress(clockStartedAt: now - 5 * 3600)
+        gameState.advanceEngagement(delta: 0.016)
+        #expect(gameState.freeMattressOnBoard)
+        #expect(gameState.mattressFloor(.free) == gameState.visibleFloorOrdinal)
+        #expect(!gameState.mattressWaiting && !gameState.mattressOnBoard, "no pasa por la columna")
+        gameState.refreshPrizeAccess()
+        #expect(gameState.prizeAccess.freeMattressOnBoard && !gameState.prizeAccess.mattressReady)
+    }
+
+    @Test("el reloj del gratis arranca al cargar un save que no lo tenía, y el flag de DEBUG lo prende solo")
+    func theFreeClockStartsOnLoad() async throws {
+        let gameState = await makeGameState()
+        gameState.finishTutorialCore()
+        gameState.advanceEngagement(delta: 1)
+        #expect(gameState.player?.meta.engagement.treasures.freeBoard.clockStartedAt == nil, "bajo XCTest, apagado")
+        gameState.debugFreeMattressEvery(1)
+        gameState.player?.meta.engagement.treasures.secondsUntilNext = 0.5
+        gameState.advanceEngagement(delta: 1)
+        let started = try #require(gameState.player?.meta.engagement.treasures.freeBoard.clockStartedAt)
+        #expect(abs(started - Date().timeIntervalSince1970) < 60)
+        #expect(!gameState.mattressInPlay, "el flag prende sólo el gratis, no la columna")
+        gameState.player?.meta.engagement.treasures.freeBoard.clockStartedAt = started - 2
+        gameState.advanceEngagement(delta: 1)
+        #expect(gameState.freeMattressOnBoard)
     }
 
     @Test("sin colchón en el tablero no se abre nada: el de la columna pide su video primero")

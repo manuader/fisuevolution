@@ -284,12 +284,12 @@ struct PickupControllerTests {
     func theDropWaitsForThePopup() async throws {
         let (gameState, controller) = await pickups()
         controller.update(delta: 0.016, reduceMotion: false)
-        gameState.debugSpawnMattress(onBoard: true, gifted: true)
+        gameState.debugDropFreeMattress()
         gameState.refreshPrizeAccess()
         gameState.mattressPopup = MattressPopup(extraOnly: true)
         run(controller, seconds: 2)
-        let mattress = try #require(controller.mattress)
-        #expect(mattress.isAwaitingDrop, "de regalo, mientras se juega, también cae; pero no bajo un pop-up")
+        let mattress = try #require(controller.freeMattress)
+        #expect(mattress.isAwaitingDrop, "el gratis, mientras se juega, también cae; pero no bajo un pop-up")
         gameState.closeMattressPopup()
         run(controller, seconds: PickupNode.popupCloseSeconds + PickupNode.fallSeconds + 0.2)
         #expect(!mattress.isFalling)
@@ -382,19 +382,44 @@ struct PickupControllerTests {
         #expect(markers.first?.contains(",") == true)
     }
 
-    @Test("con otra hoja tapando el tablero, el de regalo no cae debajo (B24)")
+    @Test("con otra hoja tapando el tablero, el gratis no cae debajo (B24, B31)")
     func theDropWaitsUnderACoveringSheet() async throws {
         let (gameState, controller) = await pickups()
         controller.update(delta: 0.016, reduceMotion: false)
         gameState.uiCoversBoard = true
-        gameState.debugSpawnMattress(onBoard: true, gifted: true)
+        gameState.debugDropFreeMattress()
         gameState.refreshPrizeAccess()
         run(controller, seconds: 2)
-        let mattress = try #require(controller.mattress)
+        let mattress = try #require(controller.freeMattress)
         #expect(mattress.isAwaitingDrop, "la caída espera a que se vaya la hoja")
         gameState.uiCoversBoard = false
         run(controller, seconds: PickupNode.popupCloseSeconds + PickupNode.fallSeconds + 0.2)
         #expect(!mattress.isFalling)
+    }
+
+    @Test("los dos colchones son de su piso, como las cajas: mirando otro no se ven ni lo siguen (pedido del dueño)")
+    func theMattressesStayOnTheirFloor() async throws {
+        let (gameState, controller) = await pickups()
+        gameState.debugUnlockFloors(throughTier: 9)
+        gameState.setVisibleFloor(1)
+        try #require(gameState.visibleFloorOrdinal == 1)
+        gameState.debugSpawnMattress(onBoard: true)
+        gameState.debugDropFreeMattress()
+        gameState.refreshPrizeAccess()
+        run(controller, seconds: 1, reduceMotion: true)
+        let column = try #require(controller.mattress)
+        let free = try #require(controller.freeMattress)
+        #expect(!column.isHidden && !free.isHidden)
+        gameState.setVisibleFloor(0)
+        gameState.advanceTreasures(delta: 0.016)
+        run(controller, seconds: 1, reduceMotion: true)
+        #expect(column.isHidden && free.isHidden, "en el piso 0 no están")
+        #expect(gameState.boardMattressMarker.isEmpty)
+        #expect(gameState.mattressFloor(.column) == 1 && gameState.mattressFloor(.free) == 1)
+        gameState.setVisibleFloor(1)
+        run(controller, seconds: 1, reduceMotion: true)
+        #expect(!column.isHidden && !free.isHidden, "de vuelta en su piso, ahí están")
+        #expect(controller.handleTap(at: free.position))
     }
 
     @Test("reencarnar con el colchón en un piso que se cierra: cae en el piso que se mira y se toca (B24)")

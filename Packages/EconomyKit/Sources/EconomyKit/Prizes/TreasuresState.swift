@@ -7,6 +7,10 @@ public protocol MattressPlacement {
     var floor: Int? { get set }
     var x: Double? { get set }
     var y: Double? { get set }
+    /// Está en el tablero y todavía no tiene piso ni lugar.
+    var needsPlacement: Bool { get }
+    /// Cae en el piso `floor`, en `spot`, si todavía no tiene lugar.
+    mutating func land(onFloor floor: Int, at spot: PackageSpot)
 }
 
 public extension MattressPlacement {

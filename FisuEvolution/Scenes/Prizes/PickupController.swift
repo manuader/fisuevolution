@@ -9,8 +9,9 @@ import SpriteKit
 /// Cada caja es de un piso (E14b B18): se dibuja sólo en el suyo, en su lugar, y se corre con
 /// la cámara como el piso (`floorShift`), así en el viaje se va con su piso en vez de flotar.
 /// Su lugar es una x y una y de la superficie del piso (B22), con el z de sus pies; la que cae
-/// mientras se juega entra cayendo desde arriba. El colchón del tablero también (B24): cae en un
-/// lugar libre del piso que se miraba, se queda en ese piso y pide que lo toquen hasta que se abre.
+/// mientras se juega entra cayendo desde arriba. Los colchones del tablero también (B24, B31): el
+/// pagado de la columna y el gratis de cada 30 minutos caen en un lugar libre del piso que se miraba,
+/// se quedan en ese piso (sólo se ven en el suyo) y piden que los toquen hasta que se abren.
 @MainActor
 final class PickupController {
     /// La caja abierta de la que sale un empleado (E14b B23), en coordenadas de `layer`: dónde
@@ -45,7 +46,11 @@ final class PickupController {
     private var visibleOrdinal = 0
     /// Cuánto subió la cámara respecto del piso 0 (`camera.y - alto/2`), como en `StageController`.
     private var cameraOffsetY: CGFloat?
-    private(set) var mattress: PickupNode?
+    /// Los colchones del tablero a la vista, cada uno con su nodo.
+    private var mattresses: [BoardMattress: PickupNode] = [:]
+    /// El de la columna y el gratis (B31).
+    var mattress: PickupNode? { mattresses[.column] }
+    var freeMattress: PickupNode? { mattresses[.free] }
     /// Una caja abierta en el tablero y a quién trae: la escena lo hace salir de ahí cuando juega su
     /// llegada (E14b B5, B23). No retiene la caja: si se va antes, la salida ya no vale.
     private struct PendingExit {
@@ -55,10 +60,10 @@ final class PickupController {
     /// Las salidas que esperan su llegada, en el orden en que se abrieron las cajas: dos cajas
     /// abiertas seguidas no se pisan la salida.
     private var pendingExits: [PendingExit] = []
-    /// Si el colchón estaba en el tablero en el frame anterior (`nil` antes del primero). El que
-    /// llega mientras se juega —pagado o de regalo— entra cayendo; el que ya estaba al abrir la app
+    /// Qué colchones estaban en el tablero en el frame anterior (`nil` antes del primero). El que
+    /// llega mientras se juega —pagado o gratis— entra cayendo; el que ya estaba al abrir la app
     /// aparece en su lugar.
-    private var mattressWasOnBoard: Bool?
+    private var mattressesOnBoard: Set<BoardMattress>?
     private var reduceMotion = false
 
     init(gameState: GameState, manifest: LoopsManifest = .main, pool: VideoPlayerPool = .shared,
@@ -82,7 +87,7 @@ final class PickupController {
                               floorBottom: floorBottom)
         for node in floorBoxes.values.joined() { node.resize(side: layout.side) }
         for opened in openedBoxes { opened.node.resize(side: layout.side) }
-        mattress?.resize(side: layout.side)
+        for node in mattresses.values { node.resize(side: layout.side) }
     }
 
     /// Las cajas del piso que se mira, la más vieja primero.
@@ -102,8 +107,12 @@ final class PickupController {
         layer.isHidden = gameState.celebrationHidesUI
         followHorizon(of: gameState)
         syncBoxes(of: gameState)
-        syncMattress(of: gameState, present: access.mattressOnBoard, falling: mattressWasOnBoard == false)
-        mattressWasOnBoard = access.mattressOnBoard
+        let onBoard = Set(BoardMattress.allCases.filter { present($0, in: access) })
+        for kind in BoardMattress.allCases {
+            syncMattress(kind, of: gameState, present: onBoard.contains(kind),
+                         falling: mattressesOnBoard.map { !$0.contains(kind) } ?? false)
+        }
+        mattressesOnBoard = onBoard
         syncWaitingVideos(visible: sceneVisible && !layer.isHidden)
         for (ordinal, nodes) in floorBoxes {
             for box in nodes {
@@ -116,55 +125,63 @@ final class PickupController {
         openedBoxes.removeAll { $0.node.parent == nil }
         pendingExits.removeAll { $0.node?.parent !== layer }
         for opened in openedBoxes { place(opened.node, onFloor: opened.ordinal, gameState: gameState) }
-        if let mattress {
+        for (kind, node) in mattresses {
             // La caída espera con el pop-up del video todavía yéndose o la pantalla tapada (B24): otra
-            // hoja, otro pop-up o el paso 2 de una recompensa encima (`isBoardBusy`).
-            mattress.dropHeld = gameState.isBoardBusy || layer.isHidden || !sceneVisible
-                || mattressOrdinal(of: gameState) != visibleOrdinal
-            mattress.update(delta: delta, reduceMotion: reduceMotion)
-            placeMattress(mattress, gameState: gameState)
+            // hoja, otro pop-up o el paso 2 de una recompensa encima (`isBoardBusy`). Y en su piso:
+            // mirando otro, cae cuando se vuelve al suyo.
+            node.dropHeld = gameState.isBoardBusy || layer.isHidden || !sceneVisible
+                || gameState.mattressFloor(kind) != visibleOrdinal
+            node.update(delta: delta, reduceMotion: reduceMotion)
+            placeMattress(kind, node, gameState: gameState)
         }
         let resting = boxes.filter { !$0.isFalling }
         gameState.publishBoardPackage(marker(at: resting.last?.position))
         gameState.publishBoardPackages(layer.isHidden ? "" : resting.map { marker(at: $0.position) }.joined(separator: ";"))
         // El de reposo, sin el salto: el marcador no cambia en cada cuadro mientras pide que lo toquen.
-        gameState.publishBoardMattress(marker(at: restingMattress.map { _ in mattressRestPosition(of: gameState) }))
+        // Uno solo: el de la columna, y si no está, el gratis.
+        let marked = BoardMattress.allCases.first { restingMattress($0) != nil }
+        gameState.publishBoardMattress(marker(at: marked.map { mattressRestPosition($0, of: gameState) }))
     }
 
-    /// El piso del colchón del tablero: donde cayó o, sin lugar todavía, el que se mira.
-    private func mattressOrdinal(of gameState: GameState) -> Int {
-        gameState.mattressFloor ?? visibleOrdinal
+    private func present(_ kind: BoardMattress, in access: PrizeAccess) -> Bool {
+        switch kind {
+        case .column: access.mattressOnBoard
+        case .free: access.freeMattressOnBoard
+        }
     }
 
     /// El colchón quieto en su lugar del piso que se mira: el que se toca y se marca.
-    private var restingMattress: PickupNode? {
-        guard let mattress, !mattress.isHidden, !mattress.isFalling else { return nil }
-        return mattress
+    private func restingMattress(_ kind: BoardMattress) -> PickupNode? {
+        guard let node = mattresses[kind], !node.isHidden, !node.isFalling else { return nil }
+        return node
     }
 
     /// El colchón en su lugar de su piso, como una caja (B24): los pies en su x y su y, corrido con el
-    /// piso y, si cae o salta, más arriba; con el z de sus pies. Fuera de la vista de la cámara no se
-    /// dibuja.
-    private func placeMattress(_ node: PickupNode, gameState: GameState) {
-        let ordinal = mattressOrdinal(of: gameState)
+    /// piso y, si cae o salta, más arriba; con el z de sus pies. Es de su piso: fuera de la vista de
+    /// la cámara no se dibuja, y uno sin piso todavía (se ubica en el próximo tick) tampoco.
+    private func placeMattress(_ kind: BoardMattress, _ node: PickupNode, gameState: GameState) {
+        guard let ordinal = gameState.mattressFloor(kind) else {
+            node.isHidden = true
+            return
+        }
         node.isHidden = !floorsInView(of: gameState).contains(ordinal)
-        let rest = mattressRestPosition(of: gameState)
+        let rest = mattressRestPosition(kind, of: gameState)
         node.position = CGPoint(x: rest.x, y: rest.y + node.fallOffset + node.hopOffset)
-        node.zPosition = DepthOrder.z(forFeetY: mattressFeet(onFloor: ordinal, gameState: gameState).y)
+        node.zPosition = DepthOrder.z(forFeetY: mattressFeet(kind, onFloor: ordinal, gameState: gameState).y)
     }
 
     /// El centro del colchón quieto en su lugar: los pies más medio alto, corrido con su piso; sin
     /// la caída ni el salto.
-    private func mattressRestPosition(of gameState: GameState) -> CGPoint {
-        let ordinal = mattressOrdinal(of: gameState)
-        let feet = mattressFeet(onFloor: ordinal, gameState: gameState)
-        let height = mattress?.boxSize.height ?? layout.side
+    private func mattressRestPosition(_ kind: BoardMattress, of gameState: GameState) -> CGPoint {
+        let ordinal = gameState.mattressFloor(kind) ?? visibleOrdinal
+        let feet = mattressFeet(kind, onFloor: ordinal, gameState: gameState)
+        let height = mattresses[kind]?.boxSize.height ?? layout.side
         return CGPoint(x: feet.x, y: feet.y + height / 2 + floorShift(ordinal))
     }
 
     /// Dónde apoya el colchón en su piso: su lugar del save, en la superficie de ese piso.
-    private func mattressFeet(onFloor ordinal: Int, gameState: GameState) -> CGPoint {
-        pickupLayout(onFloor: ordinal, gameState: gameState).packageFeet(at: gameState.mattressSpot)
+    private func mattressFeet(_ kind: BoardMattress, onFloor ordinal: Int, gameState: GameState) -> CGPoint {
+        pickupLayout(onFloor: ordinal, gameState: gameState).packageFeet(at: gameState.mattressSpot(kind))
     }
 
     /// Una caja en su lugar de su piso: los pies en su x y su y, corrida con el piso y, si está
@@ -229,7 +246,7 @@ final class PickupController {
     /// está cayendo no cuenta: el toque es de lo que hay debajo de ella.
     func hitDepth(at point: CGPoint) -> CGFloat? {
         guard !layer.isHidden else { return nil }
-        let pieces = [restingMattress].compactMap { $0 } + floorBoxes.values.joined()
+        let pieces = BoardMattress.allCases.compactMap { restingMattress($0) } + floorBoxes.values.joined()
         return pieces.filter { !$0.isFalling && $0.hitTest(point) }.map { layer.zPosition + $0.zPosition }.max()
     }
 
@@ -240,11 +257,17 @@ final class PickupController {
     @discardableResult
     func handleTap(at point: CGPoint) -> Bool {
         guard let gameState, !layer.isHidden else { return false }
-        if let mattress = restingMattress, mattress.hitTest(point) {
-            if !mattress.isOpening, gameState.boardMattressTapped() {
+        // Entre dos colchones bajo el dedo, el de adelante (B19).
+        let touched = BoardMattress.allCases
+            .compactMap { kind in restingMattress(kind).map { (kind, $0) } }
+            .filter { $0.1.hitTest(point) }
+            .max { $0.1.zPosition < $1.1.zPosition }
+        if let touched {
+            let (kind, mattress) = touched
+            if !mattress.isOpening, gameState.boardMattressTapped(kind) {
                 mattress.playOpening { [weak self, weak mattress] in
                     guard let self, let mattress else { return }
-                    self.finishOpening(mattress: mattress)
+                    self.finishOpening(kind, mattress: mattress)
                 }
             }
             return true
@@ -292,13 +315,13 @@ final class PickupController {
 
     /// El colchón terminó de abrirse en el tablero (E14b B6, D3): recién ahora se sortea y se acredita,
     /// sale el pop-up del premio y el colchón abierto se desvanece.
-    private func finishOpening(mattress node: PickupNode) {
+    private func finishOpening(_ kind: BoardMattress, mattress node: PickupNode) {
         guard let gameState, node.parent != nil else { return }
-        guard gameState.openMattressOnBoard() != nil else {
+        guard gameState.openMattressOnBoard(kind) != nil else {
             node.cancelOpening()
             return
         }
-        if mattress === node { mattress = nil }
+        if mattresses[kind] === node { mattresses[kind] = nil }
         node.vanish(reduceMotion: reduceMotion)
     }
 
@@ -323,14 +346,16 @@ final class PickupController {
     }
 
     /// Con el rol `.icon` compartido sólo vive el más nuevo (la caja más nueva del piso que se mira, o
-    /// el colchón); el resto, póster. Las de los otros pisos, de paso en un viaje, quietas.
+    /// el colchón quieto, el de la columna primero); el resto, póster. Las de los otros pisos, de paso
+    /// en un viaje, quietas.
     private func syncWaitingVideos(visible: Bool) {
         for (ordinal, nodes) in floorBoxes {
             for (index, box) in nodes.enumerated() {
                 box.setWaiting(visible && ordinal == visibleOrdinal && index == nodes.count - 1)
             }
         }
-        mattress?.setWaiting(visible && restingMattress != nil)
+        let live = BoardMattress.allCases.first { restingMattress($0) != nil }
+        for (kind, node) in mattresses { node.setWaiting(visible && kind == live) }
     }
 
     /// Cada piso a la vista con sus cajas (hasta `maxVisibleBoxes`), cada nodo con la suya: la que
@@ -382,24 +407,24 @@ final class PickupController {
         return node
     }
 
-    /// El colchón del tablero entra o se va. El que llega mientras se juega entra cayendo desde
+    /// Un colchón del tablero entra o se va. El que llega mientras se juega entra cayendo desde
     /// arriba de la pantalla, pero recién cuando el pop-up que lo pagó terminó de irse (B24); con
-    /// Reduce Motion, aparece. Hasta que lo tocan, pide que lo toquen.
-    private func syncMattress(of gameState: GameState, present: Bool, falling: Bool) {
-        if present, mattress == nil {
+    /// Reduce Motion, aparece. El gratis (B31) cae igual. Hasta que lo tocan, pide que lo toquen.
+    private func syncMattress(_ kind: BoardMattress, of gameState: GameState, present: Bool, falling: Bool) {
+        if present, mattresses[kind] == nil {
             let node = PickupNode(kind: .mattress, texture: PickupArt.texture(.mattress), side: layout.side,
                                   waitingClip: .object("colchon_espera"), manifest: manifest, pool: pool, packs: packs)
             node.callsForTap = true
             layer.addChild(node)
-            mattress = node
+            mattresses[kind] = node
             if falling, !reduceMotion {
-                let feet = mattressFeet(onFloor: mattressOrdinal(of: gameState), gameState: gameState)
+                let feet = mattressFeet(kind, onFloor: gameState.mattressFloor(kind) ?? visibleOrdinal, gameState: gameState)
                 node.drop(from: max(0, layout.sceneSize.height - feet.y + layout.side),
                           after: PickupNode.popupCloseSeconds)
             }
-        } else if !present, let node = mattress {
+        } else if !present, let node = mattresses[kind] {
             node.retire()
-            mattress = nil
+            mattresses[kind] = nil
         }
     }
 }

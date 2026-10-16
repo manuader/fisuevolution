@@ -13,7 +13,8 @@ extension GameState {
             mattressReady: mattressWaiting,
             wheelSpinsReady: wheel.bonus + wheel.videoLeft,
             mattressExtraReady: mattressExtraPending,
-            mattressOnBoard: mattressOnBoard
+            mattressOnBoard: mattressOnBoard,
+            freeMattressOnBoard: freeMattressOnBoard
         )
         if prizeAccess != access { prizeAccess = access }
     }
@@ -34,16 +35,22 @@ extension GameState {
         refreshPrizeAccess()
     }
 
-    /// El colchón del tablero se tocó: `true` si la escena puede abrirlo ahí (con la pantalla libre).
+    /// Un colchón del tablero se tocó: `true` si la escena puede abrirlo ahí (con la pantalla libre).
     /// Todavía no gasta nada: se abre cuando termina la animación (`openMattressOnBoard`).
-    func boardMattressTapped() -> Bool {
-        mattressOnBoard && mattressPopup == nil && wheelSheet == nil && packagePopup == nil
+    func boardMattressTapped(_ mattress: BoardMattress = .column) -> Bool {
+        isOnBoard(mattress) && mattressPopup == nil && wheelSheet == nil && packagePopup == nil
     }
 
     /// Terminó de abrirse en el tablero: sortea, acredita y sale el pop-up del premio, siempre (D3).
+    /// El gratis (B31) ofrece después su ×2 con video, al cobrarlo.
     @discardableResult
-    func openMattressOnBoard() -> MattressOutcome? {
-        guard boardMattressTapped(), let outcome = openMattress() else { return nil }
+    func openMattressOnBoard(_ mattress: BoardMattress = .column) -> MattressOutcome? {
+        guard boardMattressTapped(mattress) else { return nil }
+        let opened = switch mattress {
+        case .column: openMattress()
+        case .free: openFreeMattress()
+        }
+        guard let outcome = opened else { return nil }
         mattressPopup = MattressPopup(openedOnBoard: true, outcome: outcome)
         refreshPrizeAccess()
         scheduleSave()

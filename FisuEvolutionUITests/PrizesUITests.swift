@@ -185,7 +185,7 @@ final class PrizesUITests: XCTestCase {
         XCTAssertEqual(app.otherElements["board.mattress"].value as? String ?? "", "", "abierto, se fue del tablero")
     }
 
-    /// El de regalo (D4) ya está en el tablero: la columna no lo ofrece y un toque lo abre sin video.
+    /// El gratis (B31) ya está en el tablero: la columna no lo ofrece y un toque lo abre sin video.
     /// Cobrarlo ofrece su ×2 con video (el paso 2 de B29), que «No, gracias» cierra.
     func testTheGiftedMattressOpensOnTheBoard() {
         let app = XCUIApplication()
@@ -195,7 +195,7 @@ final class PrizesUITests: XCTestCase {
         let units = app.otherElements["board.units"]
         XCTAssertTrue(units.waitForExistence(timeout: 15))
         let chip = app.buttons["siderail.mattress"]
-        XCTAssertFalse(chip.exists && chip.value as? String == "ready", "de regalo no pasa por la columna")
+        XCTAssertFalse(chip.exists && chip.value as? String == "ready", "el gratis no pasa por la columna")
 
         tapTheBoardMattress(app)
         let result = app.descendants(matching: .any)["mattress.result"]
@@ -212,6 +212,43 @@ final class PrizesUITests: XCTestCase {
         let decline = app.buttons["reward.double.decline"]
         XCTAssertTrue(decline.waitForExistence(timeout: 8), "cobrado el de regalo, sale su ×2 con video (B29)")
         XCTAssertTrue(app.buttons["double.mattress"].exists)
+        decline.tap()
+        XCTAssertTrue(decline.waitForNonExistence(timeout: 4))
+    }
+
+    /// E14b B31 (D20): con el reloj del gratis en 3 s en vez de 30 min, cae solo en el tablero, se
+    /// toca, sale el pop-up del premio y, al cobrarlo, el «×2 con video» en dos pasos (B29).
+    func testTheFreeMattressDropsOnItsClock() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-free-mattress-every=3"]
+        app.launch()
+
+        XCTAssertTrue(app.otherElements["board.units"].waitForExistence(timeout: 15))
+        let marker = app.otherElements["board.mattress"]
+        XCTAssertTrue(marker.waitForExistence(timeout: 10))
+        expectation(for: NSPredicate(format: "value CONTAINS ','"), evaluatedWith: marker)
+        waitForExpectations(timeout: 25)
+        snap(app, "colchon gratis caido")
+        let chip = app.buttons["siderail.mattress"]
+        XCTAssertFalse(chip.exists && chip.value as? String == "ready", "el gratis no pasa por la columna")
+
+        tapTheBoardMattress(app)
+        let result = app.descendants(matching: .any)["mattress.result"]
+        if !result.waitForExistence(timeout: 10) { diagnose(app, "colchon gratis: sin el premio") }
+        XCTAssertTrue(result.exists, "el pop-up del premio sale siempre")
+        XCTAssertTrue(["coins", "blue"].contains(result.value as? String ?? ""), "la tabla del gratis")
+        XCTAssertFalse(app.buttons["mattress.open"].exists, "sin video")
+        XCTAssertFalse(app.buttons["mattress.extra"].exists, "el gratis no ofrece «otro colchón»")
+        assertThePrizeShowsItsArt(app)
+        snap(app, "colchon gratis abierto")
+        let collect = app.buttons["mattress.collect"]
+        if !collect.waitForExistence(timeout: 5) { diagnose(app, "colchon gratis: sin Cobrar") }
+        collect.tap()
+        XCTAssertTrue(collect.waitForNonExistence(timeout: 5))
+        let decline = app.buttons["reward.double.decline"]
+        XCTAssertTrue(decline.waitForExistence(timeout: 8), "cobrado el gratis, sale su ×2 con video (B29)")
+        XCTAssertTrue(app.buttons["double.mattress"].exists)
+        snap(app, "colchon gratis x2")
         decline.tap()
         XCTAssertTrue(decline.waitForNonExistence(timeout: 4))
     }

@@ -2587,3 +2587,76 @@ EconomyKit: `MarchTests` (17) mata 10 mutantes a mano:
 - el planificador sin `realClock`.
 
 Comando: el de «Cómo re-correr» de la calibración 2.0, con `--profile free | ads`.
+
+# E14b B31 — el colchón gratis del tablero cada 30 minutos de reloj real (2026-10-16, D20)
+
+**Qué cambió:**
+- `treasures.json` tiene `freeBoardIntervalSeconds: 1800`. Es el reloj del colchón gratis: corre en reloj real, también
+  con el juego cerrado, guarda uno solo y arranca de nuevo al abrirlo (`FreeMattressClock`, `TreasuresState.freeBoard`).
+  Es independiente del ciclo de 12 minutos de la columna, que sigue igual (720 s de juego activo, con video).
+- Se fue `giftOneIn` (D4): todos los colchones de la columna piden su video. Un dato viejo con la clave carga igual y
+  no la vuelve a escribir. Un save con un colchón de regalo en el tablero (`gifted`) lo convierte en el gratis, en el
+  mismo lugar.
+- El gratis sortea con su propia tabla, `freeBoardPrizes`: plata 20 min (60) y 2 blue (5), sin el Paquete. Lo pidió
+  el pacing (abajo). La columna mantiene su tabla de 60 / 25 / 5.
+
+**Simulador:** `PacingSources.freeMattress` lo juegan todos los perfiles con regalos (`.free` incluido), con un reloj
+de pared (`SourceClocks.nextFreeMattressWall`). El bot lo abre apenas lo ve. Con las sesiones del modelo humano (4 de
+20 min por día) cae uno por sesión. Con videos, cobra además su ×2 (`giftDoubles`: un video y el premio otra vez).
+La columna ya no tiene fracción de regalo: cada apertura es un video.
+
+**Pacing (medido, semilla 0,5):**
+
+| Perfil | Dios (h activas) | de pared | blue a Dios | Colchones gratis | Antes de B31 |
+|---|---|---|---|---|---|
+| `.free` | 45,40 | 816,07 | 5.999 | 136 | 45,40 / 816,07 / 5.996 |
+| `.ads` | 31,39 | 561,05 | 8.046 | 94 | 32,19. Ahora es el 69,1 % de `.free` (guarda ≥ 65 %) |
+| `.max` | 30,40 | 542,07 | 7.019 | 91 | 30,38. Ahora es el 67,0 % (guarda ≥ 55 %) |
+
+Con la misma tabla de la columna, Dios seguía en 45,40 h pero el Paquete del gratis rompía dos pisos provisorios del
+contrato:
+- reencarnar paga 11 % en la run 2 (piso provisorio 15 %; semillas 0,1 y 0,9: 7 % y 5 %);
+- la luna caía a los 650 min en la semilla 0,9 (piso provisorio 680).
+
+Probé cuatro tablas, siempre con el intervalo fijo de 1.800 s, porque lo fijó el dueño:
+
+| Tabla del gratis | Paga run 2 (0,5 / 0,1 / 0,9) | Luna 0,9 | Dios 0,9 |
+|---|---|---|---|
+| la de la columna | 11 % / 7 % / 5 % | 650 | 44,06 h |
+| sólo plata 20 min | 31 % / 6 % / 31 % | 700 | 45,34 h |
+| plata + Paquete | 31 % / 30 % / 1 % | 660 | 44,00 h |
+| **plata + blue (la elegida)** | **20 % / 20 % / 30 %** | **700** | **45,39 h** |
+
+La elegida es la más estable en las tres semillas: Dios entre 45,34 y 45,40 h, todas las runs pagan ≥ 20 % y la luna
+cae a los 700 min. Con semilla 0,5, `.free` queda así:
+- ✅ 1, 2, 3, 4;
+- 5 con 11 tiers más tarde (techo provisorio 15);
+- 6 paga 27 · 20 · 42 · 48 · 41 · 33 % (antes 23 · 18 · 36 · 37 · 38 · 24);
+- la luna a los 700,2 min (antes 720,5, ventana provisoria 680–930);
+- el peor salto, luna → marte, sigue en 11,0 h;
+- el blue a Dios queda en 5.999.
+
+Los ❌ que imprime el CLI (5, 6, isla y luna contra el contrato original) son los provisorios de siempre.
+
+EconomyKit: 1.057 tests en verde. Los nuevos están en `FreeMattressTests`: reloj real, uno solo, arranca al abrir,
+independiente de la columna, la hora que vuelve para atrás, el save de ida y vuelta, el save viejo, la migración del
+regalo y la tabla propia. También se sumaron `MattressFloorTests` (pedido del dueño: cada colchón es de su piso y
+aterrizar de nuevo no lo mueve), `everyOneAppearsInTheColumn`, `theGiftKnobIsGone`, `freeCollectsTheFreeMattress`,
+`theFreeMattressKeepsOne` y `theFreeMattressDoubles`.
+
+Los tests matan 14 mutantes a mano:
+- `>=` cambiado por `>` en el reloj;
+- el que espera no frena el reloj;
+- abrirlo no rearma el reloj;
+- la hora que vuelve para atrás;
+- la columna frenada por el gratis;
+- el save que no lee `freeBoard`;
+- el que no lo escribe;
+- la migración del regalo apagada;
+- el simulador que acumula colchones en la ausencia;
+- el ×2 sin `giftDoubles`;
+- la tabla propia ignorada;
+- el intervalo infinito aceptado;
+- los dos `land` que mueven un colchón ya ubicado.
+
+Comando: el de «Cómo re-correr» de la calibración 2.0, con `--profile free | ads | max` y `--seed-fraction 0.1 | 0.9`.

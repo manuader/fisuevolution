@@ -336,6 +336,10 @@ final class BoardScene: SKScene {
         stage.attach(to: cameraOverlay)
         stageEffects.attach(to: cameraOverlay)
         pickups.attach(to: cameraOverlay)
+        pickups.reachesPickups = { [weak self] point in
+            guard let self else { return true }
+            return self.touchTargets(at: self.convert(point, from: self.pickups.layer)).order.first == .pickups
+        }
         camera = cameraNode
     }
 
@@ -779,11 +783,8 @@ final class BoardScene: SKScene {
         // un empleado, por su z. Si lo de adelante no lo toma (un visitante a mitad de su entrada,
         // un reto de toques), sigue al de atrás. Con algo de atrás bajo el dedo, el empleado se
         // toca sólo en su cuerpo: su zona generosa no le roba el toque a lo que se ve detrás.
-        let stageZ = stage.hitDepth(at: touch.location(in: stage.layer))
-        let pickupsZ = pickups.hitDepth(at: touch.location(in: pickups.layer))
-        let character = characterNode(at: touch.location(in: self), bodyOnly: stageZ != nil || pickupsZ != nil)
-        for target in Self.touchOrder(stage: stageZ, pickups: pickupsZ,
-                                      character: character.map { fieldNode.zPosition + $0.zPosition }) {
+        let (order, character) = touchTargets(at: touch.location(in: self))
+        for target in order {
             switch target {
             case .stage:
                 if stage.handleTap(at: touch.location(in: stage.layer)) { return }
@@ -794,6 +795,18 @@ final class BoardScene: SKScene {
             }
         }
         emptyTouchStart = touch.location(in: self)
+    }
+
+    /// Lo que hay bajo `point` (coordenadas de la escena), en el orden en que se le ofrece el toque,
+    /// y el empleado que lo tomaría. Con algo de atrás bajo el dedo, el empleado cuenta sólo en su
+    /// cuerpo.
+    private func touchTargets(at point: CGPoint) -> (order: [TouchTarget], character: CharacterNode?) {
+        let stageZ = stage.hitDepth(at: convert(point, to: stage.layer))
+        let pickupsZ = pickups.hitDepth(at: convert(point, to: pickups.layer))
+        let character = characterNode(at: point, bodyOnly: stageZ != nil || pickupsZ != nil)
+        let order = Self.touchOrder(stage: stageZ, pickups: pickupsZ,
+                                    character: character.map { fieldNode.zPosition + $0.zPosition })
+        return (order, character)
     }
 
     /// Quién puede recibir un toque del tablero.

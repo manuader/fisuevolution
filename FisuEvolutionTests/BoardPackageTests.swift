@@ -174,4 +174,22 @@ struct BoardPackageTests {
         #expect(parts.count == 2)
         #expect(parts.allSatisfy { (0...1).contains($0) })
     }
+
+    @Test("con un empleado adelante que tapa el centro, el marcador va a una parte de la caja que se ve (B19, B22)")
+    func theMarkerAvoidsWhatCoversTheBox() async throws {
+        let (gameState, controller) = await pickups()
+        gameState.debugAddPackages(1)
+        gameState.refreshPrizeAccess()
+        controller.update(delta: 1, reduceMotion: true)
+        let box = try #require(controller.boxes.first)
+        // Lo de adelante tapa la mitad izquierda de la caja y su centro.
+        controller.reachesPickups = { $0.x > box.position.x + 1 }
+        controller.update(delta: 1, reduceMotion: true)
+        let parts = gameState.boardPackageMarker.split(separator: ",").compactMap { Double($0) }
+        try #require(parts.count == 2)
+        let marked = CGPoint(x: parts[0] * 393, y: (1 - parts[1]) * 852)
+        #expect(marked.x > box.position.x + 1, "no marca la parte tapada")
+        #expect(box.hitTest(marked), "marca un punto de la caja")
+        #expect(controller.handleTap(at: marked))
+    }
 }

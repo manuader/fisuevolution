@@ -65,6 +65,9 @@ final class PickupController {
     /// aparece en su lugar.
     private var mattressesOnBoard: Set<BoardMattress>?
     private var reduceMotion = false
+    /// Si un toque en un punto de `layer` les llega a las cajas y no a lo que está adelante. Lo pone
+    /// `BoardScene`, que es quien reparte los toques (B19); sin él, cualquier punto de la caja vale.
+    var reachesPickups: ((CGPoint) -> Bool)?
 
     init(gameState: GameState, manifest: LoopsManifest = .main, pool: VideoPlayerPool = .shared,
          packs: ArtPacks = .shared) {
@@ -135,7 +138,7 @@ final class PickupController {
             placeMattress(kind, node, gameState: gameState)
         }
         let resting = boxes.filter { !$0.isFalling }
-        gameState.publishBoardPackage(marker(at: resting.last?.position))
+        gameState.publishBoardPackage(marker(at: resting.last.map(tapPoint(of:))))
         gameState.publishBoardPackages(layer.isHidden ? "" : resting.map { marker(at: $0.position) }.joined(separator: ";"))
         // El de reposo, sin el salto: el marcador no cambia en cada cuadro mientras pide que lo toquen.
         // Uno solo: el de la columna, y si no está, el gratis.
@@ -191,6 +194,15 @@ final class PickupController {
         let feet = floorLayout.packageFeet(at: box.packageBox?.spot, unplacedIndex: box.unplacedIndex)
         box.position = CGPoint(x: feet.x, y: feet.y + floorLayout.side / 2 + floorShift(ordinal) + box.fallOffset)
         box.zPosition = DepthOrder.z(forFeetY: feet.y)
+    }
+
+    /// Dónde tocar la caja para que el toque sea suyo: su centro o, si lo de adelante lo tapa (un
+    /// empleado de la hilera, el visitante), la primera parte que se ve. Es lo que marca
+    /// `board.package`: la caja cae en cualquier lugar del piso (B22), también detrás de la hilera,
+    /// y el toque es de lo de adelante (B19). Si no se ve ninguna parte, su centro.
+    private func tapPoint(of box: PickupNode) -> CGPoint {
+        guard let reachesPickups else { return box.position }
+        return ([box.position] + box.touchSamples).first { box.hitTest($0) && reachesPickups($0) } ?? box.position
     }
 
     /// La pieza normalizada a la pantalla con el origen arriba a la izquierda (como la coordenada de

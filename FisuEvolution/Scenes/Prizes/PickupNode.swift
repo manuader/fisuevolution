@@ -433,14 +433,28 @@ final class PickupNode: SKNode {
     /// área crece con la caja (8 pt de aire) y nunca baja de `minTouchSide` (C10). Es la del arte,
     /// con la escala de la pieza: el brillo, el «¡Tocame!» y el «LLENO» no agrandan el toque (B24).
     func hitTest(_ point: CGPoint) -> Bool {
-        let art = sprite.frame
-        let scaleX = abs(xScale)
-        let scaleY = abs(yScale)
-        var area = CGRect(x: position.x + art.minX * scaleX, y: position.y + art.minY * scaleY,
-                          width: art.width * scaleX, height: art.height * scaleY).insetBy(dx: -8, dy: -8)
+        var area = artFrame.insetBy(dx: -8, dy: -8)
         let missingWidth = max(0, PickupLayout.minTouchSide - area.width)
         let missingHeight = max(0, PickupLayout.minTouchSide - area.height)
         area = area.insetBy(dx: -missingWidth / 2, dy: -missingHeight / 2)
         return area.contains(point)
+    }
+
+    /// Una grilla de 3×3 sobre el dibujo, en las coordenadas del padre y con el centro primero: dónde
+    /// probar si un toque llega a la pieza cuando algo de adelante la tapa.
+    var touchSamples: [CGPoint] {
+        let art = artFrame
+        return [0.5, 0.2, 0.8].flatMap { fy in
+            [0.5, 0.2, 0.8].map { fx in CGPoint(x: art.minX + art.width * fx, y: art.minY + art.height * fy) }
+        }
+    }
+
+    /// El arte con la escala de la pieza, en las coordenadas del padre.
+    private var artFrame: CGRect {
+        let art = sprite.frame
+        let scaleX = abs(xScale)
+        let scaleY = abs(yScale)
+        return CGRect(x: position.x + art.minX * scaleX, y: position.y + art.minY * scaleY,
+                      width: art.width * scaleX, height: art.height * scaleY)
     }
 }

@@ -37,6 +37,10 @@
 	     VACÍO: la whitelist de Xcode no tiene clave para el color. -->
 	<key>UILaunchScreen</key>
 	<dict>
+		<!-- El logo de Ader Games (imageset del catálogo, no del atlas), centrado a su
+		     tamaño natural (180 pt): el splash arranca con el logo en ese mismo lugar. -->
+		<key>UIImageName</key>
+		<string>AderGamesLogo</string>
 		<key>UIColorName</key>
 		<string>PaletteCream</string>
 	</dict>

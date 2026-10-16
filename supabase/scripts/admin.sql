@@ -109,3 +109,28 @@ select jobname, status, return_message, start_time
 from cron.job_run_details d join cron.job j using (jobid)
 where j.jobname = 'telemetry-retention' and start_time > now() - interval '7 days'
 order by start_time desc limit 10;
+
+-- ── Personalización (2.1, E15 F1) ───────────────────────────────────────────────────────────
+-- La app pide personalization_config(): con el interruptor apagado recibe null y todos juegan la base.
+-- Arranca apagado. Prenderlo SÓLO con la privacidad de la 2.1 aprobada (E15 F1 T9) y una config validada.
+
+-- 16) El interruptor de la personalización. Apagar (la que se corre por defecto; todos vuelven a la base):
+update settings set value = 'false'::jsonb where key = 'personalization_enabled';
+--     Prender (descomentar a mano, nunca de pasada):
+-- update settings set value = 'true'::jsonb where key = 'personalization_enabled';
+
+-- 17) Cargar una config. ANTES validarla con pacing-sim (la base de 45 h igual para todos) y con los tests de las
+--     tablas: la app descarta una sección que no valida, pero una que valida y está mal cambia el juego de verdad.
+--     Subir "version" en cada carga. Tope: 64 KB (si pasa, la función devuelve null).
+--     (descomentar a mano y pegar el JSON entre los $json$)
+-- update settings set value = $json$
+-- { "version": 1, "sections": { "player_value": { … } } }
+-- $json$::jsonb where key = 'personalization_config';
+
+-- 18) Leer el interruptor y la config cargada (su versión, sus secciones y su tamaño).
+select key, value -> 'version' as version,
+       (select array_agg(s order by s) from jsonb_object_keys(value -> 'sections') s) as secciones,
+       octet_length(value::text) as bytes
+from settings where key = 'personalization_config'
+union all
+select key, value, null, null from settings where key = 'personalization_enabled';

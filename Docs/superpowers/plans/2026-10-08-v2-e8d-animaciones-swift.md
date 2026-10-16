@@ -1384,3 +1384,50 @@ Anotá los números en la sesión del cierre. Todos en **Release** en el disposi
   VERDE en `45bc9bf`; se repite al integrar, sin cambios de Swift en este cierre.
 - Step 4 (docs): esta sección, `tasks.md` y la trampa de `HANDOFF.md` §7. `Docs/SESION-<fecha>-v2-e8d.md`
   se escribe cuando el dueño devuelva los números de G1–G5.
+
+---
+
+## Cierre (relevo 60, simulador del SE)
+
+**Decisión del dueño (2026-10-16, en vivo):** «medí sólo en el simulador del SE y cerrá las dos tareas con
+eso; mi iPhone no lo uses para esto». Los gates se midieron en un simulador propio y **los límites del
+simulador quedan como riesgo aceptado por el dueño** (abajo). Ningún gate dio MAL: **E8d T15 cerrada.**
+
+**Montaje.** Rama `v2i/gates-se-r60` sobre `0c0676b0`. Simulador `gates-se` = iPhone SE (3rd generation),
+iOS 26.5 (`SIMULATOR_MODEL_IDENTIFIER=iPhone14,6`, así que el pool corre con `conservativeMaxLive = 2`: el
+escalón (1) de la escalera de G1 ya está en el código). Un solo build Debug (`FrameRateProbe` es `#if DEBUG`):
+
+```bash
+xcodegen generate
+xcodebuild build-for-testing -scheme FisuEvolution -sdk iphonesimulator -configuration Debug \
+  -destination "id=<udid gates-se>" -derivedDataPath build/DD-gates.noindex \
+  'OTHER_SWIFT_FLAGS=$(inherited) -Xcc -Wno-deprecated-declarations'
+xcrun simctl launch <udid> com.manuader.fisuevolution --uitest-reset --uitest-skip-tutorial \
+  --uitest-video --uitest-anim-stress          # sin --uitest-video = la misma escena en póster
+footprint <pid>; vmmap --summary <pid>        # memoria, cada 5 s, por PID del host
+xcrun simctl spawn <udid> log show --info --predicate 'eventMessage CONTAINS "fps-probe"'
+xcrun simctl io <udid> screenshot a.png; sleep 1; … b.png   # ¿se mueve? diff de la región del retrato
+```
+
+**Carga de la Mac:** otros dos agentes compilaban en paralelo; `uptime` dio load average **470–890** durante
+todas las corridas. Los picos de «peor cuadro» aparecen igual en póster, así que son de la carga del host.
+
+| Gate | Medición (simulador del SE) | Vara | Veredicto |
+|---|---|---|---|
+| **G1 fps en el SE** | Estrés con video (especial abierto con su loop + ícono, 2 vivos por el tope del SE): 16 ventanas de 600 cuadros de `FrameRateProbe` → **59,8 fps promedio**, 22 cuadros > 25 ms de 9600 (**0,23 %**), peor 171 ms. Misma escena en póster: 59–60 fps, peor 152 ms. 10 min seguidos con video: 59,7 fps promedio en las ventanas que quedan en el log, 0,20 % > 25 ms. Load 470–820. | ≥ 59 fps; ≤ 1 % > 25 ms | **Pasa** (simulador) |
+| **G2 fps en el iPad** | No medido: el dueño pidió sólo el SE. | — | Riesgo aceptado |
+| **G3 HEVC con alfa** | El retrato en video sobre amarillo, sin cuadrado negro ni halo (captura del estrés); el póster del especial ocupa el mismo lugar con Reduce Motion (sin hueco). El simulador decodifica HEVC-alfa por software: el decodificador por hardware y la cabina a ×5 no se ven acá. | a ojo | **Pasa** en simulador; HW y ×5, riesgo aceptado |
+| **G4 memoria** | Estrés con video: estable **88–94 MB** (`phys_footprint`, sonda y `footprint`); en póster **85–86 MB** → **+3 a +8 MB** sobre póster. Pico del proceso 127 MB, igual en póster (127,4 MB): es el arranque, no los videos. **10 min** con video: 120 muestras, 88–93 MB en los últimos 5 min, termina en 88 MB, el proceso sigue vivo (sin jetsam; el simulador no aplica el límite del SE real). | ≤ póster + 40 MB; sin jetsam | **Pasa** |
+| **G5 ODR** | Los 4 packs en el `.app` (`anim-especiales` 1,9 MB, `anim-eventos` 3,2 MB, `anim-tienda` 460 KB, `anim-visitantes` 5,5 MB; Debug los embebe). `--uitest-special --uitest-video`: el popup del especial reproduce `char_sp_cryptobro.mov` del pack `anim-especiales` (0,8 % del retrato cambia en 1 s; 89 MB). `ArtPacksTests` verde (pedido, liberación con el último release, error de red sin lazo, prioridad). TestFlight, modo avión y purga del sistema no existen en el simulador. | sin cuelgues | **Pasa** en simulador; TestFlight/avión/purga, riesgo aceptado |
+| **Reduce Motion** | `defaults write com.apple.Accessibility ReduceMotionEnabled -bool true` en el simulador + `--uitest-video`: el retrato queda quieto (**0 %** de píxeles cambian en 1 s, contra 3,0 % con video), muestra el póster del personaje, sin hueco; CPU 8–12 % contra ~30 % con video. | todo en póster, sin hueco | **Pasa** |
+| **Bajo consumo** | El simulador no tiene Modo de bajo consumo. Por código: `VideoPlayerPoolTests` (`policyTurnsLoopsOff` con `.lowPower`, `fullscreenSurvivesLowPower`, `cinematicsPolicy`) verde. | loops en póster; la cinemática sigue | **Pasa** por código |
+
+Unit de la zona, sobre el mismo build (`test-without-building` en `gates-se`): `VideoPlayerPoolTests`,
+`ArtPacksTests`, `FrameRateProbeTests`, `AnimatedArtViewTests`, `LoopingVideoNodeTests`, `AnimatedPlacesTests`,
+`LoopsManifestTests`, `PackagePopupTests`, `MattressStageTests` → **103 tests en 9 suites, verde**.
+
+**Riesgo aceptado por el dueño (límites del simulador):** el fps de simulador no es el de un SE real (GPU y
+decodificador del Mac); «Animation Hitches» no corre en simulador (`xctrace`: «Hitches is not supported on
+this platform»), así que los hitches salen sólo de la sonda y el «toque en el mismo cuadro» no se midió;
+build Debug, no Release; sin jetsam real; sin iPad (G2); sin TestFlight, modo avión ni purga del sistema
+(G5); sin Modo de bajo consumo real. Si el SE real muestra otra cosa, la escalera de G1 sigue vigente.

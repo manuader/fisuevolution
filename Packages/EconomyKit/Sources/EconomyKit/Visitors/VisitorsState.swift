@@ -50,6 +50,9 @@ public struct VisitorsState: Codable, Sendable, Equatable {
     public var sessions: Int
     /// La Marcha en curso o resuelta y sin cobrar (E14b B25). Vive en el save con su reloj de pared.
     public var march: MarchState?
+    /// El inicio de la última Marcha cobrada (E14b B25). Con dos dispositivos, la Marcha que ya se
+    /// cobró en uno no se vuelve a pagar en el otro: `resolve` la descarta.
+    public var lastSettledMarchStartedAt: Double?
 
     public static let initial = VisitorsState()
 
@@ -65,7 +68,8 @@ public struct VisitorsState: Codable, Sendable, Equatable {
         week: String? = nil,
         visitsThisWeek: [String: Int] = [:],
         sessions: Int = 0,
-        march: MarchState? = nil
+        march: MarchState? = nil,
+        lastSettledMarchStartedAt: Double? = nil
     ) {
         self.secondsUntilVisit = secondsUntilVisit
         self.visitorBag = visitorBag
@@ -79,6 +83,7 @@ public struct VisitorsState: Codable, Sendable, Equatable {
         self.visitsThisWeek = visitsThisWeek
         self.sessions = sessions
         self.march = march
+        self.lastSettledMarchStartedAt = lastSettledMarchStartedAt
     }
 
     public init(from decoder: Decoder) throws {
@@ -96,14 +101,22 @@ public struct VisitorsState: Codable, Sendable, Equatable {
         visitsThisWeek = try container.decodeIfPresent([String: Int].self, forKey: .visitsThisWeek) ?? [:]
         sessions = try container.decodeIfPresent(Int.self, forKey: .sessions) ?? 0
         march = try container.decodeIfPresent(MarchState.self, forKey: .march)
+        lastSettledMarchStartedAt = try container.decodeIfPresent(Double.self, forKey: .lastSettledMarchStartedAt)
     }
 
     /// El reloj, la bolsa, los que esperan en cada piso y la Marcha viajan con el ganador. Los topes del
     /// día y de la semana, si los dos saves hablan del mismo día o de la misma semana, se quedan con lo
-    /// más alto: dos dispositivos no duplican el cupo. Las sesiones, también lo más alto.
+    /// más alto: dos dispositivos no duplican el cupo. Las sesiones, también lo más alto. La Marcha que
+    /// cualquiera de los dos ya cobró no viaja: el blue del perdedor ya trae ese premio.
     public static func resolve(winner: VisitorsState, loser: VisitorsState) -> VisitorsState {
         var resolved = winner
         resolved.sessions = max(winner.sessions, loser.sessions)
+        resolved.lastSettledMarchStartedAt = [winner.lastSettledMarchStartedAt, loser.lastSettledMarchStartedAt]
+            .compactMap { $0 }.max()
+        if let march = resolved.march, let lastSettled = resolved.lastSettledMarchStartedAt,
+           march.startedAt <= lastSettled {
+            resolved.march = nil
+        }
         if winner.week != nil, winner.week == loser.week {
             resolved.visitsThisWeek = winner.visitsThisWeek.merging(loser.visitsThisWeek, uniquingKeysWith: max)
         }

@@ -85,10 +85,12 @@ extension VisitorScheduler {
     }
 
     /// El jugador cerró el resultado: la Marcha sale del save y se devuelve tal como quedó. Paga una
-    /// sola vez: la segunda no encuentra nada. Mientras corre, no se cierra.
+    /// sola vez: la segunda no encuentra nada, y otro dispositivo tampoco (`lastSettledMarchStartedAt`).
+    /// Mientras corre, no se cierra.
     public static func settleMarch(_ state: inout VisitorsState) -> MarchState? {
         guard let march = state.march, march.outcome != nil else { return nil }
         state.march = nil
+        state.lastSettledMarchStartedAt = march.startedAt
         return march
     }
 }

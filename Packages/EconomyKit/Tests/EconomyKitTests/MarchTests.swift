@@ -47,6 +47,7 @@ struct MarchTests {
         #expect(state.march == nil)
         #expect(state.week == nil && state.visitsThisWeek.isEmpty)
         #expect(state.sessions == 0)
+        #expect(state.lastSettledMarchStartedAt == nil)
         #expect(state.secondsUntilVisit == 120)
     }
 
@@ -217,6 +218,36 @@ struct MarchTests {
         #expect(resolved.march == winner.march)
         loser.week = "2027-W01"
         #expect(VisitorsState.resolve(winner: winner, loser: loser).visitsThisWeek.isEmpty, "otra semana no se mezcla")
+    }
+
+    @Test("la Marcha cobrada en un dispositivo no se paga de nuevo cuando gana el save del otro")
+    func settledElsewhereDoesNotPayTwice() throws {
+        var deviceB = marching()
+        for tap in 1...420 { VisitorScheduler.noteMarchTap(&deviceB, now: start + Double(tap)) }
+        #expect(deviceB.march?.outcome == .won)
+        var deviceA = deviceB
+        #expect(VisitorScheduler.settleMarch(&deviceA)?.outcome == .won, "A la cobra")
+        #expect(deviceA.lastSettledMarchStartedAt == start)
+
+        let resolved = VisitorsState.resolve(winner: deviceB, loser: deviceA)
+        #expect(resolved.march == nil, "la Marcha que A ya cobró no viaja con B")
+        #expect(resolved.lastSettledMarchStartedAt == start)
+        var afterSync = resolved
+        #expect(VisitorScheduler.settleMarch(&afterSync) == nil, "no hay nada que cobrar dos veces")
+
+        let decoded = try JSONDecoder().decode(VisitorsState.self, from: JSONEncoder().encode(deviceA))
+        #expect(decoded.lastSettledMarchStartedAt == start, "el campo sobrevive ida y vuelta")
+    }
+
+    @Test("una Marcha posterior a la última cobrada sí viaja con el ganador")
+    func newerMarchTravels() {
+        var winner = marching()
+        winner.lastSettledMarchStartedAt = start - 7 * 86_400
+        var loser = VisitorsState.initial
+        loser.lastSettledMarchStartedAt = start - 14 * 86_400
+        let resolved = VisitorsState.resolve(winner: winner, loser: loser)
+        #expect(resolved.march == winner.march)
+        #expect(resolved.lastSettledMarchStartedAt == start - 7 * 86_400)
     }
 
     // MARK: El config

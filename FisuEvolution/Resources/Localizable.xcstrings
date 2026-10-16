@@ -7413,6 +7413,23 @@
         }
       }
     },
+    "offer.chosenForYou" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Offer picked for you"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oferta elegida para vos"
+          }
+        }
+      }
+    },
     "offer.decline" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9806,6 +9823,23 @@
         }
       }
     },
+    "reward.double.title.boosted" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Make it bigger?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Lo agrandás?"
+          }
+        }
+      }
+    },
     "reward.double.video" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9819,6 +9853,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "×2 con video"
+          }
+        }
+      }
+    },
+    "reward.double.video.boosted %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "×%@ with a video"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "×%@ con video"
           }
         }
       }
@@ -13500,6 +13551,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Comprar %@"
+          }
+        }
+      }
+    },
+    "store.chosenForYou" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Picked for you"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elegido para vos"
           }
         }
       }

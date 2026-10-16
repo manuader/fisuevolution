@@ -1,0 +1,11 @@
+{
+  "version": "seed-2026-10-16",
+  "segments": {
+    "low": {"videoRewardMultiplier": {}, "freeMattressIntervalScale": 1.0, "visitorIntervalScale": 1.0,
+            "sideRailCooldownScale": 1.0, "forcedSpacingScale": 1.0},
+    "mid": {"videoRewardMultiplier": {}, "freeMattressIntervalScale": 1.0, "visitorIntervalScale": 1.0,
+            "sideRailCooldownScale": 1.0, "forcedSpacingScale": 1.0},
+    "high": {"videoRewardMultiplier": {}, "freeMattressIntervalScale": 1.0, "visitorIntervalScale": 1.0,
+             "sideRailCooldownScale": 1.0, "forcedSpacingScale": 1.0}
+  }
+}

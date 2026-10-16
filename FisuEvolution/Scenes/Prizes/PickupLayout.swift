@@ -88,6 +88,13 @@ struct PickupLayout: Equatable {
         return max(stage.groundFloorY, min(ground, ceiling) - StageLayout.walkDrop)
     }
 
+    /// El tramo de `DepthScale` (E14b B30): de la línea de atrás de las cajas al frente. Es el mismo
+    /// ancho de profundidad que `StageLayout.depthSpan`, para que una caja y un empleado de la misma
+    /// y tengan la misma escala.
+    var depthSpan: DepthScale.Span {
+        stage.depthSpan(background: background, backgroundOffset: backgroundOffset)
+    }
+
     // MARK: - La superficie de las cajas (E14b B22)
 
     /// Por dónde puede pararse el centro de una caja de costado: de columna a columna.

@@ -1342,3 +1342,45 @@ G1–G7 (G6 y G7 🔒 del dueño).
 | E8d-T13 | La sonda de fps y memoria (DEBUG) y `--uitest-anim-stress` | ⛔ | T3, T4 | DebugPanelView, +Bootstrap, +Debug (tibios) | | sonnet, revisión ninguna; habilita G1/G2/G4 antes de la segunda tanda |
 | E8d-T14 | 🔒 La segunda tanda entra (sólo lo `va`) | ⛔ | 🔒 revisión de la segunda tanda; T12; pipeline del dueño | 🔥 project.yml; Resources, loops_manifest.json | | cero Swift; ODR por tag; base ≤ +60 MB |
 | E8d-T15 | Cierre de E8d: gates en dispositivo y barrido de lugares (controlador) | ⛔ | T1–T14; E8b T8–T11 | `Docs/` | | `completo`; G1–G5 con números; `AnimatedPlacesTests` |
+
+---
+
+## Cierre de E8d (relevo 59)
+
+### Qué está hecho
+
+- **Steps 1 y 2:** `AnimatedPlacesTests` (barrido de lugares) y el `completo` VERDE sobre `45bc9bf`.
+- **`pendingPlaces` está vacío.** Las 9 secciones llenas de `loops_manifest.json` (`portraits`, `objects`,
+  `cabin`, `cinematics`, `characters`, `talking`, `visitorActions`, `events`, `shopIcons`) tienen un
+  call site en `FisuEvolution/` (verificado por texto contra el árbol, sin correr el test). `shopIcons`
+  salió de la lista con E8e T4. No quedan lugares que ya no apliquen: E14 C1/C22 sacó los videos de
+  fondos de piso y de personajes base **del manifest** (la sección `characters` sólo trae `sp_*`), así
+  que no hubo entradas huérfanas que anotar; el test sigue cubriéndolo (una sección vacía no se pide).
+- **El carry de `VideoPlaybackPolicy` ya está arreglado** (`cafda289`, `launch(arguments:environment:)`):
+  el póster forzado se decide por `XCTestConfigurationFilePath` (host de unit tests) o `--uitest*` sin
+  `--uitest-video`, no por tener `XCTestCase` cargada. Un build Debug lanzado a mano reproduce de verdad
+  (test: `VideoPlayerPoolTests`, «launch» con y sin la variable). La trampa de `HANDOFF.md` §7 que lo
+  daba por pendiente quedó corregida.
+
+### Lo que queda: Step 3, los gates en dispositivo (🔒 el dueño los mide)
+
+Anotá los números en la sesión del cierre. Todos en **Release** en el dispositivo, nunca en simulador
+(el simulador decodifica HEVC-alfa por software y no ve la memoria de texturas de la GPU).
+
+| Gate | Procedimiento exacto |
+|---|---|
+| **G1 fps en el iPhone SE** | Build Release al SE. (a) Lanzar con `--uitest-anim-stress` (fondo + popup + ícono, 3 vivos), 60 s, leer el `FrameRateProbe` del panel DEBUG; (b) partida real: ir a un piso y abrir el popup de un visitante, 60 s. Instruments → «Animation Hitches» en ambos. Vara: promedio ≥ 59 fps, ≤ 1 % de cuadros > 25 ms, el tap al tablero responde en el mismo cuadro. Si falla, escalera en orden: ícono a póster en el SE (`maxLive = 2`), retratos/personajes a 384², fondos a 768², fondos sólo póster. Anotar cuál quedó. |
+| **G2 fps en el iPad** | Igual, en el iPad de base. |
+| **G3 HEVC con alfa** | SE e iPad: cada retrato y objeto sobre amarillo (sin cuadrado negro ni halo blanco), el salto póster→video sin corte visible, `SKVideoNode` con alfa, la cabina a ×5 termina con las puertas del todo abiertas. Grabar la pantalla. Si el alfa sale negro, ruta B de T9; si la cabina no llega a ×5, recortar el clip en el pipeline y volver el tope a ×4. |
+| **G4 memoria** | Instruments «Allocations» / `phys_footprint` de la sonda: pico con 3 vivos + la cabina calentando, y 10 min de partida cambiando de piso. Vara: pico ≤ el de la misma escena en póster + 40 MB en el SE; sin jetsam en 10 min; anotar el pico de la de Dios. Si falla, bajar `maxLive` en el SE y soltar los packs antes. |
+| **G5 ODR** | TestFlight, instalación limpia: entrar a un piso con personajes ODR (póster y después video), abrir la tienda, modo avión (póster para siempre, sin error ni cuelgue), purga del sistema (vuelve a pedir). Vara: sin cuelgues y base ≤ +60 MB. Si falla, esa familia pasa al paquete base o a póster. |
+| **Reduce Motion / bajo consumo** (parte de la política, mismo build) | Ajustes → Accesibilidad → Reducir movimiento, y Modo de bajo consumo: todo en póster, ningún hueco donde había video; la cinemática sólo se apaga con Reduce Motion o sin reproducción automática. |
+| G6 / G7 | G6 ya cerrado (135 `va`). G7 es el oído del dueño, no frena. |
+
+### Qué corre el controlador
+
+- `Tools/v2/oraculo.sh completo` sobre la punta de integración con `version-2` mergeada: VERDE con las
+  clases de E8d (`AnimatedPlacesTests`, `VideoPlayerPoolTests`, `AnimatedArtViewTests`…). Ya hubo uno
+  VERDE en `45bc9bf`; se repite al integrar, sin cambios de Swift en este cierre.
+- Step 4 (docs): esta sección, `tasks.md` y la trampa de `HANDOFF.md` §7. `Docs/SESION-<fecha>-v2-e8d.md`
+  se escribe cuando el dueño devuelva los números de G1–G5.

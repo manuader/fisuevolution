@@ -670,3 +670,40 @@ Ninguna frena: la ejecución sigue con el default.
 Nueva sección "E8e — Videos al juego (plan 2026-10-10-v2-e8e-videos-al-juego.md)", después de E8d, y
 una fila al tope de §4 (pedido del dueño con prioridad, `DUENO.md` 2026-10-10). Las filas están en
 `tasks.md`.
+
+---
+
+## Cierre de E8e (relevo 59)
+
+### Qué está hecho
+
+- **T10a–T10f saltadas** por E14 C22 (personajes base sólo estáticos; el tablero no se anima): T9 cierra sin T10.
+- **El barrido (Step 1) ya se cumple por texto:** `AnimatedPlacesTests.pendingPlaces` está **vacío** y las
+  seis secciones de E8e (`talking`, `visitorActions`, `events`, `shopIcons`, `objects`, `characters`) tienen
+  call site en `FisuEvolution/` (`StageController`, `EventPopupView`, `BlueShopView`, `MattressPopupView`,
+  `PackagePopupView`, `SpecialsAlbumView`…). La excepción de la tienda, `ui_oro_extra_slots` → E6b T7,
+  vive en `ArtClips.pendingShopIcons` (hoy `[:]`). Sin correr el test: lo corre el `completo`.
+- **`VideoPlaybackPolicy` (el carry «Debug con XCTest fuerza quieto») ya está arreglado** (`cafda289`):
+  el host de unit tests se reconoce por `XCTestConfigurationFilePath`. Las mediciones en un build propio
+  ya no caen al póster sin avisar.
+
+### Lo que queda: Step 3, los gates en el dispositivo del dueño (🔒)
+
+Release en el SE, vara de G1–G5 de E8d (procedimiento de instrumentos en su sección «Cierre de E8d»):
+
+1. **fps con el tope de 3** — (a) piso + visitante del escenario hablando + Tienda de ORO abierta con el
+   ícono enfocado; (b) piso + popup del evento. 60 s cada una con `FrameRateProbe` y «Animation Hitches».
+   ≥ 59 fps promedio, ≤ 1 % de cuadros > 25 ms, ningún toque demorado. Si falla: el `icon` del SE a póster primero.
+2. **Memoria (G4)** — pico con 3 vivos ≤ póster + 40 MB; 10 min sin jetsam.
+3. **Reduce Motion y bajo consumo** — todo quieto; el colchón y la caja muestran el resultado en el acto;
+   ningún hueco donde había video.
+4. **ODR (G5)** — primera apertura de la tienda, del Álbum, de un evento y de un visitante con el pack sin
+   bajar: póster y luego video; en modo avión, póster para siempre.
+5. **Alfa y salto póster→video (G3)** — eventos, íconos, Álbum, escenario.
+
+### Qué corre el controlador
+
+`Tools/v2/oraculo.sh completo` sobre la punta de integración con `version-2` mergeada (VERDE con las
+clases de E8e); Step 4: `Docs/SESION-<fecha>-v2-e8e.md`, `HANDOFF.md` §4/§5/§7 y `tasks.md` cuando el
+dueño devuelva los números. Esta fila bloquea E10 T9 y T12 sólo por el `completo` y la verificación de
+los gates; el código ya está.

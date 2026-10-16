@@ -3404,7 +3404,7 @@ El panel de debug es el ícono de herramientas del HUD.
 
 ### De la ola AC (2026-10-10, relevo 31)
 
-- **En todo build Debug lanzado a mano, `StoreKitTest` (weak-linked) carga `XCTest` y `VideoPlaybackPolicy` fuerza quieto aunque haya `--uitest-video`.** Una medición o una captura «animada» en un build propio puede ser el póster quieto sin avisar. Afecta a `--uitest-anim-stress` y a los gates G1/G4 de E8d en el SE. El spike lo parchea; el arreglo propio en `version-2` está pendiente (carry a E8d T15 y a E8e T10b).
+- **En todo build Debug lanzado a mano, `StoreKitTest` (weak-linked) carga `XCTest` y `VideoPlaybackPolicy` fuerza quieto aunque haya `--uitest-video`.** Una medición o una captura «animada» en un build propio puede ser el póster quieto sin avisar. Afecta a `--uitest-anim-stress` y a los gates G1/G4 de E8d en el SE. **Arreglado** (`cafda289`, relevo 32): el póster forzado se decide por `XCTestConfigurationFilePath`, no por tener `XCTest` cargado; un build Debug a mano reproduce de verdad.
 - **Dos hojas de la misma raíz no se apilan, y una celebración sin timeout congela la cola.** El `.offer` se encolaba sin `isCalmMoment`: con otra hoja arriba esperaba hasta 24 h y no pasaba nada más. Toda celebración nueva decide si necesita momento calmo y si lleva timeout; el tick la re-sincroniza (`CelebrationQueue.contains`).
 - **La memoria de texturas no se mide en simulador:** `phys_footprint` no ve las hojas de cuadros (viven en GPU). El simulador sirve para tiempos de decode (62–108 ms fuera del main, 15 ms el armado); los 20 MB del gate se miden en el SE.
 - **Un `.offer` que marca «la primera presentable» marca la equivocada:** se marca la que se mostró (`presentingOfferId`), y al mostrarse, no al armar el turno.

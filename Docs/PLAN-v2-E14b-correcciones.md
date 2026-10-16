@@ -734,3 +734,105 @@ decir, con B17 y B18 hechos. **B22 amplía B18:** se integra B18 primero.
 Al terminar la ola 8, se corre un `completo` y se instala en el iPhone del dueño. Él mira las capas en los 10
 escenarios, el visitante caminando y su burbuja, las cajas por el piso y saliendo de la caja, el colchón después del
 video, la barra nueva con la Tienda, los dos pasos del ×2 y La Marcha (con la ventana corta de DEBUG).
+
+## Cuarta tanda (pedido del dueño, 2026-10-15, noche): B31–B33
+
+Las pidió el dueño en el chat «Fisu Evolution v2 roadmap», con el iPhone en la mano. Aprobó dos mockups:
+`capturas-e14b/mockup-caja-difuminado.html` (opción A, difuminado corto) y
+`capturas-e14b/mockup-boton-compra.html` (opción B, sólo la cara).
+
+| # | Decisión |
+|---|---|
+| D20 | **Colchón gratis cada 30 minutos:** cae en el tablero para abrirlo cuando quieras. **Se suma** a los de video de la columna, que siguen cada 12 minutos. **El «1 de cada 4 gratis» (D4) desaparece**, porque lo cubre este. Corre con **reloj real** (también con el juego cerrado) y **guarda uno solo**: mientras haya uno sin abrir, no cae otro. |
+| D21 | **Caja sin el corte de los rayos: difuminado corto.** El 15 % de arriba del video se funde a transparente; sólo los rayos, no las tapas. |
+| D22 | **Botón de compra con la cara del personaje que comprás:** la cara en un círculo que sobresale de la etiqueta, y su nombre arriba del precio. Reemplaza al Fisura fijo de B28. |
+
+### B31 — Un colchón gratis cada 30 minutos en el tablero (D20)
+- **Hoy:**
+  - `treasures.json`: `spawnIntervalSeconds: 720` de juego activo. El colchón va a la columna y se abre con video (D3).
+  - `giftOneIn: 4`: uno de cada cuatro cae gratis directo al tablero (D4, B6).
+  - Al tablero, B24 lo deja caer a la vista, con «¡Tocame!», y al tocarlo se abre con animación y pop-up del premio
+    con imagen.
+- **Qué cambia:**
+  1. **Un reloj nuevo, aparte del de la columna:** cada **30 minutos de reloj real** cae un colchón **gratis** en el
+     tablero. Usa la misma caída, el mismo lugar libre del piso que estás mirando (reglas de B22/B24), las capas de
+     B19 y el «¡Tocame!».
+  2. **Con el juego cerrado el reloj sigue:** al volver, si pasaron 30 minutos o más, te espera **uno solo**. Nunca se
+     acumulan.
+  3. **Mientras haya uno sin abrir, no cae otro:** el reloj de 30 minutos arranca de nuevo **al abrirlo**.
+  4. **Al tocarlo:** la animación de apertura, el pop-up del premio con nombre e imagen (B24) y, como es gratis, el
+     «×2 con video» en dos pasos (D17, B29).
+  5. **Se saca `giftOneIn` (D4):** los colchones del ciclo de 12 minutos van todos a la columna, con video, como
+     antes. Si sacarlo deja código muerto, se borra.
+  6. **El premio** sale de la misma tabla de premios del colchón de hoy, salvo que el pacing pida otra (ver abajo).
+- **Save:** campo nuevo opcional, por ejemplo `TreasuresState.freeBoard { lastDropAt, waiting }`, sin cambiar la
+  versión. Un save viejo arranca el reloj al cargar. Test de ida y vuelta.
+- **Pacing:** el perfil free gana unos dos colchones por hora de juego (y uno por cada vuelta tras 30 minutos o más) y
+  pierde el 1 de 4. Correr el pacing-sim: Dios tiene que seguir en ~45 h. Si se acelera, se ajusta la tabla del colchón
+  gratis, no el intervalo (el intervalo lo fijó el dueño). Se anota en `balance-log.md`. EK con mutantes.
+- **Listo cuando:**
+  - Hay tests de EK: el reloj real; se guarda uno; el reloj arranca al abrir; es independiente del ciclo de 12
+    minutos; `giftOneIn` ya no existe; save viejo y ida y vuelta.
+  - Hay un UI test con un intervalo corto por flag de DEBUG: cae, se toca, sale el pop-up y después el ×2.
+  - Hay capturas en el SE y el Pro Max.
+- **Revisión:** opus (save, pacing).
+- **Archivos:** EK `TreasureScheduler`/`TreasureEngine`/`TreasuresState`, `treasures.json`, `GameState+Treasures`,
+  `PickupController`.
+
+### B32 — La caja sin el corte de los rayos (D21)
+- **Hoy:** en `obj_paquete_abre.mov` (512×512, HEVC con alfa, 73 cuadros), los rayos y el halo marrón llegan al borde
+  de arriba del cuadro y se cortan en línea recta.
+- **Lo que se midió:**
+  - las tapas abiertas quedan cerca del 17 % desde arriba;
+  - durante el salto de la apertura, unos pocos cuadros, llegan al 8 %;
+  - la caja cerrada empieza en el 21 %.
+- **Qué cambia:**
+  1. **Se hornea en el asset**, no como efecto en tiempo real: se vuelve a exportar `obj_paquete_abre.mov` con el alfa
+     multiplicado por un degradé vertical que va de 0 en el borde de arriba a 1 en el **15 %** de la altura.
+  2. El degradé se aplica **sólo desde el cuadro en que aparecen los rayos**. Así el salto de las tapas (8 %) queda
+     intacto.
+  3. Se mantienen el formato (HEVC con alfa, `hvc1`), el tamaño y la duración; el peso, parecido.
+  4. Se hace con un script reproducible en `Tools/asset-pipeline/` (AVFoundation para leer y escribir con alfa;
+     `ffmpeg` no lee el alfa de estos `.mov`). Se guarda el original como respaldo según la convención del pipeline.
+  5. **Barrido:** con el mismo script se revisan `obj_paquete_espera`, `obj_paquete_sacude` y los clips del colchón y
+     del cofre. Si alguno toca el borde con algo que no sea su contorno, se le aplica la misma regla y se anota cuál.
+- **Listo cuando:**
+  - Hay una tira de cuadros antes y después (como la del mockup) en el doc de sesión.
+  - El test del pipeline de assets está verde.
+  - Hay capturas en el SE y el Pro Max de la caja abriéndose en el tablero.
+  - Coincide con la opción A del mockup aprobado.
+- **Revisión:** sonnet.
+
+### B33 — El botón de compra muestra al personaje que vas a comprar (D22)
+- **Hoy:** desde B28, `QuickHireButton` dibuja siempre `fisura_wave` (el Fisura saludando, fijo). Cae a la cara por
+  `faceKey` sólo si falta el arte. El dueño no sabe a qué personaje está comprando.
+- **Qué cambia:**
+  1. **Se saca el Fisura fijo.** En su lugar va **la cara del personaje que ofrece el atajo** (`offer.faceKey`, que
+     ya existe para las 43 caras):
+     - en un círculo crema con aro ink de 3 pt y sombra;
+     - sobresale de la esquina de arriba a la izquierda de la etiqueta, como en el mockup (opción B);
+     - con el saltito cada tanto; Reduce Motion lo apaga.
+  2. **El nombre del personaje** (`tier.name.<id>`, en es y en) va en mayúsculas chicas, en color marrón, arriba del
+     precio y adentro de la placa crema, con `minimumScaleFactor`. Tiene que entrar «CARTONERO» y los nombres más
+     largos en el SE.
+  3. **La cara y el nombre cambian cuando cambia la oferta:**
+     - al cambiar de piso;
+     - con el modo «el primero del piso» (E14 T10);
+     - al elegir en el selector (mantener presionado).
+  4. **Se mantiene todo lo demás de B28:**
+     - la etiqueta verde que se hamaca;
+     - el gris cuando no alcanza;
+     - el sacudón;
+     - el selector;
+     - los ids;
+     - la accesibilidad: el label dice el nombre y el precio.
+- **Listo cuando:**
+  - Hay unit de la vista: la cara y el nombre de la oferta, y el cambio de oferta los cambia.
+  - Hay un UI test: cambiás de piso y la cara del botón es la del tipo base de ese piso.
+  - Hay capturas en el SE y el Pro Max con tres personajes de nombre largo y corto, comparadas con el mockup.
+- **Revisión:** sonnet.
+- **Archivos:** `QuickHireButton`, `BarFlapArt` (si la etiqueta vive ahí) y el catálogo (si falta alguna clave).
+
+### Orden de la cuarta tanda
+B32 y B33 son chicas y no se pisan: entran en cualquier hueco. B31 va después de B24 y B29 (usa la caída del colchón y
+el ×2) y corre el pacing-sim: no en paralelo con otra tarea que lo corra (B25).

@@ -226,15 +226,9 @@ func printSegmentContract(cells: [MatrixCell], flags: SegmentFlags, identityHold
                detail: late.isEmpty ? "ningún segmento más lento" : "más lentos: \(late.joined(separator: " · "))")
     }
 
-    // 3: monotonía high ≤ mid ≤ low ≤ base con el mismo perfil.
-    var broken: [String] = []
-    for (name, _) in SegmentMatrix.profiles {
-        for seed in SegmentMatrix.seeds {
-            let ladder = [PlayerSegment.high, .mid, .low, .base].map { god($0, name, seed) }
-            if !zip(ladder, ladder.dropFirst()).allSatisfy({ $0 <= $1 }) { broken.append("\(name)@\(seed)") }
-        }
-    }
-    report(broken.isEmpty, "3 monotonía high ≤ mid ≤ low ≤ base en minutos a Dios",
+    // 3: monotonía high ≤ mid ≤ low con el mismo perfil (relevo 61: contra la base, con la misma fracción).
+    let broken = SegmentMatrix.monotonyBreaks(cells: cells)
+    report(broken.isEmpty, "3 monotonía high ≤ mid ≤ low en minutos a Dios",
            detail: broken.isEmpty ? "en los tres perfiles y las tres semillas" : "rota en \(broken.joined(separator: " · "))")
 
     // 4: el piso de `high` (V7); con `segments.json` no es el peor caso, y se dice.

@@ -57,11 +57,16 @@ private func levers(for segment: PlayerSegment, flags: SegmentFlags, file: Segme
     return flags.useCaps ? SegmentLevers.Caps.worstCase : (file?.levers(for: segment) ?? .identity)
 }
 
+/// El segmento de una corrida suelta, para las ofertas del momento: el mismo que elige `singleSegmentPlayer`.
+func singleSegmentName(flags: SegmentFlags) -> PlayerSegment? {
+    guard flags.isSegmented else { return nil }
+    return flags.segment ?? (flags.useCaps ? .high : .base)
+}
+
 /// El jugador de una corrida suelta. `--caps` sin `--segment` es el peor caso: `high`. `--accept-rate` solo
 /// corre las palancas de la base con esa fracción.
 func singleSegmentPlayer(flags: SegmentFlags, file: SegmentLevers?) -> PacingSegment? {
-    guard flags.isSegmented else { return nil }
-    let segment = flags.segment ?? (flags.useCaps ? .high : .base)
+    guard let segment = singleSegmentName(flags: flags) else { return nil }
     return PacingSegment(
         levers: levers(for: segment, flags: flags, file: file),
         acceptRate: flags.acceptRate ?? PacingSegment.referenceAcceptRate(for: segment)
@@ -87,10 +92,13 @@ struct SimulatorInputs {
     let sources: PacingSources
     let maxDays: Int
 
-    func report(profile: PacingProfile, seed: Double, segment: PacingSegment?) throws -> PacingSimulator.Report {
+    /// `playerSegment` decide qué ofertas del momento ve el bot (`nil` o `base`: ninguna, la 2.0).
+    func report(
+        profile: PacingProfile, seed: Double, segment: PacingSegment?, playerSegment: PlayerSegment? = nil
+    ) throws -> PacingSimulator.Report {
         try PacingSimulator(
             config: config, tiers: tiers, human: human, upgrades: upgrades, prestigeUnlocks: prestigeUnlocks,
-            profile: profile, sources: sources, seedFraction: seed, segment: segment
+            profile: profile, sources: sources, seedFraction: seed, segment: segment, playerSegment: playerSegment
         ).run(maxDays: maxDays)
     }
 }
@@ -130,12 +138,28 @@ enum SegmentMatrix {
                 for seed in seeds {
                     cells.append(MatrixCell(
                         segment: segment, profileName: name, seed: seed,
-                        report: try inputs.report(profile: profile, seed: seed, segment: player)
+                        report: try inputs.report(profile: profile, seed: seed, segment: player, playerSegment: segment)
                     ))
                 }
             }
         }
         return cells
+    }
+
+    /// C3.3 (redefinida en el relevo 61): `high ≤ mid ≤ low` en minutos a Dios con el mismo perfil y la misma
+    /// semilla. Con `.ads` la base acepta todos los videos y `low` un cuarto: `low ≤ base` no puede valer, y la
+    /// comparación contra la base se hace con la misma fracción de videos (`SegmentPacingContractTests`).
+    /// Devuelve las celdas donde se rompe (`perfil@semilla`).
+    static func monotonyBreaks(cells: [MatrixCell]) -> [String] {
+        func god(_ segment: PlayerSegment, _ profile: String, _ seed: Double) -> Double {
+            cells.first { $0.segment == segment && $0.profileName == profile && $0.seed == seed }?.godActiveSeconds ?? .infinity
+        }
+        return profiles.map { $0.name }.flatMap { name in
+            seeds.compactMap { seed in
+                let ladder = [PlayerSegment.high, .mid, .low].map { god($0, name, seed) }
+                return zip(ladder, ladder.dropFirst()).allSatisfy { $0 <= $1 } ? nil : "\(name)@\(seed)"
+            }
+        }
     }
 
     /// C3.5: el segmento `identity` (palancas de la base, todo aceptado) da el mismo reporte que `nil`.

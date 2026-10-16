@@ -303,7 +303,8 @@ do {
         profile: arguments.profile,
         sources: loaded.sources,
         seedFraction: arguments.seedFraction,
-        segment: segmentPlayer
+        segment: segmentPlayer,
+        playerSegment: singleSegmentName(flags: flags)
     )
     let report = simulator.run(maxDays: maxDays)
 

@@ -53,8 +53,23 @@ begin
 end $$;
 
 do $$
+declare
+  v text;
 begin
-  if (select (value)::int from public.settings where key = 'min_real_seconds_to_god') is distinct from 36000
+  for v in
+    select c.relname from pg_class c join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public' and c.relkind = 'v'
+      and not coalesce('security_invoker=on' = any(c.reloptions)
+                       or 'security_invoker=true' = any(c.reloptions), false)
+  loop
+    raise exception 'la vista % no es security_invoker (el linter la marca)', v;
+  end loop;
+  raise notice 'OK las vistas de public son security_invoker';
+end $$;
+
+do $$
+begin
+  if (select (value)::int from public.settings where key = 'min_real_seconds_to_god') is distinct from 54675
      or (select (value)::boolean from public.settings where key = 'ranking_enabled') is distinct from true
      or (select (value)::int from public.settings where key = 'rate_limit_per_hour') is distinct from 30
      or (select (value)::int from public.settings where key = 'reports_to_hide') is distinct from 3 then

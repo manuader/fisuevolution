@@ -588,10 +588,13 @@ final class BoardScene: SKScene {
     /// agarrar**: este método corre todos los frames y pisaría cualquier z que
     /// se hubiera asignado afuera.
     private func refreshCrowdDepth() {
-        for (slot, node) in characterNodes where node !== dragNode {
-            let z = depthZ(for: node.position)
-                + (mergeCandidates.contains(slot) ? Self.candidateZLift : 0)
-            if node.zPosition != z { node.zPosition = z }
+        for (slot, node) in characterNodes {
+            // El arrastrado conserva su z, pero sí se escala: así no salta de tamaño al soltarlo.
+            if node !== dragNode {
+                let z = depthZ(for: node.position)
+                    + (mergeCandidates.contains(slot) ? Self.candidateZLift : 0)
+                if node.zPosition != z { node.zPosition = z }
+            }
             node.setDepthScale(DepthScale.scale(forFeetY: node.position.y + Self.bottomInset, in: depthSpan))
         }
     }

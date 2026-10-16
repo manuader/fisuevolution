@@ -323,7 +323,8 @@ final class PickupController {
               let node = pendingExits.remove(at: index).node
         else { return nil }
         // El centro va medio lado arriba de los pies (`place`); el arte puede ser más alto que ancho.
-        let size = node.boxSize
+        // La escala por distancia (B30) achica la caja alrededor del centro: se mide la caja ya achicada.
+        let size = CGSize(width: node.boxSize.width * node.depthScale, height: node.boxSize.height * node.depthScale)
         return BoxExit(feet: CGPoint(x: node.position.x, y: node.position.y - size.width / 2),
                        rimY: node.position.y + size.height / 2, width: size.width, node: node)
     }

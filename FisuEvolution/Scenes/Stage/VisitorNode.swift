@@ -114,8 +114,9 @@ final class VisitorNode: SKSpriteNode {
     }
 
     /// ¿Cae `point` (coordenadas del padre) sobre el visitante? El área nunca baja de
-    /// `DepthScale.minTouchSide`, aunque la distancia lo achique.
+    /// `DepthScale.minTouchSide`, aunque la distancia lo achique. Parte del `frame` propio (lo mismo que
+    /// `contains`): el acumulado agrandaría el área con el badge y el video.
     func isHit(by point: CGPoint) -> Bool {
-        DepthScale.enforcingMinimumTouch(calculateAccumulatedFrame()).contains(point)
+        DepthScale.enforcingMinimumTouch(frame).contains(point)
     }
 }

@@ -104,17 +104,18 @@ final class CharacterNode: SKNode {
         applyDepthScale()
     }
 
-    private func visibleParts() -> [SKNode] { [shadow, plate, sprite, nameLabel, coinBadge] }
+    /// Las piezas que se achican con la distancia. Guardadas una vez: `setDepthScale` corre por frame.
+    private lazy var visibleParts: [SKNode] = [shadow, plate, sprite, nameLabel, coinBadge]
 
     /// Guarda la pose a escala 1 de cada pieza (después de `configure`) y vuelve a aplicar la escala.
     private func rememberBasePositions() {
-        basePositions = Dictionary(uniqueKeysWithValues: visibleParts().map { (ObjectIdentifier($0), $0.position) })
+        basePositions = Dictionary(uniqueKeysWithValues: visibleParts.map { (ObjectIdentifier($0), $0.position) })
         applyDepthScale()
     }
 
     private func applyDepthScale() {
         let scale = depthScale
-        for part in visibleParts() {
+        for part in visibleParts {
             let base = basePositions[ObjectIdentifier(part)] ?? part.position
             part.position = CGPoint(x: base.x * scale, y: feetLocalY + (base.y - feetLocalY) * scale)
             // El espejado vive en el signo de la escala del sprite: se conserva.
@@ -145,7 +146,7 @@ final class CharacterNode: SKNode {
 
         let plateSize = cellSize * 0.92
         // Las piezas que esta rama no reasigna vuelven a su pose a escala 1 antes de guardarla.
-        for part in visibleParts() { if let base = basePositions[ObjectIdentifier(part)] { part.position = base } }
+        for part in visibleParts { if let base = basePositions[ObjectIdentifier(part)] { part.position = base } }
         feetLocalY = -plateSize / 2
         defer { rememberBasePositions() }
         let coinSide = cellSize * 0.22

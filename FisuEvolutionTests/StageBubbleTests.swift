@@ -182,7 +182,8 @@ struct StageBubbleTests {
         let layout = StageLayout(sceneSize: CGSize(width: 393, height: 852), bottomInset: 118, cellSize: 72)
         #expect(bubble.text == "¡Hola, vecino!")
         #expect(abs(bubble.tip.x - actor.position.x) <= 0.5)
-        #expect(abs(bubble.tip.y - (852 - (actor.position.y + layout.actorSide + 4))) <= 0.5)
+        // La cabeza, con el visitante achicado por la distancia (B30).
+        #expect(abs(bubble.tip.y - (852 - (actor.position.y + layout.actorSide * actor.depthScale + 4))) <= 0.5)
         #expect(bubble.tappable)
         #expect(!controller.layer.children.contains { $0.name == "stage.bubble" })
     }

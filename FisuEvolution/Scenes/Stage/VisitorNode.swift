@@ -94,9 +94,29 @@ final class VisitorNode: SKSpriteNode {
         xScale = abs(xScale) * facing
     }
 
+    /// La escala por distancia (`DepthScale`, E14b B30): se multiplica a la que piden la respiración
+    /// y el resto. Los pies quedan en su sitio porque el ancla del nodo está abajo.
+    private(set) var depthScale: CGFloat = 1
+    /// La última escala pedida, sin la de la distancia.
+    private(set) var baseScale: CGFloat = 1
+
+    func setDepthScale(_ scale: CGFloat) {
+        guard scale.isFinite, scale > 0, abs(scale - depthScale) > 0.0005 else { return }
+        depthScale = scale
+        scaleKeepingFacing(baseScale)
+    }
+
     /// La escala, sin perder hacia dónde mira.
     func scaleKeepingFacing(_ scale: CGFloat) {
-        xScale = scale * facing
-        yScale = scale
+        baseScale = scale
+        xScale = scale * depthScale * facing
+        yScale = scale * depthScale
+    }
+
+    /// ¿Cae `point` (coordenadas del padre) sobre el visitante? El área nunca baja de
+    /// `DepthScale.minTouchSide`, aunque la distancia lo achique. Parte del `frame` propio (lo mismo que
+    /// `contains`): el acumulado agrandaría el área con el badge y el video.
+    func isHit(by point: CGPoint) -> Bool {
+        DepthScale.enforcingMinimumTouch(frame).contains(point)
     }
 }

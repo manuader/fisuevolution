@@ -387,19 +387,21 @@ final class AppStoreScreenshotTests: XCTestCase {
 
     /// El visitante en el escenario. Desde B7 se queda en el piso donde entró: si la cámara
     /// todavía bajaba al callejón cuando llegó, espera en otro piso y el aviso lleva hasta él
-    /// (abre su trato, que se cierra para dejarlo en escena).
+    /// (abre su trato, que se cierra para dejarlo en escena). Se insiste mientras siga el aviso:
+    /// con `--uitest-merge-all` las fusiones del arranque mueven la cámara a su piso, y una que
+    /// llega después del toque lo deja otra vez esperando en el piso de arriba.
     @MainActor
     private func visitorOnStage(_ app: XCUIApplication) -> Bool {
         let onStage = app.buttons["stage.chip.visitor"]
         let elsewhere = app.buttons["stage.chip.waiting"]
-        let deadline = Date().addingTimeInterval(40)
-        while !onStage.exists, !elsewhere.exists, Date() < deadline {
-            _ = onStage.waitForExistence(timeout: 2)
-        }
-        if !onStage.exists, elsewhere.exists {
-            elsewhere.tap()
-            let close = app.buttons["sheet.close"]
-            if close.waitForExistence(timeout: 8) { close.tap() }
+        let close = app.buttons["sheet.close"]
+        let deadline = Date().addingTimeInterval(50)
+        while !onStage.exists, Date() < deadline {
+            if elsewhere.exists {
+                elsewhere.tap()
+                if close.waitForExistence(timeout: 4) { close.tap() }
+            }
+            _ = onStage.waitForExistence(timeout: 3)
         }
         return onStage.waitForExistence(timeout: 10)
     }

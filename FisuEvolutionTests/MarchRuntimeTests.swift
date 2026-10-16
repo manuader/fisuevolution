@@ -56,8 +56,8 @@ struct MarchRuntimeTests {
         let gameState = try await marching()
         let stored = try #require(march(gameState))
         #expect(stored.goal == 420 && stored.rewards == [.blue(30)])
-        #expect(stored.startedAt >= before && stored.endsAt == stored.startedAt + 3600)
-        #expect(gameState.stageChallenge == nil, "no traba el tablero ni los cortes una hora")
+        #expect(stored.startedAt >= before && stored.endsAt == stored.startedAt + 120)
+        #expect(gameState.stageChallenge == nil, "no traba el tablero ni los cortes mientras corre")
         #expect(gameState.stageVisit?.offer == nil, "el trato se cerró")
         #expect(gameState.visitorPopup == nil)
     }
@@ -97,7 +97,7 @@ struct MarchRuntimeTests {
         #expect(blue(gameState) == before + 60)
     }
 
-    @Test("si se acaba la hora (aunque la app estuviera cerrada), dice su línea y no paga")
+    @Test("si se acaba el tiempo (aunque la app estuviera cerrada), dice su línea y no paga")
     func expiringPaysNothing() async throws {
         let gameState = try await marching()
         let started = try #require(march(gameState))

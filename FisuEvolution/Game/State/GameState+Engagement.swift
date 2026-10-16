@@ -57,7 +57,10 @@ extension GameState {
         }
         // Los dos niveles de lugares extra y el piso de abajo lleno: la foto de las
         // 4 filas sin jugar horas.
+        // `reconcileTower` lleva la cámara al piso abierto más alto: se vuelve al que se miraba, así el
+        // colchón y el visitante que vienen después caen en el piso de la foto y no arriba.
         if arguments.contains("--uitest-extra-slots"), var player, let content {
+            let visible = visibleFloorOrdinal
             player.meta.engagement.shop.levels["extra_slots"] = 2
             self.player = player
             reconcileTower()
@@ -66,6 +69,7 @@ extension GameState {
                 self.player = filled
                 reconcileTower()
             }
+            visibleFloorOrdinal = visible
         }
         // Después de los lugares extra: la caja cae en un lugar libre del piso y `--uitest-extra-slots`
         // lo llena hasta el tope, así que antes de él la caja se quedaría sin sitio (las capturas de

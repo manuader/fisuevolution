@@ -2,11 +2,11 @@ import Foundation
 import Testing
 @testable import EconomyKit
 
-/// La Marcha del Puntero (E14b B25, D16): 420 toques en una hora de reloj real, en el save, una
+/// La Marcha del Puntero (E14b B25, D16): 420 toques en dos minutos de reloj real, en el save, una
 /// vez por semana.
 @Suite("Visitantes: la Marcha")
 struct MarchTests {
-    private let terms = ChallengeTerms(taps: 420, windowSeconds: 3600, coins: 0, rewards: [.blue(30)], realClock: true)
+    private let terms = ChallengeTerms(taps: 420, windowSeconds: 120, coins: 0, rewards: [.blue(30)], realClock: true)
     private let start = 1_800_000_000.0
 
     private func marching() -> VisitorsState {
@@ -17,7 +17,7 @@ struct MarchTests {
 
     private func marcha(weeklyCap: Int? = 1) -> VisitorsConfig.Script {
         fxScript("marcha", dailyCap: 1,
-                 mechanic: .challenge(taps: 420, windowSeconds: 3600, rewards: [.blue(30)], videoDoubles: true),
+                 mechanic: .challenge(taps: 420, windowSeconds: 120, rewards: [.blue(30)], videoDoubles: true),
                  weeklyCap: weeklyCap, realClock: true)
     }
 
@@ -28,14 +28,14 @@ struct MarchTests {
     @Test("la Marcha va y vuelve del save tal cual: inicio, fin, meta, toques y premio")
     func roundTrip() throws {
         var state = marching()
-        for _ in 0..<137 { VisitorScheduler.noteMarchTap(&state, now: start + 60) }
+        for _ in 0..<137 { VisitorScheduler.noteMarchTap(&state, now: start + 30) }
         state.week = "2027-W02"
         state.visitsThisWeek = ["marcha": 1]
         state.sessions = 3
         let decoded = try JSONDecoder().decode(VisitorsState.self, from: JSONEncoder().encode(state))
         #expect(decoded == state)
         let march = try #require(decoded.march)
-        #expect(march.startedAt == start && march.endsAt == start + 3600)
+        #expect(march.startedAt == start && march.endsAt == start + 120)
         #expect(march.goal == 420 && march.taps == 137 && march.rewards == [.blue(30)])
         #expect(march.outcome == nil)
     }
@@ -53,10 +53,10 @@ struct MarchTests {
 
     // MARK: El reloj real
 
-    @Test("corre con el reloj de pared: con la app cerrada la hora pasa igual y, al volver, vence")
+    @Test("corre con el reloj de pared: con la app cerrada los dos minutos pasan igual y, al volver, vence")
     func wallClock() {
         var state = marching()
-        #expect(VisitorScheduler.resolveMarch(&state, now: start + 3599) == nil, "todavía corre")
+        #expect(VisitorScheduler.resolveMarch(&state, now: start + 119) == nil, "todavía corre")
         // Se cerró la app 2 h: ningún tick, sólo la fecha de pared al volver.
         #expect(VisitorScheduler.resolveMarch(&state, now: start + 7200) == .lost)
         #expect(state.march?.outcome == .lost)
@@ -68,9 +68,9 @@ struct MarchTests {
         VisitorScheduler.noteMarchTap(&state, now: start - 1)
         #expect(state.march?.taps == 0, "un reloj que volvió atrás no suma")
         VisitorScheduler.noteMarchTap(&state, now: start)
-        VisitorScheduler.noteMarchTap(&state, now: start + 3599)
+        VisitorScheduler.noteMarchTap(&state, now: start + 119)
         #expect(state.march?.taps == 2)
-        VisitorScheduler.noteMarchTap(&state, now: start + 3600)
+        VisitorScheduler.noteMarchTap(&state, now: start + 120)
         #expect(state.march?.taps == 2, "al vencer ya no cuenta")
     }
 
@@ -87,14 +87,14 @@ struct MarchTests {
     func paysOnce() throws {
         var state = marching()
         for tap in 1..<420 {
-            #expect(!VisitorScheduler.noteMarchTap(&state, now: start + Double(tap)))
+            #expect(!VisitorScheduler.noteMarchTap(&state, now: start + Double(tap) / 10))
         }
         #expect(state.march?.outcome == nil)
-        #expect(VisitorScheduler.noteMarchTap(&state, now: start + 500), "el 420 la gana")
+        #expect(VisitorScheduler.noteMarchTap(&state, now: start + 60), "el 420 la gana")
         #expect(state.march?.outcome == .won)
-        #expect(!VisitorScheduler.noteMarchTap(&state, now: start + 501), "ganada, no cuenta más")
+        #expect(!VisitorScheduler.noteMarchTap(&state, now: start + 61), "ganada, no cuenta más")
         #expect(state.march?.taps == 420)
-        // Ganada no vence aunque pase la hora antes de cobrarla (la app se cerró en el medio).
+        // Ganada no vence aunque pase la ventana antes de cobrarla (la app se cerró en el medio).
         #expect(VisitorScheduler.resolveMarch(&state, now: start + 9999) == .won)
         let settled = try #require(VisitorScheduler.settleMarch(&state))
         #expect(settled.outcome == .won && settled.rewards == [.blue(30)])
@@ -106,7 +106,7 @@ struct MarchTests {
     func expiredPaysNothing() throws {
         var state = marching()
         for _ in 0..<419 { VisitorScheduler.noteMarchTap(&state, now: start + 100) }
-        VisitorScheduler.resolveMarch(&state, now: start + 3600)
+        VisitorScheduler.resolveMarch(&state, now: start + 120)
         let settled = try #require(VisitorScheduler.settleMarch(&state))
         #expect(settled.outcome == .lost)
         #expect(state.march == nil)
@@ -129,7 +129,7 @@ struct MarchTests {
             valuation: VisitValuation(coinsPerSecond: 10)
         ))
         let terms = try #require(offer.option(id: "challenge")?.challenge)
-        #expect(terms.realClock && terms.taps == 420 && terms.windowSeconds == 3600 && terms.rewards == [.blue(30)])
+        #expect(terms.realClock && terms.taps == 420 && terms.windowSeconds == 120 && terms.rewards == [.blue(30)])
     }
 
     // MARK: El cupo semanal
@@ -179,7 +179,7 @@ struct MarchTests {
         let config = fxVisitors(scripts: [script])
         var state = marching()
         #expect(!VisitorScheduler.isAvailable(script, config: config, state: state, context: context, isOfferable: { _ in true }))
-        VisitorScheduler.resolveMarch(&state, now: start + 3600)
+        VisitorScheduler.resolveMarch(&state, now: start + 120)
         _ = VisitorScheduler.settleMarch(&state)
         #expect(VisitorScheduler.isAvailable(script, config: config, state: state, context: context, isOfferable: { _ in true }))
     }
@@ -223,7 +223,7 @@ struct MarchTests {
     @Test("la Marcha cobrada en un dispositivo no se paga de nuevo cuando gana el save del otro")
     func settledElsewhereDoesNotPayTwice() throws {
         var deviceB = marching()
-        for tap in 1...420 { VisitorScheduler.noteMarchTap(&deviceB, now: start + Double(tap)) }
+        for tap in 1...420 { VisitorScheduler.noteMarchTap(&deviceB, now: start + Double(tap) / 10) }
         #expect(deviceB.march?.outcome == .won)
         var deviceA = deviceB
         #expect(VisitorScheduler.settleMarch(&deviceA)?.outcome == .won, "A la cobra")
@@ -256,7 +256,7 @@ struct MarchTests {
     func config() throws {
         let json = """
         {"id": "m", "visitor": "npc_turista", "weight": 20, "minTier": 3, "dailyCap": 1, "weeklyCap": 1, "realClock": true,
-         "mechanic": {"kind": "challenge", "taps": 420, "windowSeconds": 3600, "videoDoubles": true,
+         "mechanic": {"kind": "challenge", "taps": 420, "windowSeconds": 120, "videoDoubles": true,
                       "rewards": [{"kind": "blue", "amount": 30}]}}
         """
         let script = try JSONDecoder().decode(VisitorsConfig.Script.self, from: Data(json.utf8))

@@ -69,7 +69,7 @@ struct VisitorsContentTests {
             taps: 67, windowSeconds: 30, rewards: [.modifier(effect: .incomeMultiplier, magnitude: 2, seconds: 120)], videoDoubles: false
         ))
         // La Marcha (E14b B25, D16): 420 toques en una hora de reloj real, 30 blue, una vez por semana.
-        #expect(try mechanic("puntero_marcha") == .challenge(taps: 420, windowSeconds: 3600, rewards: [.blue(30)], videoDoubles: true))
+        #expect(try mechanic("puntero_marcha") == .challenge(taps: 420, windowSeconds: 120, rewards: [.blue(30)], videoDoubles: true))
         #expect(content.visitors.script(id: "puntero_marcha")?.realClock == true)
         #expect(content.visitors.script(id: "puntero_marcha")?.weeklyCap == 1)
         #expect(content.visitors.scripts.filter(\.realClock).map(\.id) == ["puntero_marcha"], "el único de reloj de pared")

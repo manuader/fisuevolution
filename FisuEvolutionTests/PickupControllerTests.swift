@@ -102,7 +102,10 @@ struct PickupControllerTests {
             let spot = try #require(box.spot, "cada caja sorteada tiene x e y")
             let feet = layout.packageFeet(at: spot)
             #expect(abs(node.position.x - feet.x) < 0.01, "en su x")
-            #expect(abs(node.position.y - (feet.y + layout.side / 2)) < 0.01, "en su y")
+            // Achicada por la distancia (B30) alrededor de los pies: el centro, medio lado ya achicado arriba.
+            let scale = DepthScale.scale(forFeetY: feet.y, in: layout.depthSpan)
+            #expect(abs(node.depthScale - scale) < 0.0001, "con la escala de la y de sus pies (B30)")
+            #expect(abs(node.position.y - (feet.y + layout.side / 2 * scale)) < 0.01, "en su y")
             #expect(abs(node.zPosition - DepthOrder.z(forFeetY: feet.y)) < 0.0005, "con el z de sus pies")
         }
         let feet = controller.boxes.map { $0.position.y }
@@ -324,7 +327,9 @@ struct PickupControllerTests {
         let layout = try floorLayout(gameState)
         let feet = layout.packageFeet(at: spot)
         #expect(abs(mattress.position.x - feet.x) < 0.01)
-        #expect(abs(mattress.position.y - (feet.y + mattress.boxSize.height / 2)) < 0.01, "los pies en su lugar")
+        let scale = DepthScale.scale(forFeetY: feet.y, in: layout.depthSpan)
+        #expect(abs(mattress.depthScale - scale) < 0.0001, "con la escala de la y de sus pies (B30)")
+        #expect(abs(mattress.position.y - (feet.y + mattress.boxSize.height / 2 * scale)) < 0.01, "los pies en su lugar")
         #expect(abs(mattress.zPosition - DepthOrder.z(forFeetY: feet.y)) < 0.0005, "con el z de sus pies (B19)")
         #expect(mattress.zPosition >= DepthOrder.z(forFeetY: layout.baselineY), "nunca detrás de la hilera de atrás")
         // El centro del colchón es suyo: el toque de ahí lo abre (lo que pide el UI test de B24).
@@ -508,7 +513,7 @@ struct PickupControllerTests {
         let layout = try floorLayout(gameState)
         let stage = StageLayout(sceneSize: CGSize(width: 393, height: 852), bottomInset: 118, cellSize: 72)
         for box in controller.boxes {
-            let feet = box.position.y - layout.side / 2
+            let feet = box.position.y - layout.side / 2 * box.depthScale
             #expect(feet >= stage.groundFloorY - 0.01, "arriba de la barra")
             #expect(feet <= layout.baselineY + 0.01, "no más atrás que el horizonte")
         }
